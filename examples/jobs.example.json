@@ -1,0 +1,49 @@
+[
+  {
+    "command": "echo",
+    "args": ["Hello from distributed cluster!"],
+    "name": "hello-world",
+    "resources": {
+      "cpu_cores": 0.5,
+      "memory_mb": 256
+    },
+    "timeout_seconds": 60
+  },
+  {
+    "command": "python",
+    "args": ["-c", "import sys; print(f'Python {sys.version}')"],
+    "name": "python-version",
+    "docker_image": "python:3.11-slim",
+    "resources": {
+      "cpu_cores": 1.0,
+      "memory_mb": 512
+    },
+    "timeout_seconds": 120
+  },
+  {
+    "command": "python",
+    "args": ["-c", "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"],
+    "name": "gpu-check",
+    "docker_image": "pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime",
+    "resources": {
+      "cpu_cores": 2.0,
+      "memory_mb": 4096,
+      "gpu_count": 1,
+      "gpu_memory_mb": 2048
+    },
+    "required_tags": ["gpu"],
+    "timeout_seconds": 300
+  },
+  {
+    "command": "python",
+    "args": ["-c", "import time; [print(f'Step {i}', flush=True) or time.sleep(1) for i in range(10)]"],
+    "name": "long-running-task",
+    "docker_image": "python:3.11-slim",
+    "resources": {
+      "cpu_cores": 1.0,
+      "memory_mb": 256
+    },
+    "timeout_seconds": 60,
+    "priority": 100
+  }
+]

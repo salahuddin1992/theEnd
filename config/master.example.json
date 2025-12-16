@@ -1,0 +1,27 @@
+{
+  "master": {
+    "host": "0.0.0.0",
+    "port": 8765,
+    "api_prefix": "/api/v1",
+    "tls_enabled": false,
+    "state_dir": "./cluster_state",
+    "heartbeat_timeout_seconds": 30,
+    "heartbeat_interval_seconds": 10,
+    "scheduler_interval_seconds": 1.0,
+    "max_concurrent_jobs_per_worker": 10,
+    "job_timeout_default_seconds": 3600,
+    "job_max_retries_default": 3,
+    "enable_ha": false,
+    "auth_enabled": false,
+    "log_level": "INFO"
+  },
+  "worker": {
+    "master_url": "http://localhost:8765",
+    "heartbeat_interval_seconds": 10,
+    "docker_enabled": true,
+    "sandbox_enabled": true,
+    "log_level": "INFO"
+  },
+  "artifact_storage_type": "local",
+  "artifact_storage_path": "./artifacts"
+}

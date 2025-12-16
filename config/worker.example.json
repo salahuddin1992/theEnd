@@ -1,0 +1,19 @@
+{
+  "worker": {
+    "worker_name": "worker-01",
+    "host": "0.0.0.0",
+    "port": 8766,
+    "master_url": "http://master-node:8765",
+    "heartbeat_interval_seconds": 10,
+    "tags": ["gpu", "high-memory"],
+    "labels": {
+      "location": "datacenter-1",
+      "owner": "team-ml"
+    },
+    "work_dir": "./worker_jobs",
+    "docker_enabled": true,
+    "docker_default_network": "bridge",
+    "sandbox_enabled": true,
+    "log_level": "INFO"
+  }
+}
