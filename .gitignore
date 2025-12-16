@@ -48,10 +48,10 @@ dmypy.json
 # Documentation
 docs/_build/
 
-# Project specific
-cluster_state/
-worker_jobs/
-artifacts/
+# Project specific - data directories (not source code)
+/cluster_state/
+/worker_jobs/
+/artifacts/
 *.log
 *.db
 
