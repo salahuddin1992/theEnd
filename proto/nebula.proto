@@ -1,0 +1,630 @@
+// ============================================================================
+// NebulaCompute - Distributed Computing Protocol
+// ============================================================================
+// بروتوكول الاتصال بين Master و Workers
+//
+// الرسائل الرئيسية:
+// - RegisterWorker: تسجيل worker جديد
+// - Heartbeat: نبضة قلب + تقرير موارد
+// - AssignJob: تعيين مهمة لـ worker
+// - ReportStatus: تقرير حالة المهمة
+// - RenewLease: تجديد الـ lease
+// ============================================================================
+
+syntax = "proto3";
+
+package nebula.v1;
+
+option go_package = "github.com/nebula/api/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// ============================================================================
+// Master Service - الخدمة الرئيسية على الماستر
+// ============================================================================
+
+service MasterService {
+    // Worker Registration & Health
+    rpc RegisterWorker(RegisterWorkerRequest) returns (RegisterWorkerResponse);
+    rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+    rpc DeregisterWorker(DeregisterWorkerRequest) returns (DeregisterWorkerResponse);
+
+    // Job Assignment (Worker pulls jobs)
+    rpc PollAssignments(PollAssignmentsRequest) returns (PollAssignmentsResponse);
+
+    // Job Status Reporting
+    rpc ReportJobStarted(ReportJobStartedRequest) returns (ReportJobStartedResponse);
+    rpc ReportJobProgress(ReportJobProgressRequest) returns (ReportJobProgressResponse);
+    rpc ReportJobCompleted(ReportJobCompletedRequest) returns (ReportJobCompletedResponse);
+
+    // Lease Management
+    rpc RenewLease(RenewLeaseRequest) returns (RenewLeaseResponse);
+    rpc ReleaseLease(ReleaseLeaseRequest) returns (ReleaseLeaseResponse);
+
+    // Streaming (optional, for real-time updates)
+    rpc StreamAssignments(StreamAssignmentsRequest) returns (stream JobAssignment);
+}
+
+// ============================================================================
+// Client Service - خدمة إرسال المهام (للمستخدمين)
+// ============================================================================
+
+service ClientService {
+    rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
+    rpc GetJob(GetJobRequest) returns (GetJobResponse);
+    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+    rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
+
+    rpc ListWorkers(ListWorkersRequest) returns (ListWorkersResponse);
+    rpc GetWorker(GetWorkerRequest) returns (GetWorkerResponse);
+
+    rpc GetClusterStats(GetClusterStatsRequest) returns (GetClusterStatsResponse);
+}
+
+// ============================================================================
+// Common Types - الأنواع المشتركة
+// ============================================================================
+
+// Resource specification
+message ResourceSpec {
+    double cpu_cores = 1;           // عدد الأنوية (يدعم كسور)
+    int64 memory_bytes = 2;         // الذاكرة بالبايت
+    int32 gpu_count = 3;            // عدد GPUs
+    int64 gpu_memory_bytes = 4;     // ذاكرة GPU
+    map<string, double> custom = 5; // موارد مخصصة
+}
+
+// GPU information
+message GPUInfo {
+    int32 index = 1;
+    string name = 2;
+    string uuid = 3;
+    string vendor = 4;              // nvidia, amd, intel
+    int64 memory_total_bytes = 5;
+    int64 memory_free_bytes = 6;
+    double utilization_percent = 7;
+    double temperature_celsius = 8;
+    double power_watts = 9;
+    string driver_version = 10;
+    string cuda_version = 11;       // for NVIDIA
+}
+
+// Worker status enum
+enum WorkerStatus {
+    WORKER_STATUS_UNSPECIFIED = 0;
+    WORKER_STATUS_INITIALIZING = 1;
+    WORKER_STATUS_ONLINE = 2;
+    WORKER_STATUS_BUSY = 3;
+    WORKER_STATUS_DRAINING = 4;     // لا يقبل jobs جديدة
+    WORKER_STATUS_OFFLINE = 5;
+    WORKER_STATUS_BANNED = 6;
+}
+
+// Job status enum
+enum JobStatus {
+    JOB_STATUS_UNSPECIFIED = 0;
+    JOB_STATUS_QUEUED = 1;
+    JOB_STATUS_SCHEDULED = 2;
+    JOB_STATUS_RUNNING = 3;
+    JOB_STATUS_SUCCEEDED = 4;
+    JOB_STATUS_FAILED = 5;
+    JOB_STATUS_CANCELED = 6;
+    JOB_STATUS_TIMEOUT = 7;
+}
+
+// ============================================================================
+// Worker Registration
+// ============================================================================
+
+message RegisterWorkerRequest {
+    string hostname = 1;
+    string ip_address = 2;
+    int32 port = 3;
+    string agent_version = 4;
+
+    ResourceSpec total_resources = 5;
+    repeated GPUInfo gpus = 6;
+    repeated string tags = 7;           // ["cuda", "avx2", "ssd-fast"]
+    map<string, string> labels = 8;     // {"location": "dc1", "owner": "team-ml"}
+
+    string platform = 9;                // linux, darwin, windows
+    string os_version = 10;
+    string kernel_version = 11;
+
+    // Security
+    bytes public_key = 12;              // للـ mTLS
+    string enrollment_token = 13;       // token لمرة واحدة
+
+    // Capabilities
+    bool docker_available = 14;
+    bool containerd_available = 15;
+    string docker_version = 16;
+    repeated string supported_runtimes = 17;  // ["docker", "containerd", "process"]
+}
+
+message RegisterWorkerResponse {
+    string worker_id = 1;
+    bool approved = 2;
+    string rejection_reason = 3;
+
+    // Configuration from master
+    int32 heartbeat_interval_seconds = 4;
+    int32 lease_duration_seconds = 5;
+
+    // Security
+    bytes master_certificate = 6;       // للـ mTLS
+    string auth_token = 7;              // JWT or session token
+    google.protobuf.Timestamp token_expires_at = 8;
+}
+
+// ============================================================================
+// Heartbeat
+// ============================================================================
+
+message HeartbeatRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+
+    // Current resource usage
+    ResourceSpec free_resources = 3;
+    double cpu_utilization_percent = 4;
+    double memory_utilization_percent = 5;
+    repeated GPUInfo gpu_status = 6;
+
+    // Running jobs
+    repeated RunningJobInfo running_jobs = 7;
+
+    // Health indicators
+    HealthStatus health = 8;
+
+    // Sequence number for ordering
+    int64 sequence_number = 9;
+    google.protobuf.Timestamp client_timestamp = 10;
+}
+
+message RunningJobInfo {
+    string job_id = 1;
+    string lease_id = 2;
+    JobStatus status = 3;
+    double progress_percent = 4;
+    google.protobuf.Timestamp started_at = 5;
+}
+
+message HealthStatus {
+    bool healthy = 1;
+    double disk_usage_percent = 2;
+    double disk_free_bytes = 3;
+    double load_average_1m = 4;
+    double load_average_5m = 5;
+    double load_average_15m = 6;
+    int64 network_rx_bytes = 7;
+    int64 network_tx_bytes = 8;
+    repeated string warnings = 9;       // ["disk_pressure", "high_load"]
+}
+
+message HeartbeatResponse {
+    bool acknowledged = 1;
+
+    // Commands from master
+    repeated MasterCommand commands = 2;
+
+    // Lease renewals
+    repeated LeaseRenewal lease_renewals = 3;
+
+    // Server timestamp for sync
+    google.protobuf.Timestamp server_timestamp = 4;
+}
+
+message MasterCommand {
+    enum CommandType {
+        COMMAND_TYPE_UNSPECIFIED = 0;
+        COMMAND_TYPE_DRAIN = 1;         // توقف عن قبول jobs جديدة
+        COMMAND_TYPE_CANCEL_JOB = 2;    // ألغِ job محدد
+        COMMAND_TYPE_SHUTDOWN = 3;      // أوقف الـ agent
+        COMMAND_TYPE_UPDATE_CONFIG = 4; // حدّث الإعدادات
+    }
+
+    CommandType type = 1;
+    string job_id = 2;                  // for CANCEL_JOB
+    map<string, string> config = 3;     // for UPDATE_CONFIG
+}
+
+message LeaseRenewal {
+    string lease_id = 1;
+    string job_id = 2;
+    google.protobuf.Timestamp new_expires_at = 3;
+}
+
+// ============================================================================
+// Job Assignment
+// ============================================================================
+
+message PollAssignmentsRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+
+    // Current capacity
+    ResourceSpec available_resources = 3;
+    int32 max_jobs = 4;                 // أقصى عدد jobs يقبلها
+}
+
+message PollAssignmentsResponse {
+    repeated JobAssignment assignments = 1;
+}
+
+message JobAssignment {
+    string job_id = 1;
+    string lease_id = 2;
+    google.protobuf.Duration lease_duration = 3;
+    google.protobuf.Timestamp lease_expires_at = 4;
+
+    JobSpec spec = 5;
+
+    // Artifacts
+    repeated ArtifactReference inputs = 6;
+    repeated OutputSpec outputs = 7;
+}
+
+message JobSpec {
+    string name = 1;
+    int32 priority = 2;
+
+    // Runtime
+    RuntimeSpec runtime = 3;
+
+    // Resources
+    ResourceSpec resources = 4;
+
+    // Execution policy
+    ExecutionPolicy policy = 5;
+
+    // Environment
+    map<string, string> environment = 6;
+    repeated string secrets = 7;        // names of secrets to inject
+
+    // Metadata
+    map<string, string> labels = 8;
+    string owner = 9;
+}
+
+message RuntimeSpec {
+    enum RuntimeType {
+        RUNTIME_TYPE_UNSPECIFIED = 0;
+        RUNTIME_TYPE_CONTAINER = 1;
+        RUNTIME_TYPE_PROCESS = 2;
+    }
+
+    RuntimeType type = 1;
+
+    // Container runtime
+    string image = 2;
+    repeated string command = 3;
+    repeated string args = 4;
+    string working_dir = 5;
+    string user = 6;                    // user:group
+
+    // Process runtime (direct execution)
+    string executable = 7;
+
+    // Security
+    bool privileged = 8;
+    bool read_only_rootfs = 9;
+    repeated string capabilities_add = 10;
+    repeated string capabilities_drop = 11;
+}
+
+message ExecutionPolicy {
+    int32 max_retries = 1;
+    google.protobuf.Duration timeout = 2;
+
+    // Network policy
+    enum NetworkPolicy {
+        NETWORK_POLICY_UNSPECIFIED = 0;
+        NETWORK_POLICY_NONE = 1;        // no network
+        NETWORK_POLICY_HOST = 2;        // host network
+        NETWORK_POLICY_BRIDGE = 3;      // bridge (default)
+        NETWORK_POLICY_EGRESS_DENY = 4; // deny outbound
+    }
+    NetworkPolicy network = 3;
+
+    // Placement constraints
+    repeated string require_tags = 4;
+    repeated string avoid_workers = 5;
+    repeated string prefer_workers = 6;
+
+    // Retry policy
+    google.protobuf.Duration retry_delay = 7;
+    double retry_backoff_multiplier = 8;
+}
+
+message ArtifactReference {
+    string name = 1;
+    string uri = 2;                     // s3://bucket/path or http://...
+    string mount_path = 3;              // where to mount in container
+    bool executable = 4;
+    string checksum = 5;                // sha256:...
+}
+
+message OutputSpec {
+    string name = 1;
+    string path = 2;                    // path inside container
+    string upload_uri = 3;              // where to upload
+    bool required = 4;                  // fail if not produced
+}
+
+// ============================================================================
+// Job Status Reporting
+// ============================================================================
+
+message ReportJobStartedRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+    string job_id = 3;
+    string lease_id = 4;
+
+    google.protobuf.Timestamp started_at = 5;
+    string container_id = 6;            // if running in container
+    int32 pid = 7;                      // if running as process
+}
+
+message ReportJobStartedResponse {
+    bool acknowledged = 1;
+    bool should_cancel = 2;             // if master wants to cancel
+}
+
+message ReportJobProgressRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+    string job_id = 3;
+    string lease_id = 4;
+
+    double progress_percent = 5;
+    string status_message = 6;
+    map<string, string> metrics = 7;    // custom metrics
+}
+
+message ReportJobProgressResponse {
+    bool acknowledged = 1;
+    bool should_cancel = 2;
+}
+
+message ReportJobCompletedRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+    string job_id = 3;
+    string lease_id = 4;
+
+    JobStatus final_status = 5;
+    int32 exit_code = 6;
+    string error_message = 7;
+
+    google.protobuf.Timestamp completed_at = 8;
+    google.protobuf.Duration execution_duration = 9;
+
+    // Resource usage
+    ResourceUsageReport resource_usage = 10;
+
+    // Outputs
+    repeated ArtifactReference outputs = 11;
+
+    // Logs
+    string logs_uri = 12;               // where logs were uploaded
+    string stdout_tail = 13;            // last N lines (for quick view)
+    string stderr_tail = 14;
+}
+
+message ResourceUsageReport {
+    int64 peak_memory_bytes = 1;
+    double avg_cpu_percent = 2;
+    int64 disk_read_bytes = 3;
+    int64 disk_write_bytes = 4;
+    int64 network_rx_bytes = 5;
+    int64 network_tx_bytes = 6;
+
+    // GPU usage
+    double peak_gpu_utilization = 7;
+    int64 peak_gpu_memory_bytes = 8;
+}
+
+message ReportJobCompletedResponse {
+    bool acknowledged = 1;
+}
+
+// ============================================================================
+// Lease Management
+// ============================================================================
+
+message RenewLeaseRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+    string job_id = 3;
+    string lease_id = 4;
+}
+
+message RenewLeaseResponse {
+    bool renewed = 1;
+    google.protobuf.Timestamp new_expires_at = 2;
+    string rejection_reason = 3;
+}
+
+message ReleaseLeaseRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+    string job_id = 3;
+    string lease_id = 4;
+    string reason = 5;
+}
+
+message ReleaseLeaseResponse {
+    bool released = 1;
+}
+
+// ============================================================================
+// Streaming Assignments
+// ============================================================================
+
+message StreamAssignmentsRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+    ResourceSpec available_resources = 3;
+}
+
+// ============================================================================
+// Deregistration
+// ============================================================================
+
+message DeregisterWorkerRequest {
+    string worker_id = 1;
+    string auth_token = 2;
+    string reason = 3;
+    bool graceful = 4;                  // wait for running jobs?
+}
+
+message DeregisterWorkerResponse {
+    bool acknowledged = 1;
+    repeated string orphaned_jobs = 2;  // jobs that need reassignment
+}
+
+// ============================================================================
+// Client API Messages
+// ============================================================================
+
+message SubmitJobRequest {
+    JobSpec spec = 1;
+    repeated ArtifactReference inputs = 2;
+    repeated OutputSpec outputs = 3;
+
+    string idempotency_key = 4;         // for safe retries
+}
+
+message SubmitJobResponse {
+    string job_id = 1;
+    JobStatus status = 2;
+}
+
+message GetJobRequest {
+    string job_id = 1;
+}
+
+message GetJobResponse {
+    Job job = 1;
+}
+
+message Job {
+    string job_id = 1;
+    JobSpec spec = 2;
+    JobStatus status = 3;
+
+    string assigned_worker = 4;
+    string current_lease_id = 5;
+    int32 attempt_count = 6;
+
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp scheduled_at = 8;
+    google.protobuf.Timestamp started_at = 9;
+    google.protobuf.Timestamp completed_at = 10;
+
+    int32 exit_code = 11;
+    string error_message = 12;
+
+    repeated ArtifactReference outputs = 13;
+    string logs_uri = 14;
+
+    repeated JobAttempt attempts = 15;
+}
+
+message JobAttempt {
+    int32 attempt_number = 1;
+    string worker_id = 2;
+    string lease_id = 3;
+    JobStatus status = 4;
+    int32 exit_code = 5;
+    string error_message = 6;
+    google.protobuf.Timestamp started_at = 7;
+    google.protobuf.Timestamp completed_at = 8;
+}
+
+message CancelJobRequest {
+    string job_id = 1;
+    string reason = 2;
+}
+
+message CancelJobResponse {
+    bool canceled = 1;
+    JobStatus final_status = 2;
+}
+
+message ListJobsRequest {
+    repeated JobStatus status_filter = 1;
+    string owner_filter = 2;
+    int32 limit = 3;
+    int32 offset = 4;
+    string order_by = 5;                // "created_at", "-priority"
+}
+
+message ListJobsResponse {
+    repeated Job jobs = 1;
+    int32 total_count = 2;
+}
+
+message ListWorkersRequest {
+    repeated WorkerStatus status_filter = 1;
+    repeated string tags_filter = 2;
+    int32 limit = 3;
+}
+
+message ListWorkersResponse {
+    repeated Worker workers = 1;
+}
+
+message Worker {
+    string worker_id = 1;
+    string hostname = 2;
+    string ip_address = 3;
+    WorkerStatus status = 4;
+
+    ResourceSpec total_resources = 5;
+    ResourceSpec free_resources = 6;
+    repeated GPUInfo gpus = 7;
+    repeated string tags = 8;
+    map<string, string> labels = 9;
+
+    string agent_version = 10;
+    string platform = 11;
+
+    google.protobuf.Timestamp registered_at = 12;
+    google.protobuf.Timestamp last_heartbeat_at = 13;
+
+    int32 active_jobs_count = 14;
+    int32 completed_jobs_count = 15;
+    int32 failed_jobs_count = 16;
+}
+
+message GetWorkerRequest {
+    string worker_id = 1;
+}
+
+message GetWorkerResponse {
+    Worker worker = 1;
+    repeated RunningJobInfo running_jobs = 2;
+}
+
+message GetClusterStatsRequest {}
+
+message GetClusterStatsResponse {
+    int32 total_workers = 1;
+    int32 online_workers = 2;
+    int32 busy_workers = 3;
+
+    int32 queued_jobs = 4;
+    int32 running_jobs = 5;
+    int32 completed_jobs_total = 6;
+    int32 failed_jobs_total = 7;
+
+    ResourceSpec total_resources = 8;
+    ResourceSpec free_resources = 9;
+
+    double avg_queue_time_seconds = 10;
+    double avg_execution_time_seconds = 11;
+}
