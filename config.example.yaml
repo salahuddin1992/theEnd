@@ -1,0 +1,205 @@
+# ============================================================================
+# NebulaCompute Configuration Example
+# ============================================================================
+# Copy this file to config.yaml and customize as needed.
+# Environment variables (NEBULA_*) override file values.
+# ============================================================================
+
+# Cluster identity
+cluster_name: "nebula-cluster"
+cluster_id: ""  # Auto-generated if empty
+
+# =============================================================================
+# HTTP Server Configuration
+# =============================================================================
+server:
+  host: "0.0.0.0"
+  port: 8080
+  workers: 4
+  debug: false
+
+  # TLS (optional)
+  tls_enabled: false
+  tls_cert_path: null
+  tls_key_path: null
+  tls_ca_path: null
+
+# =============================================================================
+# gRPC Configuration
+# =============================================================================
+grpc:
+  enabled: true
+  port: 50051
+  max_message_size_mb: 64
+  keepalive_time_seconds: 30
+  keepalive_timeout_seconds: 10
+
+# =============================================================================
+# Database Configuration
+# =============================================================================
+database:
+  # Type: sqlite (development) or postgresql (production)
+  type: "sqlite"
+
+  # SQLite
+  path: "./data/cluster.db"
+
+  # PostgreSQL (when type: postgresql)
+  host: "localhost"
+  port: 5432
+  database: "nebula"
+  user: ""
+  password: ""
+  pool_size: 5
+  max_overflow: 10
+
+# =============================================================================
+# Security Configuration
+# =============================================================================
+security:
+  # JWT secret key (REQUIRED in production!)
+  # Generate with: openssl rand -hex 32
+  secret_key: ""
+
+  # Token expiry
+  token_expiry_hours: 24
+
+  # Worker enrollment mode:
+  # - auto_approve: Accept all workers
+  # - token: Require enrollment token
+  # - allowlist: Only allow specific fingerprints
+  enrollment_mode: "auto_approve"
+
+  # For token mode
+  enrollment_tokens: []
+
+  # For allowlist mode
+  allowed_fingerprints: []
+
+  # Rate limiting
+  rate_limit_enabled: true
+  rate_limit_requests: 100
+  rate_limit_window_seconds: 60
+
+# =============================================================================
+# Scheduler Configuration
+# =============================================================================
+scheduler:
+  # Scheduling policy:
+  # - best_fit: Minimize resource waste
+  # - worst_fit: Spread load
+  # - round_robin: Simple rotation
+  policy: "best_fit"
+
+  # Scoring profile:
+  # - best_fit: Optimize resource utilization
+  # - spread: Balance load across workers
+  # - locality_first: Prefer local data
+  # - reliable: Prefer reliable workers
+  scoring_profile: "best_fit"
+
+  # Scheduler loop interval
+  scheduler_interval_seconds: 1.0
+
+  # Maximum pending jobs in queue
+  max_pending_jobs: 10000
+
+  # Lease management
+  lease_duration_seconds: 300
+  lease_renewal_threshold_seconds: 60
+  max_lease_renewals: 10
+
+# =============================================================================
+# Retry Configuration
+# =============================================================================
+retry:
+  # Maximum retry attempts
+  max_retries: 3
+
+  # Retry strategy:
+  # - immediate: No delay
+  # - linear: Fixed delay
+  # - exponential: Exponential backoff
+  # - fibonacci: Fibonacci sequence
+  strategy: "exponential"
+
+  # Delay settings
+  initial_delay_seconds: 5.0
+  max_delay_seconds: 300.0
+  multiplier: 2.0
+
+  # Jitter to prevent thundering herd
+  jitter: true
+
+# =============================================================================
+# Worker Agent Configuration
+# =============================================================================
+worker:
+  # Heartbeat interval
+  heartbeat_interval_seconds: 30
+
+  # Job polling interval
+  job_poll_interval_seconds: 5
+
+  # Maximum concurrent jobs per worker
+  max_concurrent_jobs: 10
+
+  # Resource overrides (null = auto-detect)
+  cpu_cores_override: null
+  memory_mb_override: null
+  gpu_indices: []
+
+  # Docker settings
+  docker_enabled: true
+  docker_default_network: "bridge"
+  docker_pull_timeout_seconds: 300
+  sandbox_enabled: true
+
+  # Working directories
+  work_dir: "/tmp/nebula/jobs"
+  artifacts_dir: "/tmp/nebula/artifacts"
+  logs_dir: "/tmp/nebula/logs"
+
+# =============================================================================
+# Storage Configuration
+# =============================================================================
+storage:
+  # Type: local or s3
+  type: "local"
+
+  # Local storage
+  local_path: "./data/artifacts"
+
+  # S3 / MinIO
+  s3_bucket: ""
+  s3_region: "us-east-1"
+  s3_endpoint: null  # Set for MinIO, e.g., "http://localhost:9000"
+  s3_access_key: ""
+  s3_secret_key: ""
+
+# =============================================================================
+# Observability Configuration
+# =============================================================================
+observability:
+  # Logging
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_format: "json"  # json or text
+  log_file: null  # null = stdout only
+
+  # Metrics (Prometheus format)
+  metrics_enabled: true
+  metrics_port: 9090
+  metrics_path: "/metrics"
+
+  # Tracing (OpenTelemetry)
+  tracing_enabled: false
+  tracing_endpoint: null
+
+# =============================================================================
+# WebSocket Configuration
+# =============================================================================
+websocket:
+  enabled: true
+  ping_interval_seconds: 30
+  ping_timeout_seconds: 10
+  max_connections: 1000
