@@ -1,0 +1,166 @@
+# Docker Compose for NebulaCompute
+# =================================
+# Development and testing deployment
+
+version: "3.9"
+
+services:
+  # ===================
+  # Master Node
+  # ===================
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile.master
+    container_name: nebula-master
+    hostname: master
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persistent state
+      - master-state:/data/state
+      - master-db:/data
+      # Shared artifacts storage
+      - artifacts:/data/artifacts
+    environment:
+      - NEBULA_MASTER_HOST=0.0.0.0
+      - NEBULA_MASTER_PORT=8080
+      - NEBULA_STATE_DIR=/data/state
+      - NEBULA_DB_PATH=/data/cluster.db
+      - NEBULA_LOG_LEVEL=INFO
+      - NEBULA_LOG_FORMAT=json
+      # Security
+      - NEBULA_SECRET_KEY=${NEBULA_SECRET_KEY:-dev-secret-key-change-in-production}
+      - NEBULA_ENROLLMENT_MODE=auto_approve  # Change to 'token' in production
+    networks:
+      - nebula-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ===================
+  # Worker Nodes
+  # ===================
+  worker-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: nebula-worker-1
+    hostname: worker-1
+    depends_on:
+      master:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    volumes:
+      # Worker job data
+      - worker1-jobs:/data/jobs
+      - worker1-logs:/data/logs
+      # Shared artifacts
+      - artifacts:/data/artifacts:ro
+      # Docker socket for container job execution
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NEBULA_MASTER_URL=http://master:8080
+      - NEBULA_WORKER_PORT=8081
+      - NEBULA_WORKER_ID=worker-1
+      - NEBULA_WORKER_TAGS=cpu,docker
+      - NEBULA_LOG_LEVEL=INFO
+    networks:
+      - nebula-net
+    restart: unless-stopped
+
+  worker-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: nebula-worker-2
+    hostname: worker-2
+    depends_on:
+      master:
+        condition: service_healthy
+    ports:
+      - "8082:8081"
+    volumes:
+      - worker2-jobs:/data/jobs
+      - worker2-logs:/data/logs
+      - artifacts:/data/artifacts:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - NEBULA_MASTER_URL=http://master:8080
+      - NEBULA_WORKER_PORT=8081
+      - NEBULA_WORKER_ID=worker-2
+      - NEBULA_WORKER_TAGS=cpu,docker
+      - NEBULA_LOG_LEVEL=INFO
+    networks:
+      - nebula-net
+    restart: unless-stopped
+
+  # ===================
+  # Optional Services
+  # ===================
+
+  # MinIO for S3-compatible artifact storage (optional)
+  minio:
+    image: minio/minio:latest
+    container_name: nebula-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Console
+    volumes:
+      - minio-data:/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-nebula}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-nebula123}
+    networks:
+      - nebula-net
+    profiles:
+      - storage  # Only start with: docker-compose --profile storage up
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for distributed state (optional, for HA setup)
+  redis:
+    image: redis:7-alpine
+    container_name: nebula-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - nebula-net
+    profiles:
+      - ha  # Only start with: docker-compose --profile ha up
+
+# ===================
+# Networks
+# ===================
+networks:
+  nebula-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ===================
+# Volumes
+# ===================
+volumes:
+  master-state:
+  master-db:
+  artifacts:
+  worker1-jobs:
+  worker1-logs:
+  worker2-jobs:
+  worker2-logs:
+  minio-data:
+  redis-data:

@@ -1,0 +1,78 @@
+# Dockerfile for Worker Node
+# ===========================
+# Multi-stage build with Docker-in-Docker support
+
+# Build stage
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY pyproject.toml .
+COPY src/ src/
+
+# Install package
+RUN pip install --no-cache-dir --user .
+
+# Runtime stage
+FROM python:3.11-slim
+
+# Labels
+LABEL org.opencontainers.image.title="NebulaCompute Worker"
+LABEL org.opencontainers.image.description="Distributed Computing Worker Node"
+LABEL org.opencontainers.image.version="0.1.0"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # For Docker client (connecting to host Docker)
+    curl \
+    # For process monitoring
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI (for container job execution)
+RUN curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-24.0.7.tgz | \
+    tar xz --strip-components=1 -C /usr/local/bin docker/docker
+
+# Create non-root user (but add to docker group for DinD)
+RUN useradd --create-home --shell /bin/bash nebula && \
+    groupadd -g 999 docker && \
+    usermod -aG docker nebula
+
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /root/.local /home/nebula/.local
+
+# Copy source
+COPY src/ src/
+
+# Set environment
+ENV PATH=/home/nebula/.local/bin:$PATH
+ENV PYTHONUNBUFFERED=1
+ENV NEBULA_MASTER_URL=http://master:8080
+ENV NEBULA_WORKER_PORT=8081
+ENV NEBULA_JOBS_DIR=/data/jobs
+ENV NEBULA_ARTIFACTS_DIR=/data/artifacts
+
+# Create data directories
+RUN mkdir -p /data/jobs /data/artifacts /data/logs && \
+    chown -R nebula:nebula /data /app
+
+# Switch to non-root user
+USER nebula
+
+# Expose ports
+EXPOSE 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8081/health')" || exit 1
+
+# Default command
+CMD ["dc-worker", "start", "--master-url", "http://master:8080"]

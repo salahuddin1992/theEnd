@@ -1,0 +1,64 @@
+# Dockerfile for Master Node
+# ===========================
+# Multi-stage build for smaller image
+
+# Build stage
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY pyproject.toml .
+COPY src/ src/
+
+# Install package
+RUN pip install --no-cache-dir --user .
+
+# Runtime stage
+FROM python:3.11-slim
+
+# Labels
+LABEL org.opencontainers.image.title="NebulaCompute Master"
+LABEL org.opencontainers.image.description="Distributed Computing Master Node"
+LABEL org.opencontainers.image.version="0.1.0"
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash nebula
+
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /root/.local /home/nebula/.local
+
+# Copy source (for reference/debugging)
+COPY src/ src/
+
+# Set environment
+ENV PATH=/home/nebula/.local/bin:$PATH
+ENV PYTHONUNBUFFERED=1
+ENV NEBULA_MASTER_HOST=0.0.0.0
+ENV NEBULA_MASTER_PORT=8080
+ENV NEBULA_STATE_DIR=/data/state
+ENV NEBULA_DB_PATH=/data/cluster.db
+
+# Create data directories
+RUN mkdir -p /data/state /data/artifacts && \
+    chown -R nebula:nebula /data /app
+
+# Switch to non-root user
+USER nebula
+
+# Expose ports
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8080/health')" || exit 1
+
+# Default command
+CMD ["dc-master", "start", "--host", "0.0.0.0", "--port", "8080"]

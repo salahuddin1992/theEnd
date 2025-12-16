@@ -1,0 +1,37 @@
+# Docker Compose Development Override
+# ====================================
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: "3.9"
+
+services:
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile.master
+    volumes:
+      # Mount source code for hot-reload
+      - ./src:/app/src:ro
+    environment:
+      - NEBULA_LOG_LEVEL=DEBUG
+      - NEBULA_LOG_FORMAT=text
+      - NEBULA_ENROLLMENT_MODE=auto_approve
+    # Override command for development with reload
+    command: >
+      python -m uvicorn distributed_cluster.master.api:app
+      --host 0.0.0.0
+      --port 8080
+      --reload
+      --reload-dir /app/src
+
+  worker-1:
+    volumes:
+      - ./src:/app/src:ro
+    environment:
+      - NEBULA_LOG_LEVEL=DEBUG
+
+  worker-2:
+    volumes:
+      - ./src:/app/src:ro
+    environment:
+      - NEBULA_LOG_LEVEL=DEBUG
