@@ -38,6 +38,7 @@ dependencies = [
     "python-multipart>=0.0.6",
     "aiofiles>=23.0.0",
     "jinja2>=3.1.0",
+    "numpy>=1.24.0",
 ]
 
 [project.optional-dependencies]
@@ -80,6 +81,8 @@ dc-mesh = "distributed_cluster.cli.mesh_cli:app"
 dc-web = "distributed_cluster.cli.web_cli:app"
 dc-notify = "distributed_cluster.cli.notify_cli:app"
 dc-desktop = "distributed_cluster.desktop.main:main"
+dc-ai = "distributed_cluster.cli.ai_cli:main"
+dc-inference = "distributed_cluster.ai.inference.worker:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
