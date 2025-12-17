@@ -7,10 +7,14 @@ Nodes discover each other automatically and share workload.
 
 import asyncio
 import uuid
+import warnings
 from datetime import datetime
 from enum import Enum
 from typing import Optional, Dict, List, Set, Callable, Any
 from dataclasses import dataclass, field
+
+# Suppress pynvml deprecation warning
+warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
 from ..models.resources import ResourceSpec, ResourceUsage
 from ..models.job import Job, JobStatus
@@ -160,7 +164,10 @@ class MeshNode:
             # محاولة اكتشاف GPU
             gpu_count = 0
             try:
-                import pynvml
+                import warnings as _w
+                with _w.catch_warnings():
+                    _w.filterwarnings("ignore", category=FutureWarning, module="pynvml")
+                    import pynvml
                 pynvml.nvmlInit()
                 gpu_count = pynvml.nvmlDeviceGetCount()
                 pynvml.nvmlShutdown()

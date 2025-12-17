@@ -237,32 +237,37 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
     async def index(request: Request):
         dash = app.state.dashboard
         await dash.fetch_from_master()
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "stats": dash.get_stats(),
-            "workers": dash.get_workers(),
-            "jobs": dash.get_jobs(),
-        })
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            {
+                "stats": dash.get_stats(),
+                "workers": dash.get_workers(),
+                "jobs": dash.get_jobs(),
+            }
+        )
 
     # صفحة العمال
     @app.get("/workers", response_class=HTMLResponse)
     async def workers_page(request: Request):
         dash = app.state.dashboard
         await dash.fetch_from_master()
-        return templates.TemplateResponse("workers.html", {
-            "request": request,
-            "workers": dash.get_workers(),
-        })
+        return templates.TemplateResponse(
+            request,
+            "workers.html",
+            {"workers": dash.get_workers()}
+        )
 
     # صفحة المهام
     @app.get("/jobs", response_class=HTMLResponse)
     async def jobs_page(request: Request):
         dash = app.state.dashboard
         await dash.fetch_from_master()
-        return templates.TemplateResponse("jobs.html", {
-            "request": request,
-            "jobs": dash.get_jobs(),
-        })
+        return templates.TemplateResponse(
+            request,
+            "jobs.html",
+            {"jobs": dash.get_jobs()}
+        )
 
     # API endpoints
     @app.get("/api/stats")

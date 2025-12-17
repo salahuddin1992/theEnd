@@ -18,6 +18,15 @@ class NotificationPriority(str, Enum):
     CRITICAL = "critical"
 
 
+class NotificationStatus(str, Enum):
+    """حالة الإشعار"""
+    PENDING = "pending"
+    SENT = "sent"
+    DELIVERED = "delivered"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
 class NotificationCategory(str, Enum):
     """تصنيف الإشعار"""
     JOB_COMPLETED = "job_completed"
@@ -205,12 +214,26 @@ class Notifier:
         tasks = []
 
         for name, channel in self.channels.items():
-            tasks.append((name, channel.safe_send(notification)))
+            # Support both interfaces: safe_send (notifier.py) and send_notification (channels.py)
+            if hasattr(channel, 'safe_send'):
+                tasks.append((name, channel.safe_send(notification)))
+            elif hasattr(channel, 'send_notification'):
+                tasks.append((name, self._wrap_send_notification(channel, notification)))
+            elif hasattr(channel, '_do_send'):
+                tasks.append((name, channel._do_send(notification)))
 
         for name, task in tasks:
             results[name] = await task
 
         return results
+
+    async def _wrap_send_notification(self, channel, notification: Notification) -> bool:
+        """Wrap send_notification to return bool"""
+        try:
+            result = await channel.send_notification(notification)
+            return result.success if hasattr(result, 'success') else bool(result)
+        except Exception:
+            return False
 
     # Factory methods للإشعارات الشائعة
     async def job_completed(
@@ -316,9 +339,81 @@ class Notifier:
 
     def stats(self) -> Dict[str, Any]:
         """إحصائيات النظام"""
+        channel_stats = {}
+        for name, ch in self.channels.items():
+            if hasattr(ch, 'stats'):
+                channel_stats[name] = ch.stats()
+            elif hasattr(ch, 'metrics'):
+                # channels.py style
+                channel_stats[name] = {
+                    "name": name,
+                    "enabled": getattr(ch, 'enabled', True),
+                    "sent_count": getattr(ch.metrics, 'total_sent', 0) if hasattr(ch, 'metrics') else 0,
+                    "error_count": getattr(ch.metrics, 'total_failed', 0) if hasattr(ch, 'metrics') else 0,
+                }
+            else:
+                channel_stats[name] = {"name": name, "enabled": getattr(ch, 'enabled', True)}
         return {
-            "channels": {name: ch.stats() for name, ch in self.channels.items()},
+            "channels": channel_stats,
             "history_size": len(self.history),
             "queue_size": self._queue.qsize(),
             "running": self._running,
         }
+
+
+@dataclass
+class NotificationResult:
+    """نتيجة إرسال إشعار"""
+    notification_id: str
+    status: NotificationStatus
+    channel: str
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    error_message: Optional[str] = None
+    retry_count: int = 0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "notification_id": self.notification_id,
+            "status": self.status.value,
+            "channel": self.channel,
+            "timestamp": self.timestamp.isoformat(),
+            "error_message": self.error_message,
+            "retry_count": self.retry_count,
+        }
+
+    @property
+    def success(self) -> bool:
+        return self.status in (NotificationStatus.SENT, NotificationStatus.DELIVERED)
+
+
+@dataclass
+class NotificationBatch:
+    """مجموعة إشعارات"""
+    batch_id: str = ""
+    notifications: List[Notification] = field(default_factory=list)
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    status: NotificationStatus = NotificationStatus.PENDING
+    results: List[NotificationResult] = field(default_factory=list)
+
+    def __post_init__(self):
+        if not self.batch_id:
+            import uuid
+            self.batch_id = str(uuid.uuid4())[:12]
+
+    def add(self, notification: Notification) -> None:
+        """إضافة إشعار للمجموعة"""
+        self.notifications.append(notification)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "batch_id": self.batch_id,
+            "notifications": [n.to_dict() for n in self.notifications],
+            "created_at": self.created_at.isoformat(),
+            "status": self.status.value,
+            "results": [r.to_dict() for r in self.results],
+            "count": len(self.notifications),
+        }
+
+    @property
+    def count(self) -> int:
+        return len(self.notifications)
