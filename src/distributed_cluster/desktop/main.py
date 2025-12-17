@@ -72,12 +72,16 @@ def main(server_url: Optional[str] = None, token: Optional[str] = None) -> int:
     # Create main window
     window = MainWindow()
 
-    # Auto-connect if server URL provided
+    # Auto-connect if server URL provided, otherwise show connection dialog
     if server_url:
+        window._server_name = server_url
         async def auto_connect():
             await window._connect_to_server(server_url, token or "")
 
         loop.create_task(auto_connect())
+    else:
+        # Show connection dialog on startup
+        window.show_startup_dialog()
 
     # Show window
     window.show()

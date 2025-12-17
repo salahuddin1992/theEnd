@@ -4,6 +4,7 @@ Dashboard View - Main overview page
 """
 
 import asyncio
+from collections import deque
 from typing import Optional
 
 from PySide6.QtCore import Qt, QTimer
@@ -20,6 +21,7 @@ from PySide6.QtWidgets import (
 from ..api.client import APIClient, ClusterStats
 from ..resources.styles import COLORS
 from ..widgets.stat_card import ResourceCard, StatCard
+from ..widgets.charts import LineChart, DonutChart, BarChart
 
 
 class DashboardView(QScrollArea):
@@ -147,9 +149,65 @@ class DashboardView(QScrollArea):
 
         layout.addWidget(self.health_frame)
 
+        # Charts section
+        charts_label = QLabel("Real-time Metrics")
+        charts_label.setObjectName("section_header")
+        charts_label.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: 600;
+            color: {COLORS['text_primary']};
+            margin-top: 16px;
+        """)
+        layout.addWidget(charts_label)
+
+        charts_layout = QHBoxLayout()
+        charts_layout.setSpacing(16)
+
+        # CPU usage chart
+        self.cpu_chart = LineChart(
+            title="CPU Usage",
+            max_points=60,
+            min_value=0,
+            max_value=100,
+            unit="%",
+            color=COLORS["primary"]
+        )
+        charts_layout.addWidget(self.cpu_chart)
+
+        # Memory usage chart
+        self.memory_chart = LineChart(
+            title="Memory Usage",
+            max_points=60,
+            min_value=0,
+            max_value=100,
+            unit="%",
+            color=COLORS["info"]
+        )
+        charts_layout.addWidget(self.memory_chart)
+
+        layout.addLayout(charts_layout)
+
+        # Jobs distribution section
+        distribution_layout = QHBoxLayout()
+        distribution_layout.setSpacing(16)
+
+        # Jobs by status donut chart
+        self.jobs_donut = DonutChart(title="Jobs by Status")
+        distribution_layout.addWidget(self.jobs_donut)
+
+        # Resource allocation bar chart
+        self.resource_bar = BarChart(title="Resource Allocation")
+        distribution_layout.addWidget(self.resource_bar)
+
+        layout.addLayout(distribution_layout)
+
         layout.addStretch()
 
         self.setWidget(container)
+
+        # Initialize history for charts
+        self._cpu_history = deque(maxlen=60)
+        self._memory_history = deque(maxlen=60)
 
     def _setup_refresh_timer(self):
         """Setup auto-refresh timer"""
@@ -182,6 +240,32 @@ class DashboardView(QScrollArea):
         self.cpu_card.set_values(stats.used_cpu, stats.total_cpu)
         self.memory_card.set_values(stats.used_memory, stats.total_memory)
         self.gpu_card.set_values(stats.used_gpu, stats.total_gpu)
+
+        # Update charts
+        if stats.total_cpu > 0:
+            cpu_percent = (stats.used_cpu / stats.total_cpu) * 100
+            self._cpu_history.append(cpu_percent)
+            self.cpu_chart.add_value(cpu_percent)
+
+        if stats.total_memory > 0:
+            mem_percent = (stats.used_memory / stats.total_memory) * 100
+            self._memory_history.append(mem_percent)
+            self.memory_chart.add_value(mem_percent)
+
+        # Update jobs donut chart
+        self.jobs_donut.set_data([
+            ("Running", stats.running_jobs, COLORS["warning"]),
+            ("Pending", stats.pending_jobs, COLORS["info"]),
+            ("Completed", stats.completed_jobs, COLORS["success"]),
+            ("Failed", stats.failed_jobs, COLORS["danger"]),
+        ])
+
+        # Update resource bar chart
+        self.resource_bar.set_data([
+            ("CPU", stats.used_cpu, stats.total_cpu, COLORS["primary"]),
+            ("Memory", stats.used_memory / 1024, stats.total_memory / 1024, COLORS["info"]),  # Convert to GB
+            ("GPU", stats.used_gpu, max(stats.total_gpu, 1), COLORS["warning"]),
+        ])
 
     def update_health(self, health_data: dict):
         """Update health status display"""
