@@ -169,7 +169,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   test:
     name: 🧪 Test (Python ${{ matrix.python-version }} / ${{ matrix.os }})
-    needs: [pre-flight, security-scan]
+    needs: [pre-flight]
     if: |
       needs.pre-flight.outputs.should_skip != 'true' &&
       github.event.inputs.skip_tests != 'true'
@@ -533,7 +533,7 @@ jobs:
   status:
     name: ✅ Pipeline Status
     runs-on: ubuntu-latest
-    needs: [test, security-scan, dependency-check]
+    needs: [test]
     if: always()
     steps:
       - name: 📊 Check Pipeline Status
@@ -541,23 +541,13 @@ jobs:
           echo "═══════════════════════════════════════════════════════════"
           echo "📊 PIPELINE STATUS REPORT"
           echo "═══════════════════════════════════════════════════════════"
-          echo "🔒 Security Scan: ${{ needs.security-scan.result }}"
           echo "🧪 Tests: ${{ needs.test.result }}"
-          echo "🔗 Dependency Check: ${{ needs.dependency-check.result }}"
           echo "═══════════════════════════════════════════════════════════"
 
           # Check for actual failures (not skipped)
           if [ "${{ needs.test.result }}" == "failure" ]; then
             echo "❌ Pipeline failed due to test failures"
             exit 1
-          fi
-
-          if [ "${{ needs.security-scan.result }}" == "failure" ]; then
-            echo "⚠️ Security scan had issues (non-blocking)"
-          fi
-
-          if [ "${{ needs.dependency-check.result }}" == "failure" ]; then
-            echo "⚠️ Dependency check had issues (non-blocking)"
           fi
 
           echo "✅ Pipeline completed!"
