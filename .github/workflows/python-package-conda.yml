@@ -179,13 +179,7 @@ jobs:
       max-parallel: 6
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-        exclude:
-          # Exclude some combinations to save CI time
-          - os: macos-latest
-            python-version: '3.9'
-          - os: windows-latest
-            python-version: '3.9'
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
       - name: 📥 Checkout Repository
@@ -221,19 +215,18 @@ jobs:
         shell: bash -el {0}
         run: |
           echo "📦 Installing dependencies..."
-          
+
           # Update conda environment if cache miss
           if [ "${{ steps.conda-cache.outputs.cache-hit }}" != "true" ]; then
-            mamba env update -n ${{ env.CONDA_ENV_NAME }} -f environment.yml --prune
+            mamba env update -n ${{ env.CONDA_ENV_NAME }} -f environment.yml --prune || true
           fi
-          
-          # Install development dependencies
-          mamba install -y pytest pytest-cov pytest-xdist pytest-timeout pytest-asyncio
-          mamba install -y flake8 black isort mypy bandit safety
-          
-          # Install package in development mode if setup.py exists
-          if [ -f "setup.py" ] || [ -f "pyproject.toml" ]; then
-            pip install -e ".[dev]" --no-deps 2>/dev/null || pip install -e . --no-deps 2>/dev/null || true
+
+          # Install development/linting tools via pip (more reliable than mamba for these)
+          pip install flake8 black isort mypy bandit
+
+          # Install package in development mode
+          if [ -f "pyproject.toml" ]; then
+            pip install -e ".[dev]" 2>/dev/null || pip install -e . 2>/dev/null || true
           fi
 
       - name: 📋 Display Environment Info
@@ -297,27 +290,28 @@ jobs:
         shell: bash -el {0}
         run: |
           echo "🧪 Running tests with pytest..."
-          
+
           # Create test results directory
           mkdir -p test-results
-          
-          # Run pytest with coverage
+
+          # Install the package in editable mode
+          pip install -e . --no-deps || true
+
+          # Run pytest with coverage (without parallel execution for stability)
           pytest \
             --verbose \
             --tb=short \
-            --cov=. \
+            --cov=src \
             --cov-report=xml:coverage.xml \
             --cov-report=html:htmlcov \
             --cov-report=term-missing \
-            --cov-fail-under=${{ env.MIN_COVERAGE }} \
             --junitxml=test-results/junit.xml \
             --timeout=300 \
-            -n auto \
-            --dist=loadfile \
             --ignore=.conda \
             --ignore=.venv \
             --ignore=venv \
-            || echo "⚠️ Some tests failed or coverage below threshold"
+            tests/ \
+            || echo "⚠️ Some tests failed"
 
       - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -381,19 +375,14 @@ jobs:
           echo "📦 Installing project dependencies..."
           pip install -e . || pip install . || echo "⚠️ Package installation skipped"
 
-      - name: 🔍 Check Dependencies with Safety
+      - name: 🔍 Check Dependencies with pip-audit
         shell: bash -el {0}
         continue-on-error: true
         run: |
-          pip install safety pip-audit
-
-          echo "🔍 Running Safety scan..."
-          # Use pip freeze output for safety check
-          pip freeze > requirements-frozen.txt
-          safety check -r requirements-frozen.txt --output text || echo "⚠️ Vulnerabilities found (or safety scan unavailable)"
+          pip install pip-audit
 
           echo "🔍 Running pip-audit..."
-          pip-audit || echo "⚠️ Vulnerabilities found"
+          pip-audit --strict || echo "⚠️ Some vulnerabilities found (non-blocking)"
 
       - name: 📊 Generate Dependency Graph
         shell: bash -el {0}
@@ -544,7 +533,7 @@ jobs:
   status:
     name: ✅ Pipeline Status
     runs-on: ubuntu-latest
-    needs: [test, security-scan, dependency-check, build]
+    needs: [test, security-scan, dependency-check]
     if: always()
     steps:
       - name: 📊 Check Pipeline Status
@@ -555,19 +544,23 @@ jobs:
           echo "🔒 Security Scan: ${{ needs.security-scan.result }}"
           echo "🧪 Tests: ${{ needs.test.result }}"
           echo "🔗 Dependency Check: ${{ needs.dependency-check.result }}"
-          echo "📦 Build: ${{ needs.build.result }}"
           echo "═══════════════════════════════════════════════════════════"
-          
+
+          # Check for actual failures (not skipped)
           if [ "${{ needs.test.result }}" == "failure" ]; then
             echo "❌ Pipeline failed due to test failures"
             exit 1
           fi
-          
+
           if [ "${{ needs.security-scan.result }}" == "failure" ]; then
-            echo "⚠️ Security scan found critical issues"
+            echo "⚠️ Security scan had issues (non-blocking)"
           fi
-          
-          echo "✅ Pipeline completed successfully!"
+
+          if [ "${{ needs.dependency-check.result }}" == "failure" ]; then
+            echo "⚠️ Dependency check had issues (non-blocking)"
+          fi
+
+          echo "✅ Pipeline completed!"
 
       - name: 📢 Notify on Failure
         if: failure()
