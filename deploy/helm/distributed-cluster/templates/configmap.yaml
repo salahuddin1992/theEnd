@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "distributed-cluster.fullname" . }}-config
+  labels:
+    {{- include "distributed-cluster.labels" . | nindent 4 }}
+data:
+  master-config.json: |
+    {
+      "host": "0.0.0.0",
+      "port": {{ .Values.master.service.port }},
+      "log_level": {{ .Values.master.config.logLevel | quote }},
+      "heartbeat_timeout_seconds": {{ .Values.master.config.heartbeatTimeoutSeconds }},
+      "max_concurrent_jobs_per_worker": {{ .Values.master.config.maxConcurrentJobsPerWorker }},
+      "scheduler_interval_seconds": {{ .Values.master.config.schedulerIntervalSeconds }},
+      "worker_cleanup_interval_seconds": {{ .Values.master.config.workerCleanupIntervalSeconds }},
+      "enable_metrics": {{ .Values.master.config.enableMetrics }}
+    }
+  worker-config.json: |
+    {
+      "heartbeat_interval_seconds": {{ .Values.worker.config.heartbeatIntervalSeconds }},
+      "max_concurrent_jobs": {{ .Values.worker.config.maxConcurrentJobs }},
+      "enable_docker": {{ .Values.worker.config.enableDocker }}
+    }

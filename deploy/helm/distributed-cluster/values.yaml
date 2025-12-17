@@ -1,0 +1,218 @@
+# Default values for distributed-cluster
+# القيم الافتراضية لنظام الحوسبة الموزّعة
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# Master configuration
+master:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: distributed-cluster
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8765
+    metricsPort: 9090
+
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: cluster.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+  config:
+    logLevel: INFO
+    heartbeatTimeoutSeconds: 60
+    maxConcurrentJobsPerWorker: 10
+    schedulerIntervalSeconds: 1.0
+    workerCleanupIntervalSeconds: 30
+    enableMetrics: true
+
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 10Gi
+    accessMode: ReadWriteOnce
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Worker configuration
+worker:
+  enabled: true
+  replicaCount: 3
+
+  image:
+    repository: distributed-cluster
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+
+  config:
+    heartbeatIntervalSeconds: 15
+    maxConcurrentJobs: 5
+    enableDocker: true
+    tags:
+      - kubernetes
+      - cpu
+
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    scaleUpStabilizationSeconds: 60
+    scaleDownStabilizationSeconds: 300
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# GPU Worker configuration
+gpuWorker:
+  enabled: false
+  replicaCount: 1
+
+  image:
+    repository: distributed-cluster
+    tag: latest-gpu
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+      nvidia.com/gpu: 1
+    limits:
+      cpu: 8000m
+      memory: 32Gi
+      nvidia.com/gpu: 1
+
+  config:
+    tags:
+      - kubernetes
+      - gpu
+      - cuda
+      - ml
+
+  autoscaling:
+    enabled: true
+    minReplicas: 0
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 60
+
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+
+# Web Dashboard
+dashboard:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: distributed-cluster
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  ingress:
+    enabled: false
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: dashboard.cluster.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Monitoring
+monitoring:
+  enabled: false
+
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+      interval: 30s
+      scrapeTimeout: 10s
+
+  grafana:
+    enabled: false
+    dashboards:
+      enabled: true
+
+# Security
+security:
+  podSecurityPolicy:
+    enabled: false
+
+  networkPolicy:
+    enabled: true
+
+  rbac:
+    create: true
+
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+# Secrets
+secrets:
+  apiKey: ""
+  databasePassword: ""
+
+# Additional environment variables
+extraEnv: []
+
+# Additional volumes
+extraVolumes: []
+
+# Additional volume mounts
+extraVolumeMounts: []

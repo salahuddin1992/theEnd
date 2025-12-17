@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: distributed-cluster
+  labels:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: namespace

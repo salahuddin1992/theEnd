@@ -1,0 +1,17 @@
+apiVersion: v2
+name: distributed-cluster
+description: A Helm chart for Distributed Computing System - نظام الحوسبة الموزّعة
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - distributed-computing
+  - job-scheduler
+  - cluster
+  - workers
+  - gpu
+home: https://github.com/example/distributed-cluster
+maintainers:
+  - name: Distributed Cluster Team
+    email: team@example.com
+dependencies: []
