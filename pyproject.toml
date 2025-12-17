@@ -59,14 +59,19 @@ grpc = [
     "grpcio-tools>=1.60.0",
     "protobuf>=4.25.0",
 ]
+desktop = [
+    "PySide6>=6.6.0",
+    "qasync>=0.27.0",
+]
 all = [
-    "distributed-cluster[s3,yaml,grpc]",
+    "distributed-cluster[s3,yaml,grpc,desktop]",
 ]
 
 [project.scripts]
 dc-master = "distributed_cluster.cli.master_cli:app"
 dc-worker = "distributed_cluster.cli.worker_cli:app"
 dc-submit = "distributed_cluster.cli.submit_cli:app"
+dc-desktop = "distributed_cluster.desktop.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
