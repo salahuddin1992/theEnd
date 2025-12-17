@@ -34,6 +34,25 @@ import base64
 import json
 
 
+class EnrollmentMode(str, Enum):
+    """طرق تسجيل Workers."""
+    AUTO_APPROVE = "auto_approve"  # موافقة تلقائية (للتطوير فقط!)
+    TOKEN = "token"  # تسجيل بـ token
+    ALLOWLIST = "allowlist"  # تسجيل بـ fingerprint allowlist
+
+
+@dataclass
+class AuthConfig:
+    """إعدادات المصادقة."""
+    secret_key: str = "change-me-in-production"
+    token_expiry_hours: int = 24
+    enrollment_mode: EnrollmentMode = EnrollmentMode.AUTO_APPROVE
+    allowlist_fingerprints: list[str] = field(default_factory=list)
+    # Aliases for compatibility
+    enrollment_tokens: set = field(default_factory=set)  # One-time tokens
+    allowed_fingerprints: set = field(default_factory=set)  # Allowed fingerprints
+
+
 class Permission(str, Enum):
     """صلاحيات النظام."""
     # Job permissions
@@ -48,6 +67,7 @@ class Permission(str, Enum):
     WORKER_REPORT = "worker:report"
     WORKER_READ = "worker:read"
     WORKER_MANAGE = "worker:manage"  # ban, drain, remove
+    WORKER_POLL_JOBS = "worker:poll_jobs"
 
     # Admin permissions
     ADMIN_CONFIG = "admin:config"
@@ -57,6 +77,13 @@ class Permission(str, Enum):
     # Cluster permissions
     CLUSTER_STATS = "cluster:stats"
     CLUSTER_EVENTS = "cluster:events"
+
+    # Aliases for compatibility with tests
+    SUBMIT_JOB = "job:submit"
+    VIEW_JOBS = "job:read"
+    CANCEL_JOB = "job:cancel"
+    MANAGE_WORKERS = "worker:manage"
+    VIEW_METRICS = "cluster:stats"
 
 
 class Role(str, Enum):
@@ -94,6 +121,7 @@ ROLE_PERMISSIONS: dict[Role, Set[Permission]] = {
         Permission.WORKER_REGISTER,
         Permission.WORKER_HEARTBEAT,
         Permission.WORKER_REPORT,
+        Permission.WORKER_POLL_JOBS,
     },
 
     Role.READONLY: {
@@ -252,19 +280,35 @@ class AuthManager:
 
     def __init__(
         self,
-        secret_key: str,
+        config: Optional[AuthConfig] = None,
+        # Legacy parameters for backwards compatibility
+        secret_key: Optional[str] = None,
         token_expiry_hours: int = 24,
         auto_approve_workers: bool = False,
     ):
         """
         Args:
-            secret_key: مفتاح سري للـ signing
-            token_expiry_hours: مدة صلاحية الـ token
-            auto_approve_workers: موافقة تلقائية (خطر! للتطوير فقط)
+            config: AuthConfig object (recommended)
+            secret_key: مفتاح سري للـ signing (legacy)
+            token_expiry_hours: مدة صلاحية الـ token (legacy)
+            auto_approve_workers: موافقة تلقائية (legacy)
         """
-        self.secret_key = secret_key.encode() if isinstance(secret_key, str) else secret_key
-        self.token_expiry_hours = token_expiry_hours
-        self.auto_approve_workers = auto_approve_workers
+        if config is not None:
+            self.config = config
+            self.secret_key = config.secret_key.encode() if isinstance(config.secret_key, str) else config.secret_key
+            self.token_expiry_hours = config.token_expiry_hours
+            self.auto_approve_workers = config.enrollment_mode == EnrollmentMode.AUTO_APPROVE
+        else:
+            # Legacy mode
+            key = secret_key or "default-secret-key"
+            self.secret_key = key.encode() if isinstance(key, str) else key
+            self.token_expiry_hours = token_expiry_hours
+            self.auto_approve_workers = auto_approve_workers
+            self.config = AuthConfig(
+                secret_key=secret_key or "default-secret-key",
+                token_expiry_hours=token_expiry_hours,
+                enrollment_mode=EnrollmentMode.AUTO_APPROVE if auto_approve_workers else EnrollmentMode.TOKEN,
+            )
 
         # Storage
         self._enrollments: dict[str, WorkerEnrollment] = {}
