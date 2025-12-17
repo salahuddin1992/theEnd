@@ -18,6 +18,8 @@ from PySide6.QtWidgets import (
     QWidget,
     QMenu,
     QMenuBar,
+    QVBoxLayout,
+    QSplitter,
 )
 
 from .api.client import APIClient, ClusterStats
@@ -30,9 +32,12 @@ from .views.queues import QueuesView
 from .views.settings import SettingsView
 from .views.templates import TemplatesView
 from .views.workers import WorkersView
+from .views.metrics import MetricsView
 from .widgets.sidebar import Sidebar
 from .widgets.connection_dialog import ConnectionDialog
 from .widgets.notifications import NotificationManager, NotificationType
+from .widgets.system_tray import SystemTrayIcon
+from .widgets.terminal import TerminalWidget
 
 
 class MainWindow(QMainWindow):
@@ -78,12 +83,44 @@ class MainWindow(QMainWindow):
         self.sidebar.page_changed.connect(self._on_page_changed)
         main_layout.addWidget(self.sidebar)
 
+        # Right side container with splitter for content and terminal
+        right_container = QWidget()
+        right_layout = QVBoxLayout(right_container)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(0)
+
+        # Vertical splitter for content and terminal
+        self.main_splitter = QSplitter(Qt.Vertical)
+
         # Content area (stacked widget for pages)
         self.content_stack = QStackedWidget()
-        main_layout.addWidget(self.content_stack)
+        self.main_splitter.addWidget(self.content_stack)
+
+        # Terminal panel (hidden by default)
+        self.terminal = TerminalWidget()
+        self.terminal.setVisible(False)
+        self.main_splitter.addWidget(self.terminal)
+
+        # Set splitter sizes (content takes most space)
+        self.main_splitter.setSizes([700, 200])
+        self.main_splitter.setHandleWidth(2)
+        self.main_splitter.setStyleSheet(f"""
+            QSplitter::handle {{
+                background-color: {COLORS['border']};
+            }}
+            QSplitter::handle:hover {{
+                background-color: {COLORS['primary']};
+            }}
+        """)
+
+        right_layout.addWidget(self.main_splitter)
+        main_layout.addWidget(right_container)
 
         # Create views
         self._create_views()
+
+        # Setup system tray
+        self._setup_system_tray()
 
         # Status bar
         self.statusBar = QStatusBar()
@@ -137,6 +174,10 @@ class MainWindow(QMainWindow):
         self.logs_view.refresh_requested.connect(self._refresh_logs)
         self.content_stack.addWidget(self.logs_view)
 
+        # Metrics
+        self.metrics_view = MetricsView()
+        self.content_stack.addWidget(self.metrics_view)
+
         # Map page names to stack indices
         self._page_indices = {
             "dashboard": 0,
@@ -147,6 +188,7 @@ class MainWindow(QMainWindow):
             "queues": 5,
             "settings": 6,
             "logs": 7,
+            "metrics": 8,
         }
 
     def _setup_menu(self):
@@ -210,10 +252,26 @@ class MainWindow(QMainWindow):
 
         view_menu.addSeparator()
 
+        metrics_action = QAction("&Metrics", self)
+        metrics_action.setShortcut("Ctrl+M")
+        metrics_action.triggered.connect(lambda: self._navigate_to("metrics"))
+        view_menu.addAction(metrics_action)
+
+        view_menu.addSeparator()
+
         settings_action = QAction("&Settings", self)
         settings_action.setShortcut("Ctrl+,")
         settings_action.triggered.connect(lambda: self._navigate_to("settings"))
         view_menu.addAction(settings_action)
+
+        view_menu.addSeparator()
+
+        # Terminal toggle
+        self.terminal_action = QAction("Show &Terminal", self)
+        self.terminal_action.setShortcut("Ctrl+`")
+        self.terminal_action.setCheckable(True)
+        self.terminal_action.triggered.connect(self._toggle_terminal)
+        view_menu.addAction(self.terminal_action)
 
         # Actions menu
         actions_menu = menubar.addMenu("&Actions")
@@ -250,6 +308,10 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+5"), self, lambda: self._navigate_to("pools"))
         QShortcut(QKeySequence("Ctrl+6"), self, lambda: self._navigate_to("queues"))
         QShortcut(QKeySequence("Ctrl+7"), self, lambda: self._navigate_to("logs"))
+        QShortcut(QKeySequence("Ctrl+8"), self, lambda: self._navigate_to("metrics"))
+
+        # Terminal toggle
+        QShortcut(QKeySequence("Ctrl+`"), self, self._toggle_terminal)
 
         # Action shortcuts
         QShortcut(QKeySequence("F5"), self, self._manual_refresh)
@@ -263,9 +325,40 @@ class MainWindow(QMainWindow):
             360, self.height() - 40
         )
 
+    def _setup_system_tray(self):
+        """Setup system tray icon"""
+        self.tray_icon = SystemTrayIcon(self)
+
+        # Connect tray signals
+        self.tray_icon.show_window_requested.connect(self._show_from_tray)
+        self.tray_icon.quit_requested.connect(self._quit_from_tray)
+
+        # Show tray icon
+        self.tray_icon.show()
+
     def _setup_connections(self):
         """Setup signal connections"""
         pass
+
+    def _toggle_terminal(self):
+        """Toggle terminal panel visibility"""
+        is_visible = self.terminal.isVisible()
+        self.terminal.setVisible(not is_visible)
+        self.terminal_action.setChecked(not is_visible)
+
+        if not is_visible:
+            # Focus terminal input when shown
+            self.terminal.input.setFocus()
+
+    def _show_from_tray(self):
+        """Show window from system tray"""
+        self.showNormal()
+        self.activateWindow()
+        self.raise_()
+
+    def _quit_from_tray(self):
+        """Quit application from system tray"""
+        self.force_quit()
 
     def resizeEvent(self, event):
         """Handle window resize"""
@@ -308,6 +401,8 @@ class MainWindow(QMainWindow):
             self._refresh_queues()
         elif page_id == "logs":
             self._refresh_logs()
+        elif page_id == "metrics":
+            self._refresh_metrics()
 
     def _auto_refresh(self):
         """Auto-refresh current page data"""
@@ -363,6 +458,14 @@ class MainWindow(QMainWindow):
         self.statusBar.showMessage("Connected", 3000)
         self.setWindowTitle(f"NebulaCompute Desktop - {self._server_name}")
 
+        # Update tray icon
+        if hasattr(self, 'tray_icon'):
+            self.tray_icon.set_connected(True, self._server_name)
+
+        # Update terminal with API client
+        if hasattr(self, 'terminal'):
+            self.terminal.set_api_client(self.api_client)
+
         # Show notification
         self.notifications.success(
             "Connected",
@@ -378,6 +481,10 @@ class MainWindow(QMainWindow):
         self.sidebar.set_connection_status(False)
         self.statusBar.showMessage("Disconnected")
         self.setWindowTitle("NebulaCompute Desktop")
+
+        # Update tray icon
+        if hasattr(self, 'tray_icon'):
+            self.tray_icon.set_connected(False)
 
         # Show notification
         self.notifications.warning(
@@ -494,6 +601,34 @@ class MainWindow(QMainWindow):
         # Logs are typically streamed via WebSocket
         pass
 
+    def _refresh_metrics(self):
+        """Refresh metrics data"""
+        if self.api_client and self._connected:
+            asyncio.ensure_future(self._async_refresh_metrics())
+
+    async def _async_refresh_metrics(self):
+        """Async refresh metrics"""
+        try:
+            stats = await self.api_client.get_stats()
+            # Convert ClusterStats to dict for metrics view
+            metrics_dict = {
+                "cpu_percent": (stats.used_cpu / stats.total_cpu * 100) if stats.total_cpu > 0 else 0,
+                "memory_percent": (stats.used_memory / stats.total_memory * 100) if stats.total_memory > 0 else 0,
+                "active_workers": stats.active_workers,
+                "running_jobs": stats.running_jobs,
+                "pending_jobs": stats.pending_jobs,
+                "completed_jobs": stats.completed_jobs,
+                "failed_jobs": stats.failed_jobs,
+                "queue_depth": stats.pending_jobs,
+                "jobs_per_minute": 0,  # Would need historical data
+                "success_rate": (stats.completed_jobs / stats.total_jobs * 100) if stats.total_jobs > 0 else 0,
+                "avg_latency": 0,  # Would need from server
+                "throughput": 0,  # Would need from server
+            }
+            self.metrics_view.update_metrics(metrics_dict)
+        except Exception as e:
+            self._on_error(f"Failed to refresh metrics: {e}")
+
     # ============ Menu Actions ============
 
     def _show_connection_dialog(self):
@@ -588,6 +723,7 @@ class MainWindow(QMainWindow):
 <tr><td><b>Ctrl+E</b></td><td>Export data</td></tr>
 <tr><td><b>F5 / Ctrl+R</b></td><td>Refresh</td></tr>
 <tr><td><b>Ctrl+N</b></td><td>Submit new job</td></tr>
+<tr><td><b>Ctrl+`</b></td><td>Toggle terminal</td></tr>
 <tr><td><b>Ctrl+1</b></td><td>Dashboard</td></tr>
 <tr><td><b>Ctrl+2</b></td><td>Jobs</td></tr>
 <tr><td><b>Ctrl+3</b></td><td>Workers</td></tr>
@@ -595,6 +731,8 @@ class MainWindow(QMainWindow):
 <tr><td><b>Ctrl+5</b></td><td>Pools</td></tr>
 <tr><td><b>Ctrl+6</b></td><td>Queues</td></tr>
 <tr><td><b>Ctrl+7</b></td><td>Logs</td></tr>
+<tr><td><b>Ctrl+8</b></td><td>Metrics</td></tr>
+<tr><td><b>Ctrl+M</b></td><td>Metrics</td></tr>
 <tr><td><b>Ctrl+,</b></td><td>Settings</td></tr>
 </table>
         """
@@ -628,8 +766,23 @@ class MainWindow(QMainWindow):
     # ============ Window Events ============
 
     def closeEvent(self, event):
-        """Handle window close"""
+        """Handle window close - minimize to tray instead of closing"""
+        if hasattr(self, 'tray_icon') and self.tray_icon.isVisible():
+            # Minimize to tray
+            event.ignore()
+            self.hide()
+            self.tray_icon.show_message(
+                "NebulaCompute Desktop",
+                "Application minimized to system tray"
+            )
+        else:
+            # Actually close
+            if self.api_client and self._connected:
+                asyncio.ensure_future(self.api_client.disconnect())
+            event.accept()
+
+    def force_quit(self):
+        """Force quit the application"""
         if self.api_client and self._connected:
             asyncio.ensure_future(self.api_client.disconnect())
-
-        event.accept()
+        QApplication.quit()

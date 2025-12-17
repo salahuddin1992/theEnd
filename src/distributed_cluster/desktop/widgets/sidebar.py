@@ -89,6 +89,7 @@ class Sidebar(QFrame):
             ("templates", "Templates", "📄"),
             ("pools", "Pools", "🏊"),
             ("queues", "Queues", "📬"),
+            ("metrics", "Metrics", "📈"),
         ]
 
         for page_id, text, icon in nav_items:
