@@ -9,7 +9,11 @@ Master Service gRPC Implementation
 from __future__ import annotations
 
 import asyncio
+import os
+import sys
+import tempfile
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Optional, Dict, List, Any
 import uuid
 
@@ -25,6 +29,13 @@ from distributed_cluster.observability.metrics import MetricsCollector
 from distributed_cluster.observability.logging import StructuredLogger
 
 logger = StructuredLogger("grpc.master_service")
+
+
+def _get_default_working_dir() -> str:
+    """Get platform-appropriate default working directory."""
+    if sys.platform == "win32":
+        return os.environ.get("TEMP", tempfile.gettempdir())
+    return "/tmp"
 
 
 class MasterServicer:
@@ -634,7 +645,7 @@ class MasterServicer:
             "runtime": {
                 "type": "process",
                 "command": job.submission.command,
-                "working_dir": job.submission.working_dir or "/tmp",
+                "working_dir": job.submission.working_dir or _get_default_working_dir(),
             },
             "resources": {
                 "cpu_cores": job.submission.required_resources.cpu_cores,

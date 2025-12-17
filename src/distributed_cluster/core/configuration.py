@@ -13,6 +13,8 @@ Configuration Management - إدارة الإعدادات
 from __future__ import annotations
 
 import os
+import sys
+import tempfile
 from dataclasses import dataclass, field, fields, asdict
 from enum import Enum
 from pathlib import Path
@@ -23,6 +25,15 @@ import json
 logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
+
+
+def _get_default_temp_dir() -> str:
+    """Get platform-appropriate temporary directory for job files."""
+    if sys.platform == "win32":
+        # On Windows, use %TEMP%/nebula or %LOCALAPPDATA%/nebula
+        base = os.environ.get("LOCALAPPDATA", tempfile.gettempdir())
+        return str(Path(base) / "nebula")
+    return "/tmp/nebula"
 
 
 class ConfigError(Exception):
@@ -131,10 +142,10 @@ class WorkerAgentConfig:
     docker_pull_timeout_seconds: int = 300
     sandbox_enabled: bool = True
 
-    # Directories
-    work_dir: str = "/tmp/nebula/jobs"
-    artifacts_dir: str = "/tmp/nebula/artifacts"
-    logs_dir: str = "/tmp/nebula/logs"
+    # Directories - use platform-appropriate defaults
+    work_dir: str = field(default_factory=lambda: str(Path(_get_default_temp_dir()) / "jobs"))
+    artifacts_dir: str = field(default_factory=lambda: str(Path(_get_default_temp_dir()) / "artifacts"))
+    logs_dir: str = field(default_factory=lambda: str(Path(_get_default_temp_dir()) / "logs"))
 
 
 @dataclass

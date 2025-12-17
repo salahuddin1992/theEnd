@@ -11,13 +11,19 @@ Resource Detector - كاشف الموارد
 
 from __future__ import annotations
 
+import os
 import platform
 import socket
+import sys
 import warnings
+from pathlib import Path
 from typing import Optional
 import logging
 
 import psutil
+
+# Windows compatibility
+IS_WINDOWS = sys.platform == "win32"
 
 # Suppress pynvml deprecation warning (use nvidia-ml-py instead)
 warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
@@ -206,6 +212,13 @@ class ResourceDetector:
             gpu_memory_mb=min(g.memory_total_mb for g in gpus) if gpus else 0,
         )
 
+    def _get_disk_path(self) -> str:
+        """Get the appropriate disk path based on the platform."""
+        if IS_WINDOWS:
+            # Use the system drive (usually C:)
+            return os.environ.get("SystemDrive", "C:") + "\\"
+        return "/"
+
     def get_current_usage(self) -> ResourceUsage:
         """
         الاستخدام الحالي للموارد.
@@ -213,7 +226,15 @@ class ResourceDetector:
         يُرسل مع كل heartbeat.
         """
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage("/")
+
+        # Get disk usage with platform-aware path
+        try:
+            disk = psutil.disk_usage(self._get_disk_path())
+            disk_used_gb = disk.used / (1024 ** 3)
+            disk_total_gb = disk.total / (1024 ** 3)
+        except Exception:
+            disk_used_gb = 0.0
+            disk_total_gb = 0.0
 
         # Network I/O
         net_io = psutil.net_io_counters()
@@ -225,8 +246,8 @@ class ResourceDetector:
             memory_percent=memory.percent,
             gpus=self.get_gpu_info(),
             load_average=psutil.getloadavg() if hasattr(psutil, "getloadavg") else (0.0, 0.0, 0.0),
-            disk_used_gb=disk.used / (1024 ** 3),
-            disk_total_gb=disk.total / (1024 ** 3),
+            disk_used_gb=disk_used_gb,
+            disk_total_gb=disk_total_gb,
             network_recv_mb=net_io.bytes_recv / (1024 * 1024),
             network_sent_mb=net_io.bytes_sent / (1024 * 1024),
         )

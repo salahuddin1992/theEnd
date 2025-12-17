@@ -50,6 +50,9 @@ def build_exe():
     icon_path = desktop_path / 'resources' / 'icon.ico'
 
     # PyInstaller options
+    # On Windows, use ';' as separator, on Unix use ':'
+    data_sep = ';' if sys.platform == 'win32' else ':'
+
     options = [
         'pyinstaller',
         '--name=NebulaCompute',
@@ -57,8 +60,8 @@ def build_exe():
         '--onefile',   # Single executable
         '--clean',     # Clean cache
 
-        # Add data files
-        f'--add-data={desktop_path / "resources"}:resources',
+        # Add data files (use platform-appropriate separator)
+        f'--add-data={desktop_path / "resources"}{data_sep}resources',
 
         # Hidden imports for PySide6
         '--hidden-import=PySide6.QtCore',
