@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dc-worker
+  namespace: distributed-cluster
+  labels:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: distributed-cluster
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: distributed-cluster
+        app.kubernetes.io/component: worker
+    spec:
+      serviceAccountName: dc-worker
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: worker
+          image: distributed-cluster:latest
+          imagePullPolicy: IfNotPresent
+          command: ["dc-worker", "start"]
+          args:
+            - "--master"
+            - "http://dc-master-service:8765"
+            - "--config"
+            - "/config/worker-config.json"
+          env:
+            - name: DC_LOG_LEVEL
+              value: "INFO"
+            - name: DC_WORKER_TAGS
+              value: "kubernetes,cpu"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "1Gi"
+            limits:
+              cpu: "4000m"
+              memory: "8Gi"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "pgrep -f dc-worker"
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+      volumes:
+        - name: config
+          configMap:
+            name: dc-worker-config
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dc-worker
+  namespace: distributed-cluster
+  labels:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: worker

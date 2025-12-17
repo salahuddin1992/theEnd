@@ -1,0 +1,108 @@
+{{- if .Values.master.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "distributed-cluster.fullname" . }}-master
+  labels:
+    {{- include "distributed-cluster.master.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.master.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "distributed-cluster.master.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "distributed-cluster.master.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.monitoring.prometheus.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.master.service.metricsPort }}"
+        prometheus.io/path: "/metrics"
+        {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "distributed-cluster.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: master
+          image: "{{ .Values.global.imageRegistry }}{{ .Values.master.image.repository }}:{{ .Values.master.image.tag }}"
+          imagePullPolicy: {{ .Values.master.image.pullPolicy }}
+          command: ["dc-master", "start"]
+          args:
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "{{ .Values.master.service.port }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.master.service.port }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.master.service.metricsPort }}
+              protocol: TCP
+          env:
+            - name: DC_LOG_LEVEL
+              value: {{ .Values.master.config.logLevel | quote }}
+            - name: DC_HEARTBEAT_TIMEOUT
+              value: {{ .Values.master.config.heartbeatTimeoutSeconds | quote }}
+            - name: DC_MAX_JOBS_PER_WORKER
+              value: {{ .Values.master.config.maxConcurrentJobsPerWorker | quote }}
+            - name: DC_DATABASE_PATH
+              value: "/data/cluster.db"
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.master.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+      volumes:
+        - name: data
+          {{- if .Values.master.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "distributed-cluster.fullname" . }}-master-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.master.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.master.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.master.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

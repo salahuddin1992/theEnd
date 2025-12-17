@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dc-master
+  namespace: distributed-cluster
+  labels:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: distributed-cluster
+      app.kubernetes.io/component: master
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: distributed-cluster
+        app.kubernetes.io/component: master
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: dc-master
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: master
+          image: distributed-cluster:latest
+          imagePullPolicy: IfNotPresent
+          command: ["dc-master", "start"]
+          args:
+            - "--config"
+            - "/config/master-config.json"
+          ports:
+            - name: http
+              containerPort: 8765
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: DC_LOG_LEVEL
+              value: "INFO"
+            - name: DC_DATABASE_PATH
+              value: "/data/cluster.db"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: config
+          configMap:
+            name: dc-master-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: dc-master-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dc-master-service
+  namespace: distributed-cluster
+  labels:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8765
+      targetPort: http
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: master
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dc-master
+  namespace: distributed-cluster
+  labels:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: master
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dc-master-data
+  namespace: distributed-cluster
+  labels:
+    app.kubernetes.io/name: distributed-cluster
+    app.kubernetes.io/component: master
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
