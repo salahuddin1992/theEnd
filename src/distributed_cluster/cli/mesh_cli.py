@@ -11,7 +11,11 @@ dc-mesh submit    - إرسال مهمة للشبكة
 import asyncio
 import signal
 import sys
+import warnings
 from typing import Optional, List
+
+# Suppress pynvml deprecation warning
+warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
 import typer
 from rich.console import Console

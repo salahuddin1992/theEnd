@@ -5,7 +5,7 @@ Resource Detector - كاشف الموارد
 يكتشف موارد الجهاز تلقائياً:
 - CPU cores
 - RAM
-- GPUs (NVIDIA via pynvml)
+- GPUs (NVIDIA via pynvml/nvidia-ml-py)
 - Disk space
 """
 
@@ -13,10 +13,14 @@ from __future__ import annotations
 
 import platform
 import socket
+import warnings
 from typing import Optional
 import logging
 
 import psutil
+
+# Suppress pynvml deprecation warning (use nvidia-ml-py instead)
+warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
 from distributed_cluster.models.resources import ResourceSpec, ResourceUsage, GPUInfo
 

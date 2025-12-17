@@ -7,8 +7,12 @@ Shared fixtures for all tests.
 
 import asyncio
 import tempfile
+import warnings
 from pathlib import Path
 from typing import AsyncGenerator, Generator
+
+# Suppress pynvml deprecation warning before any imports that might use it
+warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
 import pytest
 import pytest_asyncio
