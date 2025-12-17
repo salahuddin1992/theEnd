@@ -78,6 +78,7 @@ dc-worker = "distributed_cluster.cli.worker_cli:app"
 dc-submit = "distributed_cluster.cli.submit_cli:app"
 dc-mesh = "distributed_cluster.cli.mesh_cli:app"
 dc-web = "distributed_cluster.cli.web_cli:app"
+dc-notify = "distributed_cluster.cli.notify_cli:app"
 dc-desktop = "distributed_cluster.desktop.main:main"
 
 [tool.setuptools.packages.find]
