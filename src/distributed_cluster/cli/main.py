@@ -40,6 +40,10 @@ app.add_typer(queues_app, name="queues")
 app.add_typer(secrets_app, name="secrets")
 app.add_typer(config_app, name="config")
 
+# Import and add workflow commands
+from distributed_cluster.cli.workflow_cli import workflow_app
+app.add_typer(workflow_app, name="workflows")
+
 console = Console()
 
 # Default master URL
@@ -1223,6 +1227,92 @@ def config_set(
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(1)
+
+
+# =============================================================================
+# Interactive Mode
+# =============================================================================
+
+@app.command()
+def shell(
+    master_url: str = typer.Option(DEFAULT_MASTER, "--master", "-m", help="Master URL"),
+):
+    """Start interactive shell mode."""
+    from distributed_cluster.cli.interactive import run_interactive
+    run_interactive(master_url)
+
+
+@app.command()
+def watch(
+    master_url: str = typer.Option(DEFAULT_MASTER, "--master", "-m", help="Master URL"),
+    interval: int = typer.Option(2, "--interval", "-i", help="Update interval in seconds"),
+):
+    """Live cluster dashboard. Press Ctrl+C to stop."""
+    import httpx
+    import time
+    from datetime import datetime
+
+    console.print("Starting live dashboard (Ctrl+C to stop)...")
+
+    try:
+        while True:
+            console.clear()
+
+            try:
+                with httpx.Client(timeout=5) as client:
+                    stats = client.get(f"{master_url}/stats").json()
+
+                console.print(Panel.fit(
+                    f"[bold cyan]NebulaCompute Dashboard[/bold cyan]\n"
+                    f"Updated: {datetime.now().strftime('%H:%M:%S')}",
+                    border_style="cyan"
+                ))
+
+                # Resources table
+                table = Table(show_header=True, header_style="bold")
+                table.add_column("Metric", style="cyan")
+                table.add_column("Available", style="green")
+                table.add_column("Total", style="blue")
+
+                table.add_row(
+                    "Workers",
+                    str(stats.get("active_workers", 0)),
+                    str(stats.get("total_workers", 0))
+                )
+                table.add_row(
+                    "CPU Cores",
+                    f"{stats.get('available_cpu_cores', 0):.1f}",
+                    f"{stats.get('total_cpu_cores', 0):.1f}"
+                )
+                table.add_row(
+                    "Memory (GB)",
+                    f"{stats.get('available_memory_gb', 0):.1f}",
+                    f"{stats.get('total_memory_gb', 0):.1f}"
+                )
+                table.add_row(
+                    "GPUs",
+                    str(stats.get("available_gpus", 0)),
+                    str(stats.get("total_gpus", 0))
+                )
+
+                console.print(table)
+                console.print()
+
+                # Jobs summary
+                console.print(
+                    f"[blue]Pending:[/blue] {stats.get('pending_jobs', 0)}  "
+                    f"[yellow]Running:[/yellow] {stats.get('running_jobs', 0)}  "
+                    f"[green]Completed:[/green] {stats.get('completed_jobs', 0)}  "
+                    f"[red]Failed:[/red] {stats.get('failed_jobs', 0)}"
+                )
+
+            except Exception as e:
+                console.print(f"[red]Connection error: {e}[/red]")
+
+            time.sleep(interval)
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Dashboard stopped[/yellow]")
 
 
 # =============================================================================
