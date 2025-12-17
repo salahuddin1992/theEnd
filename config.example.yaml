@@ -203,3 +203,61 @@ websocket:
   ping_interval_seconds: 30
   ping_timeout_seconds: 10
   max_connections: 1000
+
+# =============================================================================
+# High Availability (HA) Configuration - إعدادات التوفر العالي
+# =============================================================================
+ha:
+  # HA mode:
+  # - standalone: Master واحد (بدون HA)
+  # - active_standby: قائد + احتياط (موصى به)
+  # - active_active: كل Masters نشطة (يحتاج DB مشتركة)
+  mode: "standalone"
+
+  # معرف هذا الـ Master (فريد لكل master)
+  # إذا فارغ، يتم توليده تلقائياً
+  master_id: ""
+
+  # أولوية هذا الـ Master للقيادة
+  # أعلى قيمة = أولوية أكبر للأصبح القائد
+  priority: 0
+
+  # قائمة Masters الأخرى
+  # مثال: ["master2.example.com:8080", "master3.example.com:8080"]
+  peers: []
+
+  # إعدادات انتخاب القائد
+  election:
+    timeout_seconds: 10.0        # مهلة انتظار القائد
+    heartbeat_interval_seconds: 3.0  # فترة إرسال heartbeat
+
+  # إعدادات مزامنة الحالة
+  sync:
+    interval_seconds: 1.0        # فترة إرسال التحديثات
+    full_sync_interval_seconds: 60.0  # فترة المزامنة الكاملة
+
+  # إعدادات مراقبة الصحة
+  health:
+    check_interval_seconds: 5.0  # فترة فحص الصحة
+    unhealthy_threshold: 3       # عدد الفشل قبل اعتبار غير صحي
+
+  # التبديل التلقائي
+  auto_failover: true
+
+# =============================================================================
+# HA Worker Configuration - إعدادات العامل عالي التوفر
+# =============================================================================
+ha_worker:
+  # قائمة Masters للاتصال بها
+  # العامل يكتشف القائد تلقائياً
+  masters: []
+  # مثال: ["master1:8080", "master2:8080", "master3:8080"]
+
+  # اكتشاف القائد تلقائياً
+  auto_discover_leader: true
+
+  # مهلة التبديل للـ master آخر
+  failover_timeout_seconds: 5.0
+
+  # فترة فحص صحة Masters
+  master_health_check_interval_seconds: 30.0

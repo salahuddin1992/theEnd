@@ -44,6 +44,10 @@ app.add_typer(config_app, name="config")
 from distributed_cluster.cli.workflow_cli import workflow_app
 app.add_typer(workflow_app, name="workflows")
 
+# Import and add HA commands
+from distributed_cluster.cli.ha_cli import app as ha_app
+app.add_typer(ha_app, name="ha")
+
 console = Console()
 
 # Default master URL
