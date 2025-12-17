@@ -144,7 +144,11 @@ def start_node(
             stop_event.set()
 
         for sig in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(sig, signal_handler)
+            try:
+                loop.add_signal_handler(sig, signal_handler)
+            except NotImplementedError:
+                # Windows doesn't support add_signal_handler
+                pass
 
         # معالجة الأحداث
         def on_peer_added(data):

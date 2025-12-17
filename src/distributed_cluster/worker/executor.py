@@ -13,6 +13,7 @@ import asyncio
 import os
 import signal
 import subprocess
+import sys
 import tempfile
 import time
 from dataclasses import dataclass
@@ -24,6 +25,9 @@ import shutil
 from distributed_cluster.models.job import Job, JobResult
 
 logger = logging.getLogger(__name__)
+
+# Windows compatibility
+IS_WINDOWS = sys.platform == "win32"
 
 
 @dataclass
@@ -136,15 +140,23 @@ class JobExecutor:
         stderr_file = ctx.work_dir / "stderr.log"
 
         try:
+            # Windows doesn't support start_new_session, use CREATE_NEW_PROCESS_GROUP instead
+            popen_kwargs = {
+                "stdout": None,
+                "stderr": None,
+                "env": env,
+                "cwd": cwd,
+            }
+
+            if IS_WINDOWS:
+                popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+            else:
+                popen_kwargs["start_new_session"] = True
+
             with open(stdout_file, "w") as stdout_f, open(stderr_file, "w") as stderr_f:
-                ctx.process = subprocess.Popen(
-                    cmd,
-                    stdout=stdout_f,
-                    stderr=stderr_f,
-                    env=env,
-                    cwd=cwd,
-                    start_new_session=True,  # Allow killing process group
-                )
+                popen_kwargs["stdout"] = stdout_f
+                popen_kwargs["stderr"] = stderr_f
+                ctx.process = subprocess.Popen(cmd, **popen_kwargs)
 
                 # Wait with timeout
                 try:
@@ -155,11 +167,8 @@ class JobExecutor:
                         timeout=submission.timeout_seconds,
                     )
                 except asyncio.TimeoutError:
-                    # Kill process group
-                    try:
-                        os.killpg(os.getpgid(ctx.process.pid), signal.SIGKILL)
-                    except Exception:
-                        ctx.process.kill()
+                    # Kill process - use platform-specific method
+                    self._kill_process(ctx.process)
 
                     return JobResult(
                         exit_code=-1,
@@ -301,6 +310,32 @@ class JobExecutor:
         submission.docker_image = original_image
         return result
 
+    def _kill_process(self, process: subprocess.Popen) -> None:
+        """Kill a process in a cross-platform way."""
+        if process is None or process.poll() is not None:
+            return
+
+        try:
+            if IS_WINDOWS:
+                # On Windows, use taskkill to kill the process tree
+                subprocess.call(
+                    ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            else:
+                # On Unix, kill the process group
+                try:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                except (ProcessLookupError, PermissionError):
+                    process.kill()
+        except Exception:
+            # Fallback: just kill the main process
+            try:
+                process.kill()
+            except Exception:
+                pass
+
     async def cancel(self, job_id: str) -> bool:
         """إلغاء job قيد التنفيذ."""
         ctx = self._active.get(job_id)
@@ -309,10 +344,7 @@ class JobExecutor:
 
         try:
             if ctx.process and ctx.process.poll() is None:
-                try:
-                    os.killpg(os.getpgid(ctx.process.pid), signal.SIGKILL)
-                except Exception:
-                    ctx.process.kill()
+                self._kill_process(ctx.process)
                 logger.info(f"Process killed for job {job_id}")
 
             if ctx.container_id and self._docker_client:

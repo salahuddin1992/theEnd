@@ -747,8 +747,15 @@ def create_standard_alert_rules(
     async def high_disk_condition():
         try:
             import psutil
-            return psutil.disk_usage("/").percent > 90
-        except ImportError:
+            import sys
+            import os
+            # Use platform-appropriate disk path
+            if sys.platform == "win32":
+                disk_path = os.environ.get("SystemDrive", "C:") + "\\"
+            else:
+                disk_path = "/"
+            return psutil.disk_usage(disk_path).percent > 90
+        except (ImportError, Exception):
             return False
 
     rules.append(AlertRule(
