@@ -63,8 +63,12 @@ desktop = [
     "PySide6>=6.6.0",
     "qasync>=0.27.0",
 ]
+build = [
+    "pyinstaller>=6.0.0",
+    "pillow>=10.0.0",
+]
 all = [
-    "distributed-cluster[s3,yaml,grpc,desktop]",
+    "distributed-cluster[s3,yaml,grpc,desktop,build]",
 ]
 
 [project.scripts]
