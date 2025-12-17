@@ -66,6 +66,59 @@ class Scheduler:
         self.max_jobs_per_worker = max_jobs_per_worker
         self._round_robin_index = 0
 
+        # Internal storage for stateful scheduling
+        self._workers: dict[str, WorkerInfo] = {}
+        self._pending_jobs: dict[str, Job] = {}
+
+    @property
+    def workers(self) -> dict[str, WorkerInfo]:
+        """الـ workers المسجلين."""
+        return self._workers
+
+    @property
+    def pending_jobs(self) -> dict[str, Job]:
+        """الـ jobs في الانتظار."""
+        return self._pending_jobs
+
+    def add_worker(self, worker: WorkerInfo) -> None:
+        """إضافة worker للمجدول."""
+        self._workers[worker.worker_id] = worker
+
+    def remove_worker(self, worker_id: str) -> bool:
+        """إزالة worker من المجدول."""
+        if worker_id in self._workers:
+            del self._workers[worker_id]
+            return True
+        return False
+
+    def submit_job(self, job: Job) -> None:
+        """إضافة job للانتظار."""
+        self._pending_jobs[job.job_id] = job
+
+    def schedule_next(self) -> Optional[tuple[str, str, str]]:
+        """
+        جدولة الـ job التالي.
+
+        Returns:
+            (job_id, worker_id, lease_id) أو None إذا لا يوجد job أو worker
+        """
+        if not self._pending_jobs or not self._workers:
+            return None
+
+        pending = list(self._pending_jobs.values())
+        workers = list(self._workers.values())
+
+        decisions = self.schedule(pending, workers)
+        if not decisions:
+            return None
+
+        decision = decisions[0]
+        # Remove from pending
+        if decision.job.job_id in self._pending_jobs:
+            del self._pending_jobs[decision.job.job_id]
+
+        return (decision.job.job_id, decision.worker.worker_id, decision.lease_id)
+
     def schedule(
         self,
         pending_jobs: list[Job],

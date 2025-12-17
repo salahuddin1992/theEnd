@@ -75,7 +75,6 @@ def sample_resources() -> ResourceSpec:
         memory_mb=16384,
         gpu_count=1,
         gpu_memory_mb=8192,
-        disk_gb=100,
     )
 
 
@@ -96,6 +95,7 @@ def sample_worker(sample_resources: ResourceSpec) -> WorkerInfo:
         platform="linux",
         docker_available=True,
         registered_at=datetime.utcnow(),
+        last_heartbeat=datetime.utcnow(),  # Required for can_accept_jobs
     )
 
 
@@ -103,9 +103,8 @@ def sample_worker(sample_resources: ResourceSpec) -> WorkerInfo:
 def sample_job_submission() -> JobSubmission:
     """Sample job submission."""
     return JobSubmission(
-        name="test-job",
-        command=["python", "-c", "print('hello')"],
-        required_resources=ResourceSpec(
+        command="python -c 'print(hello)'",
+        resources=ResourceSpec(
             cpu_cores=2,
             memory_mb=1024,
         ),
@@ -121,6 +120,7 @@ def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
     from datetime import datetime
 
     workers = []
+    now = datetime.utcnow()
 
     # Worker 1: High CPU, low GPU
     workers.append(WorkerInfo(
@@ -135,7 +135,8 @@ def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
         labels={"type": "cpu-optimized"},
         platform="linux",
         docker_available=True,
-        registered_at=datetime.utcnow(),
+        registered_at=now,
+        last_heartbeat=now,
     ))
 
     # Worker 2: GPU worker
@@ -152,7 +153,8 @@ def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
         platform="linux",
         docker_available=True,
         gpu_driver_version="535.104.05",
-        registered_at=datetime.utcnow(),
+        registered_at=now,
+        last_heartbeat=now,
     ))
 
     # Worker 3: Busy worker (limited available resources)
@@ -169,7 +171,8 @@ def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
         platform="linux",
         docker_available=True,
         active_jobs=["job-1", "job-2", "job-3"],
-        registered_at=datetime.utcnow(),
+        registered_at=now,
+        last_heartbeat=now,
     ))
 
     # Worker 4: Offline worker
@@ -185,7 +188,8 @@ def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
         labels={},
         platform="linux",
         docker_available=False,
-        registered_at=datetime.utcnow(),
+        registered_at=now,
+        last_heartbeat=None,  # Offline, no heartbeat
     ))
 
     return workers

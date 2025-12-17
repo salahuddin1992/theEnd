@@ -83,9 +83,8 @@ class TestSchedulerWithWorkers:
         gpu_job = Job(
             job_id="gpu-job-1",
             submission=JobSubmission(
-                name="gpu-training",
-                command=["python", "train.py"],
-                required_resources=ResourceSpec(
+                command="python train.py",
+                resources=ResourceSpec(
                     cpu_cores=4,
                     memory_mb=16384,
                     gpu_count=2,
@@ -101,8 +100,8 @@ class TestSchedulerWithWorkers:
         assignment = scheduler.schedule_next()
         assert assignment is not None
 
-        # Should be assigned to GPU worker
-        job_id, worker_id = assignment
+        # Should be assigned to GPU worker (returns tuple of 3)
+        job_id, worker_id, _ = assignment
         assert job_id == "gpu-job-1"
         assert worker_id == "worker-gpu-1"
 
@@ -122,7 +121,7 @@ class TestSchedulerWithWorkers:
         assignment = scheduler.schedule_next()
         assert assignment is not None
 
-        _, worker_id = assignment
+        _, worker_id, _ = assignment
         assert worker_id != "worker-offline-1"
 
     def test_priority_ordering(self, scheduler: Scheduler, sample_worker: WorkerInfo):
@@ -133,9 +132,8 @@ class TestSchedulerWithWorkers:
         low_job = Job(
             job_id="low-priority-job",
             submission=JobSubmission(
-                name="low-priority",
-                command=["echo", "low"],
-                required_resources=ResourceSpec(cpu_cores=1, memory_mb=512),
+                command="echo low",
+                resources=ResourceSpec(cpu_cores=1, memory_mb=512),
                 priority=JobPriority.LOW,
             ),
             status=JobStatus.PENDING,
@@ -147,9 +145,8 @@ class TestSchedulerWithWorkers:
         high_job = Job(
             job_id="high-priority-job",
             submission=JobSubmission(
-                name="high-priority",
-                command=["echo", "high"],
-                required_resources=ResourceSpec(cpu_cores=1, memory_mb=512),
+                command="echo high",
+                resources=ResourceSpec(cpu_cores=1, memory_mb=512),
                 priority=JobPriority.HIGH,
             ),
             status=JobStatus.PENDING,

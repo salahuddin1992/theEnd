@@ -45,7 +45,7 @@ class TestLeaseBasic:
             created_at=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(minutes=5),
         )
-        assert not active_lease.is_expired()
+        assert not active_lease.is_expired
 
         # Expired
         expired_lease = Lease(
@@ -56,7 +56,7 @@ class TestLeaseBasic:
             created_at=datetime.utcnow() - timedelta(minutes=10),
             expires_at=datetime.utcnow() - timedelta(minutes=5),
         )
-        assert expired_lease.is_expired()
+        assert expired_lease.is_expired
 
 
 class TestLeaseManager:

@@ -32,6 +32,15 @@ import uuid
 import hashlib
 
 
+@dataclass
+class LeaseConfig:
+    """إعدادات الـ Lease Manager."""
+    default_duration_seconds: int = 60
+    max_duration_seconds: int = 300
+    max_renewals: int = 100
+    cleanup_interval_seconds: int = 30
+
+
 class LeaseState(str, Enum):
     """حالات الـ Lease."""
     ACTIVE = "active"           # فعّال
@@ -219,7 +228,6 @@ class Lease:
         }
 
 
-@dataclass
 class LeaseManager:
     """
     مدير الـ Leases.
@@ -231,18 +239,26 @@ class LeaseManager:
     4. منع التضارب (worker واحد لكل job)
     """
 
-    # Storage
-    _leases: dict[str, Lease] = field(default_factory=dict)
-    _job_to_lease: dict[str, str] = field(default_factory=dict)  # job_id -> lease_id
-    _worker_leases: dict[str, set[str]] = field(default_factory=dict)  # worker_id -> {lease_ids}
+    def __init__(self, config: Optional[LeaseConfig] = None):
+        """
+        Args:
+            config: LeaseConfig object (optional)
+        """
+        self.config = config or LeaseConfig()
 
-    # Configuration
-    default_duration_seconds: int = 60
-    max_renewals: int = 100  # حد أقصى للتجديدات
+        # Configuration shortcuts
+        self.default_duration_seconds = self.config.default_duration_seconds
+        self.max_renewals = self.config.max_renewals
+        self.max_duration_seconds = self.config.max_duration_seconds
 
-    # Idempotency cache (لمنع التكرار)
-    _completed_leases: dict[str, datetime] = field(default_factory=dict)  # lease_id -> completed_at
-    _idempotency_cache: dict[str, str] = field(default_factory=dict)  # key -> job_id
+        # Storage
+        self._leases: dict[str, Lease] = {}
+        self._job_to_lease: dict[str, str] = {}  # job_id -> lease_id
+        self._worker_leases: dict[str, set[str]] = {}  # worker_id -> {lease_ids}
+
+        # Idempotency cache (لمنع التكرار)
+        self._completed_leases: dict[str, datetime] = {}  # lease_id -> completed_at
+        self._idempotency_cache: dict[str, str] = {}  # key -> job_id
 
     def create_lease(
         self,
@@ -446,6 +462,46 @@ class LeaseManager:
                 del self._completed_leases[lease_id]
 
         return removed
+
+    def get_leases_by_worker(self, worker_id: str) -> list[Lease]:
+        """
+        الحصول على جميع الـ leases لـ worker معين.
+
+        Args:
+            worker_id: ID الـ worker
+
+        Returns:
+            قائمة الـ leases
+        """
+        lease_ids = self._worker_leases.get(worker_id, set())
+        return [self._leases[lid] for lid in lease_ids if lid in self._leases]
+
+    def revoke_lease(self, lease_id: str, reason: str = "revoked by admin") -> bool:
+        """
+        إلغاء lease معين.
+
+        Args:
+            lease_id: ID الـ lease
+            reason: سبب الإلغاء
+
+        Returns:
+            True إذا تم الإلغاء، False إذا غير موجود
+        """
+        lease = self._leases.get(lease_id)
+        if not lease:
+            return False
+
+        if lease.state == LeaseState.ACTIVE:
+            lease.revoke(reason)
+
+            # Cleanup mappings
+            if lease.job_id in self._job_to_lease:
+                del self._job_to_lease[lease.job_id]
+
+            if lease.worker_id in self._worker_leases:
+                self._worker_leases[lease.worker_id].discard(lease_id)
+
+        return True
 
     def get_stats(self) -> dict:
         """إحصائيات الـ leases."""
