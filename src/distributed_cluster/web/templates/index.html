@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم - Distributed Cluster{% endblock %}
+{% block page_title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+<!-- إحصائيات سريعة -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon workers">🖥️</div>
+        <div class="stat-info">
+            <span class="stat-value" id="totalWorkers">{{ stats.total_workers }}</span>
+            <span class="stat-label">إجمالي العمال</span>
+        </div>
+        <div class="stat-detail">
+            <span class="active">{{ stats.active_workers }} نشط</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon jobs">📋</div>
+        <div class="stat-info">
+            <span class="stat-value" id="totalJobs">{{ stats.total_jobs }}</span>
+            <span class="stat-label">إجمالي المهام</span>
+        </div>
+        <div class="stat-detail">
+            <span class="running">{{ stats.running_jobs }} قيد التنفيذ</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon cpu">⚡</div>
+        <div class="stat-info">
+            <span class="stat-value" id="cpuUsage">{{ stats.used_cpu_cores }}/{{ stats.total_cpu_cores }}</span>
+            <span class="stat-label">أنوية CPU</span>
+        </div>
+        <div class="stat-progress">
+            <div class="progress-bar" style="width: {{ (stats.used_cpu_cores / stats.total_cpu_cores * 100) if stats.total_cpu_cores > 0 else 0 }}%"></div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon memory">💾</div>
+        <div class="stat-info">
+            <span class="stat-value" id="memoryUsage">{{ stats.used_memory_gb }}/{{ stats.total_memory_gb }} GB</span>
+            <span class="stat-label">الذاكرة</span>
+        </div>
+        <div class="stat-progress">
+            <div class="progress-bar" style="width: {{ (stats.used_memory_gb / stats.total_memory_gb * 100) if stats.total_memory_gb > 0 else 0 }}%"></div>
+        </div>
+    </div>
+</div>
+
+<!-- قسم العمال والمهام -->
+<div class="dashboard-grid">
+    <!-- العمال -->
+    <div class="card">
+        <div class="card-header">
+            <h3>👥 العمال النشطون</h3>
+            <a href="/workers" class="view-all">عرض الكل</a>
+        </div>
+        <div class="card-body">
+            <div class="workers-list" id="workersList">
+                {% for worker in workers %}
+                <div class="worker-item">
+                    <div class="worker-info">
+                        <span class="worker-name">{{ worker.hostname }}</span>
+                        <span class="worker-id">{{ worker.worker_id }}</span>
+                    </div>
+                    <div class="worker-status status-{{ worker.status }}">
+                        {{ worker.status }}
+                    </div>
+                    <div class="worker-resources">
+                        <div class="resource">
+                            <span class="label">CPU</span>
+                            <div class="mini-progress">
+                                <div class="bar" style="width: {{ worker.current_usage.cpu_percent }}%"></div>
+                            </div>
+                            <span class="value">{{ worker.current_usage.cpu_percent|round(1) }}%</span>
+                        </div>
+                        <div class="resource">
+                            <span class="label">RAM</span>
+                            <div class="mini-progress">
+                                <div class="bar" style="width: {{ worker.current_usage.memory_percent }}%"></div>
+                            </div>
+                            <span class="value">{{ worker.current_usage.memory_percent|round(1) }}%</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- المهام الأخيرة -->
+    <div class="card">
+        <div class="card-header">
+            <h3>📋 المهام الأخيرة</h3>
+            <a href="/jobs" class="view-all">عرض الكل</a>
+        </div>
+        <div class="card-body">
+            <div class="jobs-list" id="jobsList">
+                {% for job in jobs %}
+                <div class="job-item">
+                    <div class="job-info">
+                        <span class="job-name">{{ job.name or job.job_id }}</span>
+                        <span class="job-id">{{ job.job_id }}</span>
+                    </div>
+                    <div class="job-status status-{{ job.status }}">
+                        {% if job.status == 'running' %}
+                        <span class="spinner"></span>
+                        {% endif %}
+                        {{ job.status }}
+                    </div>
+                    {% if job.progress is defined %}
+                    <div class="job-progress">
+                        <div class="progress-bar-small">
+                            <div class="bar" style="width: {{ job.progress }}%"></div>
+                        </div>
+                        <span class="progress-text">{{ job.progress }}%</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ملخص الحالة -->
+<div class="card status-summary">
+    <div class="card-header">
+        <h3>📈 ملخص الحالة</h3>
+    </div>
+    <div class="card-body">
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="count completed">{{ stats.completed_jobs }}</span>
+                <span class="label">مكتملة</span>
+            </div>
+            <div class="status-item">
+                <span class="count running">{{ stats.running_jobs }}</span>
+                <span class="label">قيد التنفيذ</span>
+            </div>
+            <div class="status-item">
+                <span class="count pending">{{ stats.pending_jobs or 0 }}</span>
+                <span class="label">في الانتظار</span>
+            </div>
+            <div class="status-item">
+                <span class="count failed">{{ stats.failed_jobs }}</span>
+                <span class="label">فاشلة</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

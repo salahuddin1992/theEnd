@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Distributed Cluster{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">
+            <h2>DC Cluster</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/" class="{% if request.url.path == '/' %}active{% endif %}">
+                <span class="icon">📊</span> لوحة التحكم
+            </a></li>
+            <li><a href="/workers" class="{% if request.url.path == '/workers' %}active{% endif %}">
+                <span class="icon">🖥️</span> العمال
+            </a></li>
+            <li><a href="/jobs" class="{% if request.url.path == '/jobs' %}active{% endif %}">
+                <span class="icon">📋</span> المهام
+            </a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-dot"></span>
+                <span>متصل</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h1>{% block page_title %}لوحة التحكم{% endblock %}</h1>
+            <div class="top-bar-actions">
+                <span class="last-update" id="lastUpdate">آخر تحديث: --:--</span>
+            </div>
+        </header>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

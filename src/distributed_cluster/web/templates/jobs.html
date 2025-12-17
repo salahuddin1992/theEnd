@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}المهام - Distributed Cluster{% endblock %}
+{% block page_title %}إدارة المهام{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-info">
+        <p>إجمالي المهام: <strong>{{ jobs|length }}</strong></p>
+    </div>
+    <div class="header-actions">
+        <div class="filter-group">
+            <label>تصفية:</label>
+            <select id="statusFilter" onchange="filterJobs()">
+                <option value="all">الكل</option>
+                <option value="running">قيد التنفيذ</option>
+                <option value="pending">في الانتظار</option>
+                <option value="completed">مكتملة</option>
+                <option value="failed">فاشلة</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="jobs-table-container">
+    <table class="jobs-table">
+        <thead>
+            <tr>
+                <th>المهمة</th>
+                <th>الحالة</th>
+                <th>العامل</th>
+                <th>التقدم</th>
+                <th>وقت الإنشاء</th>
+                <th>الإجراءات</th>
+            </tr>
+        </thead>
+        <tbody id="jobsTableBody">
+            {% for job in jobs %}
+            <tr class="job-row" data-status="{{ job.status }}">
+                <td>
+                    <div class="job-cell">
+                        <span class="job-name">{{ job.name or 'بدون اسم' }}</span>
+                        <span class="job-id">{{ job.job_id }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="status-badge status-{{ job.status }}">
+                        {% if job.status == 'running' %}<span class="spinner-small"></span>{% endif %}
+                        {{ job.status }}
+                    </span>
+                </td>
+                <td>
+                    {% if job.worker_id %}
+                    <span class="worker-link">{{ job.worker_id }}</span>
+                    {% else %}
+                    <span class="no-worker">--</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if job.progress is defined %}
+                    <div class="progress-cell">
+                        <div class="progress-bar-table">
+                            <div class="bar" style="width: {{ job.progress }}%"></div>
+                        </div>
+                        <span>{{ job.progress }}%</span>
+                    </div>
+                    {% else %}
+                    <span class="no-progress">--</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="time-cell">{{ job.created_at }}</span>
+                </td>
+                <td>
+                    <div class="actions-cell">
+                        {% if job.status in ['running', 'pending'] %}
+                        <button class="btn btn-danger btn-small" onclick="cancelJob('{{ job.job_id }}')">
+                            إلغاء
+                        </button>
+                        {% endif %}
+                        <button class="btn btn-secondary btn-small" onclick="viewJobDetails('{{ job.job_id }}')">
+                            تفاصيل
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not jobs %}
+<div class="empty-state">
+    <span class="icon">📋</span>
+    <h3>لا توجد مهام</h3>
+    <p>قم بإرسال مهمة جديدة</p>
+    <code>dc-submit run "echo hello"</code>
+</div>
+{% endif %}
+
+<!-- Modal لتفاصيل المهمة -->
+<div id="jobModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>تفاصيل المهمة</h3>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="jobModalBody">
+            <!-- سيتم ملؤه بـ JavaScript -->
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function filterJobs() {
+    const filter = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.job-row');
+
+    rows.forEach(row => {
+        if (filter === 'all' || row.dataset.status === filter) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+async function cancelJob(jobId) {
+    if (!confirm('هل أنت متأكد من إلغاء هذه المهمة؟')) return;
+
+    try {
+        const response = await fetch(`/api/jobs/${jobId}/cancel`, { method: 'POST' });
+        const result = await response.json();
+        if (result.success) {
+            location.reload();
+        } else {
+            alert('فشل إلغاء المهمة');
+        }
+    } catch (error) {
+        alert('خطأ في الاتصال');
+    }
+}
+
+function viewJobDetails(jobId) {
+    document.getElementById('jobModal').style.display = 'flex';
+    document.getElementById('jobModalBody').innerHTML = `<p>جاري تحميل تفاصيل المهمة ${jobId}...</p>`;
+}
+
+function closeModal() {
+    document.getElementById('jobModal').style.display = 'none';
+}
+</script>
+{% endblock %}
+{% endblock %}
