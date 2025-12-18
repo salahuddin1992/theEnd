@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+
+{% block title %}AI Providers - Distributed Cluster{% endblock %}
+{% block page_title %}مزودي الذكاء الاصطناعي{% endblock %}
+
+{% block content %}
+<!-- إحصائيات المزودين -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon ai">🤖</div>
+        <div class="stat-info">
+            <span class="stat-value" id="totalProviders">{{ providers|length }}</span>
+            <span class="stat-label">إجمالي المزودين</span>
+        </div>
+        <div class="stat-detail">
+            <span class="active">{{ active_providers }} نشط</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon models">📦</div>
+        <div class="stat-info">
+            <span class="stat-value" id="totalModels">{{ total_models }}</span>
+            <span class="stat-label">إجمالي النماذج</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon requests">📊</div>
+        <div class="stat-info">
+            <span class="stat-value" id="totalRequests">{{ total_requests }}</span>
+            <span class="stat-label">الطلبات اليوم</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon tokens">🎯</div>
+        <div class="stat-info">
+            <span class="stat-value" id="totalTokens">{{ total_tokens }}</span>
+            <span class="stat-label">إجمالي التوكنات</span>
+        </div>
+    </div>
+</div>
+
+<!-- قائمة المزودين -->
+<div class="card">
+    <div class="card-header">
+        <h3>🔌 مزودي AI المتاحين</h3>
+        <button class="btn btn-primary" onclick="addProvider()">+ إضافة مزود</button>
+    </div>
+    <div class="card-body">
+        <div class="providers-grid">
+            <!-- Claude / Anthropic -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🟣</div>
+                    <div class="provider-info">
+                        <h4>Claude (Anthropic)</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">claude-3-5-sonnet-20241022</div>
+                    <div class="model-item">claude-3-5-haiku-20241022</div>
+                    <div class="model-item">claude-3-opus-20240229</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 200K</span>
+                    <span>Vision: ✓</span>
+                    <span>Tools: ✓</span>
+                </div>
+            </div>
+
+            <!-- OpenAI -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🟢</div>
+                    <div class="provider-info">
+                        <h4>OpenAI</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">gpt-4-turbo</div>
+                    <div class="model-item">gpt-4o</div>
+                    <div class="model-item">gpt-3.5-turbo</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 128K</span>
+                    <span>Vision: ✓</span>
+                    <span>Tools: ✓</span>
+                </div>
+            </div>
+
+            <!-- Gemini -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🔵</div>
+                    <div class="provider-info">
+                        <h4>Gemini (Google)</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">gemini-2.0-flash</div>
+                    <div class="model-item">gemini-1.5-pro</div>
+                    <div class="model-item">gemini-1.5-flash</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 2M</span>
+                    <span>Vision: ✓</span>
+                    <span>Tools: ✓</span>
+                </div>
+            </div>
+
+            <!-- Groq -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">⚡</div>
+                    <div class="provider-info">
+                        <h4>Groq (Fastest!)</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">llama-3.3-70b-versatile</div>
+                    <div class="model-item">llama-3.1-8b-instant</div>
+                    <div class="model-item">mixtral-8x7b-32768</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 128K</span>
+                    <span>Speed: 🚀</span>
+                    <span>Tools: ✓</span>
+                </div>
+            </div>
+
+            <!-- Mistral -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🟠</div>
+                    <div class="provider-info">
+                        <h4>Mistral AI</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">mistral-large-latest</div>
+                    <div class="model-item">codestral-latest</div>
+                    <div class="model-item">pixtral-12b-2409</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 128K</span>
+                    <span>Vision: ✓</span>
+                    <span>Code: ✓</span>
+                </div>
+            </div>
+
+            <!-- Together AI -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🤝</div>
+                    <div class="provider-info">
+                        <h4>Together AI</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">Llama-3.3-70B-Instruct</div>
+                    <div class="model-item">Qwen2.5-72B-Instruct</div>
+                    <div class="model-item">DeepSeek-R1-Distill</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Models: 100+</span>
+                    <span>Open Source</span>
+                </div>
+            </div>
+
+            <!-- DeepSeek -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🔮</div>
+                    <div class="provider-info">
+                        <h4>DeepSeek</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">deepseek-chat</div>
+                    <div class="model-item">deepseek-reasoner</div>
+                    <div class="model-item">deepseek-coder</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 64K</span>
+                    <span>Reasoning: ✓</span>
+                </div>
+            </div>
+
+            <!-- Cohere -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🔶</div>
+                    <div class="provider-info">
+                        <h4>Cohere</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">command-r-plus</div>
+                    <div class="model-item">command-r</div>
+                    <div class="model-item">command</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 128K</span>
+                    <span>RAG: ✓</span>
+                </div>
+            </div>
+
+            <!-- xAI / Grok -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">⚫</div>
+                    <div class="provider-info">
+                        <h4>xAI (Grok)</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">grok-2-latest</div>
+                    <div class="model-item">grok-2-vision</div>
+                    <div class="model-item">grok-beta</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Context: 128K</span>
+                    <span>Vision: ✓</span>
+                </div>
+            </div>
+
+            <!-- Perplexity -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🔍</div>
+                    <div class="provider-info">
+                        <h4>Perplexity</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">sonar-pro</div>
+                    <div class="model-item">sonar</div>
+                    <div class="model-item">sonar-reasoning</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Search: ✓</span>
+                    <span>Real-time: ✓</span>
+                </div>
+            </div>
+
+            <!-- HuggingFace -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🤗</div>
+                    <div class="provider-info">
+                        <h4>HuggingFace</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">Llama-3.2-3B-Instruct</div>
+                    <div class="model-item">Mistral-7B-Instruct</div>
+                    <div class="model-item">Any model on Hub</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Models: 1M+</span>
+                    <span>Open Source</span>
+                </div>
+            </div>
+
+            <!-- Ollama (Local) -->
+            <div class="provider-card">
+                <div class="provider-header">
+                    <div class="provider-logo">🦙</div>
+                    <div class="provider-info">
+                        <h4>Ollama (Local)</h4>
+                        <span class="provider-status status-active">متصل</span>
+                    </div>
+                </div>
+                <div class="provider-models">
+                    <div class="model-item">llama3.2</div>
+                    <div class="model-item">qwen2.5</div>
+                    <div class="model-item">codellama</div>
+                </div>
+                <div class="provider-stats">
+                    <span>Local: ✓</span>
+                    <span>Privacy: ✓</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- موارد النظام -->
+<div class="card">
+    <div class="card-header">
+        <h3>💻 موارد النظام</h3>
+    </div>
+    <div class="card-body">
+        <div class="resources-grid">
+            <div class="resource-card">
+                <h4>🔲 CPU</h4>
+                <div class="resource-value">{{ cpu_cores }} Cores</div>
+                <div class="resource-usage">
+                    <div class="usage-bar">
+                        <div class="bar" style="width: {{ cpu_percent }}%"></div>
+                    </div>
+                    <span>{{ cpu_percent }}% مستخدم</span>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <h4>💾 RAM</h4>
+                <div class="resource-value">{{ ram_total_gb }} GB</div>
+                <div class="resource-usage">
+                    <div class="usage-bar">
+                        <div class="bar" style="width: {{ ram_percent }}%"></div>
+                    </div>
+                    <span>{{ ram_used_gb }}/{{ ram_total_gb }} GB</span>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <h4>🎮 GPU</h4>
+                <div class="resource-value">{{ gpu_count }} Device(s)</div>
+                {% if gpu_count > 0 %}
+                <div class="resource-usage">
+                    <div class="usage-bar">
+                        <div class="bar" style="width: {{ gpu_percent }}%"></div>
+                    </div>
+                    <span>{{ gpu_memory_used }}/{{ gpu_memory_total }} GB</span>
+                </div>
+                {% else %}
+                <div class="resource-usage">
+                    <span>No GPU detected</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="resource-card">
+                <h4>💿 Storage</h4>
+                <div class="resource-value">{{ disk_total_gb }} GB</div>
+                <div class="resource-usage">
+                    <div class="usage-bar">
+                        <div class="bar" style="width: {{ disk_percent }}%"></div>
+                    </div>
+                    <span>{{ disk_free_gb }} GB متاح</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.provider-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.provider-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.provider-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.provider-logo {
+    font-size: 2rem;
+}
+
+.provider-info h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.provider-status {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.provider-models {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.model-item {
+    font-size: 0.7rem;
+    background: var(--bg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.provider-stats {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.resource-card {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.resource-card h4 {
+    margin: 0 0 0.5rem;
+}
+
+.resource-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.resource-usage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.usage-bar {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.usage-bar .bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 4px;
+}
+</style>
+
+<script>
+function addProvider() {
+    // Show modal to add new provider
+    alert('سيتم فتح نافذة إضافة مزود جديد');
+}
+</script>
+{% endblock %}

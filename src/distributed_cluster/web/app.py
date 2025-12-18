@@ -269,6 +269,53 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             {"jobs": dash.get_jobs()}
         )
 
+    # صفحة مزودي AI
+    @app.get("/ai", response_class=HTMLResponse)
+    async def ai_page(request: Request):
+        dash = app.state.dashboard
+
+        # بيانات المزودين
+        ai_data = {
+            "providers": [
+                {"name": "Claude", "status": "active", "models": 5},
+                {"name": "OpenAI", "status": "active", "models": 4},
+                {"name": "Gemini", "status": "active", "models": 5},
+                {"name": "Groq", "status": "active", "models": 6},
+                {"name": "Mistral", "status": "active", "models": 7},
+                {"name": "Together", "status": "active", "models": 100},
+                {"name": "DeepSeek", "status": "active", "models": 3},
+                {"name": "Cohere", "status": "active", "models": 4},
+                {"name": "xAI", "status": "active", "models": 4},
+                {"name": "Perplexity", "status": "active", "models": 3},
+                {"name": "HuggingFace", "status": "active", "models": 1000000},
+                {"name": "Ollama", "status": "active", "models": 50},
+            ],
+            "active_providers": 12,
+            "total_models": 150,
+            "total_requests": 1234,
+            "total_tokens": 567890,
+
+            # موارد النظام
+            "cpu_cores": 8,
+            "cpu_percent": 45,
+            "ram_total_gb": 32,
+            "ram_used_gb": 18,
+            "ram_percent": 56,
+            "gpu_count": 1,
+            "gpu_percent": 30,
+            "gpu_memory_used": 6,
+            "gpu_memory_total": 12,
+            "disk_total_gb": 500,
+            "disk_free_gb": 320,
+            "disk_percent": 36,
+        }
+
+        return templates.TemplateResponse(
+            request,
+            "ai.html",
+            ai_data
+        )
+
     # API endpoints
     @app.get("/api/stats")
     async def api_stats():
