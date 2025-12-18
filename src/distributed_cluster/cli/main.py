@@ -1134,7 +1134,7 @@ def secrets_create(
         if not from_file.exists():
             console.print(f"[red]File not found: {from_file}[/red]")
             raise typer.Exit(1)
-        value = from_file.read_text()
+        value = from_file.read_text(encoding='utf-8')
 
     if not value:
         # Prompt for value

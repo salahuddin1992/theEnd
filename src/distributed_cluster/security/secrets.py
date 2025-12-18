@@ -258,7 +258,7 @@ class FileSecretStore(SecretStore):
             "data": encrypted_data,
         }
 
-        path.write_text(json.dumps(data, indent=2))
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding='utf-8')
         logger.info(f"Created secret: {secret.metadata.namespace}/{secret.metadata.name}")
         return True
 
@@ -269,7 +269,7 @@ class FileSecretStore(SecretStore):
         if not path.exists():
             return None
 
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding='utf-8'))
         meta_data = data["metadata"]
 
         metadata = SecretMetadata(
