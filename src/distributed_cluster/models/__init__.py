@@ -14,21 +14,56 @@ from distributed_cluster.models.job_spec import (
     NetworkPolicy,
     create_simple_job_spec,
 )
+from distributed_cluster.models.resource_manager import (
+    ResourceManager,
+    FullResourceConfig,
+    CPUConfig,
+    GPUConfig,
+    MemoryConfig,
+    DiskConfig,
+    NetworkConfig,
+    GPUDevice,
+    SystemResources,
+    GPUVendor,
+    ResourceMode,
+    get_resource_manager,
+    optimize_system_for_ai,
+    print_resources,
+)
 
 __all__ = [
     # Resources
     "ResourceSpec",
     "ResourceUsage",
     "GPUInfo",
+
+    # Resource Manager
+    "ResourceManager",
+    "FullResourceConfig",
+    "CPUConfig",
+    "GPUConfig",
+    "MemoryConfig",
+    "DiskConfig",
+    "NetworkConfig",
+    "GPUDevice",
+    "SystemResources",
+    "GPUVendor",
+    "ResourceMode",
+    "get_resource_manager",
+    "optimize_system_for_ai",
+    "print_resources",
+
     # Worker
     "WorkerInfo",
     "WorkerStatus",
     "WorkerRegistration",
+
     # Job
     "Job",
     "JobStatus",
     "JobResult",
     "JobSubmission",
+
     # Job Specification
     "JobSpecification",
     "RuntimeSpec",
@@ -37,9 +72,11 @@ __all__ = [
     "ExecutionPolicy",
     "NetworkPolicy",
     "create_simple_job_spec",
+
     # Events
     "Event",
     "EventType",
+
     # Lease
     "Lease",
     "LeaseState",
