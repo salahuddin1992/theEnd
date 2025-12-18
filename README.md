@@ -1,8 +1,16 @@
-# نظام الحوسبة الموزّعة | Distributed Computing System
+# نظام الحوسبة الموزّعة | NebulaCompute
 
-نظام حوسبة موزّعة يتيح توزيع المهام على عدة أجهزة (workers) وإدارتها من نقطة تحكم مركزية (master).
+نظام حوسبة موزّعة متكامل يتيح توزيع المهام على عدة أجهزة (workers) وإدارتها من نقطة تحكم مركزية (master).
 
-A distributed computing system that allows distributing tasks across multiple machines (workers) and managing them from a central control point (master).
+A comprehensive distributed computing system that allows distributing tasks across multiple machines (workers) and managing them from a central control point (master).
+
+## المنصات المدعومة | Supported Platforms
+
+| Platform | Status |
+|----------|--------|
+| Windows 10/11 | ✅ Full Support |
+| Linux (Ubuntu, CentOS, etc.) | ✅ Full Support |
+| macOS | ✅ Full Support |
 
 ## المفهوم الأساسي | Core Concept
 
@@ -15,6 +23,7 @@ A distributed computing system that allows distributing tasks across multiple ma
                     │  • Scheduler        │
                     │  • State Store      │
                     │  • Health Monitor   │
+                    │  • Web Dashboard    │
                     └──────────┬──────────┘
                                │
               ┌────────────────┼────────────────┐
@@ -27,12 +36,21 @@ A distributed computing system that allows distributing tasks across multiple ma
 
 ## الميزات | Features
 
+### الميزات الأساسية
 - **توزيع المهام**: إرسال مهام للعمّال وتنفيذها على مواردهم
 - **جدولة ذكية**: Bin-packing scheduler يوزع المهام بناءً على الموارد المتاحة (CPU/RAM/GPU)
 - **عزل آمن**: تنفيذ المهام داخل Docker containers
 - **مراقبة حية**: WebSocket للتحديثات الفورية
 - **تحمّل الأخطاء**: إعادة المحاولة التلقائية عند الفشل
 - **دعم GPU**: تخصيص GPUs للمهام التي تحتاجها
+
+### الميزات المتقدمة
+- **High Availability (HA)**: دعم 3 Masters مع Leader Election
+- **Mesh Network**: وضع P2P للحوسبة اللامركزية
+- **لوحة تحكم Web**: واجهة ويب تفاعلية مع WebSocket
+- **تطبيق Desktop**: تطبيق سطح مكتب (Windows/Linux/macOS)
+- **AI/ML Integration**: دعم Ollama, vLLM, OpenAI
+- **Security**: JWT Auth, RBAC, Encryption, Audit Logging
 
 ## التثبيت | Installation
 
@@ -44,8 +62,9 @@ cd theEnd
 # Install with pip
 pip install -e ".[dev]"
 
-# أو باستخدام requirements
-pip install fastapi uvicorn httpx pydantic psutil docker pynvml typer rich
+# أو باستخدام Conda
+conda env create -f environment.yml
+conda activate theend-env
 ```
 
 ## الاستخدام السريع | Quick Start
@@ -114,6 +133,98 @@ dc-submit status job-abc123
 dc-submit cancel job-abc123
 ```
 
+## لوحات التحكم | Dashboards
+
+### لوحة التحكم Web
+
+```bash
+# تشغيل لوحة التحكم Web
+dc-web start --port 8080
+
+# ثم افتح في المتصفح
+# http://localhost:8080
+```
+
+**الميزات:**
+- إحصائيات الكلاستر في الوقت الفعلي
+- إدارة Workers و Jobs
+- تحديثات حية عبر WebSocket
+- رسوم بيانية للأداء
+
+### تطبيق سطح المكتب
+
+```bash
+# تشغيل تطبيق سطح المكتب
+dc-desktop
+
+# أو بناء ملف .exe (Windows)
+cd src/distributed_cluster/desktop
+python build_exe.py
+# الملف: dist/NebulaCompute.exe
+```
+
+**الميزات:**
+- واجهة رسومية كاملة (PySide6)
+- إدارة الاتصال بـ Master
+- عرض Jobs و Workers
+- System Tray integration
+- Dark/Light themes
+
+### CLI Dashboard
+
+```bash
+# مراقبة حية في Terminal
+nebula watch
+
+# الوضع التفاعلي
+nebula shell
+```
+
+## High Availability (HA)
+
+تشغيل 3 Masters مع failover تلقائي:
+
+```bash
+# باستخدام Docker Compose
+docker-compose -f docker-compose.ha.yml up
+
+# أو يدوياً
+dc-master start --port 8765 --ha-peers master2:8765,master3:8765
+```
+
+## Mesh Network (P2P)
+
+وضع الشبكة اللامركزية:
+
+```bash
+# تشغيل node
+dc-mesh start --port 9000 --bootstrap peer1:9000,peer2:9000
+
+# إرسال job للشبكة
+dc-mesh submit "python task.py" --replicas 3
+```
+
+## Security
+
+### Authentication
+
+```bash
+# إنشاء token للمستخدم
+dc-master token create --user admin --role admin
+
+# إنشاء enrollment token لـ worker
+dc-master enrollment create --expires 24h
+```
+
+### RBAC Roles
+
+| Role | Permissions |
+|------|-------------|
+| admin | كل الصلاحيات |
+| operator | إدارة Jobs و Workers |
+| user | إرسال Jobs فقط |
+| readonly | مشاهدة فقط |
+
 ## API Reference
 
 Master يوفر REST API على المنفذ المحدد:
@@ -177,11 +288,29 @@ distributed_cluster/
 │   └── server.py         # FastAPI server
 ├── worker/               # Worker agent
 │   ├── agent.py          # Worker agent
+│   ├── ha_agent.py       # HA multi-master support
 │   └── executor.py       # Job executor (process/Docker)
+├── web/                  # Web dashboard
+│   ├── app.py            # FastAPI web app
+│   └── templates/        # HTML templates
+├── desktop/              # Desktop application
+│   ├── main.py           # Entry point
+│   ├── main_window.py    # Main window
+│   └── views/            # UI views
+├── mesh/                 # P2P mesh network
+│   ├── node.py           # Mesh node
+│   └── router.py         # Task router
+├── security/             # Security & Auth
+│   ├── auth.py           # JWT Authentication
+│   ├── crypto.py         # Encryption utilities
+│   └── secrets.py        # Secrets management
+├── ai/                   # AI/ML integration
+│   └── llm/              # LLM providers
 └── cli/                  # Command-line tools
     ├── master_cli.py     # dc-master
     ├── worker_cli.py     # dc-worker
-    └── submit_cli.py     # dc-submit
+    ├── submit_cli.py     # dc-submit
+    └── mesh_cli.py       # dc-mesh
 ```
 
 ## سياسات الجدولة | Scheduling Policies
@@ -192,11 +321,25 @@ distributed_cluster/
 - **Round-Robin**: بالتناوب
 - **Least-Loaded**: أقل عدد jobs نشطة
 
+## Docker Deployment
+
+```bash
+# Development (single node)
+docker-compose -f docker-compose.dev.yml up
+
+# Production (single master)
+docker-compose -f docker-compose.prod.yml up
+
+# High Availability (3 masters)
+docker-compose -f docker-compose.ha.yml up
+```
+
 ## متطلبات النظام | Requirements
 
 - Python 3.10+
 - Docker (اختياري، لتشغيل jobs في containers)
 - NVIDIA Driver + pynvml (اختياري، لدعم GPU)
+- PySide6 (لتطبيق سطح المكتب)
 
 ## ملاحظات مهمة | Important Notes
 
@@ -205,6 +348,19 @@ distributed_cluster/
 2. **الشبكة**: يجب أن تكون الأجهزة قادرة على التواصل (نفس الشبكة أو VPN).
 
 3. **Docker**: يُنصح باستخدام Docker لعزل المهام وضمان الأمان.
+
+4. **Windows**: يعمل النظام بالكامل على Windows مع دعم:
+   - Process management (taskkill)
+   - Disk monitoring (C:\)
+   - Machine fingerprint (Registry)
+   - Desktop app (.exe)
+
+## التوثيق الإضافي | Additional Documentation
+
+- [API Reference](docs/API_REFERENCE.md)
+- [AI Integration Guide](docs/AI_GUIDE.md)
+- [Mesh Network Guide](docs/MESH_NETWORK_GUIDE.md)
+- [Contributing Guide](docs/CONTRIBUTING.md)
 
 ## أدوات مشابهة | Similar Tools
 
