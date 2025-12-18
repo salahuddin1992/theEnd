@@ -115,23 +115,76 @@ class CryptoManager:
         يحاول استخدام معرّفات ثابتة:
         - Machine ID (Linux)
         - Hardware UUID (Mac)
-        - Volume serial (Windows)
+        - Machine GUID (Windows)
         """
+        import sys
         identifiers = []
 
-        # Try Linux machine-id
-        try:
-            with open("/etc/machine-id", "r") as f:
-                identifiers.append(f.read().strip())
-        except Exception:
-            pass
+        if sys.platform == "win32":
+            # Windows: Get MachineGuid from registry
+            try:
+                import winreg
+                key = winreg.OpenKey(
+                    winreg.HKEY_LOCAL_MACHINE,
+                    r"SOFTWARE\Microsoft\Cryptography",
+                    0,
+                    winreg.KEY_READ | winreg.KEY_WOW64_64KEY
+                )
+                machine_guid, _ = winreg.QueryValueEx(key, "MachineGuid")
+                winreg.CloseKey(key)
+                identifiers.append(machine_guid)
+            except Exception:
+                pass
 
-        # Try DMI product UUID
-        try:
-            with open("/sys/class/dmi/id/product_uuid", "r") as f:
-                identifiers.append(f.read().strip())
-        except Exception:
-            pass
+            # Fallback: Get volume serial number
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ["wmic", "os", "get", "serialnumber"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split('\n')
+                    if len(lines) > 1:
+                        identifiers.append(lines[1].strip())
+            except Exception:
+                pass
+
+        elif sys.platform == "darwin":
+            # macOS: Get hardware UUID
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ["ioreg", "-rd1", "-c", "IOPlatformExpertDevice"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if result.returncode == 0:
+                    for line in result.stdout.split('\n'):
+                        if "IOPlatformUUID" in line:
+                            uuid = line.split('"')[-2]
+                            identifiers.append(uuid)
+                            break
+            except Exception:
+                pass
+
+        else:
+            # Linux: Try machine-id
+            try:
+                with open("/etc/machine-id", "r") as f:
+                    identifiers.append(f.read().strip())
+            except Exception:
+                pass
+
+            # Try DMI product UUID
+            try:
+                with open("/sys/class/dmi/id/product_uuid", "r") as f:
+                    identifiers.append(f.read().strip())
+            except Exception:
+                pass
 
         # Fallback to hostname + random
         if not identifiers:

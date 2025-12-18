@@ -2,11 +2,23 @@
 
 <div align="center">
 
-**نظام حوسبة موزّعة لتوزيع المهام على عدة أجهزة وإدارتها من نقطة تحكم مركزية**
+**نظام حوسبة موزّعة متكامل يتيح توزيع المهام على عدة أجهزة (workers) وإدارتها من نقطة تحكم مركزية (master)**
+
+A comprehensive distributed computing system that allows distributing tasks across multiple machines (workers) and managing them from a central control point (master).
 
 [English](#english) | [العربية](#arabic)
 
 </div>
+
+---
+
+## المنصات المدعومة | Supported Platforms
+
+| Platform | Status |
+|----------|--------|
+| Windows 10/11 | ✅ Full Support |
+| Linux (Ubuntu, CentOS, etc.) | ✅ Full Support |
+| macOS | ✅ Full Support |
 
 ---
 
@@ -23,6 +35,7 @@
                     │  • Scheduler        │
                     │  • State Store      │
                     │  • Health Monitor   │
+                    │  • Web Dashboard    │
                     └──────────┬──────────┘
                                │
               ┌────────────────┼────────────────┐
@@ -35,6 +48,7 @@
 
 ## الميزات
 
+### الميزات الأساسية
 - **توزيع المهام**: إرسال مهام للعمّال وتنفيذها على مواردهم
 - **جدولة ذكية**: Bin-packing scheduler يوزع المهام بناءً على الموارد المتاحة (CPU/RAM/GPU)
 - **عزل آمن**: تنفيذ المهام داخل Docker containers
@@ -44,6 +58,14 @@
 - **واجهة سطح المكتب**: تطبيق Desktop للتحكم البصري
 - **دعم AI**: تشغيل نماذج الذكاء الاصطناعي الموزعة
 
+### الميزات المتقدمة
+- **High Availability (HA)**: دعم 3 Masters مع Leader Election
+- **Mesh Network**: وضع P2P للحوسبة اللامركزية
+- **لوحة تحكم Web**: واجهة ويب تفاعلية مع WebSocket
+- **تطبيق Desktop**: تطبيق سطح مكتب (Windows/Linux/macOS)
+- **AI/ML Integration**: دعم Ollama, vLLM, OpenAI
+- **Security**: JWT Auth, RBAC, Encryption, Audit Logging
+
 ## متطلبات النظام
 
 | المتطلب | الإصدار المطلوب |
@@ -52,6 +74,7 @@
 | pip | 23.0 أو أحدث |
 | Docker | اختياري (لتشغيل jobs في containers) |
 | NVIDIA Driver | اختياري (لدعم GPU) |
+| PySide6 | اختياري (لتطبيق سطح المكتب) |
 
 ---
 
@@ -525,6 +548,21 @@ dc-master start --port 8080
 
 ---
 
+## Docker Deployment
+
+```bash
+# Development (single node)
+docker-compose -f docker-compose.dev.yml up
+
+# Production (single master)
+docker-compose -f docker-compose.prod.yml up
+
+# High Availability (3 masters)
+docker-compose -f docker-compose.ha.yml up
+```
+
+---
+
 ## الأوامر المتاحة (CLI)
 
 | الأمر | الوصف |
@@ -553,6 +591,106 @@ dc-worker info
 # فحص صحة الكلاستر
 dc-master health
 ```
+
+---
+
+## لوحات التحكم | Dashboards
+
+### لوحة التحكم Web
+
+```bash
+# تشغيل لوحة التحكم Web
+dc-web start --port 8080
+
+# ثم افتح في المتصفح
+# http://localhost:8080
+```
+
+**الميزات:**
+- إحصائيات الكلاستر في الوقت الفعلي
+- إدارة Workers و Jobs
+- تحديثات حية عبر WebSocket
+- رسوم بيانية للأداء
+
+### تطبيق سطح المكتب
+
+```bash
+# تشغيل تطبيق سطح المكتب
+dc-desktop
+
+# أو بناء ملف .exe (Windows)
+cd src/distributed_cluster/desktop
+python build_exe.py
+# الملف: dist/NebulaCompute.exe
+```
+
+**الميزات:**
+- واجهة رسومية كاملة (PySide6)
+- إدارة الاتصال بـ Master
+- عرض Jobs و Workers
+- System Tray integration
+- Dark/Light themes
+
+### CLI Dashboard
+
+```bash
+# مراقبة حية في Terminal
+nebula watch
+
+# الوضع التفاعلي
+nebula shell
+```
+
+---
+
+## High Availability (HA)
+
+تشغيل 3 Masters مع failover تلقائي:
+
+```bash
+# باستخدام Docker Compose
+docker-compose -f docker-compose.ha.yml up
+
+# أو يدوياً
+dc-master start --port 8765 --ha-peers master2:8765,master3:8765
+```
+
+---
+
+## Mesh Network (P2P)
+
+وضع الشبكة اللامركزية:
+
+```bash
+# تشغيل node
+dc-mesh start --port 9000 --bootstrap peer1:9000,peer2:9000
+
+# إرسال job للشبكة
+dc-mesh submit "python task.py" --replicas 3
+```
+
+---
+
+## Security
+
+### Authentication
+
+```bash
+# إنشاء token للمستخدم
+dc-master token create --user admin --role admin
+
+# إنشاء enrollment token لـ worker
+dc-master enrollment create --expires 24h
+```
+
+### RBAC Roles
+
+| Role | Permissions |
+|------|-------------|
+| admin | كل الصلاحيات |
+| operator | إدارة Jobs و Workers |
+| user | إرسال Jobs فقط |
+| readonly | مشاهدة فقط |
 
 ---
 
@@ -607,25 +745,48 @@ theEnd/
 ├── src/
 │   └── distributed_cluster/
 │       ├── ai/                  # أدوات الذكاء الاصطناعي
+│       │   └── llm/             # LLM providers
 │       ├── cli/                 # أدوات سطر الأوامر
 │       │   ├── master_cli.py    # dc-master
 │       │   ├── worker_cli.py    # dc-worker
 │       │   ├── submit_cli.py    # dc-submit
-│       │   └── ...
+│       │   └── mesh_cli.py      # dc-mesh
 │       ├── core/                # إعدادات وأدوات أساسية
+│       │   ├── config.py        # Configuration classes
+│       │   └── resource_detector.py  # CPU/GPU/RAM detection
 │       ├── desktop/             # تطبيق سطح المكتب
+│       │   ├── main.py          # Entry point
+│       │   ├── main_window.py   # Main window
+│       │   └── views/           # UI views
 │       ├── grpc/                # دعم gRPC
 │       ├── master/              # خادم Master
+│       │   ├── state.py         # Cluster state management
+│       │   └── server.py        # FastAPI server
 │       ├── mesh/                # شبكة Mesh
+│       │   ├── node.py          # Mesh node
+│       │   └── router.py        # Task router
 │       ├── models/              # نماذج البيانات
+│       │   ├── resources.py     # ResourceSpec, ResourceUsage
+│       │   ├── worker.py        # WorkerInfo, WorkerStatus
+│       │   ├── job.py           # Job, JobSubmission, JobResult
+│       │   └── events.py        # Event types
 │       ├── notifications/       # نظام الإشعارات
 │       ├── observability/       # المراقبة والتتبع
 │       ├── plugins/             # نظام الإضافات
 │       ├── scheduler/           # جدولة المهام
+│       │   └── scheduler.py     # Bin-packing scheduler
 │       ├── security/            # الأمان
+│       │   ├── auth.py          # JWT Authentication
+│       │   ├── crypto.py        # Encryption utilities
+│       │   └── secrets.py       # Secrets management
 │       ├── storage/             # التخزين
 │       ├── web/                 # واجهة الويب
+│       │   ├── app.py           # FastAPI web app
+│       │   └── templates/       # HTML templates
 │       ├── worker/              # خادم Worker
+│       │   ├── agent.py         # Worker agent
+│       │   ├── ha_agent.py      # HA multi-master support
+│       │   └── executor.py      # Job executor (process/Docker)
 │       └── workflow/            # إدارة سير العمل
 ├── config/                      # ملفات الإعدادات
 ├── deploy/                      # ملفات النشر
@@ -702,6 +863,21 @@ curl http://localhost:8080/health
 
 3. **Docker**: يُنصح باستخدام Docker لعزل المهام وضمان الأمان.
 
+4. **Windows**: يعمل النظام بالكامل على Windows مع دعم:
+   - Process management (taskkill)
+   - Disk monitoring (C:\)
+   - Machine fingerprint (Registry)
+   - Desktop app (.exe)
+
+---
+
+## التوثيق الإضافي | Additional Documentation
+
+- [API Reference](docs/API_REFERENCE.md)
+- [AI Integration Guide](docs/AI_GUIDE.md)
+- [Mesh Network Guide](docs/MESH_NETWORK_GUIDE.md)
+- [Contributing Guide](docs/CONTRIBUTING.md)
+
 ---
 
 <a name="english"></a>
@@ -747,7 +923,7 @@ MIT License
 
 ---
 
-## Similar Tools
+## Similar Tools | أدوات مشابهة
 
 - [Ray](https://ray.io) - Distributed computing framework
 - [Dask](https://dask.org) - Parallel computing library

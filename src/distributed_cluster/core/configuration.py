@@ -277,7 +277,7 @@ class ConfigLoader:
         if not path_obj.exists():
             raise ConfigError(f"Config file not found: {path}")
 
-        content = path_obj.read_text()
+        content = path_obj.read_text(encoding='utf-8')
 
         if path.endswith(('.yaml', '.yml')):
             if not self._yaml_available:
@@ -447,7 +447,7 @@ class ConfigLoader:
         else:
             content = json.dumps(data, indent=2)
 
-        Path(path).write_text(content)
+        Path(path).write_text(content, encoding='utf-8')
         logger.info(f"Configuration saved to {path}")
 
     def _config_to_dict(self, config: ClusterConfig) -> Dict[str, Any]:
