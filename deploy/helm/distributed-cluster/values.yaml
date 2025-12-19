@@ -18,7 +18,7 @@ master:
 
   service:
     type: ClusterIP
-    port: 8765
+    port: 8080
     metricsPort: 9090
 
   ingress:

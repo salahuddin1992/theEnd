@@ -1,6 +1,6 @@
-# Dockerfile for Master Node
-# ===========================
-# Multi-stage build for smaller image
+# Dockerfile for Distributed Cluster
+# ===================================
+# Default multi-purpose Docker image (same as Master)
 
 # Build stage
 FROM python:3.11-slim as builder
@@ -23,9 +23,15 @@ RUN pip install --no-cache-dir --user .
 FROM python:3.11-slim
 
 # Labels
-LABEL org.opencontainers.image.title="NebulaCompute Master"
-LABEL org.opencontainers.image.description="Distributed Computing Master Node"
+LABEL org.opencontainers.image.title="NebulaCompute"
+LABEL org.opencontainers.image.description="Distributed Computing System"
 LABEL org.opencontainers.image.version="0.1.0"
+LABEL org.opencontainers.image.source="https://github.com/salahuddin1992/theEnd"
+
+# Install runtime dependencies for health checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash nebula
@@ -56,12 +62,7 @@ USER nebula
 # Expose ports
 EXPOSE 8080
 
-# Install curl for health check
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-USER nebula
-
-# Health check using curl (more reliable)
+# Health check using curl (more reliable than Python import)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
