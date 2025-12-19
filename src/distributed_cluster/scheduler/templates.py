@@ -23,11 +23,13 @@ from typing import Any, Dict, List, Optional
 
 class TemplateError(Exception):
     """Template-related error."""
+
     pass
 
 
 class VariableType(Enum):
     """Variable type for template parameters."""
+
     STRING = "string"
     INTEGER = "integer"
     FLOAT = "float"
@@ -39,6 +41,7 @@ class VariableType(Enum):
 @dataclass
 class TemplateVariable:
     """Variable definition for a template."""
+
     name: str
     var_type: VariableType = VariableType.STRING
     default: Optional[Any] = None
@@ -102,6 +105,7 @@ class TemplateVariable:
 @dataclass
 class ResourceRequirements:
     """Resource requirements for a template."""
+
     cpu_cores: float = 1.0
     memory_mb: int = 512
     gpu_count: int = 0
@@ -134,6 +138,7 @@ class ResourceRequirements:
 @dataclass
 class JobTemplate:
     """Job template definition."""
+
     name: str
     template_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""
@@ -196,6 +201,7 @@ class JobTemplate:
 
     def substitute_variables(self, text: str, values: Dict[str, Any]) -> str:
         """Substitute variables in text using ${var} syntax."""
+
         def replace(match):
             var_name = match.group(1)
             if var_name in values:
@@ -209,7 +215,7 @@ class JobTemplate:
 
             return match.group(0)  # Keep original if not found
 
-        pattern = r'\$\{([^}]+)\}'
+        pattern = r"\$\{([^}]+)\}"
         return re.sub(pattern, replace, text)
 
     def validate_variables(self, values: Dict[str, Any]) -> tuple[bool, List[str]]:
@@ -247,10 +253,7 @@ class JobTemplate:
             command = self.substitute_variables(command, complete_values)
 
         # Render args
-        rendered_args = [
-            self.substitute_variables(arg, complete_values)
-            for arg in self.args
-        ]
+        rendered_args = [self.substitute_variables(arg, complete_values) for arg in self.args]
 
         # Render environment
         rendered_env = {}
@@ -284,9 +287,7 @@ class JobTemplate:
         }
 
         if self.docker_image:
-            job_spec["docker_image"] = self.substitute_variables(
-                self.docker_image, complete_values
-            )
+            job_spec["docker_image"] = self.substitute_variables(self.docker_image, complete_values)
             if self.docker_registry:
                 job_spec["docker_registry"] = self.docker_registry
             if self.docker_credentials_secret:
@@ -346,15 +347,17 @@ class JobTemplate:
         """Create template from dictionary."""
         variables = []
         for v in data.get("variables", []):
-            variables.append(TemplateVariable(
-                name=v["name"],
-                var_type=VariableType(v.get("type", "string")),
-                default=v.get("default"),
-                required=v.get("required", False),
-                description=v.get("description", ""),
-                validation_pattern=v.get("validation_pattern"),
-                allowed_values=v.get("allowed_values"),
-            ))
+            variables.append(
+                TemplateVariable(
+                    name=v["name"],
+                    var_type=VariableType(v.get("type", "string")),
+                    default=v.get("default"),
+                    required=v.get("required", False),
+                    description=v.get("description", ""),
+                    validation_pattern=v.get("validation_pattern"),
+                    allowed_values=v.get("allowed_values"),
+                )
+            )
 
         resources = ResourceRequirements.from_dict(data.get("resources", {}))
 
@@ -421,17 +424,13 @@ class TemplateManager:
 
         # Check if version exists
         if template.version in self._templates[template.name]:
-            raise TemplateError(
-                f"Template '{template.name}' version '{template.version}' already exists"
-            )
+            raise TemplateError(f"Template '{template.name}' version '{template.version}' already exists")
 
         # Resolve parent template
         if template.parent_template:
             parent = await self.get_template(template.parent_template)
             if not parent:
-                raise TemplateError(
-                    f"Parent template '{template.parent_template}' not found"
-                )
+                raise TemplateError(f"Parent template '{template.parent_template}' not found")
             template = self._inherit_from_parent(template, parent)
 
         # Store template
@@ -444,11 +443,7 @@ class TemplateManager:
 
         return template
 
-    async def get_template(
-        self,
-        name: str,
-        version: Optional[str] = None
-    ) -> Optional[JobTemplate]:
+    async def get_template(self, name: str, version: Optional[str] = None) -> Optional[JobTemplate]:
         """Get a template by name and optional version."""
         if name not in self._templates:
             return None
@@ -469,10 +464,7 @@ class TemplateManager:
         """Get a template by ID."""
         return self._by_id.get(template_id)
 
-    async def list_templates(
-        self,
-        include_all_versions: bool = False
-    ) -> List[JobTemplate]:
+    async def list_templates(self, include_all_versions: bool = False) -> List[JobTemplate]:
         """List all templates."""
         if include_all_versions:
             return list(self._by_id.values())
@@ -486,12 +478,7 @@ class TemplateManager:
 
         return templates
 
-    async def update_template(
-        self,
-        name: str,
-        updates: Dict[str, Any],
-        bump_version: bool = True
-    ) -> JobTemplate:
+    async def update_template(self, name: str, updates: Dict[str, Any], bump_version: bool = True) -> JobTemplate:
         """Update a template, optionally creating a new version."""
         template = await self.get_template(name)
         if not template:
@@ -525,10 +512,7 @@ class TemplateManager:
             return new_template
 
     async def delete_template(
-        self,
-        name: str,
-        version: Optional[str] = None,
-        delete_all_versions: bool = False
+        self, name: str, version: Optional[str] = None, delete_all_versions: bool = False
     ) -> bool:
         """Delete a template."""
         if name not in self._templates:
@@ -568,7 +552,7 @@ class TemplateManager:
         template_name: str,
         variables: Dict[str, Any] = None,
         overrides: Dict[str, Any] = None,
-        version: Optional[str] = None
+        version: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Render a job specification from a template.
@@ -595,11 +579,7 @@ class TemplateManager:
 
         return job_spec
 
-    def _inherit_from_parent(
-        self,
-        child: JobTemplate,
-        parent: JobTemplate
-    ) -> JobTemplate:
+    def _inherit_from_parent(self, child: JobTemplate, parent: JobTemplate) -> JobTemplate:
         """Apply inheritance from parent template."""
         # Deep copy parent
         merged = copy.deepcopy(parent.to_dict())
@@ -609,10 +589,17 @@ class TemplateManager:
 
         # Simple fields - override if set
         simple_fields = [
-            "command", "docker_image", "docker_registry",
-            "working_directory", "timeout_seconds", "max_retries",
-            "retry_delay_seconds", "worker_pool", "queue", "priority",
-            "preemptible"
+            "command",
+            "docker_image",
+            "docker_registry",
+            "working_directory",
+            "timeout_seconds",
+            "max_retries",
+            "retry_delay_seconds",
+            "worker_pool",
+            "queue",
+            "priority",
+            "preemptible",
         ]
 
         for field_name in simple_fields:
@@ -620,9 +607,7 @@ class TemplateManager:
                 merged[field_name] = child_dict[field_name]
 
         # Merge fields - combine with parent
-        merge_fields = [
-            "environment", "labels", "annotations", "secrets"
-        ]
+        merge_fields = ["environment", "labels", "annotations", "secrets"]
 
         for field_name in merge_fields:
             parent_val = merged.get(field_name, {})
@@ -631,8 +616,12 @@ class TemplateManager:
 
         # List fields - extend
         list_fields = [
-            "args", "required_tags", "pre_run_commands", "post_run_commands",
-            "input_artifacts", "output_artifacts"
+            "args",
+            "required_tags",
+            "pre_run_commands",
+            "post_run_commands",
+            "input_artifacts",
+            "output_artifacts",
         ]
 
         for field_name in list_fields:
@@ -684,7 +673,7 @@ class TemplateManager:
                 json.dumps(template.to_dict()),
                 template.created_at.isoformat(),
                 template.updated_at.isoformat(),
-            )
+            ),
         )
 
     async def load_from_database(self):

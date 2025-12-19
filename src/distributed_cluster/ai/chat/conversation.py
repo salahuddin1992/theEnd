@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class MessageRole(str, Enum):
     """دور المرسل."""
+
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
@@ -35,6 +36,7 @@ class MessageRole(str, Enum):
 @dataclass
 class Message:
     """رسالة في المحادثة."""
+
     role: MessageRole
     content: str
     message_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -86,6 +88,7 @@ class Message:
 @dataclass
 class Conversation:
     """محادثة كاملة."""
+
     conversation_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     title: Optional[str] = None
     messages: List[Message] = field(default_factory=list)
@@ -152,13 +155,15 @@ class Conversation:
 
         # Add system prompt
         if self.system_prompt:
-            messages.append({
-                "role": "system",
-                "content": self.system_prompt,
-            })
+            messages.append(
+                {
+                    "role": "system",
+                    "content": self.system_prompt,
+                }
+            )
 
         # Add recent messages
-        recent = self.messages[-self.max_context_messages:]
+        recent = self.messages[-self.max_context_messages :]
         for msg in recent:
             messages.append(msg.to_llm_format())
 
@@ -242,8 +247,7 @@ class ConversationManager:
         self.llm_provider = llm_provider
         self.default_model = default_model
         self.default_system_prompt = default_system_prompt or (
-            "You are a helpful AI assistant. "
-            "Respond concisely and helpfully."
+            "You are a helpful AI assistant. " "Respond concisely and helpfully."
         )
 
         # Active conversations
@@ -386,7 +390,7 @@ class ConversationManager:
         full_response = []
 
         # Check if provider supports chat_stream
-        if hasattr(self.llm_provider, 'chat_stream'):
+        if hasattr(self.llm_provider, "chat_stream"):
             async for chunk in self.llm_provider.chat_stream(
                 messages=messages,
                 model=conversation.model,

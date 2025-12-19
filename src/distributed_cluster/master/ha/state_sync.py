@@ -27,16 +27,18 @@ logger = logging.getLogger(__name__)
 
 class SyncMessageType(str, Enum):
     """أنواع رسائل المزامنة"""
-    FULL_SYNC = "full_sync"           # مزامنة كاملة
-    INCREMENTAL = "incremental"        # تحديث جزئي
-    WORKER_UPDATE = "worker_update"    # تحديث worker
-    JOB_UPDATE = "job_update"          # تحديث job
-    EVENT = "event"                    # حدث جديد
+
+    FULL_SYNC = "full_sync"  # مزامنة كاملة
+    INCREMENTAL = "incremental"  # تحديث جزئي
+    WORKER_UPDATE = "worker_update"  # تحديث worker
+    JOB_UPDATE = "job_update"  # تحديث job
+    EVENT = "event"  # حدث جديد
 
 
 @dataclass
 class SyncMessage:
     """رسالة مزامنة"""
+
     type: SyncMessageType
     source_master_id: str
     timestamp: datetime
@@ -66,6 +68,7 @@ class SyncMessage:
 @dataclass
 class SyncConfig:
     """إعدادات المزامنة"""
+
     master_id: str = ""
 
     # فترة المزامنة الكاملة
@@ -170,7 +173,7 @@ class StateSync:
 
         # إزالة التحديثات القديمة إذا تجاوزنا الحد
         if len(self._pending_updates) > self.config.max_pending_updates:
-            self._pending_updates = self._pending_updates[-self.config.max_pending_updates:]
+            self._pending_updates = self._pending_updates[-self.config.max_pending_updates :]
 
     def queue_worker_update(self, worker_id: str, action: str, data: dict) -> None:
         """إضافة تحديث worker"""
@@ -365,6 +368,7 @@ class StateSync:
 
         elif action == "heartbeat":
             from distributed_cluster.models.resources import ResourceUsage
+
             usage_data = data.get("usage", {})
             usage = ResourceUsage(
                 cpu_percent=usage_data.get("cpu_percent", 0),
@@ -407,6 +411,7 @@ class StateSync:
 
         elif action == "completed":
             from distributed_cluster.models.job import JobResult
+
             worker_id = data.get("worker_id")
             result_data = data.get("result", {})
             result = JobResult(
@@ -429,11 +434,13 @@ class StateSync:
         # مزامنة Workers
         for worker_data in data.get("workers", []):
             try:
-                await self._apply_worker_update({
-                    "action": "registered",
-                    "worker_id": worker_data.get("worker_id"),
-                    "registration": worker_data,
-                })
+                await self._apply_worker_update(
+                    {
+                        "action": "registered",
+                        "worker_id": worker_data.get("worker_id"),
+                        "registration": worker_data,
+                    }
+                )
             except Exception as e:
                 logger.error(f"Error syncing worker: {e}")
 
@@ -443,11 +450,13 @@ class StateSync:
                 # لا نعيد إرسال jobs موجودة
                 existing = self.state.get_job(job_data.get("job_id"))
                 if not existing:
-                    await self._apply_job_update({
-                        "action": "submitted",
-                        "job_id": job_data.get("job_id"),
-                        "submission": job_data,
-                    })
+                    await self._apply_job_update(
+                        {
+                            "action": "submitted",
+                            "job_id": job_data.get("job_id"),
+                            "submission": job_data,
+                        }
+                    )
             except Exception as e:
                 logger.error(f"Error syncing job: {e}")
 

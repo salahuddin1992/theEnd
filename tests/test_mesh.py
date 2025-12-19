@@ -3,18 +3,16 @@ Tests for Mesh Network module
 اختبارات وحدة Mesh Network
 """
 
-import asyncio
-import pytest
 from datetime import datetime
 
-from distributed_cluster.mesh.node import MeshNode, NodeState, NodeInfo
-from distributed_cluster.mesh.peer import Peer, PeerConnection, ConnectionState
-from distributed_cluster.mesh.discovery import PeerDiscovery, DiscoveryMethod, DiscoveryMessage
-from distributed_cluster.mesh.gossip import GossipProtocol, GossipMessage, MessageType
-from distributed_cluster.mesh.router import TaskRouter, RoutingStrategy, RoutingDecision
-from distributed_cluster.mesh.consensus import LeaderElection, ConsensusState
+from distributed_cluster.mesh.consensus import ConsensusState, LeaderElection
+from distributed_cluster.mesh.discovery import DiscoveryMessage, DiscoveryMethod
+from distributed_cluster.mesh.gossip import GossipMessage, MessageType
+from distributed_cluster.mesh.node import MeshNode, NodeInfo, NodeState
+from distributed_cluster.mesh.peer import Peer
+from distributed_cluster.mesh.router import RoutingStrategy, TaskRouter
+from distributed_cluster.models.job import Job
 from distributed_cluster.models.resources import ResourceSpec
-from distributed_cluster.models.job import Job, JobStatus
 
 
 class TestMeshNode:
@@ -219,6 +217,7 @@ class TestTaskRouter:
     def create_mock_job(self, cpu: float = 1.0, memory: int = 512) -> Job:
         """إنشاء مهمة وهمية"""
         from distributed_cluster.models.job import JobSubmission
+
         submission = JobSubmission(
             command="echo hello",
             resources=ResourceSpec(cpu_cores=cpu, memory_mb=memory, gpu_count=0),
@@ -246,7 +245,7 @@ class TestTaskRouter:
 
         node.peers = {"p1": peer1, "p2": peer2, "p3": peer3}
 
-        job = self.create_mock_job()
+        self.create_mock_job()
         selected = router._route_least_loaded([peer1, peer2, peer3])
 
         assert selected.node_id == "p2"  # الأقل حملاً
@@ -257,8 +256,8 @@ class TestTaskRouter:
         router = TaskRouter(node=node, strategy=RoutingStrategy.BEST_FIT)
 
         peer1 = self.create_mock_peer("p1", 8, 16384)  # موارد كبيرة
-        peer2 = self.create_mock_peer("p2", 2, 1024)   # موارد صغيرة
-        peer3 = self.create_mock_peer("p3", 4, 4096)   # موارد متوسطة
+        peer2 = self.create_mock_peer("p2", 2, 1024)  # موارد صغيرة
+        peer3 = self.create_mock_peer("p3", 4, 4096)  # موارد متوسطة
 
         job = self.create_mock_job(cpu=2.0, memory=1024)
         selected = router._route_best_fit([peer1, peer2, peer3], job)

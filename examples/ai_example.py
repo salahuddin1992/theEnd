@@ -12,19 +12,19 @@ This example demonstrates:
 """
 
 import asyncio
-from pathlib import Path
 
 # =============================================================================
 # Example 1: Basic LLM Usage
 # =============================================================================
 
+
 async def basic_llm_example():
     """مثال أساسي لاستخدام LLM."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 1: Basic LLM Usage")
-    print("="*60)
+    print("=" * 60)
 
-    from distributed_cluster.ai.llm import OllamaProvider, GenerationConfig
+    from distributed_cluster.ai.llm import GenerationConfig, OllamaProvider
 
     # Create provider
     provider = OllamaProvider(base_url="http://localhost:11434")
@@ -66,19 +66,19 @@ async def basic_llm_example():
 # Example 2: Agent Usage
 # =============================================================================
 
+
 async def agent_example():
     """مثال استخدام الوكلاء."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 2: Agent Usage")
-    print("="*60)
+    print("=" * 60)
 
-    from distributed_cluster.ai.llm import OllamaProvider
-    from distributed_cluster.ai.agents import Agent, AgentTask
+    from distributed_cluster.ai.agents import Agent
     from distributed_cluster.ai.agents.tools import (
         CalculatorTool,
         MemoryTool,
-        FileTool,
     )
+    from distributed_cluster.ai.llm import OllamaProvider
 
     provider = OllamaProvider()
 
@@ -125,14 +125,15 @@ async def agent_example():
 # Example 3: Conversation Management
 # =============================================================================
 
+
 async def conversation_example():
     """مثال إدارة المحادثات."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 3: Conversation Management")
-    print("="*60)
+    print("=" * 60)
 
-    from distributed_cluster.ai.llm import OllamaProvider
     from distributed_cluster.ai.chat import ConversationManager
+    from distributed_cluster.ai.llm import OllamaProvider
 
     provider = OllamaProvider()
 
@@ -167,7 +168,7 @@ async def conversation_example():
         print(f"🤖 Assistant: {response.content}")
 
     # Show conversation stats
-    print(f"\n📊 Stats:")
+    print("\n📊 Stats:")
     print(f"  Messages: {conv.message_count}")
     print(f"  Total tokens: {conv.total_tokens}")
 
@@ -178,11 +179,12 @@ async def conversation_example():
 # Example 4: Streaming Response
 # =============================================================================
 
+
 async def streaming_example():
     """مثال الاستجابة المتدفقة."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 4: Streaming Response")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.llm import OllamaProvider
 
@@ -211,11 +213,12 @@ async def streaming_example():
 # Example 5: Inference Router (Multi-node)
 # =============================================================================
 
+
 async def inference_router_example():
     """مثال موجه الاستنتاج."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 5: Inference Router (Load Balancing)")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.inference import InferenceRouter, RoutingStrategy
 
@@ -265,11 +268,12 @@ async def inference_router_example():
 # Example 6: Model Registry
 # =============================================================================
 
+
 async def model_registry_example():
     """مثال سجل النماذج."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 6: Model Registry")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.models import ModelRegistry
 
@@ -292,7 +296,7 @@ async def model_registry_example():
 
         # Get registry stats
         stats = registry.get_stats()
-        print(f"\n📊 Registry stats:")
+        print("\n📊 Registry stats:")
         print(f"  Total models: {stats['total_models']}")
         print(f"  By source: {stats['by_source']}")
 
@@ -304,10 +308,11 @@ async def model_registry_example():
 # Main
 # =============================================================================
 
+
 async def main():
     """Run all examples."""
     print("🤖 Distributed AI System Examples")
-    print("="*60)
+    print("=" * 60)
 
     examples = [
         ("Basic LLM", basic_llm_example),
@@ -321,7 +326,7 @@ async def main():
     print("\nSelect an example to run:")
     for i, (name, _) in enumerate(examples, 1):
         print(f"  {i}. {name}")
-    print(f"  0. Run all")
+    print("  0. Run all")
 
     try:
         choice = input("\nEnter choice (0-6): ").strip()

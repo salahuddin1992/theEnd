@@ -13,6 +13,7 @@ from ..models.resources import ResourceSpec
 
 class ConnectionState(str, Enum):
     """حالة الاتصال"""
+
     DISCONNECTED = "disconnected"
     CONNECTING = "connecting"
     CONNECTED = "connected"
@@ -26,6 +27,7 @@ class Peer:
 
     تمثل عقدة أخرى في الشبكة نتواصل معها
     """
+
     node_id: str
     hostname: str
     ip_address: str

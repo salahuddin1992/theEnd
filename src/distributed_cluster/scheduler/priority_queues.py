@@ -23,6 +23,7 @@ from typing import Any, Deque, Dict, List, Optional
 
 class QueueState(Enum):
     """Queue state."""
+
     ACTIVE = "active"
     PAUSED = "paused"
     DRAINING = "draining"
@@ -31,6 +32,7 @@ class QueueState(Enum):
 
 class FairnessPolicy(Enum):
     """Fairness policy for scheduling."""
+
     STRICT_PRIORITY = "strict_priority"  # Higher priority always first
     WEIGHTED_FAIR = "weighted_fair"  # Weighted fair queuing
     ROUND_ROBIN = "round_robin"  # Round-robin across queues
@@ -40,6 +42,7 @@ class FairnessPolicy(Enum):
 @dataclass
 class QueueLimits:
     """Rate and resource limits for a queue."""
+
     max_pending_jobs: int = 0  # 0 = unlimited
     max_concurrent_jobs: int = 0
     max_jobs_per_minute: int = 0
@@ -61,6 +64,7 @@ class QueueLimits:
 @dataclass
 class QueueStats:
     """Queue statistics."""
+
     total_submitted: int = 0
     total_completed: int = 0
     total_failed: int = 0
@@ -96,6 +100,7 @@ class QueueStats:
 @dataclass
 class PriorityQueue:
     """Priority queue definition."""
+
     name: str
     queue_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""
@@ -279,6 +284,7 @@ class PriorityQueue:
 @dataclass
 class QueuedJob:
     """Job entry in queue system."""
+
     job_id: str
     queue: str
     priority: int
@@ -298,11 +304,7 @@ class QueueManager:
     Handles multi-queue scheduling with various fairness policies.
     """
 
-    def __init__(
-        self,
-        database=None,
-        fairness_policy: FairnessPolicy = FairnessPolicy.WEIGHTED_FAIR
-    ):
+    def __init__(self, database=None, fairness_policy: FairnessPolicy = FairnessPolicy.WEIGHTED_FAIR):
         self.database = database
         self.fairness_policy = fairness_policy
         self._queues: Dict[str, PriorityQueue] = {}
@@ -402,18 +404,12 @@ class QueueManager:
         del self._queues[name]
 
         if self.database:
-            await self.database.execute(
-                "DELETE FROM queues WHERE name = ?", (name,)
-            )
+            await self.database.execute("DELETE FROM queues WHERE name = ?", (name,))
 
         return True
 
     async def submit_job(
-        self,
-        job_id: str,
-        queue_name: str = "default",
-        priority: int = 50,
-        resources: Dict[str, Any] = None
+        self, job_id: str, queue_name: str = "default", priority: int = 50, resources: Dict[str, Any] = None
     ) -> tuple[bool, str]:
         """
         Submit a job to a queue.
@@ -495,10 +491,7 @@ class QueueManager:
     async def _get_next_weighted_fair(self) -> Optional[str]:
         """Get next job using weighted fair queuing."""
         # Sort queues by (pending_jobs / weight), descending
-        active_queues = [
-            q for q in self._queues.values()
-            if q.pending_count > 0 and q.state == QueueState.ACTIVE
-        ]
+        active_queues = [q for q in self._queues.values() if q.pending_count > 0 and q.state == QueueState.ACTIVE]
 
         if not active_queues:
             return None
@@ -589,13 +582,7 @@ class QueueManager:
 
         return None
 
-    async def complete_job(
-        self,
-        job_id: str,
-        success: bool = True,
-        wait_time: float = 0,
-        execution_time: float = 0
-    ):
+    async def complete_job(self, job_id: str, success: bool = True, wait_time: float = 0, execution_time: float = 0):
         """Mark a job as completed."""
         queue_name = self._job_queue_map.get(job_id)
         if queue_name:
@@ -701,7 +688,7 @@ class QueueManager:
                 json.dumps(queue.to_dict()),
                 queue.created_at.isoformat(),
                 queue.updated_at.isoformat(),
-            )
+            ),
         )
 
     async def load_from_database(self):

@@ -52,8 +52,10 @@ logger = logging.getLogger(__name__)
 # Extended Provider Types
 # ============================================================================
 
+
 class ExtendedProviderType(str, Enum):
     """أنواع الموفرين الموسعة."""
+
     # Original
     OLLAMA = "ollama"
     VLLM = "vllm"
@@ -83,6 +85,7 @@ class ExtendedProviderType(str, Enum):
 # ============================================================================
 # Claude / Anthropic Provider
 # ============================================================================
+
 
 class ClaudeProvider(LLMProvider):
     """
@@ -204,10 +207,12 @@ class ClaudeProvider(LLMProvider):
             role = msg.get("role", "user")
             if role == "system":
                 continue  # System handled separately
-            anthropic_messages.append({
-                "role": role if role != "assistant" else "assistant",
-                "content": msg.get("content", ""),
-            })
+            anthropic_messages.append(
+                {
+                    "role": role if role != "assistant" else "assistant",
+                    "content": msg.get("content", ""),
+                }
+            )
 
         payload = {
             "model": model,
@@ -256,24 +261,39 @@ class ClaudeProvider(LLMProvider):
         """قائمة نماذج Claude."""
         return [
             ModelInfo(
-                name="claude-3-5-sonnet-20241022", provider="claude",
-                context_length=200000, supports_vision=True, supports_tools=True
+                name="claude-3-5-sonnet-20241022",
+                provider="claude",
+                context_length=200000,
+                supports_vision=True,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="claude-3-5-haiku-20241022", provider="claude",
-                context_length=200000, supports_vision=True, supports_tools=True
+                name="claude-3-5-haiku-20241022",
+                provider="claude",
+                context_length=200000,
+                supports_vision=True,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="claude-3-opus-20240229", provider="claude",
-                context_length=200000, supports_vision=True, supports_tools=True
+                name="claude-3-opus-20240229",
+                provider="claude",
+                context_length=200000,
+                supports_vision=True,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="claude-3-sonnet-20240229", provider="claude",
-                context_length=200000, supports_vision=True, supports_tools=True
+                name="claude-3-sonnet-20240229",
+                provider="claude",
+                context_length=200000,
+                supports_vision=True,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="claude-3-haiku-20240307", provider="claude",
-                context_length=200000, supports_vision=True, supports_tools=True
+                name="claude-3-haiku-20240307",
+                provider="claude",
+                context_length=200000,
+                supports_vision=True,
+                supports_tools=True,
             ),
         ]
 
@@ -291,6 +311,7 @@ class ClaudeProvider(LLMProvider):
 # ============================================================================
 # Gemini / Google Provider
 # ============================================================================
+
 
 class GeminiProvider(LLMProvider):
     """
@@ -341,14 +362,8 @@ class GeminiProvider(LLMProvider):
 
         contents = []
         if system_prompt:
-            contents.append({
-                "role": "user",
-                "parts": [{"text": f"System: {system_prompt}"}]
-            })
-        contents.append({
-            "role": "user",
-            "parts": [{"text": prompt}]
-        })
+            contents.append({"role": "user", "parts": [{"text": f"System: {system_prompt}"}]})
+        contents.append({"role": "user", "parts": [{"text": prompt}]})
 
         payload = {
             "contents": contents,
@@ -400,14 +415,8 @@ class GeminiProvider(LLMProvider):
 
         contents = []
         if system_prompt:
-            contents.append({
-                "role": "user",
-                "parts": [{"text": f"System: {system_prompt}"}]
-            })
-        contents.append({
-            "role": "user",
-            "parts": [{"text": prompt}]
-        })
+            contents.append({"role": "user", "parts": [{"text": f"System: {system_prompt}"}]})
+        contents.append({"role": "user", "parts": [{"text": prompt}]})
 
         payload = {
             "contents": contents,
@@ -448,20 +457,11 @@ class GeminiProvider(LLMProvider):
         for msg in messages:
             role = msg.get("role", "user")
             if role == "system":
-                contents.append({
-                    "role": "user",
-                    "parts": [{"text": f"System: {msg.get('content', '')}"}]
-                })
+                contents.append({"role": "user", "parts": [{"text": f"System: {msg.get('content', '')}"}]})
             elif role == "assistant":
-                contents.append({
-                    "role": "model",
-                    "parts": [{"text": msg.get("content", "")}]
-                })
+                contents.append({"role": "model", "parts": [{"text": msg.get("content", "")}]})
             else:
-                contents.append({
-                    "role": "user",
-                    "parts": [{"text": msg.get("content", "")}]
-                })
+                contents.append({"role": "user", "parts": [{"text": msg.get("content", "")}]})
 
         payload = {
             "contents": contents,
@@ -502,25 +502,34 @@ class GeminiProvider(LLMProvider):
         """قائمة نماذج Gemini."""
         return [
             ModelInfo(
-                name="gemini-2.0-flash-exp", provider="gemini",
-                context_length=1000000, supports_vision=True, supports_tools=True
+                name="gemini-2.0-flash-exp",
+                provider="gemini",
+                context_length=1000000,
+                supports_vision=True,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="gemini-1.5-pro", provider="gemini",
-                context_length=2000000, supports_vision=True, supports_tools=True
+                name="gemini-1.5-pro",
+                provider="gemini",
+                context_length=2000000,
+                supports_vision=True,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="gemini-1.5-flash", provider="gemini",
-                context_length=1000000, supports_vision=True, supports_tools=True
+                name="gemini-1.5-flash",
+                provider="gemini",
+                context_length=1000000,
+                supports_vision=True,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="gemini-1.5-flash-8b", provider="gemini",
-                context_length=1000000, supports_vision=True, supports_tools=True
+                name="gemini-1.5-flash-8b",
+                provider="gemini",
+                context_length=1000000,
+                supports_vision=True,
+                supports_tools=True,
             ),
-            ModelInfo(
-                name="gemini-1.0-pro", provider="gemini",
-                context_length=32000, supports_tools=True
-            ),
+            ModelInfo(name="gemini-1.0-pro", provider="gemini", context_length=32000, supports_tools=True),
         ]
 
     async def health_check(self) -> bool:
@@ -536,6 +545,7 @@ class GeminiProvider(LLMProvider):
 # ============================================================================
 # Mistral Provider
 # ============================================================================
+
 
 class MistralProvider(LLMProvider):
     """
@@ -682,6 +692,7 @@ class MistralProvider(LLMProvider):
 # Cohere Provider
 # ============================================================================
 
+
 class CohereProvider(LLMProvider):
     """
     موفر Cohere - متخصص في NLP والبحث.
@@ -825,10 +836,12 @@ class CohereProvider(LLMProvider):
             elif role == "user":
                 message = content
             else:
-                chat_history.append({
-                    "role": "CHATBOT" if role == "assistant" else "USER",
-                    "message": content,
-                })
+                chat_history.append(
+                    {
+                        "role": "CHATBOT" if role == "assistant" else "USER",
+                        "message": content,
+                    }
+                )
 
         payload = {
             "model": model,
@@ -884,6 +897,7 @@ class CohereProvider(LLMProvider):
 # ============================================================================
 # Groq Provider
 # ============================================================================
+
 
 class GroqProvider(LLMProvider):
     """
@@ -1000,8 +1014,7 @@ class GroqProvider(LLMProvider):
             total_tokens=usage.get("total_tokens", 0),
             generation_time_ms=generation_time,
             tokens_per_second=(
-                usage.get("completion_tokens", 0) / (generation_time / 1000)
-                if generation_time > 0 else 0
+                usage.get("completion_tokens", 0) / (generation_time / 1000) if generation_time > 0 else 0
             ),
             raw_response=data,
             finish_reason=choice.get("finish_reason", "stop"),
@@ -1010,22 +1023,12 @@ class GroqProvider(LLMProvider):
     async def list_models(self) -> List[ModelInfo]:
         """قائمة نماذج Groq."""
         return [
+            ModelInfo(name="llama-3.3-70b-versatile", provider="groq", context_length=128000, supports_tools=True),
             ModelInfo(
-                name="llama-3.3-70b-versatile", provider="groq",
-                context_length=128000, supports_tools=True
+                name="llama-3.2-90b-vision-preview", provider="groq", context_length=128000, supports_vision=True
             ),
-            ModelInfo(
-                name="llama-3.2-90b-vision-preview", provider="groq",
-                context_length=128000, supports_vision=True
-            ),
-            ModelInfo(
-                name="llama-3.1-70b-versatile", provider="groq",
-                context_length=128000, supports_tools=True
-            ),
-            ModelInfo(
-                name="llama-3.1-8b-instant", provider="groq",
-                context_length=128000, supports_tools=True
-            ),
+            ModelInfo(name="llama-3.1-70b-versatile", provider="groq", context_length=128000, supports_tools=True),
+            ModelInfo(name="llama-3.1-8b-instant", provider="groq", context_length=128000, supports_tools=True),
             ModelInfo(name="mixtral-8x7b-32768", provider="groq", context_length=32768),
             ModelInfo(name="gemma2-9b-it", provider="groq", context_length=8192),
         ]
@@ -1043,6 +1046,7 @@ class GroqProvider(LLMProvider):
 # ============================================================================
 # Together AI Provider
 # ============================================================================
+
 
 class TogetherProvider(LLMProvider):
     """
@@ -1167,28 +1171,27 @@ class TogetherProvider(LLMProvider):
         return [
             ModelInfo(
                 name="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-                provider="together", context_length=128000, supports_tools=True
+                provider="together",
+                context_length=128000,
+                supports_tools=True,
             ),
             ModelInfo(
                 name="meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
-                provider="together", context_length=128000, supports_vision=True
+                provider="together",
+                context_length=128000,
+                supports_vision=True,
             ),
             ModelInfo(
                 name="meta-llama/Llama-3.1-405B-Instruct-Turbo",
-                provider="together", context_length=128000, supports_tools=True
+                provider="together",
+                context_length=128000,
+                supports_tools=True,
             ),
             ModelInfo(
-                name="Qwen/Qwen2.5-72B-Instruct-Turbo",
-                provider="together", context_length=32000, supports_tools=True
+                name="Qwen/Qwen2.5-72B-Instruct-Turbo", provider="together", context_length=32000, supports_tools=True
             ),
-            ModelInfo(
-                name="mistralai/Mixtral-8x22B-Instruct-v0.1",
-                provider="together", context_length=64000
-            ),
-            ModelInfo(
-                name="deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
-                provider="together", context_length=128000
-            ),
+            ModelInfo(name="mistralai/Mixtral-8x22B-Instruct-v0.1", provider="together", context_length=64000),
+            ModelInfo(name="deepseek-ai/DeepSeek-R1-Distill-Llama-70B", provider="together", context_length=128000),
         ]
 
     async def health_check(self) -> bool:
@@ -1204,6 +1207,7 @@ class TogetherProvider(LLMProvider):
 # ============================================================================
 # DeepSeek Provider
 # ============================================================================
+
 
 class DeepSeekProvider(LLMProvider):
     """
@@ -1344,6 +1348,7 @@ class DeepSeekProvider(LLMProvider):
 # Perplexity Provider
 # ============================================================================
 
+
 class PerplexityProvider(LLMProvider):
     """
     موفر Perplexity - متخصص في البحث والأجوبة الدقيقة.
@@ -1476,6 +1481,7 @@ class PerplexityProvider(LLMProvider):
 # ============================================================================
 # HuggingFace Provider
 # ============================================================================
+
 
 class HuggingFaceProvider(LLMProvider):
     """
@@ -1627,6 +1633,7 @@ class HuggingFaceProvider(LLMProvider):
 # Fireworks AI Provider
 # ============================================================================
 
+
 class FireworksProvider(LLMProvider):
     """
     موفر Fireworks AI - أداء عالي للنماذج المفتوحة.
@@ -1742,20 +1749,16 @@ class FireworksProvider(LLMProvider):
         """قائمة نماذج Fireworks."""
         return [
             ModelInfo(
-                name="accounts/fireworks/models/llama-v3p1-405b-instruct",
-                provider="fireworks", context_length=128000
+                name="accounts/fireworks/models/llama-v3p1-405b-instruct", provider="fireworks", context_length=128000
             ),
             ModelInfo(
-                name="accounts/fireworks/models/llama-v3p1-70b-instruct",
-                provider="fireworks", context_length=128000
+                name="accounts/fireworks/models/llama-v3p1-70b-instruct", provider="fireworks", context_length=128000
             ),
             ModelInfo(
-                name="accounts/fireworks/models/llama-v3p1-8b-instruct",
-                provider="fireworks", context_length=128000
+                name="accounts/fireworks/models/llama-v3p1-8b-instruct", provider="fireworks", context_length=128000
             ),
             ModelInfo(
-                name="accounts/fireworks/models/mixtral-8x22b-instruct",
-                provider="fireworks", context_length=64000
+                name="accounts/fireworks/models/mixtral-8x22b-instruct", provider="fireworks", context_length=64000
             ),
         ]
 
@@ -1772,6 +1775,7 @@ class FireworksProvider(LLMProvider):
 # ============================================================================
 # xAI (Grok) Provider
 # ============================================================================
+
 
 class XAIProvider(LLMProvider):
     """
@@ -1905,6 +1909,7 @@ class XAIProvider(LLMProvider):
 # ============================================================================
 # Azure OpenAI Provider
 # ============================================================================
+
 
 class AzureOpenAIProvider(LLMProvider):
     """
@@ -2053,16 +2058,13 @@ class AzureOpenAIProvider(LLMProvider):
 
     async def health_check(self) -> bool:
         """فحص صحة الاتصال."""
-        return (
-            self.api_key is not None and
-            self.base_url is not None and
-            self.deployment_name is not None
-        )
+        return self.api_key is not None and self.base_url is not None and self.deployment_name is not None
 
 
 # ============================================================================
 # Universal Provider Factory
 # ============================================================================
+
 
 def create_all_provider(
     provider_type: Union[str, ExtendedProviderType],
@@ -2085,54 +2087,44 @@ def create_all_provider(
 
     def _lazy_import(module_name: str, class_name: str):
         """Lazy import helper for providers."""
+
         def factory(**kw):
             mod = __import__(module_name, fromlist=[class_name])
             return getattr(mod, class_name)(**kw)
+
         return factory
 
     providers = {
         # Original providers
-        "ollama": _lazy_import('distributed_cluster.ai.llm.provider', 'OllamaProvider'),
-        "vllm": _lazy_import('distributed_cluster.ai.llm.provider', 'VLLMProvider'),
-        "openai": _lazy_import('distributed_cluster.ai.llm.provider', 'OpenAIProvider'),
-
+        "ollama": _lazy_import("distributed_cluster.ai.llm.provider", "OllamaProvider"),
+        "vllm": _lazy_import("distributed_cluster.ai.llm.provider", "VLLMProvider"),
+        "openai": _lazy_import("distributed_cluster.ai.llm.provider", "OpenAIProvider"),
         # Claude / Anthropic
         "claude": ClaudeProvider,
         "anthropic": ClaudeProvider,
-
         # Google
         "gemini": GeminiProvider,
         "google": GeminiProvider,
-
         # Mistral
         "mistral": MistralProvider,
-
         # Cohere
         "cohere": CohereProvider,
-
         # Groq
         "groq": GroqProvider,
-
         # Together
         "together": TogetherProvider,
-
         # DeepSeek
         "deepseek": DeepSeekProvider,
-
         # Perplexity
         "perplexity": PerplexityProvider,
-
         # HuggingFace
         "huggingface": HuggingFaceProvider,
         "hf": HuggingFaceProvider,
-
         # Fireworks
         "fireworks": FireworksProvider,
-
         # xAI / Grok
         "xai": XAIProvider,
         "grok": XAIProvider,
-
         # Azure
         "azure_openai": AzureOpenAIProvider,
         "azure": AzureOpenAIProvider,
@@ -2148,6 +2140,7 @@ def create_all_provider(
 # ============================================================================
 # Multi-Provider Manager
 # ============================================================================
+
 
 class MultiProviderManager:
     """
@@ -2305,7 +2298,6 @@ class MultiProviderManager:
 __all__ = [
     # Provider Types
     "ExtendedProviderType",
-
     # Providers
     "ClaudeProvider",
     "GeminiProvider",
@@ -2319,10 +2311,8 @@ __all__ = [
     "FireworksProvider",
     "XAIProvider",
     "AzureOpenAIProvider",
-
     # Factory
     "create_all_provider",
-
     # Manager
     "MultiProviderManager",
 ]

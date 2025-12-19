@@ -141,14 +141,16 @@ class MasterServicer:
         self._worker_last_heartbeat[worker_id] = datetime.utcnow()
 
         # Record event
-        await self.database.save_event(Event(
-            event_type=EventType.WORKER_REGISTERED,
-            timestamp=datetime.utcnow(),
-            source="master",
-            worker_id=worker_id,
-            message=f"Worker {worker.hostname} registered",
-            data={"hostname": worker.hostname, "tags": worker.tags},
-        ))
+        await self.database.save_event(
+            Event(
+                event_type=EventType.WORKER_REGISTERED,
+                timestamp=datetime.utcnow(),
+                source="master",
+                worker_id=worker_id,
+                message=f"Worker {worker.hostname} registered",
+                data={"hostname": worker.hostname, "tags": worker.tags},
+            )
+        )
 
         # Metrics
         self.metrics.gauge("workers_total", len(self._workers))
@@ -238,11 +240,13 @@ class MasterServicer:
             if lease_id:
                 lease = self.lease_manager.renew_lease(lease_id, worker_id)
                 if lease:
-                    lease_renewals.append({
-                        "lease_id": lease.lease_id,
-                        "job_id": lease.job_id,
-                        "new_expires_at": lease.expires_at.isoformat(),
-                    })
+                    lease_renewals.append(
+                        {
+                            "lease_id": lease.lease_id,
+                            "job_id": lease.job_id,
+                            "new_expires_at": lease.expires_at.isoformat(),
+                        }
+                    )
 
         # Metrics
         self.metrics.gauge("worker_cpu_utilization", cpu_util, {"worker_id": worker_id})
@@ -299,13 +303,15 @@ class MasterServicer:
             self.lease_manager.revoke_lease(lease.lease_id)
 
         # Record event
-        await self.database.save_event(Event(
-            event_type=EventType.WORKER_DEREGISTERED,
-            timestamp=datetime.utcnow(),
-            source="master",
-            worker_id=worker_id,
-            message=f"Worker deregistered: {reason}",
-        ))
+        await self.database.save_event(
+            Event(
+                event_type=EventType.WORKER_DEREGISTERED,
+                timestamp=datetime.utcnow(),
+                source="master",
+                worker_id=worker_id,
+                message=f"Worker deregistered: {reason}",
+            )
+        )
 
         # Metrics
         self.metrics.gauge("workers_total", len(self._workers))
@@ -383,25 +389,29 @@ class MasterServicer:
             await self.database.save_job(job)
 
             # Build assignment
-            assignments.append({
-                "job_id": job.job_id,
-                "lease_id": lease.lease_id,
-                "lease_duration_seconds": self.lease_duration,
-                "lease_expires_at": lease.expires_at.isoformat(),
-                "spec": self._job_to_spec(job),
-                "inputs": [],  # TODO: Load from job spec
-                "outputs": [],
-            })
+            assignments.append(
+                {
+                    "job_id": job.job_id,
+                    "lease_id": lease.lease_id,
+                    "lease_duration_seconds": self.lease_duration,
+                    "lease_expires_at": lease.expires_at.isoformat(),
+                    "spec": self._job_to_spec(job),
+                    "inputs": [],  # TODO: Load from job spec
+                    "outputs": [],
+                }
+            )
 
             # Record event
-            await self.database.save_event(Event(
-                event_type=EventType.JOB_ASSIGNED,
-                timestamp=datetime.utcnow(),
-                source="master",
-                job_id=job_id,
-                worker_id=worker_id,
-                message="Job assigned to worker",
-            ))
+            await self.database.save_event(
+                Event(
+                    event_type=EventType.JOB_ASSIGNED,
+                    timestamp=datetime.utcnow(),
+                    source="master",
+                    job_id=job_id,
+                    worker_id=worker_id,
+                    message="Job assigned to worker",
+                )
+            )
 
             logger.info("Job assigned", job_id=job_id, worker_id=worker_id)
 
@@ -439,14 +449,16 @@ class MasterServicer:
             await self.database.save_job(job)
 
         # Record event
-        await self.database.save_event(Event(
-            event_type=EventType.JOB_STARTED,
-            timestamp=datetime.utcnow(),
-            source="worker",
-            job_id=job_id,
-            worker_id=worker_id,
-            message="Job started execution",
-        ))
+        await self.database.save_event(
+            Event(
+                event_type=EventType.JOB_STARTED,
+                timestamp=datetime.utcnow(),
+                source="worker",
+                job_id=job_id,
+                worker_id=worker_id,
+                message="Job started execution",
+            )
+        )
 
         self.metrics.counter("jobs_started_total", 1)
 
@@ -518,6 +530,7 @@ class MasterServicer:
 
             # Parse result
             from distributed_cluster.models.job import JobResult
+
             job.result = JobResult(
                 exit_code=exit_code,
                 stdout=request.get("stdout_tail", ""),
@@ -541,15 +554,17 @@ class MasterServicer:
 
         # Record event
         event_type = EventType.JOB_SUCCEEDED if exit_code == 0 else EventType.JOB_FAILED
-        await self.database.save_event(Event(
-            event_type=event_type,
-            timestamp=datetime.utcnow(),
-            source="worker",
-            job_id=job_id,
-            worker_id=worker_id,
-            message=f"Job completed with exit code {exit_code}",
-            data={"exit_code": exit_code, "error": error_message},
-        ))
+        await self.database.save_event(
+            Event(
+                event_type=event_type,
+                timestamp=datetime.utcnow(),
+                source="worker",
+                job_id=job_id,
+                worker_id=worker_id,
+                message=f"Job completed with exit code {exit_code}",
+                data={"exit_code": exit_code, "error": error_message},
+            )
+        )
 
         # Metrics
         if exit_code == 0:

@@ -21,20 +21,22 @@ logger = logging.getLogger(__name__)
 
 class PluginType(str, Enum):
     """أنواع الإضافات المدعومة."""
-    SCHEDULER = "scheduler"          # Custom scheduling policies
-    EXECUTOR = "executor"            # Custom job executors
-    STORAGE = "storage"              # Storage backends
-    AUTH = "auth"                    # Authentication providers
-    NOTIFICATION = "notification"    # Notification handlers
-    METRICS = "metrics"              # Custom metrics collectors
-    HOOK = "hook"                    # Event hooks
-    MIDDLEWARE = "middleware"        # API middleware
-    CUSTOM = "custom"                # Custom plugins
+
+    SCHEDULER = "scheduler"  # Custom scheduling policies
+    EXECUTOR = "executor"  # Custom job executors
+    STORAGE = "storage"  # Storage backends
+    AUTH = "auth"  # Authentication providers
+    NOTIFICATION = "notification"  # Notification handlers
+    METRICS = "metrics"  # Custom metrics collectors
+    HOOK = "hook"  # Event hooks
+    MIDDLEWARE = "middleware"  # API middleware
+    CUSTOM = "custom"  # Custom plugins
 
 
 @dataclass
 class PluginMetadata:
     """معلومات الإضافة."""
+
     name: str
     version: str
     description: str = ""
@@ -162,10 +164,7 @@ class PluginManager:
         Get all plugins of a specific type.
         الحصول على جميع الإضافات من نوع معين.
         """
-        return [
-            p for p in self._plugins.values()
-            if p.metadata.plugin_type == plugin_type
-        ]
+        return [p for p in self._plugins.values() if p.metadata.plugin_type == plugin_type]
 
     async def discover_plugins(self, plugins_dir: str | Path) -> int:
         """
@@ -201,10 +200,7 @@ class PluginManager:
 
     async def _load_plugin_from_file(self, file_path: Path) -> None:
         """Load plugin from a Python file."""
-        spec = importlib.util.spec_from_file_location(
-            file_path.stem,
-            file_path
-        )
+        spec = importlib.util.spec_from_file_location(file_path.stem, file_path)
         if spec and spec.loader:
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
@@ -212,10 +208,7 @@ class PluginManager:
 
     async def _load_plugin_from_package(self, package_path: Path) -> None:
         """Load plugin from a package directory."""
-        spec = importlib.util.spec_from_file_location(
-            package_path.name,
-            package_path / "__init__.py"
-        )
+        spec = importlib.util.spec_from_file_location(package_path.name, package_path / "__init__.py")
         if spec and spec.loader:
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
@@ -225,12 +218,7 @@ class PluginManager:
         """Find and register Plugin subclasses from a module."""
         for name in dir(module):
             obj = getattr(module, name)
-            if (
-                isinstance(obj, type)
-                and issubclass(obj, Plugin)
-                and obj is not Plugin
-                and hasattr(obj, "metadata")
-            ):
+            if isinstance(obj, type) and issubclass(obj, Plugin) and obj is not Plugin and hasattr(obj, "metadata"):
                 await self.register_plugin_class(obj)
 
     async def register_plugin_class(self, plugin_class: Type[Plugin]) -> None:
@@ -248,11 +236,7 @@ class PluginManager:
         self._plugin_classes[name] = plugin_class
         logger.info(f"Registered plugin class: {name}")
 
-    async def load_plugin(
-        self,
-        plugin_class: Type[Plugin],
-        config: Dict[str, Any] = None
-    ) -> Plugin:
+    async def load_plugin(self, plugin_class: Type[Plugin], config: Dict[str, Any] = None) -> Plugin:
         """
         Instantiate and initialize a plugin.
         إنشاء وتهيئة إضافة.
@@ -270,9 +254,7 @@ class PluginManager:
         # Check dependencies
         for dep in plugin_class.metadata.dependencies:
             if dep not in self._plugins:
-                raise RuntimeError(
-                    f"Plugin {name} requires {dep} which is not loaded"
-                )
+                raise RuntimeError(f"Plugin {name} requires {dep} which is not loaded")
 
         # Create instance
         plugin = plugin_class()
@@ -312,9 +294,7 @@ class PluginManager:
         # Check if other plugins depend on this one
         for other_name, other_plugin in self._plugins.items():
             if name in other_plugin.metadata.dependencies:
-                raise RuntimeError(
-                    f"Cannot unload {name}: {other_name} depends on it"
-                )
+                raise RuntimeError(f"Cannot unload {name}: {other_name} depends on it")
 
         try:
             await plugin.cleanup()
@@ -356,10 +336,7 @@ class PluginManager:
         configs = configs or {}
 
         # Sort by priority
-        sorted_classes = sorted(
-            self._plugin_classes.values(),
-            key=lambda c: c.metadata.priority
-        )
+        sorted_classes = sorted(self._plugin_classes.values(), key=lambda c: c.metadata.priority)
 
         for plugin_class in sorted_classes:
             if not plugin_class.metadata.enabled:

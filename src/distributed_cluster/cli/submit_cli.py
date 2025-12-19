@@ -24,9 +24,7 @@ console = Console()
 @app.command()
 def run(
     command: str = typer.Argument(..., help="Command to run"),
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Job name"),
     cpu: float = typer.Option(1.0, "--cpu", help="CPU cores required"),
     memory: int = typer.Option(512, "--memory", "--mem", help="Memory in MB"),
@@ -121,9 +119,7 @@ def run(
 @app.command()
 def status(
     job_id: str = typer.Argument(..., help="Job ID"),
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
 ) -> None:
     """
     عرض حالة job.
@@ -170,9 +166,7 @@ def status(
 @app.command()
 def cancel(
     job_id: str = typer.Argument(..., help="Job ID"),
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
 ) -> None:
     """
     إلغاء job.
@@ -199,9 +193,7 @@ def cancel(
 
 @app.command("list")
 def list_jobs(
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
     status_filter: Optional[str] = typer.Option(None, "--status", "-s", help="Filter by status"),
     limit: int = typer.Option(20, "--limit", "-n", help="Number of jobs"),
     output_json: bool = typer.Option(False, "--json", help="Output as JSON"),
@@ -277,9 +269,7 @@ def list_jobs(
 @app.command()
 def batch(
     jobs_file: Path = typer.Argument(..., help="JSON file with job definitions"),
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
 ) -> None:
     """
     إرسال مجموعة jobs من ملف JSON.

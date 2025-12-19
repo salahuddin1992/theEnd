@@ -59,12 +59,14 @@ DEFAULT_MASTER = "http://localhost:8765"
 def get_client():
     """Get HTTP client."""
     import httpx
+
     return httpx.Client(timeout=30)
 
 
 # =============================================================================
 # Main Commands
 # =============================================================================
+
 
 @app.command()
 def status(
@@ -81,11 +83,11 @@ def status(
             stats = stats_resp.json()
 
             # Display
-            console.print(Panel.fit(
-                f"[bold green]NebulaCompute Cluster[/bold green]\n"
-                f"Master: {master_url}",
-                border_style="green"
-            ))
+            console.print(
+                Panel.fit(
+                    f"[bold green]NebulaCompute Cluster[/bold green]\n" f"Master: {master_url}", border_style="green"
+                )
+            )
 
             # Resources
             table = Table(title="Cluster Resources", show_header=True)
@@ -109,10 +111,7 @@ def status(
             table.add_row("CPU Cores", f"{cpu_avail:.1f}", f"{cpu_total:.1f}", f"{cpu_pct:.1f}%")
             table.add_row("Memory", f"{mem_avail:.1f} GB", f"{mem_total:.1f} GB", f"{mem_pct:.1f}%")
             table.add_row("GPUs", str(gpu_avail), str(gpu_total), f"{gpu_pct:.1f}%")
-            table.add_row("Workers",
-                          str(stats.get("active_workers", 0)),
-                          str(stats.get("total_workers", 0)),
-                          "-")
+            table.add_row("Workers", str(stats.get("active_workers", 0)), str(stats.get("total_workers", 0)), "-")
 
             console.print(table)
 
@@ -140,22 +139,25 @@ def status(
 @app.command()
 def version():
     """Show version information."""
-    console.print(Panel.fit(
-        "[bold]NebulaCompute[/bold] v1.0.0\n"
-        "Distributed Computing System\n\n"
-        "Components:\n"
-        "  - Master Server\n"
-        "  - Worker Agent\n"
-        "  - CLI Tools\n"
-        "  - Dashboard API",
-        title="Version Info",
-        border_style="blue"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]NebulaCompute[/bold] v1.0.0\n"
+            "Distributed Computing System\n\n"
+            "Components:\n"
+            "  - Master Server\n"
+            "  - Worker Agent\n"
+            "  - CLI Tools\n"
+            "  - Dashboard API",
+            title="Version Info",
+            border_style="blue",
+        )
+    )
 
 
 # =============================================================================
 # Jobs Commands
 # =============================================================================
+
 
 @jobs_app.command("submit")
 def jobs_submit(
@@ -389,18 +391,10 @@ def jobs_get(
 
         # Show output if available
         if job.get("result", {}).get("stdout"):
-            console.print(Panel(
-                job["result"]["stdout"][:5000],
-                title="stdout",
-                border_style="green"
-            ))
+            console.print(Panel(job["result"]["stdout"][:5000], title="stdout", border_style="green"))
 
         if job.get("result", {}).get("stderr"):
-            console.print(Panel(
-                job["result"]["stderr"][:5000],
-                title="stderr",
-                border_style="red"
-            ))
+            console.print(Panel(job["result"]["stderr"][:5000], title="stderr", border_style="red"))
 
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
@@ -480,6 +474,7 @@ def jobs_logs(
 # =============================================================================
 # Workers Commands
 # =============================================================================
+
 
 @workers_app.command("list")
 def workers_list(
@@ -646,6 +641,7 @@ def workers_undrain(
 # =============================================================================
 # Templates Commands
 # =============================================================================
+
 
 @templates_app.command("list")
 def templates_list(
@@ -831,6 +827,7 @@ def templates_use(
 # Pools Commands
 # =============================================================================
 
+
 @pools_app.command("list")
 def pools_list(
     master_url: str = typer.Option(DEFAULT_MASTER, "--master", "-m"),
@@ -941,6 +938,7 @@ def pools_delete(
 # =============================================================================
 # Queues Commands
 # =============================================================================
+
 
 @queues_app.command("list")
 def queues_list(
@@ -1078,6 +1076,7 @@ def queues_resume(
 # Secrets Commands
 # =============================================================================
 
+
 @secrets_app.command("list")
 def secrets_list(
     master_url: str = typer.Option(DEFAULT_MASTER, "--master", "-m"),
@@ -1139,7 +1138,7 @@ def secrets_create(
         if not from_file.exists():
             console.print(f"[red]File not found: {from_file}[/red]")
             raise typer.Exit(1)
-        value = from_file.read_text(encoding='utf-8')
+        value = from_file.read_text(encoding="utf-8")
 
     if not value:
         # Prompt for value
@@ -1190,6 +1189,7 @@ def secrets_delete(
 # Config Commands
 # =============================================================================
 
+
 @config_app.command("show")
 def config_show(
     master_url: str = typer.Option(DEFAULT_MASTER, "--master", "-m"),
@@ -1203,11 +1203,7 @@ def config_show(
             resp.raise_for_status()
             config = resp.json()
 
-        console.print(Panel(
-            json.dumps(config, indent=2),
-            title="Cluster Configuration",
-            border_style="blue"
-        ))
+        console.print(Panel(json.dumps(config, indent=2), title="Cluster Configuration", border_style="blue"))
 
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
@@ -1225,10 +1221,7 @@ def config_set(
 
     try:
         with httpx.Client(timeout=10) as client:
-            resp = client.post(
-                f"{master_url}/config",
-                json={"key": key, "value": value}
-            )
+            resp = client.post(f"{master_url}/config", json={"key": key, "value": value})
             resp.raise_for_status()
 
         console.print(f"[green]Config updated: {key}={value}[/green]")
@@ -1242,12 +1235,14 @@ def config_set(
 # Interactive Mode
 # =============================================================================
 
+
 @app.command()
 def shell(
     master_url: str = typer.Option(DEFAULT_MASTER, "--master", "-m", help="Master URL"),
 ):
     """Start interactive shell mode."""
     from distributed_cluster.cli.interactive import run_interactive
+
     run_interactive(master_url)
 
 
@@ -1272,11 +1267,13 @@ def watch(
                 with httpx.Client(timeout=5) as client:
                     stats = client.get(f"{master_url}/stats").json()
 
-                console.print(Panel.fit(
-                    f"[bold cyan]NebulaCompute Dashboard[/bold cyan]\n"
-                    f"Updated: {datetime.now().strftime('%H:%M:%S')}",
-                    border_style="cyan"
-                ))
+                console.print(
+                    Panel.fit(
+                        f"[bold cyan]NebulaCompute Dashboard[/bold cyan]\n"
+                        f"Updated: {datetime.now().strftime('%H:%M:%S')}",
+                        border_style="cyan",
+                    )
+                )
 
                 # Resources table
                 table = Table(show_header=True, header_style="bold")
@@ -1284,26 +1281,16 @@ def watch(
                 table.add_column("Available", style="green")
                 table.add_column("Total", style="blue")
 
+                table.add_row("Workers", str(stats.get("active_workers", 0)), str(stats.get("total_workers", 0)))
                 table.add_row(
-                    "Workers",
-                    str(stats.get("active_workers", 0)),
-                    str(stats.get("total_workers", 0))
-                )
-                table.add_row(
-                    "CPU Cores",
-                    f"{stats.get('available_cpu_cores', 0):.1f}",
-                    f"{stats.get('total_cpu_cores', 0):.1f}"
+                    "CPU Cores", f"{stats.get('available_cpu_cores', 0):.1f}", f"{stats.get('total_cpu_cores', 0):.1f}"
                 )
                 table.add_row(
                     "Memory (GB)",
                     f"{stats.get('available_memory_gb', 0):.1f}",
-                    f"{stats.get('total_memory_gb', 0):.1f}"
+                    f"{stats.get('total_memory_gb', 0):.1f}",
                 )
-                table.add_row(
-                    "GPUs",
-                    str(stats.get("available_gpus", 0)),
-                    str(stats.get("total_gpus", 0))
-                )
+                table.add_row("GPUs", str(stats.get("available_gpus", 0)), str(stats.get("total_gpus", 0)))
 
                 console.print(table)
                 console.print()
@@ -1328,6 +1315,7 @@ def watch(
 # =============================================================================
 # Entry Point
 # =============================================================================
+
 
 def main():
     """Main entry point."""

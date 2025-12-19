@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class MessageType(str, Enum):
     """أنواع الرسائل."""
+
     # Client -> Server
     SUBSCRIBE = "subscribe"
     UNSUBSCRIBE = "unsubscribe"
@@ -43,6 +44,7 @@ class MessageType(str, Enum):
 
 class EventCategory(str, Enum):
     """فئات الأحداث."""
+
     JOB = "job"
     WORKER = "worker"
     CLUSTER = "cluster"
@@ -53,6 +55,7 @@ class EventCategory(str, Enum):
 @dataclass
 class ConnectionInfo:
     """معلومات الاتصال."""
+
     connection_id: str
     websocket: WebSocket
     user_id: Optional[str] = None
@@ -164,11 +167,14 @@ class WebSocketManager:
         self._connections[conn_id] = conn_info
 
         # Send acknowledgment
-        await self._send(conn_info, {
-            "type": MessageType.ACK.value,
-            "connection_id": conn_id,
-            "authenticated": user_id is not None,
-        })
+        await self._send(
+            conn_info,
+            {
+                "type": MessageType.ACK.value,
+                "connection_id": conn_id,
+                "authenticated": user_id is not None,
+            },
+        )
 
         logger.info(f"WebSocket connected: {conn_id}, user={user_id}")
 
@@ -237,19 +243,25 @@ class WebSocketManager:
         filter_id = message.get("filter")  # job_id or worker_id
 
         if not category:
-            await self._send(conn_info, {
-                "type": MessageType.ERROR.value,
-                "error": "category is required",
-            })
+            await self._send(
+                conn_info,
+                {
+                    "type": MessageType.ERROR.value,
+                    "error": "category is required",
+                },
+            )
             return
 
         # Check permissions
         if category == EventCategory.METRICS.value:
             if Permission.VIEW_METRICS not in conn_info.permissions and self.auth_manager:
-                await self._send(conn_info, {
-                    "type": MessageType.ERROR.value,
-                    "error": "Permission denied for metrics",
-                })
+                await self._send(
+                    conn_info,
+                    {
+                        "type": MessageType.ERROR.value,
+                        "error": "Permission denied for metrics",
+                    },
+                )
                 return
 
         # Add to subscriptions
@@ -272,11 +284,14 @@ class WebSocketManager:
                 self._worker_subscriptions[filter_id] = set()
             self._worker_subscriptions[filter_id].add(conn_info.connection_id)
 
-        await self._send(conn_info, {
-            "type": MessageType.ACK.value,
-            "action": "subscribed",
-            "subscription": subscription_key,
-        })
+        await self._send(
+            conn_info,
+            {
+                "type": MessageType.ACK.value,
+                "action": "subscribed",
+                "subscription": subscription_key,
+            },
+        )
 
         logger.debug(f"Connection {conn_info.connection_id} subscribed to {subscription_key}")
 
@@ -302,11 +317,14 @@ class WebSocketManager:
             elif category == EventCategory.WORKER.value and filter_id in self._worker_subscriptions:
                 self._worker_subscriptions[filter_id].discard(conn_info.connection_id)
 
-        await self._send(conn_info, {
-            "type": MessageType.ACK.value,
-            "action": "unsubscribed",
-            "subscription": subscription_key,
-        })
+        await self._send(
+            conn_info,
+            {
+                "type": MessageType.ACK.value,
+                "action": "unsubscribed",
+                "subscription": subscription_key,
+            },
+        )
 
     async def broadcast(
         self,

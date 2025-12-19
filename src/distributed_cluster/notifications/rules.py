@@ -13,11 +13,12 @@ from .notifier import Notification, NotificationCategory, NotificationPriority
 
 class RuleCondition(str, Enum):
     """شروط القاعدة"""
-    ALWAYS = "always"           # دائماً
+
+    ALWAYS = "always"  # دائماً
     CATEGORY_IS = "category_is"  # التصنيف يساوي
     PRIORITY_GTE = "priority_gte"  # الأولوية أكبر أو تساوي
     DATA_CONTAINS = "data_contains"  # البيانات تحتوي
-    CUSTOM = "custom"           # دالة مخصصة
+    CUSTOM = "custom"  # دالة مخصصة
 
 
 @dataclass
@@ -27,6 +28,7 @@ class NotificationRule:
 
     تحدد متى يتم إرسال الإشعار وإلى أي قنوات
     """
+
     name: str
     condition: RuleCondition
     channels: List[str]  # أسماء القنوات
@@ -106,39 +108,47 @@ class RuleEngine:
     def create_default_rules(self) -> None:
         """إنشاء قواعد افتراضية"""
         # قاعدة: الأحداث الحرجة تذهب لكل القنوات
-        self.add_rule(NotificationRule(
-            name="critical_all",
-            condition=RuleCondition.PRIORITY_GTE,
-            condition_value=NotificationPriority.CRITICAL,
-            channels=["slack", "discord", "email", "console"],
-            description="الأحداث الحرجة تُرسل لجميع القنوات",
-        ))
+        self.add_rule(
+            NotificationRule(
+                name="critical_all",
+                condition=RuleCondition.PRIORITY_GTE,
+                condition_value=NotificationPriority.CRITICAL,
+                channels=["slack", "discord", "email", "console"],
+                description="الأحداث الحرجة تُرسل لجميع القنوات",
+            )
+        )
 
         # قاعدة: فشل المهام يذهب لـ Slack و Email
-        self.add_rule(NotificationRule(
-            name="job_failed_alert",
-            condition=RuleCondition.CATEGORY_IS,
-            condition_value=NotificationCategory.JOB_FAILED,
-            channels=["slack", "email"],
-            description="فشل المهام يُرسل لـ Slack والبريد",
-        ))
+        self.add_rule(
+            NotificationRule(
+                name="job_failed_alert",
+                condition=RuleCondition.CATEGORY_IS,
+                condition_value=NotificationCategory.JOB_FAILED,
+                channels=["slack", "email"],
+                description="فشل المهام يُرسل لـ Slack والبريد",
+            )
+        )
 
         # قاعدة: انقطاع العمال يذهب لـ Slack
-        self.add_rule(NotificationRule(
-            name="worker_offline_alert",
-            condition=RuleCondition.CATEGORY_IS,
-            condition_value=NotificationCategory.WORKER_OFFLINE,
-            channels=["slack", "discord"],
-            description="انقطاع العمال يُرسل لـ Slack و Discord",
-        ))
+        self.add_rule(
+            NotificationRule(
+                name="worker_offline_alert",
+                condition=RuleCondition.CATEGORY_IS,
+                condition_value=NotificationCategory.WORKER_OFFLINE,
+                channels=["slack", "discord"],
+                description="انقطاع العمال يُرسل لـ Slack و Discord",
+            )
+        )
 
         # قاعدة: كل شيء يذهب للـ console
-        self.add_rule(NotificationRule(
-            name="console_all",
-            condition=RuleCondition.ALWAYS,
-            channels=["console"],
-            description="جميع الإشعارات تُطبع في الـ console",
-        ))
+        self.add_rule(
+            NotificationRule(
+                name="console_all",
+                condition=RuleCondition.ALWAYS,
+                channels=["console"],
+                description="جميع الإشعارات تُطبع في الـ console",
+            )
+        )
 
     def to_dict(self) -> List[Dict[str, Any]]:
         """تحويل القواعد لـ dict"""

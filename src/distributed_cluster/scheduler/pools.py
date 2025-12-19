@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Set
 
 class PoolStatus(Enum):
     """Worker pool status."""
+
     ACTIVE = "active"
     DRAINING = "draining"
     DISABLED = "disabled"
@@ -29,6 +30,7 @@ class PoolStatus(Enum):
 
 class PoolType(Enum):
     """Worker pool type."""
+
     GENERAL = "general"
     GPU = "gpu"
     HIGH_MEMORY = "high_memory"
@@ -40,6 +42,7 @@ class PoolType(Enum):
 @dataclass
 class PoolResourceLimits:
     """Resource limits for a pool."""
+
     max_cpu_cores: float = 0  # 0 = unlimited
     max_memory_mb: int = 0
     max_gpu_count: int = 0
@@ -57,6 +60,7 @@ class PoolResourceLimits:
 @dataclass
 class PoolScalingConfig:
     """Auto-scaling configuration for a pool."""
+
     enabled: bool = True
     min_workers: int = 0
     max_workers: int = 10
@@ -86,6 +90,7 @@ class PoolScalingConfig:
 @dataclass
 class WorkerPool:
     """Worker pool definition."""
+
     name: str
     pool_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""
@@ -351,10 +356,7 @@ class PoolManager:
             return False
 
         if pool.worker_count > 0 and not force:
-            raise ValueError(
-                f"Pool '{name}' has {pool.worker_count} workers. "
-                "Use force=True to delete anyway."
-            )
+            raise ValueError(f"Pool '{name}' has {pool.worker_count} workers. " "Use force=True to delete anyway.")
 
         # Move workers to default pool
         for worker_id in list(pool.worker_ids):
@@ -363,18 +365,11 @@ class PoolManager:
         del self._pools[name]
 
         if self.database:
-            await self.database.execute(
-                "DELETE FROM pools WHERE name = ?", (name,)
-            )
+            await self.database.execute("DELETE FROM pools WHERE name = ?", (name,))
 
         return True
 
-    async def assign_worker(
-        self,
-        worker_id: str,
-        worker_tags: List[str],
-        preferred_pool: Optional[str] = None
-    ) -> str:
+    async def assign_worker(self, worker_id: str, worker_tags: List[str], preferred_pool: Optional[str] = None) -> str:
         """
         Assign a worker to a pool.
         Returns the assigned pool name.
@@ -446,10 +441,7 @@ class PoolManager:
         return self._worker_pool_map.get(worker_id)
 
     async def select_pool_for_job(
-        self,
-        job_resources: Dict[str, Any],
-        job_pool: Optional[str] = None,
-        job_queue: Optional[str] = None
+        self, job_resources: Dict[str, Any], job_pool: Optional[str] = None, job_queue: Optional[str] = None
     ) -> Optional[WorkerPool]:
         """
         Select the best pool for a job.
@@ -502,12 +494,7 @@ class PoolManager:
             return list(pool.worker_ids)
         return []
 
-    def update_pool_job_count(
-        self,
-        pool_name: str,
-        active_delta: int = 0,
-        pending_delta: int = 0
-    ):
+    def update_pool_job_count(self, pool_name: str, active_delta: int = 0, pending_delta: int = 0):
         """Update job counts for a pool."""
         pool = self._pools.get(pool_name)
         if pool:
@@ -575,7 +562,7 @@ class PoolManager:
                 json.dumps(pool.to_dict()),
                 pool.created_at.isoformat(),
                 pool.updated_at.isoformat(),
-            )
+            ),
         )
 
     async def load_from_database(self):

@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MasterEndpoint:
     """معلومات Master endpoint"""
+
     address: str
     port: int
     is_leader: bool = False
@@ -56,6 +57,7 @@ class MasterEndpoint:
 @dataclass
 class HAWorkerConfig:
     """إعدادات Worker عالي التوفر"""
+
     # قائمة Masters ["host1:8080", "host2:8080", "host3:8080"]
     masters: list[str] = field(default_factory=list)
 
@@ -129,10 +131,12 @@ class HAWorkerAgent:
                     host = master_addr
                     port = 8080
 
-                self._masters.append(MasterEndpoint(
-                    address=host,
-                    port=port,
-                ))
+                self._masters.append(
+                    MasterEndpoint(
+                        address=host,
+                        port=port,
+                    )
+                )
             except Exception as e:
                 logger.warning(f"Invalid master address {master_addr}: {e}")
 
@@ -146,10 +150,12 @@ class HAWorkerAgent:
                 host = url.split("/")[0]
                 port = 8080
 
-            self._masters.append(MasterEndpoint(
-                address=host,
-                port=port,
-            ))
+            self._masters.append(
+                MasterEndpoint(
+                    address=host,
+                    port=port,
+                )
+            )
 
     async def start(self) -> None:
         """بدء العامل"""
@@ -159,9 +165,7 @@ class HAWorkerAgent:
         # Setup signal handlers
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
-                asyncio.get_event_loop().add_signal_handler(
-                    sig, lambda s=sig: asyncio.create_task(self._shutdown(s))
-                )
+                asyncio.get_event_loop().add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._shutdown(s)))
             except NotImplementedError:
                 pass
 
@@ -298,11 +302,14 @@ class HAWorkerAgent:
                 return
 
         # أضفه
-        self._masters.insert(0, MasterEndpoint(
-            address=address,
-            port=port,
-            is_leader=True,
-        ))
+        self._masters.insert(
+            0,
+            MasterEndpoint(
+                address=address,
+                port=port,
+                is_leader=True,
+            ),
+        )
 
     async def _register_with_master(self, master: MasterEndpoint) -> bool:
         """التسجيل مع master معين"""
@@ -365,17 +372,19 @@ class HAWorkerAgent:
 
         gpus_data = []
         for gpu in usage.gpus:
-            gpus_data.append({
-                "index": gpu.index,
-                "name": gpu.name,
-                "uuid": gpu.uuid,
-                "memory_total_mb": gpu.memory_total_mb,
-                "memory_free_mb": gpu.memory_free_mb,
-                "memory_used_mb": gpu.memory_used_mb,
-                "utilization_percent": gpu.utilization_percent,
-                "temperature_c": gpu.temperature_c,
-                "power_draw_w": gpu.power_draw_w,
-            })
+            gpus_data.append(
+                {
+                    "index": gpu.index,
+                    "name": gpu.name,
+                    "uuid": gpu.uuid,
+                    "memory_total_mb": gpu.memory_total_mb,
+                    "memory_free_mb": gpu.memory_free_mb,
+                    "memory_used_mb": gpu.memory_used_mb,
+                    "utilization_percent": gpu.utilization_percent,
+                    "temperature_c": gpu.temperature_c,
+                    "power_draw_w": gpu.power_draw_w,
+                }
+            )
 
         response = await self._client.post(
             f"{self._current_master.url}/workers/heartbeat",

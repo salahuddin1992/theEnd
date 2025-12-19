@@ -22,12 +22,10 @@ def start_ha_master(
     master_id: Optional[str] = typer.Option(None, "--id", help="معرف Master (فريد)"),
     priority: int = typer.Option(0, "--priority", help="أولوية القيادة (أعلى = أولوية أكبر)"),
     peers: Optional[str] = typer.Option(
-        None, "--peers",
-        help="قائمة Masters الأخرى (مفصولة بفاصلة): host1:8080,host2:8080"
+        None, "--peers", help="قائمة Masters الأخرى (مفصولة بفاصلة): host1:8080,host2:8080"
     ),
     mode: str = typer.Option(
-        "active_standby", "--mode", "-m",
-        help="نمط HA: standalone, active_standby, active_active"
+        "active_standby", "--mode", "-m", help="نمط HA: standalone, active_standby, active_active"
     ),
     log_level: str = typer.Option("INFO", "--log-level", "-l"),
 ):
@@ -45,6 +43,7 @@ def start_ha_master(
         dc-ha start-master --port 8082 --priority 25 --peers localhost:8080,localhost:8081
     """
     import logging
+
     logging.basicConfig(level=getattr(logging, log_level.upper()))
 
     from distributed_cluster.core.config import MasterConfig
@@ -92,8 +91,7 @@ def start_ha_master(
 @app.command("start-worker")
 def start_ha_worker(
     masters: str = typer.Option(
-        ..., "--masters", "-m",
-        help="قائمة Masters (مفصولة بفاصلة): host1:8080,host2:8080,host3:8080"
+        ..., "--masters", "-m", help="قائمة Masters (مفصولة بفاصلة): host1:8080,host2:8080,host3:8080"
     ),
     port: int = typer.Option(9000, "--port", "-p", help="منفذ العامل"),
     tags: Optional[str] = typer.Option(None, "--tags", "-t", help="وسوم (مفصولة بفاصلة)"),
@@ -109,6 +107,7 @@ def start_ha_worker(
     """
     import asyncio
     import logging
+
     logging.basicConfig(level=getattr(logging, log_level.upper()))
 
     from distributed_cluster.core.config import WorkerConfig
@@ -147,10 +146,7 @@ def start_ha_worker(
 
 @app.command("status")
 def ha_status(
-    master: str = typer.Option(
-        "localhost:8080", "--master", "-m",
-        help="عنوان Master للاستعلام"
-    ),
+    master: str = typer.Option("localhost:8080", "--master", "-m", help="عنوان Master للاستعلام"),
 ):
     """
     عرض حالة التوفر العالي للكلاستر.
@@ -171,25 +167,25 @@ def ha_status(
         typer.echo(f"Is Leader: {data.get('is_leader', False)}")
         typer.echo(f"Is Active: {data.get('is_active', False)}")
 
-        leader = data.get('current_leader')
+        leader = data.get("current_leader")
         if leader:
             typer.echo("\nCurrent Leader:")
             typer.echo(f"  ID: {leader.get('master_id')}")
             typer.echo(f"  Address: {leader.get('address')}:{leader.get('port')}")
             typer.echo(f"  Term: {leader.get('term')}")
 
-        election = data.get('election', {})
+        election = data.get("election", {})
         if election:
-            peers = election.get('peers', {})
+            peers = election.get("peers", {})
             if peers:
                 typer.echo(f"\nPeers ({len(peers)}):")
                 for pid, pinfo in peers.items():
-                    status = "✓" if pinfo.get('alive') else "✗"
+                    status = "✓" if pinfo.get("alive") else "✗"
                     typer.echo(f"  [{status}] {pid} - {pinfo.get('role', 'unknown')}")
 
-        health = data.get('health', {})
+        health = data.get("health", {})
         if health:
-            summary = health.get('summary', {})
+            summary = health.get("summary", {})
             typer.echo(f"\nCluster Health: {health.get('cluster_status', 'unknown')}")
             typer.echo(f"  Total: {summary.get('total_masters', 0)}")
             typer.echo(f"  Healthy: {summary.get('healthy', 0)}")
@@ -203,10 +199,7 @@ def ha_status(
 
 @app.command("failover")
 def trigger_failover(
-    master: str = typer.Option(
-        "localhost:8080", "--master", "-m",
-        help="عنوان Master لتحفيز التبديل"
-    ),
+    master: str = typer.Option("localhost:8080", "--master", "-m", help="عنوان Master لتحفيز التبديل"),
 ):
     """
     تحفيز انتخاب قائد جديد (للاختبار).

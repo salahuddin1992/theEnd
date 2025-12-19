@@ -36,7 +36,8 @@ class ServerItem(QFrame):
 
     def _setup_ui(self):
         """Setup item UI"""
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
@@ -47,7 +48,8 @@ class ServerItem(QFrame):
                 border-color: {COLORS['primary']};
                 background-color: {COLORS['bg_light']};
             }}
-        """)
+        """
+        )
         self.setCursor(Qt.PointingHandCursor)
 
         layout = QHBoxLayout(self)
@@ -71,7 +73,8 @@ class ServerItem(QFrame):
         # Delete button
         delete_btn = QPushButton("×")
         delete_btn.setFixedSize(24, 24)
-        delete_btn.setStyleSheet(f"""
+        delete_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLORS['text_muted']};
@@ -82,7 +85,8 @@ class ServerItem(QFrame):
             QPushButton:hover {{
                 color: {COLORS['danger']};
             }}
-        """)
+        """
+        )
         delete_btn.clicked.connect(self._on_delete)
         layout.addWidget(delete_btn)
 
@@ -111,11 +115,13 @@ class ConnectionDialog(QDialog):
         """Setup dialog UI"""
         self.setWindowTitle("Connect to Server")
         self.setFixedSize(500, 600)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QDialog {{
                 background-color: {COLORS['bg_dark']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(32, 32, 32, 32)
@@ -126,11 +132,13 @@ class ConnectionDialog(QDialog):
         header_layout.setSpacing(8)
 
         logo_label = QLabel("☁ NebulaCompute")
-        logo_label.setStyleSheet(f"""
+        logo_label.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: bold;
             color: {COLORS['primary']};
-        """)
+        """
+        )
         logo_label.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(logo_label)
 
@@ -144,13 +152,15 @@ class ConnectionDialog(QDialog):
         # Saved servers section
         if self._saved_servers:
             saved_label = QLabel("Recent Servers")
-            saved_label.setStyleSheet(f"""
+            saved_label.setStyleSheet(
+                f"""
                 color: {COLORS['text_secondary']};
                 font-size: 12px;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 1px;
-            """)
+            """
+            )
             layout.addWidget(saved_label)
 
             self.servers_container = QVBoxLayout()
@@ -173,13 +183,15 @@ class ConnectionDialog(QDialog):
 
         # New connection section
         new_label = QLabel("New Connection")
-        new_label.setStyleSheet(f"""
+        new_label.setStyleSheet(
+            f"""
             color: {COLORS['text_secondary']};
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-        """)
+        """
+        )
         layout.addWidget(new_label)
 
         # Connection form
@@ -195,7 +207,8 @@ class ConnectionDialog(QDialog):
 
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("e.g., Production Cluster")
-        self.name_input.setStyleSheet(f"""
+        self.name_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
@@ -207,7 +220,8 @@ class ConnectionDialog(QDialog):
             QLineEdit:focus {{
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         name_layout.addWidget(self.name_input)
         form_layout.addLayout(name_layout)
 
@@ -221,7 +235,8 @@ class ConnectionDialog(QDialog):
         self.url_input = QLineEdit()
         self.url_input.setPlaceholderText("http://localhost:8765")
         self.url_input.setText("http://localhost:8765")
-        self.url_input.setStyleSheet(f"""
+        self.url_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
@@ -233,7 +248,8 @@ class ConnectionDialog(QDialog):
             QLineEdit:focus {{
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         url_layout.addWidget(self.url_input)
         form_layout.addLayout(url_layout)
 
@@ -248,7 +264,8 @@ class ConnectionDialog(QDialog):
         self.token_input = QLineEdit()
         self.token_input.setPlaceholderText("Enter API token if required")
         self.token_input.setEchoMode(QLineEdit.Password)
-        self.token_input.setStyleSheet(f"""
+        self.token_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
@@ -260,12 +277,14 @@ class ConnectionDialog(QDialog):
             QLineEdit:focus {{
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         token_input_layout.addWidget(self.token_input)
 
         show_token_btn = QPushButton("Show")
         show_token_btn.setFixedWidth(60)
-        show_token_btn.setStyleSheet(f"""
+        show_token_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['bg_light']};
                 color: {COLORS['text_secondary']};
@@ -276,7 +295,8 @@ class ConnectionDialog(QDialog):
             QPushButton:hover {{
                 background-color: {COLORS['border']};
             }}
-        """)
+        """
+        )
         show_token_btn.clicked.connect(self._toggle_token)
         token_input_layout.addWidget(show_token_btn)
         self._show_token_btn = show_token_btn
@@ -287,7 +307,8 @@ class ConnectionDialog(QDialog):
         # Remember checkbox
         self.remember_check = QCheckBox("Remember this server")
         self.remember_check.setChecked(True)
-        self.remember_check.setStyleSheet(f"""
+        self.remember_check.setStyleSheet(
+            f"""
             QCheckBox {{
                 color: {COLORS['text_secondary']};
                 font-size: 13px;
@@ -303,7 +324,8 @@ class ConnectionDialog(QDialog):
                 background-color: {COLORS['primary']};
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         form_layout.addWidget(self.remember_check)
 
         layout.addLayout(form_layout)
@@ -315,7 +337,8 @@ class ConnectionDialog(QDialog):
         buttons_layout.setSpacing(12)
 
         cancel_btn = QPushButton("Cancel")
-        cancel_btn.setStyleSheet(f"""
+        cancel_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['bg_light']};
                 color: {COLORS['text_primary']};
@@ -328,12 +351,14 @@ class ConnectionDialog(QDialog):
             QPushButton:hover {{
                 background-color: {COLORS['border']};
             }}
-        """)
+        """
+        )
         cancel_btn.clicked.connect(self.reject)
         buttons_layout.addWidget(cancel_btn)
 
         connect_btn = QPushButton("Connect")
-        connect_btn.setStyleSheet(f"""
+        connect_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['primary']};
                 color: {COLORS['text_primary']};
@@ -346,7 +371,8 @@ class ConnectionDialog(QDialog):
             QPushButton:hover {{
                 background-color: {COLORS['primary_hover']};
             }}
-        """)
+        """
+        )
         connect_btn.clicked.connect(self._on_connect)
         buttons_layout.addWidget(connect_btn)
 
@@ -400,11 +426,14 @@ class ConnectionDialog(QDialog):
         self._saved_servers = [s for s in self._saved_servers if s.get("url") != url]
 
         # Add to front
-        self._saved_servers.insert(0, {
-            "name": name,
-            "url": url,
-            "token": token,
-        })
+        self._saved_servers.insert(
+            0,
+            {
+                "name": name,
+                "url": url,
+                "token": token,
+            },
+        )
 
         # Keep only last 10
         self._saved_servers = self._saved_servers[:10]
@@ -439,5 +468,5 @@ class ConnectionDialog(QDialog):
         return (
             self.url_input.text().strip(),
             self.token_input.text(),
-            self.name_input.text() or self.url_input.text().strip()
+            self.name_input.text() or self.url_input.text().strip(),
         )

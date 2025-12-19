@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EventSubscription:
     """اشتراك في الأحداث."""
+
     callback: Callable[[Event], Awaitable[None]]
     event_types: Optional[Set[EventType]] = None  # None = all
     job_filter: Optional[str] = None  # specific job_id

@@ -72,8 +72,7 @@ class ClientServicer:
             existing_job_id = self._idempotency_cache[idempotency_key]
             job = await self.database.get_job(existing_job_id)
             if job:
-                logger.info("Returning existing job for idempotency key",
-                           job_id=existing_job_id, key=idempotency_key)
+                logger.info("Returning existing job for idempotency key", job_id=existing_job_id, key=idempotency_key)
                 return {
                     "job_id": existing_job_id,
                     "status": job.status.value,
@@ -123,14 +122,16 @@ class ClientServicer:
             self._idempotency_cache[idempotency_key] = job_id
 
         # Record event
-        await self.database.save_event(Event(
-            event_type=EventType.JOB_SUBMITTED,
-            timestamp=datetime.utcnow(),
-            source="client",
-            job_id=job_id,
-            message=f"Job '{submission.name}' submitted",
-            data={"name": submission.name, "priority": submission.priority.value},
-        ))
+        await self.database.save_event(
+            Event(
+                event_type=EventType.JOB_SUBMITTED,
+                timestamp=datetime.utcnow(),
+                source="client",
+                job_id=job_id,
+                message=f"Job '{submission.name}' submitted",
+                data={"name": submission.name, "priority": submission.priority.value},
+            )
+        )
 
         # Metrics
         self.metrics.counter("jobs_submitted_total", 1)
@@ -206,13 +207,15 @@ class ClientServicer:
             self.scheduler.cancel_job(job_id)
 
         # Record event
-        await self.database.save_event(Event(
-            event_type=EventType.JOB_CANCELLED,
-            timestamp=datetime.utcnow(),
-            source="client",
-            job_id=job_id,
-            message=f"Job cancelled: {reason}",
-        ))
+        await self.database.save_event(
+            Event(
+                event_type=EventType.JOB_CANCELLED,
+                timestamp=datetime.utcnow(),
+                source="client",
+                job_id=job_id,
+                message=f"Job cancelled: {reason}",
+            )
+        )
 
         logger.info("Job cancelled", job_id=job_id, reason=reason)
 
@@ -267,7 +270,7 @@ class ClientServicer:
 
         # Paginate
         total_count = len(jobs)
-        jobs = jobs[offset:offset + limit]
+        jobs = jobs[offset : offset + limit]
 
         return {
             "jobs": [self._job_to_proto(j) for j in jobs],

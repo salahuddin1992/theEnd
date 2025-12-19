@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def _get_default_temp_dir() -> str:
@@ -37,6 +37,7 @@ def _get_default_temp_dir() -> str:
 
 class ConfigError(Exception):
     """خطأ في الإعدادات."""
+
     pass
 
 
@@ -44,9 +45,11 @@ class ConfigError(Exception):
 # Configuration Sections
 # =============================================================================
 
+
 @dataclass
 class ServerConfig:
     """إعدادات السيرفر."""
+
     host: str = "0.0.0.0"
     port: int = 8080
     workers: int = 4
@@ -62,6 +65,7 @@ class ServerConfig:
 @dataclass
 class GRPCConfig:
     """إعدادات gRPC."""
+
     enabled: bool = True
     port: int = 50051
     max_message_size_mb: int = 64
@@ -72,6 +76,7 @@ class GRPCConfig:
 @dataclass
 class DatabaseConfig:
     """إعدادات قاعدة البيانات."""
+
     type: str = "sqlite"  # sqlite, postgresql
     path: str = "./data/cluster.db"  # SQLite
     host: str = "localhost"  # PostgreSQL
@@ -86,6 +91,7 @@ class DatabaseConfig:
 @dataclass
 class SecurityConfig:
     """إعدادات الأمان."""
+
     secret_key: str = ""  # JWT secret
     token_expiry_hours: int = 24
     enrollment_mode: str = "auto_approve"  # auto_approve, token, allowlist
@@ -101,6 +107,7 @@ class SecurityConfig:
 @dataclass
 class SchedulerConfig:
     """إعدادات المجدول."""
+
     policy: str = "best_fit"  # best_fit, worst_fit, round_robin
     scoring_profile: str = "best_fit"  # best_fit, spread, locality_first, reliable
     scheduler_interval_seconds: float = 1.0
@@ -115,6 +122,7 @@ class SchedulerConfig:
 @dataclass
 class RetryConfig:
     """إعدادات إعادة المحاولة."""
+
     max_retries: int = 3
     strategy: str = "exponential"  # immediate, linear, exponential, fibonacci
     initial_delay_seconds: float = 5.0
@@ -126,6 +134,7 @@ class RetryConfig:
 @dataclass
 class WorkerAgentConfig:
     """إعدادات Worker Agent."""
+
     heartbeat_interval_seconds: int = 30
     job_poll_interval_seconds: int = 5
     max_concurrent_jobs: int = 10
@@ -150,6 +159,7 @@ class WorkerAgentConfig:
 @dataclass
 class StorageConfig:
     """إعدادات التخزين."""
+
     type: str = "local"  # local, s3
     local_path: str = "./data/artifacts"
 
@@ -164,6 +174,7 @@ class StorageConfig:
 @dataclass
 class ObservabilityConfig:
     """إعدادات المراقبة."""
+
     # Logging
     log_level: str = "INFO"
     log_format: str = "json"  # json, text
@@ -182,6 +193,7 @@ class ObservabilityConfig:
 @dataclass
 class WebSocketConfig:
     """إعدادات WebSocket."""
+
     enabled: bool = True
     ping_interval_seconds: int = 30
     ping_timeout_seconds: int = 10
@@ -195,6 +207,7 @@ class ClusterConfig:
 
     تجمع كل الإعدادات في مكان واحد.
     """
+
     # Cluster identity
     cluster_name: str = "nebula-cluster"
     cluster_id: str = ""
@@ -216,6 +229,7 @@ class ClusterConfig:
 # Configuration Loader
 # =============================================================================
 
+
 class ConfigLoader:
     """
     محمّل الإعدادات.
@@ -233,6 +247,7 @@ class ConfigLoader:
         self._yaml_available = False
         try:
             import yaml
+
             self._yaml = yaml
             self._yaml_available = True
         except ImportError:
@@ -276,14 +291,14 @@ class ConfigLoader:
         if not path_obj.exists():
             raise ConfigError(f"Config file not found: {path}")
 
-        content = path_obj.read_text(encoding='utf-8')
+        content = path_obj.read_text(encoding="utf-8")
 
-        if path.endswith(('.yaml', '.yml')):
+        if path.endswith((".yaml", ".yml")):
             if not self._yaml_available:
                 raise ConfigError("YAML support requires PyYAML: pip install pyyaml")
             return self._yaml.safe_load(content) or {}
 
-        elif path.endswith('.json'):
+        elif path.endswith(".json"):
             return json.loads(content)
 
         else:
@@ -305,11 +320,9 @@ class ConfigLoader:
             "SERVER_HOST": ("server", "host"),
             "SERVER_PORT": ("server", "port"),
             "DEBUG": ("server", "debug"),
-
             # gRPC
             "GRPC_PORT": ("grpc", "port"),
             "GRPC_ENABLED": ("grpc", "enabled"),
-
             # Database
             "DB_TYPE": ("database", "type"),
             "DB_PATH": ("database", "path"),
@@ -318,26 +331,21 @@ class ConfigLoader:
             "DB_NAME": ("database", "database"),
             "DB_USER": ("database", "user"),
             "DB_PASSWORD": ("database", "password"),
-
             # Security
             "SECRET_KEY": ("security", "secret_key"),
             "TOKEN_EXPIRY_HOURS": ("security", "token_expiry_hours"),
             "ENROLLMENT_MODE": ("security", "enrollment_mode"),
-
             # Scheduler
             "SCHEDULER_POLICY": ("scheduler", "policy"),
             "LEASE_DURATION": ("scheduler", "lease_duration_seconds"),
-
             # Retry
             "MAX_RETRIES": ("retry", "max_retries"),
             "RETRY_STRATEGY": ("retry", "strategy"),
-
             # Worker
             "HEARTBEAT_INTERVAL": ("worker", "heartbeat_interval_seconds"),
             "MAX_CONCURRENT_JOBS": ("worker", "max_concurrent_jobs"),
             "DOCKER_ENABLED": ("worker", "docker_enabled"),
             "WORK_DIR": ("worker", "work_dir"),
-
             # Storage
             "STORAGE_TYPE": ("storage", "type"),
             "STORAGE_PATH": ("storage", "local_path"),
@@ -346,12 +354,10 @@ class ConfigLoader:
             "S3_ENDPOINT": ("storage", "s3_endpoint"),
             "AWS_ACCESS_KEY_ID": ("storage", "s3_access_key"),
             "AWS_SECRET_ACCESS_KEY": ("storage", "s3_secret_key"),
-
             # Observability
             "LOG_LEVEL": ("observability", "log_level"),
             "LOG_FORMAT": ("observability", "log_format"),
             "METRICS_ENABLED": ("observability", "metrics_enabled"),
-
             # Cluster
             "CLUSTER_NAME": ("cluster_name",),
             "CLUSTER_ID": ("cluster_id",),
@@ -369,22 +375,22 @@ class ConfigLoader:
     def _parse_value(self, value: str) -> Any:
         """تحويل قيمة string."""
         # Boolean
-        if value.lower() in ('true', 'yes', '1'):
+        if value.lower() in ("true", "yes", "1"):
             return True
-        if value.lower() in ('false', 'no', '0'):
+        if value.lower() in ("false", "no", "0"):
             return False
 
         # Number
         try:
-            if '.' in value:
+            if "." in value:
                 return float(value)
             return int(value)
         except ValueError:
             pass
 
         # List (comma-separated)
-        if ',' in value:
-            return [v.strip() for v in value.split(',')]
+        if "," in value:
+            return [v.strip() for v in value.split(",")]
 
         return value
 
@@ -439,14 +445,14 @@ class ConfigLoader:
         """حفظ الإعدادات."""
         data = self._config_to_dict(config)
 
-        if path.endswith(('.yaml', '.yml')):
+        if path.endswith((".yaml", ".yml")):
             if not self._yaml_available:
                 raise ConfigError("YAML support requires PyYAML")
             content = self._yaml.dump(data, default_flow_style=False, sort_keys=False)
         else:
             content = json.dumps(data, indent=2)
 
-        Path(path).write_text(content, encoding='utf-8')
+        Path(path).write_text(content, encoding="utf-8")
         logger.info(f"Configuration saved to {path}")
 
     def _config_to_dict(self, config: ClusterConfig) -> Dict[str, Any]:

@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class TransferStatus(str, Enum):
     """حالة النقل."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -37,6 +38,7 @@ class TransferStatus(str, Enum):
 @dataclass
 class DataChunk:
     """قطعة بيانات."""
+
     chunk_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     transfer_id: str = ""
     sequence: int = 0
@@ -86,6 +88,7 @@ class DataChunk:
     def to_dict(self) -> Dict[str, Any]:
         """تحويل إلى dictionary."""
         import base64
+
         return {
             "chunk_id": self.chunk_id,
             "transfer_id": self.transfer_id,
@@ -100,6 +103,7 @@ class DataChunk:
     def from_dict(cls, d: Dict[str, Any]) -> DataChunk:
         """إنشاء من dictionary."""
         import base64
+
         return cls(
             chunk_id=d.get("chunk_id", str(uuid.uuid4())),
             transfer_id=d.get("transfer_id", ""),
@@ -114,6 +118,7 @@ class DataChunk:
 @dataclass
 class DataTransfer:
     """عملية نقل بيانات."""
+
     transfer_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     source_node: str = ""
     target_node: str = ""
@@ -148,7 +153,7 @@ class DataTransfer:
     def eta_seconds(self) -> float:
         """الوقت المتبقي المقدر."""
         if self.speed_bps == 0:
-            return float('inf')
+            return float("inf")
         remaining = self.total_bytes - self.transferred_bytes
         return remaining / self.speed_bps
 
@@ -213,7 +218,7 @@ class DataSync:
         chunks = []
 
         for i in range(0, len(data), self.chunk_size):
-            chunk_data = data[i:i + self.chunk_size]
+            chunk_data = data[i : i + self.chunk_size]
 
             chunk = DataChunk(
                 transfer_id=transfer_id,
@@ -404,10 +409,7 @@ class DataSync:
 
     def get_active_transfers(self) -> List[DataTransfer]:
         """الحصول على عمليات النقل النشطة."""
-        return [
-            t for t in self._transfers.values()
-            if t.status in [TransferStatus.PENDING, TransferStatus.IN_PROGRESS]
-        ]
+        return [t for t in self._transfers.values() if t.status in [TransferStatus.PENDING, TransferStatus.IN_PROGRESS]]
 
     def get_stats(self) -> Dict[str, Any]:
         """إحصائيات النقل."""
@@ -425,6 +427,7 @@ class DataSync:
         """تنظيف عمليات النقل القديمة."""
         cutoff = datetime.utcnow()
         from datetime import timedelta
+
         cutoff = cutoff - timedelta(hours=max_age_hours)
 
         to_remove = []
@@ -444,6 +447,7 @@ class DataSync:
 # Streaming Support
 # ============================================================================
 
+
 async def stream_data(
     data: bytes,
     chunk_size: int = 1024 * 1024,
@@ -452,7 +456,7 @@ async def stream_data(
     transfer_id = str(uuid.uuid4())
 
     for i, offset in enumerate(range(0, len(data), chunk_size)):
-        chunk_data = data[offset:offset + chunk_size]
+        chunk_data = data[offset : offset + chunk_size]
 
         yield DataChunk(
             transfer_id=transfer_id,

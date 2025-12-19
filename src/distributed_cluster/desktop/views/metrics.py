@@ -40,14 +40,16 @@ class MetricCard(QFrame):
 
     def _setup_ui(self):
         """Setup card UI"""
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_card']};
                 border: 1px solid {COLORS['border']};
                 border-radius: 12px;
                 padding: 16px;
             }}
-        """)
+        """
+        )
         self.setMinimumHeight(120)
 
         layout = QVBoxLayout(self)
@@ -58,13 +60,15 @@ class MetricCard(QFrame):
         header = QHBoxLayout()
 
         title_label = QLabel(self._title)
-        title_label.setStyleSheet(f"""
+        title_label.setStyleSheet(
+            f"""
             color: {COLORS['text_secondary']};
             font-size: 12px;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        """)
+        """
+        )
         header.addWidget(title_label)
 
         header.addStretch()
@@ -79,11 +83,13 @@ class MetricCard(QFrame):
         value_layout = QHBoxLayout()
 
         self.value_label = QLabel("0")
-        self.value_label.setStyleSheet(f"""
+        self.value_label.setStyleSheet(
+            f"""
             color: {COLORS['text_primary']};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         value_layout.addWidget(self.value_label)
 
         unit_label = QLabel(self._unit)
@@ -101,7 +107,7 @@ class MetricCard(QFrame):
 
     def set_value(self, value: float):
         """Update metric value"""
-        float(self.value_label.text()) if self.value_label.text().replace('.', '').isdigit() else 0
+        float(self.value_label.text()) if self.value_label.text().replace(".", "").isdigit() else 0
 
         self._history.append(value)
         self.value_label.setText(f"{value:.1f}" if isinstance(value, float) else str(value))
@@ -122,10 +128,10 @@ class MetricCard(QFrame):
         # Update trend
         if len(self._history) >= 5:
             recent = list(self._history)[-5:]
-            if all(recent[i] <= recent[i+1] for i in range(len(recent)-1)):
+            if all(recent[i] <= recent[i + 1] for i in range(len(recent) - 1)):
                 self.trend_label.setText("↗ Increasing")
                 self.trend_label.setStyleSheet(f"color: {COLORS['warning']}; font-size: 12px;")
-            elif all(recent[i] >= recent[i+1] for i in range(len(recent)-1)):
+            elif all(recent[i] >= recent[i + 1] for i in range(len(recent) - 1)):
                 self.trend_label.setText("↘ Decreasing")
                 self.trend_label.setStyleSheet(f"color: {COLORS['success']}; font-size: 12px;")
             else:
@@ -142,25 +148,29 @@ class MetricsTable(QFrame):
 
     def _setup_ui(self):
         """Setup table UI"""
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_card']};
                 border: 1px solid {COLORS['border']};
                 border-radius: 12px;
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Header
         header = QFrame()
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             background-color: {COLORS['bg_medium']};
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
             border-bottom: 1px solid {COLORS['border']};
-        """)
+        """
+        )
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(16, 12, 16, 12)
 
@@ -180,7 +190,8 @@ class MetricsTable(QFrame):
         self.table.verticalHeader().setVisible(False)
         self.table.setShowGrid(False)
         self.table.setAlternatingRowColors(True)
-        self.table.setStyleSheet(f"""
+        self.table.setStyleSheet(
+            f"""
             QTableWidget {{
                 background-color: transparent;
                 border: none;
@@ -195,7 +206,8 @@ class MetricsTable(QFrame):
                 border: none;
                 font-weight: 600;
             }}
-        """)
+        """
+        )
 
         layout.addWidget(self.table)
 
@@ -235,11 +247,13 @@ class MetricsView(QScrollArea):
         header_layout = QHBoxLayout()
 
         title = QLabel("Metrics & Monitoring")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         header_layout.addStretch()
@@ -293,7 +307,8 @@ class MetricsView(QScrollArea):
 
         # Tabs for different metric views
         tabs = QTabWidget()
-        tabs.setStyleSheet(f"""
+        tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: 1px solid {COLORS['border']};
                 border-radius: 8px;
@@ -311,7 +326,8 @@ class MetricsView(QScrollArea):
                 background-color: {COLORS['bg_card']};
                 color: {COLORS['text_primary']};
             }}
-        """)
+        """
+        )
 
         # Resource charts tab
         resource_tab = QWidget()
@@ -403,42 +419,54 @@ class MetricsView(QScrollArea):
         self.jobs_chart.add_value(metrics.get("running_jobs", 0))
 
         # Update donut chart
-        self.jobs_donut.set_data([
-            ("Running", metrics.get("running_jobs", 0), COLORS["warning"]),
-            ("Pending", metrics.get("pending_jobs", 0), COLORS["info"]),
-            ("Completed", metrics.get("completed_jobs", 0), COLORS["success"]),
-            ("Failed", metrics.get("failed_jobs", 0), COLORS["danger"]),
-        ])
+        self.jobs_donut.set_data(
+            [
+                ("Running", metrics.get("running_jobs", 0), COLORS["warning"]),
+                ("Pending", metrics.get("pending_jobs", 0), COLORS["info"]),
+                ("Completed", metrics.get("completed_jobs", 0), COLORS["success"]),
+                ("Failed", metrics.get("failed_jobs", 0), COLORS["danger"]),
+            ]
+        )
 
         # Update workers bar chart
         workers = metrics.get("workers", [])
         if workers:
-            self.workers_bar.set_data([
-                (w.get("id", "")[:8], w.get("cpu_used", 0), w.get("cpu_total", 100), COLORS["primary"])
-                for w in workers[:5]
-            ])
+            self.workers_bar.set_data(
+                [
+                    (w.get("id", "")[:8], w.get("cpu_used", 0), w.get("cpu_total", 100), COLORS["primary"])
+                    for w in workers[:5]
+                ]
+            )
 
         # Update table
         table_metrics = [
             {
-                "name": "CPU Usage", "current": metrics.get("cpu_percent", 0),
-                "average": metrics.get("cpu_avg", 0), "min": metrics.get("cpu_min", 0),
-                "max": metrics.get("cpu_max", 0)
+                "name": "CPU Usage",
+                "current": metrics.get("cpu_percent", 0),
+                "average": metrics.get("cpu_avg", 0),
+                "min": metrics.get("cpu_min", 0),
+                "max": metrics.get("cpu_max", 0),
             },
             {
-                "name": "Memory Usage", "current": metrics.get("memory_percent", 0),
-                "average": metrics.get("memory_avg", 0), "min": metrics.get("memory_min", 0),
-                "max": metrics.get("memory_max", 0)
+                "name": "Memory Usage",
+                "current": metrics.get("memory_percent", 0),
+                "average": metrics.get("memory_avg", 0),
+                "min": metrics.get("memory_min", 0),
+                "max": metrics.get("memory_max", 0),
             },
             {
-                "name": "Jobs/Minute", "current": metrics.get("jobs_per_minute", 0),
-                "average": metrics.get("jobs_avg", 0), "min": metrics.get("jobs_min", 0),
-                "max": metrics.get("jobs_max", 0)
+                "name": "Jobs/Minute",
+                "current": metrics.get("jobs_per_minute", 0),
+                "average": metrics.get("jobs_avg", 0),
+                "min": metrics.get("jobs_min", 0),
+                "max": metrics.get("jobs_max", 0),
             },
             {
-                "name": "Latency (ms)", "current": metrics.get("avg_latency", 0),
-                "average": metrics.get("latency_avg", 0), "min": metrics.get("latency_min", 0),
-                "max": metrics.get("latency_max", 0)
+                "name": "Latency (ms)",
+                "current": metrics.get("avg_latency", 0),
+                "average": metrics.get("latency_avg", 0),
+                "min": metrics.get("latency_min", 0),
+                "max": metrics.get("latency_max", 0),
             },
         ]
         self.metrics_table.set_metrics(table_metrics)

@@ -33,6 +33,7 @@ from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
 @dataclass
 class DatabaseConfig:
     """إعدادات قاعدة البيانات."""
+
     type: str = "sqlite"  # sqlite, postgresql
     path: str = "./cluster.db"  # for SQLite
     host: str = "localhost"  # for PostgreSQL
@@ -73,9 +74,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    async def update_worker_heartbeat(
-        self, worker_id: str, last_heartbeat: datetime, status: WorkerStatus
-    ) -> bool:
+    async def update_worker_heartbeat(self, worker_id: str, last_heartbeat: datetime, status: WorkerStatus) -> bool:
         pass
 
     # Jobs
@@ -96,9 +95,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    async def update_job_status(
-        self, job_id: str, status: JobStatus, **kwargs
-    ) -> bool:
+    async def update_job_status(self, job_id: str, status: JobStatus, **kwargs) -> bool:
         pass
 
     # Events
@@ -133,7 +130,8 @@ class SQLiteDatabase(Database):
 
     async def _create_tables(self) -> None:
         """إنشاء الجداول."""
-        await self._connection.executescript("""
+        await self._connection.executescript(
+            """
             -- Workers table
             CREATE TABLE IF NOT EXISTS workers (
                 worker_id TEXT PRIMARY KEY,
@@ -202,7 +200,8 @@ class SQLiteDatabase(Database):
             CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp DESC);
             CREATE INDEX IF NOT EXISTS idx_leases_job ON leases(job_id);
             CREATE INDEX IF NOT EXISTS idx_leases_worker ON leases(worker_id);
-        """)
+        """
+        )
         await self._connection.commit()
 
     async def close(self) -> None:
@@ -215,7 +214,8 @@ class SQLiteDatabase(Database):
 
     async def save_worker(self, worker: WorkerInfo) -> None:
         """حفظ worker."""
-        await self._connection.execute("""
+        await self._connection.execute(
+            """
             INSERT OR REPLACE INTO workers (
                 worker_id, hostname, ip_address, port, status,
                 total_resources, available_resources, tags, labels,
@@ -223,33 +223,32 @@ class SQLiteDatabase(Database):
                 registered_at, last_heartbeat, active_jobs,
                 completed_jobs_count, failed_jobs_count
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            worker.worker_id,
-            worker.hostname,
-            worker.ip_address,
-            worker.port,
-            worker.status.value,
-            json.dumps(worker.total_resources.to_dict()),
-            json.dumps(worker.available_resources.to_dict()),
-            json.dumps(worker.tags),
-            json.dumps(worker.labels),
-            worker.platform,
-            1 if worker.docker_available else 0,
-            worker.gpu_driver_version,
-            worker.registered_at.isoformat(),
-            worker.last_heartbeat.isoformat() if worker.last_heartbeat else None,
-            json.dumps(worker.active_jobs),
-            worker.completed_jobs_count,
-            worker.failed_jobs_count,
-        ))
+        """,
+            (
+                worker.worker_id,
+                worker.hostname,
+                worker.ip_address,
+                worker.port,
+                worker.status.value,
+                json.dumps(worker.total_resources.to_dict()),
+                json.dumps(worker.available_resources.to_dict()),
+                json.dumps(worker.tags),
+                json.dumps(worker.labels),
+                worker.platform,
+                1 if worker.docker_available else 0,
+                worker.gpu_driver_version,
+                worker.registered_at.isoformat(),
+                worker.last_heartbeat.isoformat() if worker.last_heartbeat else None,
+                json.dumps(worker.active_jobs),
+                worker.completed_jobs_count,
+                worker.failed_jobs_count,
+            ),
+        )
         await self._connection.commit()
 
     async def get_worker(self, worker_id: str) -> Optional[WorkerInfo]:
         """الحصول على worker."""
-        cursor = await self._connection.execute(
-            "SELECT * FROM workers WHERE worker_id = ?",
-            (worker_id,)
-        )
+        cursor = await self._connection.execute("SELECT * FROM workers WHERE worker_id = ?", (worker_id,))
         row = await cursor.fetchone()
         if not row:
             return None
@@ -263,22 +262,20 @@ class SQLiteDatabase(Database):
 
     async def delete_worker(self, worker_id: str) -> bool:
         """حذف worker."""
-        cursor = await self._connection.execute(
-            "DELETE FROM workers WHERE worker_id = ?",
-            (worker_id,)
-        )
+        cursor = await self._connection.execute("DELETE FROM workers WHERE worker_id = ?", (worker_id,))
         await self._connection.commit()
         return cursor.rowcount > 0
 
-    async def update_worker_heartbeat(
-        self, worker_id: str, last_heartbeat: datetime, status: WorkerStatus
-    ) -> bool:
+    async def update_worker_heartbeat(self, worker_id: str, last_heartbeat: datetime, status: WorkerStatus) -> bool:
         """تحديث heartbeat."""
-        cursor = await self._connection.execute("""
+        cursor = await self._connection.execute(
+            """
             UPDATE workers
             SET last_heartbeat = ?, status = ?
             WHERE worker_id = ?
-        """, (last_heartbeat.isoformat(), status.value, worker_id))
+        """,
+            (last_heartbeat.isoformat(), status.value, worker_id),
+        )
         await self._connection.commit()
         return cursor.rowcount > 0
 
@@ -308,34 +305,34 @@ class SQLiteDatabase(Database):
 
     async def save_job(self, job: Job) -> None:
         """حفظ job."""
-        await self._connection.execute("""
+        await self._connection.execute(
+            """
             INSERT OR REPLACE INTO jobs (
                 job_id, submission, status, result, assigned_worker,
                 lease_id, retry_count, created_at, scheduled_at,
                 started_at, completed_at, execution_history
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            job.job_id,
-            json.dumps(job.submission.to_dict()),
-            job.status.value,
-            json.dumps(job.result.to_dict()) if job.result else None,
-            job.assigned_worker,
-            job.lease_id,
-            job.retry_count,
-            job.created_at.isoformat(),
-            job.scheduled_at.isoformat() if job.scheduled_at else None,
-            job.started_at.isoformat() if job.started_at else None,
-            job.completed_at.isoformat() if job.completed_at else None,
-            json.dumps(job.execution_history),
-        ))
+        """,
+            (
+                job.job_id,
+                json.dumps(job.submission.to_dict()),
+                job.status.value,
+                json.dumps(job.result.to_dict()) if job.result else None,
+                job.assigned_worker,
+                job.lease_id,
+                job.retry_count,
+                job.created_at.isoformat(),
+                job.scheduled_at.isoformat() if job.scheduled_at else None,
+                job.started_at.isoformat() if job.started_at else None,
+                job.completed_at.isoformat() if job.completed_at else None,
+                json.dumps(job.execution_history),
+            ),
+        )
         await self._connection.commit()
 
     async def get_job(self, job_id: str) -> Optional[Job]:
         """الحصول على job."""
-        cursor = await self._connection.execute(
-            "SELECT * FROM jobs WHERE job_id = ?",
-            (job_id,)
-        )
+        cursor = await self._connection.execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,))
         row = await cursor.fetchone()
         if not row:
             return None
@@ -343,25 +340,17 @@ class SQLiteDatabase(Database):
 
     async def get_jobs_by_status(self, status: JobStatus) -> List[Job]:
         """الحصول على jobs بحالة معينة."""
-        cursor = await self._connection.execute(
-            "SELECT * FROM jobs WHERE status = ?",
-            (status.value,)
-        )
+        cursor = await self._connection.execute("SELECT * FROM jobs WHERE status = ?", (status.value,))
         rows = await cursor.fetchall()
         return [self._row_to_job(row) for row in rows]
 
     async def get_jobs_by_worker(self, worker_id: str) -> List[Job]:
         """الحصول على jobs معينة لـ worker."""
-        cursor = await self._connection.execute(
-            "SELECT * FROM jobs WHERE assigned_worker = ?",
-            (worker_id,)
-        )
+        cursor = await self._connection.execute("SELECT * FROM jobs WHERE assigned_worker = ?", (worker_id,))
         rows = await cursor.fetchall()
         return [self._row_to_job(row) for row in rows]
 
-    async def update_job_status(
-        self, job_id: str, status: JobStatus, **kwargs
-    ) -> bool:
+    async def update_job_status(self, job_id: str, status: JobStatus, **kwargs) -> bool:
         """تحديث حالة job."""
         updates = ["status = ?"]
         params = [status.value]
@@ -371,15 +360,18 @@ class SQLiteDatabase(Database):
                 if key in ("scheduled_at", "started_at", "completed_at"):
                     value = value.isoformat() if isinstance(value, datetime) else value
                 elif key == "result":
-                    value = json.dumps(value.to_dict()) if hasattr(value, 'to_dict') else json.dumps(value)
+                    value = json.dumps(value.to_dict()) if hasattr(value, "to_dict") else json.dumps(value)
                 updates.append(f"{key} = ?")
                 params.append(value)
 
         params.append(job_id)
 
-        cursor = await self._connection.execute(f"""
+        cursor = await self._connection.execute(
+            f"""
             UPDATE jobs SET {', '.join(updates)} WHERE job_id = ?
-        """, params)
+        """,
+            params,
+        )
         await self._connection.commit()
         return cursor.rowcount > 0
 
@@ -419,39 +411,47 @@ class SQLiteDatabase(Database):
 
     async def save_event(self, event: Event) -> None:
         """حفظ event."""
-        await self._connection.execute("""
+        await self._connection.execute(
+            """
             INSERT INTO events (
                 event_type, timestamp, source, data, message, job_id, worker_id
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            event.event_type.value,
-            event.timestamp.isoformat(),
-            event.source,
-            json.dumps(event.data),
-            event.message,
-            event.job_id,
-            event.worker_id,
-        ))
+        """,
+            (
+                event.event_type.value,
+                event.timestamp.isoformat(),
+                event.source,
+                json.dumps(event.data),
+                event.message,
+                event.job_id,
+                event.worker_id,
+            ),
+        )
         await self._connection.commit()
 
     async def get_recent_events(self, limit: int = 100) -> List[Event]:
         """الحصول على آخر الأحداث."""
-        cursor = await self._connection.execute("""
+        cursor = await self._connection.execute(
+            """
             SELECT * FROM events ORDER BY timestamp DESC LIMIT ?
-        """, (limit,))
+        """,
+            (limit,),
+        )
         rows = await cursor.fetchall()
 
         events = []
         for row in rows:
-            events.append(Event(
-                event_type=EventType(row["event_type"]),
-                timestamp=datetime.fromisoformat(row["timestamp"]),
-                source=row["source"],
-                data=json.loads(row["data"]),
-                message=row["message"],
-                job_id=row["job_id"],
-                worker_id=row["worker_id"],
-            ))
+            events.append(
+                Event(
+                    event_type=EventType(row["event_type"]),
+                    timestamp=datetime.fromisoformat(row["timestamp"]),
+                    source=row["source"],
+                    data=json.loads(row["data"]),
+                    message=row["message"],
+                    job_id=row["job_id"],
+                    worker_id=row["worker_id"],
+                )
+            )
         return events
 
 

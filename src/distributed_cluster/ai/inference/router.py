@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 class RoutingStrategy(str, Enum):
     """استراتيجيات التوجيه."""
+
     ROUND_ROBIN = "round_robin"  # دوري
     LEAST_CONNECTIONS = "least_connections"  # أقل اتصالات
     RANDOM = "random"  # عشوائي
@@ -45,6 +46,7 @@ class RoutingStrategy(str, Enum):
 
 class NodeStatus(str, Enum):
     """حالة العقدة."""
+
     ONLINE = "online"
     OFFLINE = "offline"
     DEGRADED = "degraded"
@@ -54,6 +56,7 @@ class NodeStatus(str, Enum):
 @dataclass
 class NodeMetrics:
     """مقاييس العقدة."""
+
     requests_total: int = 0
     requests_success: int = 0
     requests_failed: int = 0
@@ -77,6 +80,7 @@ class NodeMetrics:
 @dataclass
 class InferenceNode:
     """عقدة استنتاج."""
+
     node_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     url: str = ""
@@ -169,10 +173,7 @@ class InferenceNode:
             self._update_latency(latency)
 
             if response.tokens_per_second > 0:
-                self.metrics.tokens_per_second = (
-                    0.9 * self.metrics.tokens_per_second +
-                    0.1 * response.tokens_per_second
-                )
+                self.metrics.tokens_per_second = 0.9 * self.metrics.tokens_per_second + 0.1 * response.tokens_per_second
 
             return response
 
@@ -222,10 +223,7 @@ class InferenceNode:
         """تحديث إحصائيات التأخير."""
         # Exponential moving average
         alpha = 0.1
-        self.metrics.avg_latency_ms = (
-            alpha * latency_ms +
-            (1 - alpha) * self.metrics.avg_latency_ms
-        )
+        self.metrics.avg_latency_ms = alpha * latency_ms + (1 - alpha) * self.metrics.avg_latency_ms
 
 
 class LoadBalancer:
@@ -256,10 +254,7 @@ class LoadBalancer:
 
     def get_healthy_nodes(self, model: Optional[str] = None) -> List[InferenceNode]:
         """الحصول على العقد السليمة."""
-        nodes = [
-            n for n in self._nodes.values()
-            if n.healthy and n.status == NodeStatus.ONLINE
-        ]
+        nodes = [n for n in self._nodes.values() if n.healthy and n.status == NodeStatus.ONLINE]
 
         if model:
             nodes = [n for n in nodes if model in n.models]
@@ -464,9 +459,7 @@ class InferenceRouter:
 
             except Exception as e:
                 last_error = e
-                logger.warning(
-                    f"Node {node.name} failed (attempt {attempt + 1}): {e}"
-                )
+                logger.warning(f"Node {node.name} failed (attempt {attempt + 1}): {e}")
 
                 # Mark node as degraded
                 node.healthy = False
@@ -526,10 +519,7 @@ class InferenceRouter:
         config: Optional[GenerationConfig] = None,
     ) -> List[LLMResponse]:
         """توليد متوازي لعدة prompts."""
-        tasks = [
-            self.generate(prompt, model, config)
-            for prompt in prompts
-        ]
+        tasks = [self.generate(prompt, model, config) for prompt in prompts]
 
         return await asyncio.gather(*tasks, return_exceptions=True)
 

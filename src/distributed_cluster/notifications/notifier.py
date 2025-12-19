@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 class NotificationPriority(str, Enum):
     """أولوية الإشعار"""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -20,6 +21,7 @@ class NotificationPriority(str, Enum):
 
 class NotificationStatus(str, Enum):
     """حالة الإشعار"""
+
     PENDING = "pending"
     SENT = "sent"
     DELIVERED = "delivered"
@@ -29,6 +31,7 @@ class NotificationStatus(str, Enum):
 
 class NotificationCategory(str, Enum):
     """تصنيف الإشعار"""
+
     JOB_COMPLETED = "job_completed"
     JOB_FAILED = "job_failed"
     JOB_TIMEOUT = "job_timeout"
@@ -42,6 +45,7 @@ class NotificationCategory(str, Enum):
 @dataclass
 class Notification:
     """إشعار"""
+
     title: str
     message: str
     category: NotificationCategory
@@ -53,6 +57,7 @@ class Notification:
     def __post_init__(self):
         if not self.notification_id:
             import uuid
+
             self.notification_id = str(uuid.uuid4())[:12]
 
     def to_dict(self) -> Dict[str, Any]:
@@ -207,7 +212,7 @@ class Notifier:
         # حفظ في السجل
         self.history.append(notification)
         if len(self.history) > self.max_history:
-            self.history = self.history[-self.max_history:]
+            self.history = self.history[-self.max_history :]
 
         # إرسال للقنوات
         results = {}
@@ -215,11 +220,11 @@ class Notifier:
 
         for name, channel in self.channels.items():
             # Support both interfaces: safe_send (notifier.py) and send_notification (channels.py)
-            if hasattr(channel, 'safe_send'):
+            if hasattr(channel, "safe_send"):
                 tasks.append((name, channel.safe_send(notification)))
-            elif hasattr(channel, 'send_notification'):
+            elif hasattr(channel, "send_notification"):
                 tasks.append((name, self._wrap_send_notification(channel, notification)))
-            elif hasattr(channel, '_do_send'):
+            elif hasattr(channel, "_do_send"):
                 tasks.append((name, channel._do_send(notification)))
 
         for name, task in tasks:
@@ -231,7 +236,7 @@ class Notifier:
         """Wrap send_notification to return bool"""
         try:
             result = await channel.send_notification(notification)
-            return result.success if hasattr(result, 'success') else bool(result)
+            return result.success if hasattr(result, "success") else bool(result)
         except Exception:
             return False
 
@@ -341,18 +346,18 @@ class Notifier:
         """إحصائيات النظام"""
         channel_stats = {}
         for name, ch in self.channels.items():
-            if hasattr(ch, 'stats'):
+            if hasattr(ch, "stats"):
                 channel_stats[name] = ch.stats()
-            elif hasattr(ch, 'metrics'):
+            elif hasattr(ch, "metrics"):
                 # channels.py style
                 channel_stats[name] = {
                     "name": name,
-                    "enabled": getattr(ch, 'enabled', True),
-                    "sent_count": getattr(ch.metrics, 'total_sent', 0) if hasattr(ch, 'metrics') else 0,
-                    "error_count": getattr(ch.metrics, 'total_failed', 0) if hasattr(ch, 'metrics') else 0,
+                    "enabled": getattr(ch, "enabled", True),
+                    "sent_count": getattr(ch.metrics, "total_sent", 0) if hasattr(ch, "metrics") else 0,
+                    "error_count": getattr(ch.metrics, "total_failed", 0) if hasattr(ch, "metrics") else 0,
                 }
             else:
-                channel_stats[name] = {"name": name, "enabled": getattr(ch, 'enabled', True)}
+                channel_stats[name] = {"name": name, "enabled": getattr(ch, "enabled", True)}
         return {
             "channels": channel_stats,
             "history_size": len(self.history),
@@ -364,6 +369,7 @@ class Notifier:
 @dataclass
 class NotificationResult:
     """نتيجة إرسال إشعار"""
+
     notification_id: str
     status: NotificationStatus
     channel: str
@@ -389,6 +395,7 @@ class NotificationResult:
 @dataclass
 class NotificationBatch:
     """مجموعة إشعارات"""
+
     batch_id: str = ""
     notifications: List[Notification] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -398,6 +405,7 @@ class NotificationBatch:
     def __post_init__(self):
         if not self.batch_id:
             import uuid
+
             self.batch_id = str(uuid.uuid4())[:12]
 
     def add(self, notification: Notification) -> None:

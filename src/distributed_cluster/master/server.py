@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 # ==================== Pydantic Models (API) ====================
 
+
 class ResourceSpecRequest(BaseModel):
     cpu_cores: float = 1.0
     memory_mb: int = 512
@@ -96,6 +97,7 @@ class JobCompleteRequest(BaseModel):
 
 
 # ==================== Master Server ====================
+
 
 class MasterServer:
     """
@@ -213,17 +215,19 @@ class MasterServer:
 
             gpus = []
             for g in req.gpus:
-                gpus.append(GPUInfo(
-                    index=g.get("index", 0),
-                    name=g.get("name", ""),
-                    uuid=g.get("uuid", ""),
-                    memory_total_mb=g.get("memory_total_mb", 0),
-                    memory_free_mb=g.get("memory_free_mb", 0),
-                    memory_used_mb=g.get("memory_used_mb", 0),
-                    utilization_percent=g.get("utilization_percent", 0),
-                    temperature_c=g.get("temperature_c"),
-                    power_draw_w=g.get("power_draw_w"),
-                ))
+                gpus.append(
+                    GPUInfo(
+                        index=g.get("index", 0),
+                        name=g.get("name", ""),
+                        uuid=g.get("uuid", ""),
+                        memory_total_mb=g.get("memory_total_mb", 0),
+                        memory_free_mb=g.get("memory_free_mb", 0),
+                        memory_used_mb=g.get("memory_used_mb", 0),
+                        utilization_percent=g.get("utilization_percent", 0),
+                        temperature_c=g.get("temperature_c"),
+                        power_draw_w=g.get("power_draw_w"),
+                    )
+                )
 
             usage = ResourceUsage(
                 cpu_percent=req.cpu_percent,
@@ -240,10 +244,7 @@ class MasterServer:
 
             # إرجاع jobs المعينة لهذا الـ worker
             pending_jobs = self.state.get_jobs_by_worker(req.worker_id)
-            scheduled_jobs = [
-                j.to_dict() for j in pending_jobs
-                if j.status.value in ("scheduled", "running")
-            ]
+            scheduled_jobs = [j.to_dict() for j in pending_jobs if j.status.value in ("scheduled", "running")]
 
             return {"status": "ok", "assigned_jobs": scheduled_jobs}
 
@@ -374,11 +375,13 @@ class MasterServer:
 
             try:
                 # إرسال الحالة الأولية
-                await websocket.send_json({
-                    "type": "initial_state",
-                    "stats": self.state.get_stats(),
-                    "workers": [w.to_dict() for w in self.state.get_all_workers()],
-                })
+                await websocket.send_json(
+                    {
+                        "type": "initial_state",
+                        "stats": self.state.get_stats(),
+                        "workers": [w.to_dict() for w in self.state.get_all_workers()],
+                    }
+                )
 
                 while True:
                     # استلام رسائل من العميل (ping/pong)
@@ -481,6 +484,7 @@ class MasterServer:
     def run(self) -> None:
         """تشغيل السيرفر."""
         import uvicorn
+
         uvicorn.run(
             self.app,
             host=self.config.host,

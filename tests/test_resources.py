@@ -1,7 +1,6 @@
 """Tests for resource models."""
 
-import pytest
-from distributed_cluster.models.resources import ResourceSpec, GPUInfo
+from distributed_cluster.models.resources import GPUInfo, ResourceSpec
 
 
 class TestResourceSpec:

@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class AuditAction(str, Enum):
     """أنواع الإجراءات المسجلة."""
+
     # Authentication
     AUTH_LOGIN = "auth.login"
     AUTH_LOGOUT = "auth.logout"
@@ -68,6 +69,7 @@ class AuditAction(str, Enum):
 
 class AuditResult(str, Enum):
     """نتيجة الإجراء."""
+
     SUCCESS = "success"
     FAILURE = "failure"
     DENIED = "denied"
@@ -77,6 +79,7 @@ class AuditResult(str, Enum):
 @dataclass
 class AuditEvent:
     """حدث تدقيق واحد."""
+
     event_id: str
     timestamp: datetime
     action: AuditAction
@@ -171,7 +174,7 @@ class MemoryAuditBackend(AuditBackend):
             self._events.append(event)
             # Trim old events if exceeded
             if len(self._events) > self._max_events:
-                self._events = self._events[-self._max_events:]
+                self._events = self._events[-self._max_events :]
 
     async def query(
         self,
@@ -209,7 +212,7 @@ class MemoryAuditBackend(AuditBackend):
         filtered.sort(key=lambda e: e.timestamp, reverse=True)
 
         # Paginate
-        return filtered[offset:offset + limit]
+        return filtered[offset : offset + limit]
 
     async def count(
         self,
@@ -314,7 +317,7 @@ class FileAuditBackend(AuditBackend):
 
         # Sort and paginate
         events.sort(key=lambda e: e.timestamp, reverse=True)
-        return events[offset:offset + limit]
+        return events[offset : offset + limit]
 
     async def count(
         self,
@@ -443,8 +446,7 @@ class AuditLogger:
         log_level = logging.INFO if result == AuditResult.SUCCESS else logging.WARNING
         logger.log(
             log_level,
-            f"AUDIT: {action.value} {result.value} "
-            f"actor={actor_id} resource={resource_type}:{resource_id}"
+            f"AUDIT: {action.value} {result.value} " f"actor={actor_id} resource={resource_type}:{resource_id}",
         )
 
         return event

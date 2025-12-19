@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class ScalingDirection(str, Enum):
     """اتجاه التحجيم."""
+
     UP = "up"
     DOWN = "down"
     NONE = "none"
@@ -32,6 +33,7 @@ class ScalingDirection(str, Enum):
 
 class ScalingMetric(str, Enum):
     """مقياس التحجيم."""
+
     PENDING_JOBS = "pending_jobs"
     QUEUE_TIME = "queue_time"
     CPU_UTILIZATION = "cpu_utilization"
@@ -43,6 +45,7 @@ class ScalingMetric(str, Enum):
 @dataclass
 class ScalingRule:
     """قاعدة تحجيم واحدة."""
+
     name: str
     metric: ScalingMetric
     threshold_up: float  # قيمة للتحجيم لأعلى
@@ -56,6 +59,7 @@ class ScalingRule:
 @dataclass
 class ScalingPolicy:
     """سياسة التحجيم."""
+
     name: str
     rules: List[ScalingRule] = field(default_factory=list)
 
@@ -78,6 +82,7 @@ class ScalingPolicy:
 @dataclass
 class ScalingDecision:
     """قرار تحجيم."""
+
     direction: ScalingDirection
     count: int
     reason: str
@@ -89,6 +94,7 @@ class ScalingDecision:
 @dataclass
 class ScalingEvent:
     """حدث تحجيم."""
+
     event_id: str
     direction: ScalingDirection
     requested_count: int
@@ -176,10 +182,7 @@ class DefaultMetricsProvider(MetricsProvider):
             if not workers:
                 return 0.0
             total_cpu = sum(w.total_resources.cpu_cores for w in workers)
-            used_cpu = sum(
-                w.total_resources.cpu_cores - w.available_resources.cpu_cores
-                for w in workers
-            )
+            used_cpu = sum(w.total_resources.cpu_cores - w.available_resources.cpu_cores for w in workers)
             return (used_cpu / total_cpu * 100) if total_cpu > 0 else 0.0
 
         elif metric == ScalingMetric.MEMORY_UTILIZATION:
@@ -187,10 +190,7 @@ class DefaultMetricsProvider(MetricsProvider):
             if not workers:
                 return 0.0
             total_mem = sum(w.total_resources.memory_mb for w in workers)
-            used_mem = sum(
-                w.total_resources.memory_mb - w.available_resources.memory_mb
-                for w in workers
-            )
+            used_mem = sum(w.total_resources.memory_mb - w.available_resources.memory_mb for w in workers)
             return (used_mem / total_mem * 100) if total_mem > 0 else 0.0
 
         elif metric == ScalingMetric.GPU_UTILIZATION:
@@ -198,10 +198,7 @@ class DefaultMetricsProvider(MetricsProvider):
             if not workers:
                 return 0.0
             total_gpu = sum(w.total_resources.gpu_count for w in workers)
-            used_gpu = sum(
-                w.total_resources.gpu_count - w.available_resources.gpu_count
-                for w in workers
-            )
+            used_gpu = sum(w.total_resources.gpu_count - w.available_resources.gpu_count for w in workers)
             return (used_gpu / total_gpu * 100) if total_gpu > 0 else 0.0
 
         return 0.0
@@ -336,7 +333,7 @@ class AutoScaler:
             if len(history) < rule.evaluation_periods:
                 continue
 
-            recent = history[-rule.evaluation_periods:]
+            recent = history[-rule.evaluation_periods :]
 
             # Scale up check
             if all(v >= rule.threshold_up for v in recent):
@@ -363,7 +360,7 @@ class AutoScaler:
             if len(history) < rule.evaluation_periods:
                 continue
 
-            recent = history[-rule.evaluation_periods:]
+            recent = history[-rule.evaluation_periods :]
 
             # Scale down check
             if all(v <= rule.threshold_down for v in recent):
@@ -471,15 +468,13 @@ class AutoScaler:
 
     def get_current_metrics(self) -> Dict[str, List[float]]:
         """المقاييس الحالية."""
-        return {
-            metric.value: values
-            for metric, values in self._metric_history.items()
-        }
+        return {metric.value: values for metric, values in self._metric_history.items()}
 
 
 # =============================================================================
 # Predefined Policies
 # =============================================================================
+
 
 class ScalingPolicies:
     """سياسات تحجيم جاهزة."""

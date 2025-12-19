@@ -22,17 +22,19 @@ if TYPE_CHECKING:
 
 class RoutingStrategy(str, Enum):
     """استراتيجيات التوجيه"""
-    RANDOM = "random"              # اختيار عشوائي
-    ROUND_ROBIN = "round_robin"    # بالتناوب
+
+    RANDOM = "random"  # اختيار عشوائي
+    ROUND_ROBIN = "round_robin"  # بالتناوب
     LEAST_LOADED = "least_loaded"  # الأقل حملاً
-    BEST_FIT = "best_fit"          # أفضل تطابق للموارد
-    NEAREST = "nearest"            # الأقرب (أقل latency)
+    BEST_FIT = "best_fit"  # أفضل تطابق للموارد
+    NEAREST = "nearest"  # الأقرب (أقل latency)
     RESOURCE_AWARE = "resource_aware"  # مراعاة الموارد والحمل
 
 
 @dataclass
 class RoutingDecision:
     """قرار التوجيه"""
+
     job_id: str
     target_node_id: str
     strategy_used: RoutingStrategy
@@ -118,6 +120,7 @@ class TaskRouter:
             return job.resources
         # افتراضي
         from ..models.resources import ResourceSpec
+
         return ResourceSpec()
 
     def _has_enough_resources(self, peer: "Peer", job: "Job") -> bool:
@@ -126,9 +129,9 @@ class TaskRouter:
         required = self._get_job_resources(job)
 
         return (
-            available.cpu_cores >= required.cpu_cores and
-            available.memory_mb >= required.memory_mb and
-            available.gpu_count >= required.gpu_count
+            available.cpu_cores >= required.cpu_cores
+            and available.memory_mb >= required.memory_mb
+            and available.gpu_count >= required.gpu_count
         )
 
     def _route_random(self, candidates: List["Peer"]) -> "Peer":
@@ -151,9 +154,9 @@ class TaskRouter:
         def waste_score(peer: "Peer") -> float:
             available = peer.available_resources
             waste = (
-                (available.cpu_cores - required.cpu_cores) +
-                (available.memory_mb - required.memory_mb) / 1024 +
-                (available.gpu_count - required.gpu_count) * 10
+                (available.cpu_cores - required.cpu_cores)
+                + (available.memory_mb - required.memory_mb) / 1024
+                + (available.gpu_count - required.gpu_count) * 10
             )
             return waste
 
@@ -165,6 +168,7 @@ class TaskRouter:
 
     def _route_resource_aware(self, candidates: List["Peer"], job: "Job") -> "Peer":
         """اختيار مراعي للموارد والحمل معاً"""
+
         def score(peer: "Peer") -> float:
             # درجة مركبة: حمل + تطابق موارد + latency
             load_score = peer.jobs_running * 10

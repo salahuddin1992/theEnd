@@ -56,6 +56,7 @@ class HookType(str, Enum):
 @dataclass
 class HookContext:
     """سياق الخطاف."""
+
     hook_type: HookType
     timestamp: datetime
     data: Dict[str, Any]
@@ -75,6 +76,7 @@ AsyncHookHandler = Callable[[HookContext], "asyncio.Future[Any]"]
 @dataclass
 class RegisteredHook:
     """خطاف مسجل."""
+
     hook_type: HookType
     handler: Union[HookHandler, AsyncHookHandler]
     name: str
@@ -225,6 +227,7 @@ class HookManager:
             async def handle_completion(ctx):
                 pass
         """
+
         def decorator(func):
             self.register(
                 hook_type=hook_type,
@@ -234,6 +237,7 @@ class HookManager:
                 run_async=run_async,
             )
             return func
+
         return decorator
 
     async def trigger(
@@ -279,9 +283,7 @@ class HookManager:
                     if hook.is_async:
                         task = asyncio.create_task(hook.handler(context))
                     else:
-                        task = asyncio.get_event_loop().run_in_executor(
-                            None, hook.handler, context
-                        )
+                        task = asyncio.get_event_loop().run_in_executor(None, hook.handler, context)
                     background_tasks.append(task)
                 else:
                     # Run and wait
@@ -366,14 +368,16 @@ class HookManager:
             registered.extend(self._global_hooks)
 
         for hook in registered:
-            hooks.append({
-                "name": hook.name,
-                "type": hook.hook_type.value,
-                "priority": hook.priority,
-                "is_async": hook.is_async,
-                "run_async": hook.run_async,
-                "enabled": hook.enabled,
-            })
+            hooks.append(
+                {
+                    "name": hook.name,
+                    "type": hook.hook_type.value,
+                    "priority": hook.priority,
+                    "is_async": hook.is_async,
+                    "run_async": hook.run_async,
+                    "enabled": hook.enabled,
+                }
+            )
 
         return hooks
 

@@ -29,14 +29,16 @@ class TerminalOutput(QPlainTextEdit):
         super().__init__(parent)
         self.setReadOnly(True)
         self.setFont(QFont("Consolas", 11))
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QPlainTextEdit {
                 background-color: #0d1117;
                 color: #c9d1d9;
                 border: none;
                 padding: 8px;
             }
-        """)
+        """
+        )
         self.setLineWrapMode(QPlainTextEdit.NoWrap)
 
         # Color formats
@@ -96,7 +98,8 @@ class CommandInput(QLineEdit):
         self._history_index = -1
 
         self.setFont(QFont("Consolas", 11))
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: #161b22;
                 color: #c9d1d9;
@@ -107,7 +110,8 @@ class CommandInput(QLineEdit):
             QLineEdit:focus {{
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         self.setPlaceholderText("Enter command...")
 
         self.returnPressed.connect(self._on_submit)
@@ -166,13 +170,15 @@ class TerminalWidget(QFrame):
 
     def _setup_ui(self):
         """Setup terminal UI"""
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: #0d1117;
                 border: 1px solid {COLORS['border']};
                 border-radius: 8px;
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -180,12 +186,14 @@ class TerminalWidget(QFrame):
 
         # Header
         header = QFrame()
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             background-color: #161b22;
             border-bottom: 1px solid {COLORS['border']};
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
-        """)
+        """
+        )
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(12, 8, 12, 8)
 
@@ -207,7 +215,8 @@ class TerminalWidget(QFrame):
         # Target selector
         self.target_combo = QComboBox()
         self.target_combo.addItems(["Local", "Master", "All Workers"])
-        self.target_combo.setStyleSheet(f"""
+        self.target_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {COLORS['bg_medium']};
                 color: {COLORS['text_primary']};
@@ -216,12 +225,14 @@ class TerminalWidget(QFrame):
                 padding: 4px 8px;
                 min-width: 100px;
             }}
-        """)
+        """
+        )
         header_layout.addWidget(self.target_combo)
 
         # Clear button
         clear_btn = QPushButton("Clear")
-        clear_btn.setStyleSheet(f"""
+        clear_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLORS['text_secondary']};
@@ -232,7 +243,8 @@ class TerminalWidget(QFrame):
             QPushButton:hover {{
                 background-color: {COLORS['bg_light']};
             }}
-        """)
+        """
+        )
         clear_btn.clicked.connect(self._clear_output)
         header_layout.addWidget(clear_btn)
 
@@ -244,12 +256,14 @@ class TerminalWidget(QFrame):
 
         # Input area
         input_frame = QFrame()
-        input_frame.setStyleSheet(f"""
+        input_frame.setStyleSheet(
+            f"""
             background-color: #161b22;
             border-top: 1px solid {COLORS['border']};
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
-        """)
+        """
+        )
         input_layout = QHBoxLayout(input_frame)
         input_layout.setContentsMargins(12, 8, 12, 8)
 

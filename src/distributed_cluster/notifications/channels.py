@@ -61,18 +61,21 @@ from typing import (
 
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
 
 try:
     import aiofiles  # noqa: F401
+
     AIOFILES_AVAILABLE = True
 except ImportError:
     AIOFILES_AVAILABLE = False
 
 try:
     from jinja2 import BaseLoader, Environment, TemplateError  # noqa: F401
+
     JINJA2_AVAILABLE = True
 except ImportError:
     JINJA2_AVAILABLE = False
@@ -88,11 +91,13 @@ logger = logging.getLogger(__name__)
 # 🎯 ENUMS & CONSTANTS
 # ═══════════════════════════════════════════════════════════════
 
+
 class NotificationPriority(str, Enum):
     """
     أولوية الإشعار.
     Notification Priority Levels.
     """
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -114,23 +119,23 @@ class NotificationPriority(str, Enum):
     def color_hex(self) -> str:
         """لون hex للعرض."""
         return {
-            self.LOW: "#6c757d",      # رمادي
-            self.NORMAL: "#17a2b8",   # أزرق فاتح
-            self.HIGH: "#ffc107",     # أصفر
-            self.CRITICAL: "#dc3545", # أحمر
-            self.EMERGENCY: "#7b1fa2", # بنفسجي غامق
+            self.LOW: "#6c757d",  # رمادي
+            self.NORMAL: "#17a2b8",  # أزرق فاتح
+            self.HIGH: "#ffc107",  # أصفر
+            self.CRITICAL: "#dc3545",  # أحمر
+            self.EMERGENCY: "#7b1fa2",  # بنفسجي غامق
         }.get(self, "#17a2b8")
 
     @property
     def color_int(self) -> int:
         """لون integer للـ Discord."""
         return {
-            self.LOW: 0x6c757d,
-            self.NORMAL: 0x17a2b8,
-            self.HIGH: 0xffc107,
-            self.CRITICAL: 0xdc3545,
-            self.EMERGENCY: 0x7b1fa2,
-        }.get(self, 0x17a2b8)
+            self.LOW: 0x6C757D,
+            self.NORMAL: 0x17A2B8,
+            self.HIGH: 0xFFC107,
+            self.CRITICAL: 0xDC3545,
+            self.EMERGENCY: 0x7B1FA2,
+        }.get(self, 0x17A2B8)
 
     @property
     def emoji(self) -> str:
@@ -146,6 +151,7 @@ class NotificationPriority(str, Enum):
 
 class NotificationCategory(str, Enum):
     """تصنيف الإشعار."""
+
     SYSTEM = "system"
     SECURITY = "security"
     PERFORMANCE = "performance"
@@ -160,6 +166,7 @@ class NotificationCategory(str, Enum):
 
 class ChannelStatus(str, Enum):
     """حالة القناة."""
+
     ACTIVE = "active"
     DEGRADED = "degraded"
     FAILED = "failed"
@@ -170,6 +177,7 @@ class ChannelStatus(str, Enum):
 
 class DeliveryStatus(str, Enum):
     """حالة التسليم."""
+
     PENDING = "pending"
     SENT = "sent"
     DELIVERED = "delivered"
@@ -182,12 +190,14 @@ class DeliveryStatus(str, Enum):
 # 📦 DATA CLASSES
 # ═══════════════════════════════════════════════════════════════
 
+
 @dataclass
 class Notification:
     """
     كائن الإشعار الرئيسي.
     Main Notification Object.
     """
+
     title: str
     message: str
     priority: NotificationPriority = NotificationPriority.NORMAL
@@ -214,7 +224,7 @@ class Notification:
 
     # إعدادات إضافية
     ttl_seconds: Optional[int] = None  # مدة الصلاحية
-    dedupe_key: Optional[str] = None   # مفتاح منع التكرار
+    dedupe_key: Optional[str] = None  # مفتاح منع التكرار
     target_channels: Optional[List[str]] = None  # قنوات محددة
 
     # مرفقات
@@ -290,6 +300,7 @@ class Notification:
 @dataclass
 class DeliveryResult:
     """نتيجة تسليم الإشعار."""
+
     success: bool
     channel_name: str
     notification_id: str
@@ -314,6 +325,7 @@ class DeliveryResult:
 @dataclass
 class ChannelMetrics:
     """مقاييس القناة."""
+
     channel_name: str
     total_sent: int = 0
     total_success: int = 0
@@ -339,6 +351,7 @@ class ChannelMetrics:
 @dataclass
 class RateLimitConfig:
     """إعدادات تحديد المعدل."""
+
     max_requests: int = 100
     window_seconds: int = 60
     burst_limit: int = 10
@@ -348,6 +361,7 @@ class RateLimitConfig:
 @dataclass
 class CircuitBreakerConfig:
     """إعدادات قاطع الدائرة."""
+
     failure_threshold: int = 5
     success_threshold: int = 2
     timeout_seconds: int = 60
@@ -357,6 +371,7 @@ class CircuitBreakerConfig:
 @dataclass
 class RetryConfig:
     """إعدادات إعادة المحاولة."""
+
     max_retries: int = 3
     base_delay_seconds: float = 1.0
     max_delay_seconds: float = 60.0
@@ -367,6 +382,7 @@ class RetryConfig:
 # ═══════════════════════════════════════════════════════════════
 # 🛡️ RATE LIMITER
 # ═══════════════════════════════════════════════════════════════
+
 
 class RateLimiter:
     """
@@ -436,11 +452,13 @@ class RateLimiter:
 # ⚡ CIRCUIT BREAKER
 # ═══════════════════════════════════════════════════════════════
 
+
 class CircuitState(Enum):
     """حالات قاطع الدائرة."""
-    CLOSED = auto()    # طبيعي
-    OPEN = auto()      # مفتوح (يمنع الطلبات)
-    HALF_OPEN = auto() # نصف مفتوح (اختبار)
+
+    CLOSED = auto()  # طبيعي
+    OPEN = auto()  # مفتوح (يمنع الطلبات)
+    HALF_OPEN = auto()  # نصف مفتوح (اختبار)
 
 
 class CircuitBreaker:
@@ -531,6 +549,7 @@ class CircuitBreaker:
 # 🔄 RETRY HANDLER
 # ═══════════════════════════════════════════════════════════════
 
+
 class RetryHandler:
     """
     معالج إعادة المحاولة.
@@ -544,22 +563,15 @@ class RetryHandler:
         """حساب فترة الانتظار."""
         import random
 
-        delay = self.config.base_delay_seconds * (
-            self.config.exponential_base ** attempt
-        )
+        delay = self.config.base_delay_seconds * (self.config.exponential_base**attempt)
         delay = min(delay, self.config.max_delay_seconds)
 
         if self.config.jitter:
-            delay *= (0.5 + random.random())
+            delay *= 0.5 + random.random()
 
         return delay
 
-    async def execute_with_retry(
-        self,
-        func: Callable,
-        *args,
-        **kwargs
-    ) -> Tuple[bool, Any, int]:
+    async def execute_with_retry(self, func: Callable, *args, **kwargs) -> Tuple[bool, Any, int]:
         """
         تنفيذ مع إعادة المحاولة.
         Returns: (success, result, attempts)
@@ -572,9 +584,7 @@ class RetryHandler:
                 return True, result, attempt + 1
             except Exception as e:
                 last_error = e
-                logger.warning(
-                    f"Attempt {attempt + 1}/{self.config.max_retries + 1} failed: {e}"
-                )
+                logger.warning(f"Attempt {attempt + 1}/{self.config.max_retries + 1} failed: {e}")
 
                 if attempt < self.config.max_retries:
                     delay = self.get_delay(attempt)
@@ -586,6 +596,7 @@ class RetryHandler:
 # ═══════════════════════════════════════════════════════════════
 # 📧 BASE CHANNEL CLASS
 # ═══════════════════════════════════════════════════════════════
+
 
 class NotificationChannel(abc.ABC):
     """
@@ -616,14 +627,10 @@ class NotificationChannel(abc.ABC):
         self._latencies: List[float] = []
 
         # فلترة
-        self._min_priority = NotificationPriority(
-            self.config.get("min_priority", "low")
-        )
+        self._min_priority = NotificationPriority(self.config.get("min_priority", "low"))
         self._allowed_categories: Optional[Set[NotificationCategory]] = None
         if "allowed_categories" in self.config:
-            self._allowed_categories = {
-                NotificationCategory(c) for c in self.config["allowed_categories"]
-            }
+            self._allowed_categories = {NotificationCategory(c) for c in self.config["allowed_categories"]}
 
     @property
     def status(self) -> ChannelStatus:
@@ -694,9 +701,7 @@ class NotificationChannel(abc.ABC):
             )
 
         # محاولة الإرسال مع إعادة المحاولة
-        success, result, attempts = await self._retry_handler.execute_with_retry(
-            self._do_send, notification
-        )
+        success, result, attempts = await self._retry_handler.execute_with_retry(self._do_send, notification)
 
         latency_ms = (time.time() - start_time) * 1000
 
@@ -759,6 +764,7 @@ class NotificationChannel(abc.ABC):
 # 📺 CONSOLE CHANNEL
 # ═══════════════════════════════════════════════════════════════
 
+
 class ConsoleChannel(NotificationChannel):
     """
     قناة الـ Console للتطوير.
@@ -780,11 +786,11 @@ class ConsoleChannel(NotificationChannel):
         """طباعة الإشعار."""
         if self.colored:
             color_codes = {
-                NotificationPriority.LOW: "\033[90m",      # رمادي
-                NotificationPriority.NORMAL: "\033[94m",   # أزرق
-                NotificationPriority.HIGH: "\033[93m",     # أصفر
-                NotificationPriority.CRITICAL: "\033[91m", # أحمر
-                NotificationPriority.EMERGENCY: "\033[95m", # بنفسجي
+                NotificationPriority.LOW: "\033[90m",  # رمادي
+                NotificationPriority.NORMAL: "\033[94m",  # أزرق
+                NotificationPriority.HIGH: "\033[93m",  # أصفر
+                NotificationPriority.CRITICAL: "\033[91m",  # أحمر
+                NotificationPriority.EMERGENCY: "\033[95m",  # بنفسجي
             }
             reset = "\033[0m"
             bold = "\033[1m"
@@ -821,9 +827,11 @@ class ConsoleChannel(NotificationChannel):
 # 📧 EMAIL CHANNEL
 # ═══════════════════════════════════════════════════════════════
 
+
 @dataclass
 class EmailConfig:
     """إعدادات البريد الإلكتروني."""
+
     smtp_host: str = "localhost"
     smtp_port: int = 587
     username: Optional[str] = None
@@ -869,9 +877,7 @@ class EmailChannel(NotificationChannel):
             raise ValueError("No recipients configured")
 
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, self._send_email_sync, notification
-        )
+        return await loop.run_in_executor(None, self._send_email_sync, notification)
 
     def _send_email_sync(self, notification: Notification) -> bool:
         """إرسال البريد بشكل متزامن."""
@@ -1108,6 +1114,7 @@ Notification System
 # 💬 SLACK CHANNEL
 # ═══════════════════════════════════════════════════════════════
 
+
 class SlackChannel(NotificationChannel):
     """
     قناة Slack.
@@ -1181,8 +1188,8 @@ class SlackChannel(NotificationChannel):
                                 {
                                     "type": "mrkdwn",
                                     "text": f"*Priority:* {notification.priority.value} | "
-                                           f"*Category:* {notification.category.value} | "
-                                           f"*Source:* {notification.source}",
+                                    f"*Category:* {notification.category.value} | "
+                                    f"*Source:* {notification.source}",
                                 },
                             ],
                         },
@@ -1201,10 +1208,7 @@ class SlackChannel(NotificationChannel):
         if notification.data:
             fields_block = {
                 "type": "section",
-                "fields": [
-                    {"type": "mrkdwn", "text": f"*{k}:*\n{v}"}
-                    for k, v in list(notification.data.items())[:10]
-                ],
+                "fields": [{"type": "mrkdwn", "text": f"*{k}:*\n{v}"} for k, v in list(notification.data.items())[:10]],
             }
             payload["attachments"][0]["blocks"].insert(-1, fields_block)
 
@@ -1230,6 +1234,7 @@ class SlackChannel(NotificationChannel):
 # ═══════════════════════════════════════════════════════════════
 # 🎮 DISCORD CHANNEL
 # ═══════════════════════════════════════════════════════════════
+
 
 class DiscordChannel(NotificationChannel):
     """
@@ -1295,11 +1300,13 @@ class DiscordChannel(NotificationChannel):
         # إضافة حقول البيانات
         if notification.data:
             for key, value in list(notification.data.items())[:6]:
-                embed["fields"].append({
-                    "name": key,
-                    "value": str(value)[:1024],
-                    "inline": True,
-                })
+                embed["fields"].append(
+                    {
+                        "name": key,
+                        "value": str(value)[:1024],
+                        "inline": True,
+                    }
+                )
 
         payload = {
             "username": self.username,
@@ -1315,6 +1322,7 @@ class DiscordChannel(NotificationChannel):
 # ═══════════════════════════════════════════════════════════════
 # 📱 TELEGRAM CHANNEL
 # ═══════════════════════════════════════════════════════════════
+
 
 class TelegramChannel(NotificationChannel):
     """
@@ -1357,8 +1365,7 @@ class TelegramChannel(NotificationChannel):
             "chat_id": self.chat_id,
             "text": text,
             "parse_mode": self.parse_mode,
-            "disable_notification": self.disable_notification and
-                                   notification.priority.numeric_value < 3,
+            "disable_notification": self.disable_notification and notification.priority.numeric_value < 3,
         }
 
         async with httpx.AsyncClient() as client:
@@ -1418,6 +1425,7 @@ class TelegramChannel(NotificationChannel):
 # ═══════════════════════════════════════════════════════════════
 # 🔗 WEBHOOK CHANNEL
 # ═══════════════════════════════════════════════════════════════
+
 
 class WebhookChannel(NotificationChannel):
     """
@@ -1496,6 +1504,7 @@ class WebhookChannel(NotificationChannel):
 # 🚨 PAGERDUTY CHANNEL
 # ═══════════════════════════════════════════════════════════════
 
+
 class PagerDutyChannel(NotificationChannel):
     """
     قناة PagerDuty.
@@ -1572,6 +1581,7 @@ class PagerDutyChannel(NotificationChannel):
 # 👥 MICROSOFT TEAMS CHANNEL
 # ═══════════════════════════════════════════════════════════════
 
+
 class MicrosoftTeamsChannel(NotificationChannel):
     """
     قناة Microsoft Teams.
@@ -1642,7 +1652,7 @@ class MicrosoftTeamsChannel(NotificationChannel):
                                     {"title": "Priority", "value": notification.priority.value.upper()},
                                     {"title": "Category", "value": notification.category.value},
                                     {"title": "Source", "value": notification.source},
-                                    {"title": "Time", "value": notification.timestamp.strftime('%Y-%m-%d %H:%M:%S')},
+                                    {"title": "Time", "value": notification.timestamp.strftime("%Y-%m-%d %H:%M:%S")},
                                 ],
                             },
                         ],
@@ -1662,6 +1672,7 @@ class MicrosoftTeamsChannel(NotificationChannel):
 # ═══════════════════════════════════════════════════════════════
 # 📲 PUSHOVER CHANNEL
 # ═══════════════════════════════════════════════════════════════
+
 
 class PushoverChannel(NotificationChannel):
     """
@@ -1730,6 +1741,7 @@ class PushoverChannel(NotificationChannel):
 # 📱 TWILIO SMS CHANNEL
 # ═══════════════════════════════════════════════════════════════
 
+
 class TwilioSMSChannel(NotificationChannel):
     """
     قناة Twilio SMS.
@@ -1789,6 +1801,7 @@ class TwilioSMSChannel(NotificationChannel):
 # ═══════════════════════════════════════════════════════════════
 # 🎛️ NOTIFICATION MANAGER
 # ═══════════════════════════════════════════════════════════════
+
 
 class NotificationManager:
     """
@@ -1915,7 +1928,7 @@ class NotificationManager:
         """إضافة للتاريخ."""
         self._notification_history.append(notification)
         if len(self._notification_history) > self._max_history:
-            self._notification_history = self._notification_history[-self._max_history:]
+            self._notification_history = self._notification_history[-self._max_history :]
 
     async def broadcast(
         self,
@@ -1952,10 +1965,7 @@ class NotificationManager:
 
     def get_metrics(self) -> Dict[str, ChannelMetrics]:
         """الحصول على مقاييس جميع القنوات."""
-        return {
-            name: channel.metrics
-            for name, channel in self._channels.items()
-        }
+        return {name: channel.metrics for name, channel in self._channels.items()}
 
     def clear_history(self) -> None:
         """مسح التاريخ."""
@@ -1966,6 +1976,7 @@ class NotificationManager:
 # ═══════════════════════════════════════════════════════════════
 # 🏭 CHANNEL FACTORY
 # ═══════════════════════════════════════════════════════════════
+
 
 class ChannelFactory:
     """
@@ -2027,6 +2038,7 @@ class ChannelFactory:
 # 🚀 QUICK START HELPERS
 # ═══════════════════════════════════════════════════════════════
 
+
 def create_notification_manager(
     config: Optional[Dict[str, Any]] = None,
 ) -> NotificationManager:
@@ -2076,6 +2088,7 @@ async def quick_notify(
 # ═══════════════════════════════════════════════════════════════
 # 📝 EXAMPLE USAGE
 # ═══════════════════════════════════════════════════════════════
+
 
 async def example_usage():
     """مثال على الاستخدام."""

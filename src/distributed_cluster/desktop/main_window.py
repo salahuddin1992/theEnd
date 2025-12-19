@@ -102,14 +102,16 @@ class MainWindow(QMainWindow):
         # Set splitter sizes (content takes most space)
         self.main_splitter.setSizes([700, 200])
         self.main_splitter.setHandleWidth(2)
-        self.main_splitter.setStyleSheet(f"""
+        self.main_splitter.setStyleSheet(
+            f"""
             QSplitter::handle {{
                 background-color: {COLORS['border']};
             }}
             QSplitter::handle:hover {{
                 background-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
 
         right_layout.addWidget(self.main_splitter)
         main_layout.addWidget(right_container)
@@ -122,11 +124,13 @@ class MainWindow(QMainWindow):
 
         # Status bar
         self.statusBar = QStatusBar()
-        self.statusBar.setStyleSheet(f"""
+        self.statusBar.setStyleSheet(
+            f"""
             background-color: {COLORS['bg_medium']};
             color: {COLORS['text_secondary']};
             border-top: 1px solid {COLORS['border']};
-        """)
+        """
+        )
         self.setStatusBar(self.statusBar)
         self.statusBar.showMessage("Disconnected")
 
@@ -192,7 +196,8 @@ class MainWindow(QMainWindow):
     def _setup_menu(self):
         """Setup menu bar"""
         menubar = self.menuBar()
-        menubar.setStyleSheet(f"""
+        menubar.setStyleSheet(
+            f"""
             QMenuBar {{
                 background-color: {COLORS['bg_medium']};
                 color: {COLORS['text_primary']};
@@ -202,7 +207,8 @@ class MainWindow(QMainWindow):
             QMenuBar::item:selected {{
                 background-color: {COLORS['bg_light']};
             }}
-        """)
+        """
+        )
 
         # File menu
         file_menu = menubar.addMenu("&File")
@@ -318,10 +324,7 @@ class MainWindow(QMainWindow):
     def _setup_notifications(self):
         """Setup notification system"""
         self.notifications = NotificationManager(self)
-        self.notifications.setGeometry(
-            self.width() - 370, 20,
-            360, self.height() - 40
-        )
+        self.notifications.setGeometry(self.width() - 370, 20, 360, self.height() - 40)
 
     def _setup_system_tray(self):
         """Setup system tray icon"""
@@ -362,11 +365,8 @@ class MainWindow(QMainWindow):
         """Handle window resize"""
         super().resizeEvent(event)
         # Reposition notifications
-        if hasattr(self, 'notifications'):
-            self.notifications.setGeometry(
-                self.width() - 370, 20,
-                360, self.height() - 40
-            )
+        if hasattr(self, "notifications"):
+            self.notifications.setGeometry(self.width() - 370, 20, 360, self.height() - 40)
 
     def _setup_refresh_timer(self):
         """Setup auto-refresh timer"""
@@ -434,10 +434,7 @@ class MainWindow(QMainWindow):
             # Set API client on all views
             self._set_api_client_on_views()
         else:
-            QMessageBox.warning(
-                self, "Connection Failed",
-                f"Could not connect to {url}"
-            )
+            QMessageBox.warning(self, "Connection Failed", f"Could not connect to {url}")
 
     def _set_api_client_on_views(self):
         """Set API client on all views"""
@@ -457,18 +454,15 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f"NebulaCompute Desktop - {self._server_name}")
 
         # Update tray icon
-        if hasattr(self, 'tray_icon'):
+        if hasattr(self, "tray_icon"):
             self.tray_icon.set_connected(True, self._server_name)
 
         # Update terminal with API client
-        if hasattr(self, 'terminal'):
+        if hasattr(self, "terminal"):
             self.terminal.set_api_client(self.api_client)
 
         # Show notification
-        self.notifications.success(
-            "Connected",
-            f"Successfully connected to {self._server_name}"
-        )
+        self.notifications.success("Connected", f"Successfully connected to {self._server_name}")
 
         # Refresh all data
         self._refresh_dashboard()
@@ -481,14 +475,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("NebulaCompute Desktop")
 
         # Update tray icon
-        if hasattr(self, 'tray_icon'):
+        if hasattr(self, "tray_icon"):
             self.tray_icon.set_connected(False)
 
         # Show notification
-        self.notifications.warning(
-            "Disconnected",
-            "Connection to server lost"
-        )
+        self.notifications.warning("Disconnected", "Connection to server lost")
 
     def _on_error(self, message: str):
         """Handle API error"""
@@ -689,23 +680,24 @@ class MainWindow(QMainWindow):
 
         # Ask for file location
         filename, _ = QFileDialog.getSaveFileName(
-            self, "Export Data",
+            self,
+            "Export Data",
             f"nebula_{page_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-            "JSON Files (*.json);;CSV Files (*.csv)"
+            "JSON Files (*.json);;CSV Files (*.csv)",
         )
 
         if not filename:
             return
 
         try:
-            if filename.endswith('.csv'):
-                with open(filename, 'w', newline='') as f:
+            if filename.endswith(".csv"):
+                with open(filename, "w", newline="") as f:
                     if data:
                         writer = csv.DictWriter(f, fieldnames=data[0].keys())
                         writer.writeheader()
                         writer.writerows(data)
             else:
-                with open(filename, 'w') as f:
+                with open(filename, "w") as f:
                     json.dump(data, f, indent=2, default=str)
 
             self.notifications.success("Export Complete", f"Data exported to {filename}")
@@ -754,7 +746,7 @@ class MainWindow(QMainWindow):
 <li>Resource visualization</li>
 </ul>
 <p>Built with PySide6 (Qt6)</p>
-            """
+            """,
         )
 
     def show_startup_dialog(self):
@@ -766,14 +758,11 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Handle window close - minimize to tray instead of closing"""
-        if hasattr(self, 'tray_icon') and self.tray_icon.isVisible():
+        if hasattr(self, "tray_icon") and self.tray_icon.isVisible():
             # Minimize to tray
             event.ignore()
             self.hide()
-            self.tray_icon.show_message(
-                "NebulaCompute Desktop",
-                "Application minimized to system tray"
-            )
+            self.tray_icon.show_message("NebulaCompute Desktop", "Application minimized to system tray")
         else:
             # Actually close
             if self.api_client and self._connected:

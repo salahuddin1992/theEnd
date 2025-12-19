@@ -24,7 +24,7 @@ class LineChart(QFrame):
         max_value: float = 100,
         unit: str = "%",
         color: str = None,
-        parent=None
+        parent=None,
     ):
         super().__init__(parent)
         self._title = title
@@ -37,11 +37,13 @@ class LineChart(QFrame):
         self._current_value = 0
 
         self.setMinimumHeight(150)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             background-color: {COLORS['bg_card']};
             border: 1px solid {COLORS['border']};
             border-radius: 12px;
-        """)
+        """
+        )
 
     def add_value(self, value: float):
         """Add a new value to the chart"""
@@ -52,7 +54,7 @@ class LineChart(QFrame):
     def set_data(self, data: List[float]):
         """Set chart data"""
         self._data.clear()
-        for value in data[-self._max_points:]:
+        for value in data[-self._max_points :]:
             self._data.append(value)
         if data:
             self._current_value = data[-1]
@@ -68,10 +70,7 @@ class LineChart(QFrame):
         rect = self.rect()
         padding = 16
         chart_rect = QRectF(
-            padding,
-            padding + 30,  # Space for title
-            rect.width() - padding * 2,
-            rect.height() - padding * 2 - 30
+            padding, padding + 30, rect.width() - padding * 2, rect.height() - padding * 2 - 30  # Space for title
         )
 
         # Draw title and current value
@@ -84,11 +83,7 @@ class LineChart(QFrame):
         painter.setFont(QFont("Segoe UI", 18, QFont.Bold))
         painter.setPen(self._color)
         value_rect = painter.fontMetrics().boundingRect(value_text)
-        painter.drawText(
-            int(rect.width() - padding - value_rect.width()),
-            padding + 20,
-            value_text
-        )
+        painter.drawText(int(rect.width() - padding - value_rect.width()), padding + 20, value_text)
 
         if len(self._data) < 2:
             return
@@ -97,10 +92,7 @@ class LineChart(QFrame):
         painter.setPen(QPen(QColor(COLORS["border"]), 1, Qt.DashLine))
         for i in range(5):
             y = chart_rect.top() + (chart_rect.height() / 4) * i
-            painter.drawLine(
-                QPointF(chart_rect.left(), y),
-                QPointF(chart_rect.right(), y)
-            )
+            painter.drawLine(QPointF(chart_rect.left(), y), QPointF(chart_rect.right(), y))
 
         # Calculate points
         points = []
@@ -146,22 +138,20 @@ class LineChart(QFrame):
 class DonutChart(QFrame):
     """Donut/Ring chart widget"""
 
-    def __init__(
-        self,
-        title: str = "Chart",
-        parent=None
-    ):
+    def __init__(self, title: str = "Chart", parent=None):
         super().__init__(parent)
         self._title = title
         self._segments: List[Tuple[str, float, str]] = []  # (label, value, color)
         self._total = 0
 
         self.setMinimumSize(200, 200)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             background-color: {COLORS['bg_card']};
             border: 1px solid {COLORS['border']};
             border-radius: 12px;
-        """)
+        """
+        )
 
     def set_data(self, segments: List[Tuple[str, float, str]]):
         """Set chart segments: [(label, value, color), ...]"""
@@ -190,10 +180,7 @@ class DonutChart(QFrame):
         # Chart area
         chart_size = min(rect.width(), rect.height() - 60) - padding * 2
         chart_rect = QRectF(
-            (rect.width() - chart_size) / 2,
-            40 + (rect.height() - 40 - chart_size) / 2,
-            chart_size,
-            chart_size
+            (rect.width() - chart_size) / 2, 40 + (rect.height() - 40 - chart_size) / 2, chart_size, chart_size
         )
 
         # Draw segments
@@ -210,10 +197,7 @@ class DonutChart(QFrame):
         # Draw inner circle (donut hole)
         inner_size = chart_size * 0.6
         inner_rect = QRectF(
-            chart_rect.center().x() - inner_size / 2,
-            chart_rect.center().y() - inner_size / 2,
-            inner_size,
-            inner_size
+            chart_rect.center().x() - inner_size / 2, chart_rect.center().y() - inner_size / 2, inner_size, inner_size
         )
         painter.setBrush(QBrush(QColor(COLORS["bg_card"])))
         painter.drawEllipse(inner_rect)
@@ -226,37 +210,31 @@ class DonutChart(QFrame):
         painter.drawText(
             int(chart_rect.center().x() - text_rect.width() / 2),
             int(chart_rect.center().y() + text_rect.height() / 4),
-            total_text
+            total_text,
         )
 
         # Label below
         painter.setFont(QFont("Segoe UI", 10))
         painter.setPen(QColor(COLORS["text_secondary"]))
-        painter.drawText(
-            int(chart_rect.center().x() - 20),
-            int(chart_rect.center().y() + 20),
-            "Total"
-        )
+        painter.drawText(int(chart_rect.center().x() - 20), int(chart_rect.center().y() + 20), "Total")
 
 
 class BarChart(QFrame):
     """Horizontal bar chart widget"""
 
-    def __init__(
-        self,
-        title: str = "Chart",
-        parent=None
-    ):
+    def __init__(self, title: str = "Chart", parent=None):
         super().__init__(parent)
         self._title = title
         self._bars: List[Tuple[str, float, float, str]] = []  # (label, value, max_value, color)
 
         self.setMinimumHeight(150)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             background-color: {COLORS['bg_card']};
             border: 1px solid {COLORS['border']};
             border-radius: 12px;
-        """)
+        """
+        )
 
     def set_data(self, bars: List[Tuple[str, float, float, str]]):
         """Set bar data: [(label, value, max_value, color), ...]"""
@@ -294,11 +272,7 @@ class BarChart(QFrame):
             # Draw label
             painter.setPen(QColor(COLORS["text_secondary"]))
             painter.setFont(QFont("Segoe UI", 11))
-            painter.drawText(
-                padding,
-                int(y + bar_height / 2 + 5),
-                label
-            )
+            painter.drawText(padding, int(y + bar_height / 2 + 5), label)
 
             # Bar background
             bar_x = padding + label_width
@@ -306,40 +280,25 @@ class BarChart(QFrame):
 
             painter.setPen(Qt.NoPen)
             painter.setBrush(QBrush(QColor(COLORS["bg_light"])))
-            painter.drawRoundedRect(
-                QRectF(bar_x, y, bar_width, bar_height),
-                4, 4
-            )
+            painter.drawRoundedRect(QRectF(bar_x, y, bar_width, bar_height), 4, 4)
 
             # Bar fill
             if max_value > 0:
                 fill_width = (value / max_value) * bar_width
                 painter.setBrush(QBrush(QColor(color)))
-                painter.drawRoundedRect(
-                    QRectF(bar_x, y, fill_width, bar_height),
-                    4, 4
-                )
+                painter.drawRoundedRect(QRectF(bar_x, y, fill_width, bar_height), 4, 4)
 
             # Draw value
             painter.setPen(QColor(COLORS["text_primary"]))
             painter.setFont(QFont("Segoe UI", 11, QFont.Bold))
             value_text = f"{value:.0f}/{max_value:.0f}"
-            painter.drawText(
-                int(bar_x + bar_width + 8),
-                int(y + bar_height / 2 + 5),
-                value_text
-            )
+            painter.drawText(int(bar_x + bar_width + 8), int(y + bar_height / 2 + 5), value_text)
 
 
 class MiniChart(QWidget):
     """Mini sparkline chart for compact displays"""
 
-    def __init__(
-        self,
-        max_points: int = 20,
-        color: str = None,
-        parent=None
-    ):
+    def __init__(self, max_points: int = 20, color: str = None, parent=None):
         super().__init__(parent)
         self._max_points = max_points
         self._color = QColor(color or COLORS["primary"])
@@ -356,7 +315,7 @@ class MiniChart(QWidget):
     def set_data(self, data: List[float]):
         """Set chart data"""
         self._data.clear()
-        for value in data[-self._max_points:]:
+        for value in data[-self._max_points :]:
             self._data.append(value)
         self.update()
 

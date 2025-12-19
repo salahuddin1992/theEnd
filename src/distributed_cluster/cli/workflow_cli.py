@@ -103,11 +103,12 @@ def workflow_create(
             console.print(f"[red]File not found: {from_file}[/red]")
             raise typer.Exit(1)
 
-        content = from_file.read_text(encoding='utf-8')
+        content = from_file.read_text(encoding="utf-8")
 
         if from_file.suffix in (".yaml", ".yml"):
             try:
                 import yaml
+
                 definition = yaml.safe_load(content)
             except ImportError:
                 console.print("[red]PyYAML required for YAML files: pip install pyyaml[/red]")
@@ -245,7 +246,7 @@ def workflow_run(
         if not params_file.exists():
             console.print(f"[red]File not found: {params_file}[/red]")
             raise typer.Exit(1)
-        run_params = json.loads(params_file.read_text(encoding='utf-8'))
+        run_params = json.loads(params_file.read_text(encoding="utf-8"))
 
     run_data = {
         "params": run_params,
@@ -439,11 +440,12 @@ def workflow_update(
         console.print(f"[red]File not found: {from_file}[/red]")
         raise typer.Exit(1)
 
-    content = from_file.read_text(encoding='utf-8')
+    content = from_file.read_text(encoding="utf-8")
 
     if from_file.suffix in (".yaml", ".yml"):
         try:
             import yaml
+
             definition = yaml.safe_load(content)
         except ImportError:
             console.print("[red]PyYAML required for YAML files: pip install pyyaml[/red]")
@@ -529,14 +531,16 @@ def workflow_validate(
         console.print(f"[red]File not found: {file_path}[/red]")
         raise typer.Exit(1)
 
-    content = file_path.read_text(encoding='utf-8')
+    content = file_path.read_text(encoding="utf-8")
 
     try:
         if file_path.suffix in (".yaml", ".yml"):
             from distributed_cluster.workflow.definitions import load_workflow_from_yaml
+
             definition = load_workflow_from_yaml(content)
         else:
             from distributed_cluster.workflow.definitions import load_workflow_from_json
+
             definition = load_workflow_from_json(content)
 
         is_valid, errors = definition.validate()

@@ -22,9 +22,10 @@ if TYPE_CHECKING:
 
 class DiscoveryMethod(str, Enum):
     """طرق اكتشاف العقد"""
+
     MULTICAST = "multicast"  # UDP multicast للشبكة المحلية
     BOOTSTRAP = "bootstrap"  # قائمة عقد معروفة
-    GOSSIP = "gossip"        # تبادل مع العقد المتصلة
+    GOSSIP = "gossip"  # تبادل مع العقد المتصلة
 
 
 # إعدادات Multicast
@@ -36,6 +37,7 @@ DISCOVERY_INTERVAL = 10  # ثواني
 @dataclass
 class DiscoveryMessage:
     """رسالة اكتشاف"""
+
     node_id: str
     hostname: str
     ip_address: str
@@ -48,15 +50,17 @@ class DiscoveryMessage:
             self.timestamp = datetime.utcnow().isoformat()
 
     def to_json(self) -> str:
-        return json.dumps({
-            "type": "discovery",
-            "node_id": self.node_id,
-            "hostname": self.hostname,
-            "ip_address": self.ip_address,
-            "port": self.port,
-            "version": self.version,
-            "timestamp": self.timestamp,
-        })
+        return json.dumps(
+            {
+                "type": "discovery",
+                "node_id": self.node_id,
+                "hostname": self.hostname,
+                "ip_address": self.ip_address,
+                "port": self.port,
+                "version": self.version,
+                "timestamp": self.timestamp,
+            }
+        )
 
     @classmethod
     def from_json(cls, data: str) -> Optional["DiscoveryMessage"]:
@@ -101,22 +105,14 @@ class PeerDiscovery:
         self._running = True
 
         if DiscoveryMethod.MULTICAST in self.methods:
-            self._tasks.append(
-                asyncio.create_task(self._multicast_listener())
-            )
-            self._tasks.append(
-                asyncio.create_task(self._multicast_announcer())
-            )
+            self._tasks.append(asyncio.create_task(self._multicast_listener()))
+            self._tasks.append(asyncio.create_task(self._multicast_announcer()))
 
         if DiscoveryMethod.BOOTSTRAP in self.methods:
-            self._tasks.append(
-                asyncio.create_task(self._bootstrap_connector())
-            )
+            self._tasks.append(asyncio.create_task(self._bootstrap_connector()))
 
         if DiscoveryMethod.GOSSIP in self.methods:
-            self._tasks.append(
-                asyncio.create_task(self._gossip_exchanger())
-            )
+            self._tasks.append(asyncio.create_task(self._gossip_exchanger()))
 
     async def stop(self) -> None:
         """إيقاف الاكتشاف"""
@@ -213,9 +209,7 @@ class PeerDiscovery:
                 if self.node.peers:
                     from .gossip import GossipMessage, MessageType
 
-                    peers_list = [
-                        p.to_dict() for p in self.node.peers.values()
-                    ]
+                    peers_list = [p.to_dict() for p in self.node.peers.values()]
 
                     message = GossipMessage(
                         type=MessageType.PEER_LIST,

@@ -32,6 +32,7 @@ IS_WINDOWS = sys.platform == "win32"
 @dataclass
 class ExecutionContext:
     """سياق تنفيذ Job."""
+
     job: Job
     work_dir: Path
     start_time: float = 0.0
@@ -75,6 +76,7 @@ class JobExecutor:
         """Initialize Docker client."""
         try:
             import docker
+
             self._docker_client = docker.from_env()
             self._docker_client.ping()
             logger.info("Docker client initialized")
@@ -160,9 +162,7 @@ class JobExecutor:
                 # Wait with timeout
                 try:
                     exit_code = await asyncio.wait_for(
-                        asyncio.get_event_loop().run_in_executor(
-                            None, ctx.process.wait
-                        ),
+                        asyncio.get_event_loop().run_in_executor(None, ctx.process.wait),
                         timeout=submission.timeout_seconds,
                     )
                 except asyncio.TimeoutError:
@@ -256,9 +256,7 @@ class JobExecutor:
             # Wait with timeout
             try:
                 result = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(
-                        None, container.wait
-                    ),
+                    asyncio.get_event_loop().run_in_executor(None, container.wait),
                     timeout=submission.timeout_seconds,
                 )
                 exit_code = result["StatusCode"]

@@ -3,22 +3,21 @@ Tests for Notification System
 اختبارات نظام الإشعارات
 """
 
-import pytest
 import asyncio
-from datetime import datetime
 
+import pytest
+
+from distributed_cluster.notifications.channels import (
+    ConsoleChannel,
+    DiscordChannel,
+    SlackChannel,
+    WebhookChannel,
+)
 from distributed_cluster.notifications.notifier import (
-    Notifier,
     Notification,
     NotificationCategory,
     NotificationPriority,
-    NotificationChannel,
-)
-from distributed_cluster.notifications.channels import (
-    ConsoleChannel,
-    WebhookChannel,
-    SlackChannel,
-    DiscordChannel,
+    Notifier,
 )
 from distributed_cluster.notifications.rules import (
     NotificationRule,
@@ -76,7 +75,8 @@ class TestNotification:
     def test_notification_color(self):
         """اختبار اللون"""
         n1 = Notification(
-            title="", message="",
+            title="",
+            message="",
             category=NotificationCategory.SYSTEM,
             priority=NotificationPriority.CRITICAL,
         )
@@ -96,6 +96,7 @@ class TestConsoleChannel:
     async def test_send_notification(self):
         """اختبار إرسال إشعار"""
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
         channel = ConsoleChannel(colored=False)
         # Use channels.py Notification format
         notification = ChannelNotification(
@@ -109,6 +110,7 @@ class TestConsoleChannel:
     async def test_safe_send(self):
         """اختبار الإرسال الآمن عبر send_notification"""
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
         channel = ConsoleChannel(colored=False)
         notification = ChannelNotification(
             title="Test",
@@ -250,17 +252,20 @@ class TestNotificationRule:
         )
 
         n_low = Notification(
-            title="", message="",
+            title="",
+            message="",
             category=NotificationCategory.SYSTEM,
             priority=NotificationPriority.LOW,
         )
         n_high = Notification(
-            title="", message="",
+            title="",
+            message="",
             category=NotificationCategory.SYSTEM,
             priority=NotificationPriority.HIGH,
         )
         n_critical = Notification(
-            title="", message="",
+            title="",
+            message="",
             category=NotificationCategory.SYSTEM,
             priority=NotificationPriority.CRITICAL,
         )
@@ -316,18 +321,22 @@ class TestRuleEngine:
         """اختبار الحصول على القنوات المطابقة"""
         engine = RuleEngine()
 
-        engine.add_rule(NotificationRule(
-            name="all",
-            condition=RuleCondition.ALWAYS,
-            channels=["console"],
-        ))
+        engine.add_rule(
+            NotificationRule(
+                name="all",
+                condition=RuleCondition.ALWAYS,
+                channels=["console"],
+            )
+        )
 
-        engine.add_rule(NotificationRule(
-            name="failed",
-            condition=RuleCondition.CATEGORY_IS,
-            condition_value=NotificationCategory.JOB_FAILED,
-            channels=["slack", "email"],
-        ))
+        engine.add_rule(
+            NotificationRule(
+                name="failed",
+                condition=RuleCondition.CATEGORY_IS,
+                condition_value=NotificationCategory.JOB_FAILED,
+                channels=["slack", "email"],
+            )
+        )
 
         n1 = Notification(title="", message="", category=NotificationCategory.JOB_COMPLETED)
         n2 = Notification(title="", message="", category=NotificationCategory.JOB_FAILED)
@@ -377,6 +386,7 @@ class TestSlackChannel:
     def test_build_message(self):
         """اختبار بناء الرسالة"""
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
         channel = SlackChannel(webhook_url="https://test.com")
         notification = ChannelNotification(
             title="Test Alert",
@@ -401,7 +411,9 @@ class TestDiscordChannel:
 
     def test_build_message(self):
         """اختبار بناء الرسالة"""
-        from distributed_cluster.notifications.channels import Notification as ChannelNotification, NotificationPriority as ChPriority
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.channels import NotificationPriority as ChPriority
+
         channel = DiscordChannel(webhook_url="https://test.com")
         notification = ChannelNotification(
             title="Test Alert",

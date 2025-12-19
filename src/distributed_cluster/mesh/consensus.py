@@ -21,23 +21,26 @@ if TYPE_CHECKING:
 
 class ConsensusState(str, Enum):
     """حالة التوافق"""
-    FOLLOWER = "follower"      # تابع
-    CANDIDATE = "candidate"    # مرشح
-    LEADER = "leader"          # قائد
-    ELECTION = "election"      # في انتخابات
+
+    FOLLOWER = "follower"  # تابع
+    CANDIDATE = "candidate"  # مرشح
+    LEADER = "leader"  # قائد
+    ELECTION = "election"  # في انتخابات
 
 
 class ElectionMessageType(str, Enum):
     """أنواع رسائل الانتخاب"""
-    ELECTION = "election"      # بدء انتخاب
-    ANSWER = "answer"          # رد على انتخاب
-    VICTORY = "victory"        # إعلان الفوز
-    HEARTBEAT = "heartbeat"    # نبض القائد
+
+    ELECTION = "election"  # بدء انتخاب
+    ANSWER = "answer"  # رد على انتخاب
+    VICTORY = "victory"  # إعلان الفوز
+    HEARTBEAT = "heartbeat"  # نبض القائد
 
 
 @dataclass
 class ElectionState:
     """حالة الانتخاب"""
+
     state: ConsensusState
     current_leader: Optional[str]
     term: int  # رقم الدورة
@@ -145,10 +148,7 @@ class LeaderElection:
         self._received_answers.clear()
 
         # إرسال ELECTION للعقد ذات ID أعلى
-        higher_peers = [
-            p for p in self.node.peers.values()
-            if p.node_id > self.node.node_id
-        ]
+        higher_peers = [p for p in self.node.peers.values() if p.node_id > self.node.node_id]
 
         if not higher_peers:
             # نحن أعلى ID، نعلن الفوز مباشرة

@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class SyncMode(str, Enum):
     """أوضاع المزامنة."""
+
     FULL = "full"  # مزامنة كاملة
     INCREMENTAL = "incremental"  # مزامنة تزايدية
     REALTIME = "realtime"  # مزامنة فورية
@@ -38,6 +39,7 @@ class SyncMode(str, Enum):
 
 class SyncStatus(str, Enum):
     """حالة المزامنة."""
+
     IDLE = "idle"
     SYNCING = "syncing"
     SYNCED = "synced"
@@ -48,6 +50,7 @@ class SyncStatus(str, Enum):
 
 class SyncDirection(str, Enum):
     """اتجاه المزامنة."""
+
     PUSH = "push"  # إرسال للآخرين
     PULL = "pull"  # استقبال من الآخرين
     BIDIRECTIONAL = "bidirectional"  # ثنائي الاتجاه
@@ -56,6 +59,7 @@ class SyncDirection(str, Enum):
 @dataclass
 class SyncConfig:
     """إعدادات المزامنة."""
+
     # Basic settings
     mode: SyncMode = SyncMode.REALTIME
     direction: SyncDirection = SyncDirection.BIDIRECTIONAL
@@ -86,6 +90,7 @@ class SyncConfig:
 @dataclass
 class SyncPeer:
     """عقدة مزامنة."""
+
     peer_id: str
     name: str
     url: str
@@ -106,6 +111,7 @@ class SyncPeer:
 @dataclass
 class SyncOperation:
     """عملية مزامنة."""
+
     operation_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     operation_type: str = "sync"  # sync, push, pull, merge
     source_peer: str = ""
@@ -123,6 +129,7 @@ class SyncOperation:
 @dataclass
 class SyncEvent:
     """حدث مزامنة."""
+
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: str = ""  # sync_started, sync_completed, conflict, error
     peer_id: str = ""
@@ -387,10 +394,13 @@ class SyncManager:
             operation.status = SyncStatus.FAILED
             operation.error = "; ".join(errors)
 
-        await self._emit_event("sync_completed", {
-            "operation_id": operation.operation_id,
-            "status": operation.status.value,
-        })
+        await self._emit_event(
+            "sync_completed",
+            {
+                "operation_id": operation.operation_id,
+                "status": operation.status.value,
+            },
+        )
 
         return operation
 
@@ -461,12 +471,15 @@ class SyncManager:
                         )
                         self._local_state[key] = resolved
                     else:
-                        await self._emit_event("conflict", {
-                            "key": key,
-                            "local_value": self._local_state[key],
-                            "remote_value": value,
-                            "peer_id": peer.peer_id,
-                        })
+                        await self._emit_event(
+                            "conflict",
+                            {
+                                "key": key,
+                                "local_value": self._local_state[key],
+                                "remote_value": value,
+                                "peer_id": peer.peer_id,
+                            },
+                        )
 
             self._state_version = max(self._state_version, remote_version) + 1
             self._update_state_hash()
@@ -596,10 +609,7 @@ class SyncManager:
 
                     if healthy != peer.healthy:
                         peer.healthy = healthy
-                        await self._emit_event(
-                            "peer_health_changed",
-                            {"peer_id": peer.peer_id, "healthy": healthy}
-                        )
+                        await self._emit_event("peer_health_changed", {"peer_id": peer.peer_id, "healthy": healthy})
 
                     if healthy:
                         peer.last_heartbeat = datetime.utcnow()
@@ -729,6 +739,7 @@ class SyncManager:
 # ============================================================================
 # Factory Functions
 # ============================================================================
+
 
 def create_sync_manager(
     node_id: Optional[str] = None,

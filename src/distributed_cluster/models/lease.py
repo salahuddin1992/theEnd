@@ -35,6 +35,7 @@ from typing import Optional
 @dataclass
 class LeaseConfig:
     """إعدادات الـ Lease Manager."""
+
     default_duration_seconds: int = 60
     max_duration_seconds: int = 300
     max_renewals: int = 100
@@ -43,10 +44,11 @@ class LeaseConfig:
 
 class LeaseState(str, Enum):
     """حالات الـ Lease."""
-    ACTIVE = "active"           # فعّال
-    EXPIRED = "expired"         # انتهت صلاحيته
-    RELEASED = "released"       # تم تحريره (انتهى job)
-    REVOKED = "revoked"         # تم إلغاؤه (من Master)
+
+    ACTIVE = "active"  # فعّال
+    EXPIRED = "expired"  # انتهت صلاحيته
+    RELEASED = "released"  # تم تحريره (انتهى job)
+    REVOKED = "revoked"  # تم إلغاؤه (من Master)
 
 
 @dataclass
@@ -139,7 +141,7 @@ class Lease:
     def time_remaining_seconds(self) -> float:
         """الوقت المتبقي بالثواني."""
         if not self.expires_at:
-            return float('inf')
+            return float("inf")
         remaining = (self.expires_at - datetime.utcnow()).total_seconds()
         return max(0, remaining)
 

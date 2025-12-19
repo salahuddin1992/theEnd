@@ -279,6 +279,7 @@ class FileTool(Tool):
                     resolved_path.unlink()
                 else:
                     import shutil
+
                     shutil.rmtree(resolved_path)
 
                 return ToolResult(
@@ -358,9 +359,7 @@ class WebSearchTool(Tool):
                 response = await client.get(
                     "https://html.duckduckgo.com/html/",
                     params={"q": query},
-                    headers={
-                        "User-Agent": "Mozilla/5.0 (compatible; AI-Agent/1.0)"
-                    },
+                    headers={"User-Agent": "Mozilla/5.0 (compatible; AI-Agent/1.0)"},
                     timeout=15.0,
                 )
                 response.raise_for_status()
@@ -371,6 +370,7 @@ class WebSearchTool(Tool):
 
                 # Extract result snippets
                 import re
+
                 result_pattern = r'class="result__snippet"[^>]*>([^<]+)'
                 title_pattern = r'class="result__a"[^>]*>([^<]+)'
                 url_pattern = r'class="result__url"[^>]*>([^<]+)'
@@ -380,11 +380,13 @@ class WebSearchTool(Tool):
                 urls = re.findall(url_pattern, html)
 
                 for i in range(min(num_results, len(snippets))):
-                    results.append({
-                        "title": titles[i] if i < len(titles) else "N/A",
-                        "snippet": snippets[i].strip(),
-                        "url": urls[i].strip() if i < len(urls) else "N/A",
-                    })
+                    results.append(
+                        {
+                            "title": titles[i] if i < len(titles) else "N/A",
+                            "snippet": snippets[i].strip(),
+                            "url": urls[i].strip() if i < len(urls) else "N/A",
+                        }
+                    )
 
                 if not results:
                     results = [{"message": "No results found"}]
@@ -452,9 +454,7 @@ class WebFetchTool(Tool):
                     url,
                     follow_redirects=True,
                     timeout=self.timeout,
-                    headers={
-                        "User-Agent": "Mozilla/5.0 (compatible; AI-Agent/1.0)"
-                    },
+                    headers={"User-Agent": "Mozilla/5.0 (compatible; AI-Agent/1.0)"},
                 )
                 response.raise_for_status()
 
@@ -463,6 +463,7 @@ class WebFetchTool(Tool):
                 if extract_text:
                     # Simple HTML tag removal
                     import re
+
                     content = re.sub(r"<script[^>]*>.*?</script>", "", content, flags=re.DOTALL)
                     content = re.sub(r"<style[^>]*>.*?</style>", "", content, flags=re.DOTALL)
                     content = re.sub(r"<[^>]+>", " ", content)
@@ -526,9 +527,15 @@ class CodeTool(Tool):
         if self.safe_mode:
             # Block dangerous operations
             dangerous_patterns = [
-                "import os", "import sys", "import subprocess",
-                "open(", "__import__", "eval(", "exec(",
-                "os.system", "subprocess.",
+                "import os",
+                "import sys",
+                "import subprocess",
+                "open(",
+                "__import__",
+                "eval(",
+                "exec(",
+                "os.system",
+                "subprocess.",
             ]
             for pattern in dangerous_patterns:
                 if pattern in code:
@@ -542,7 +549,9 @@ class CodeTool(Tool):
         try:
             # Run in subprocess for isolation
             process = await asyncio.create_subprocess_exec(
-                "python", "-c", code,
+                "python",
+                "-c",
+                code,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

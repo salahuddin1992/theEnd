@@ -5,13 +5,13 @@ Database Integration Tests
 Tests for SQLite database persistence.
 """
 
-import pytest
 from datetime import datetime, timedelta
 
-from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
-from distributed_cluster.models.job import Job, JobSubmission, JobStatus, JobPriority, JobResult
-from distributed_cluster.models.resources import ResourceSpec
+import pytest
+
 from distributed_cluster.models.events import Event, EventType
+from distributed_cluster.models.job import Job, JobResult, JobStatus, JobSubmission
+from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
 from distributed_cluster.storage.database import SQLiteDatabase
 
 
@@ -70,11 +70,7 @@ class TestWorkerPersistence:
         new_time = datetime.utcnow() + timedelta(minutes=5)
         new_status = WorkerStatus.BUSY
 
-        updated = await database.update_worker_heartbeat(
-            sample_worker.worker_id,
-            new_time,
-            new_status
-        )
+        updated = await database.update_worker_heartbeat(sample_worker.worker_id, new_time, new_status)
         assert updated is True
 
         retrieved = await database.get_worker(sample_worker.worker_id)
@@ -168,10 +164,7 @@ class TestJobPersistence:
         # Update to running
         now = datetime.utcnow()
         updated = await database.update_job_status(
-            job.job_id,
-            JobStatus.RUNNING,
-            started_at=now,
-            assigned_worker="worker-1"
+            job.job_id, JobStatus.RUNNING, started_at=now, assigned_worker="worker-1"
         )
         assert updated is True
 

@@ -46,21 +46,24 @@ from typing import Dict, List, Optional
 
 class RuntimeType(str, Enum):
     """نوع بيئة التشغيل."""
+
     CONTAINER = "container"
     PROCESS = "process"
 
 
 class NetworkPolicy(str, Enum):
     """سياسة الشبكة."""
-    NONE = "none"           # لا شبكة
-    HOST = "host"           # شبكة المضيف
-    BRIDGE = "bridge"       # جسر (افتراضي)
+
+    NONE = "none"  # لا شبكة
+    HOST = "host"  # شبكة المضيف
+    BRIDGE = "bridge"  # جسر (افتراضي)
     EGRESS_DENY = "egress_deny"  # منع الخروج
 
 
 @dataclass
 class RuntimeSpec:
     """مواصفات بيئة التشغيل."""
+
     type: RuntimeType = RuntimeType.CONTAINER
 
     # Container
@@ -118,6 +121,7 @@ class RuntimeSpec:
 @dataclass
 class GPUResourceSpec:
     """مواصفات GPU."""
+
     count: int = 0
     vendor: Optional[str] = None  # nvidia, amd
     memory_mib: Optional[int] = None
@@ -143,6 +147,7 @@ class GPUResourceSpec:
 @dataclass
 class ResourceRequirements:
     """متطلبات الموارد."""
+
     cpu: float = 1.0
     memory_mib: int = 512
     gpu: GPUResourceSpec = field(default_factory=GPUResourceSpec)
@@ -172,6 +177,7 @@ class ResourceRequirements:
 @dataclass
 class InputSpec:
     """مواصفات ملف إدخال."""
+
     name: str
     uri: str
     mount_path: str
@@ -201,6 +207,7 @@ class InputSpec:
 @dataclass
 class OutputSpec:
     """مواصفات ملف إخراج."""
+
     name: str
     path: str
     upload_uri: str
@@ -227,6 +234,7 @@ class OutputSpec:
 @dataclass
 class IOSpec:
     """مواصفات الإدخال/الإخراج."""
+
     inputs: List[InputSpec] = field(default_factory=list)
     outputs: List[OutputSpec] = field(default_factory=list)
 
@@ -246,6 +254,7 @@ class IOSpec:
 @dataclass
 class PlacementConstraints:
     """قيود التوزيع."""
+
     require_tags: List[str] = field(default_factory=list)
     avoid_workers: List[str] = field(default_factory=list)
     prefer_workers: List[str] = field(default_factory=list)
@@ -269,6 +278,7 @@ class PlacementConstraints:
 @dataclass
 class ExecutionPolicy:
     """سياسة التنفيذ."""
+
     retries: int = 3
     timeout_seconds: int = 3600
     network: NetworkPolicy = NetworkPolicy.BRIDGE
@@ -307,6 +317,7 @@ class ExecutionPolicy:
 @dataclass
 class JobMetadata:
     """معلومات وصفية للـ Job."""
+
     name: str
     labels: Dict[str, str] = field(default_factory=dict)
     annotations: Dict[str, str] = field(default_factory=dict)
@@ -337,6 +348,7 @@ class JobSpecification:
 
     هذا هو الـ "عقد" بين المستخدم والنظام.
     """
+
     api_version: str
     kind: str
     metadata: JobMetadata
@@ -369,6 +381,7 @@ class JobSpecification:
         """إنشاء من YAML."""
         try:
             import yaml
+
             data = yaml.safe_load(yaml_content)
             return cls.from_dict(data)
         except ImportError:
@@ -386,9 +399,9 @@ class JobSpecification:
         with open(filepath) as f:
             content = f.read()
 
-        if filepath.endswith(('.yaml', '.yml')):
+        if filepath.endswith((".yaml", ".yml")):
             return cls.from_yaml(content)
-        elif filepath.endswith('.json'):
+        elif filepath.endswith(".json"):
             return cls.from_json(content)
         else:
             # Try YAML first, then JSON
@@ -417,6 +430,7 @@ class JobSpecification:
         """تحويل إلى YAML."""
         try:
             import yaml
+
             return yaml.dump(self.to_dict(), default_flow_style=False, sort_keys=False)
         except ImportError:
             raise RuntimeError("PyYAML is required. Install with: pip install pyyaml")

@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 class ProviderType(str, Enum):
     """أنواع الموفرين."""
+
     OLLAMA = "ollama"
     VLLM = "vllm"
     OPENAI = "openai"
@@ -43,6 +44,7 @@ class ProviderType(str, Enum):
 @dataclass
 class GenerationConfig:
     """إعدادات التوليد."""
+
     temperature: float = 0.7
     top_p: float = 0.9
     top_k: int = 40
@@ -86,6 +88,7 @@ class GenerationConfig:
 @dataclass
 class LLMResponse:
     """استجابة من النموذج."""
+
     text: str
     model: str
     provider: str
@@ -113,6 +116,7 @@ class LLMResponse:
 @dataclass
 class ModelInfo:
     """معلومات النموذج."""
+
     name: str
     provider: str
     size_bytes: int = 0
@@ -277,8 +281,7 @@ class OllamaProvider(LLMProvider):
                     total_tokens=data.get("prompt_eval_count", 0) + data.get("eval_count", 0),
                     generation_time_ms=generation_time,
                     tokens_per_second=(
-                        data.get("eval_count", 0) / (generation_time / 1000)
-                        if generation_time > 0 else 0
+                        data.get("eval_count", 0) / (generation_time / 1000) if generation_time > 0 else 0
                     ),
                     raw_response=data,
                     finish_reason="stop" if data.get("done") else "length",
@@ -288,7 +291,7 @@ class OllamaProvider(LLMProvider):
                 logger.warning(f"Ollama request failed (attempt {attempt + 1}): {e}")
                 if attempt == self.max_retries - 1:
                     raise
-                await asyncio.sleep(2 ** attempt)
+                await asyncio.sleep(2**attempt)
 
         raise RuntimeError("Failed to generate response")
 
@@ -406,18 +409,22 @@ class OllamaProvider(LLMProvider):
         models = []
         for model_data in data.get("models", []):
             details = model_data.get("details", {})
-            models.append(ModelInfo(
-                name=model_data.get("name", ""),
-                provider="ollama",
-                size_bytes=model_data.get("size", 0),
-                parameter_size=details.get("parameter_size", ""),
-                quantization=details.get("quantization_level", ""),
-                family=details.get("family", ""),
-                format=details.get("format", ""),
-                modified_at=datetime.fromisoformat(
-                    model_data.get("modified_at", "").replace("Z", "+00:00")
-                ) if model_data.get("modified_at") else None,
-            ))
+            models.append(
+                ModelInfo(
+                    name=model_data.get("name", ""),
+                    provider="ollama",
+                    size_bytes=model_data.get("size", 0),
+                    parameter_size=details.get("parameter_size", ""),
+                    quantization=details.get("quantization_level", ""),
+                    family=details.get("family", ""),
+                    format=details.get("format", ""),
+                    modified_at=(
+                        datetime.fromisoformat(model_data.get("modified_at", "").replace("Z", "+00:00"))
+                        if model_data.get("modified_at")
+                        else None
+                    ),
+                )
+            )
 
         return models
 
@@ -538,8 +545,7 @@ class VLLMProvider(LLMProvider):
             total_tokens=usage.get("total_tokens", 0),
             generation_time_ms=generation_time,
             tokens_per_second=(
-                usage.get("completion_tokens", 0) / (generation_time / 1000)
-                if generation_time > 0 else 0
+                usage.get("completion_tokens", 0) / (generation_time / 1000) if generation_time > 0 else 0
             ),
             raw_response=data,
             finish_reason=choice.get("finish_reason", "stop"),
@@ -633,10 +639,12 @@ class VLLMProvider(LLMProvider):
 
         models = []
         for model_data in data.get("data", []):
-            models.append(ModelInfo(
-                name=model_data.get("id", ""),
-                provider="vllm",
-            ))
+            models.append(
+                ModelInfo(
+                    name=model_data.get("id", ""),
+                    provider="vllm",
+                )
+            )
 
         return models
 
@@ -772,10 +780,12 @@ class OpenAIProvider(LLMProvider):
 
         models = []
         for model_data in data.get("data", []):
-            models.append(ModelInfo(
-                name=model_data.get("id", ""),
-                provider="openai",
-            ))
+            models.append(
+                ModelInfo(
+                    name=model_data.get("id", ""),
+                    provider="openai",
+                )
+            )
 
         return models
 

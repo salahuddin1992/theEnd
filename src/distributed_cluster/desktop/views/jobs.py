@@ -113,9 +113,7 @@ class SubmitJobDialog(QDialog):
         self._on_type_changed(self.type_combo.currentText())
 
         # Buttons
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -232,11 +230,13 @@ class JobDetailPanel(QFrame):
 
         self.output_text = QPlainTextEdit()
         self.output_text.setReadOnly(True)
-        self.output_text.setStyleSheet(f"""
+        self.output_text.setStyleSheet(
+            f"""
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 12px;
             background-color: {COLORS['bg_dark']};
-        """)
+        """
+        )
         output_layout.addWidget(self.output_text)
 
         tabs.addTab(output_widget, "Output")
@@ -274,15 +274,18 @@ class JobDetailPanel(QFrame):
         # Status
         status = job.get("status", "unknown")
         from ..resources.styles import get_status_color
+
         color = get_status_color(status)
         self.status_label.setText(status.upper())
-        self.status_label.setStyleSheet(f"""
+        self.status_label.setStyleSheet(
+            f"""
             color: {color};
             font-weight: 600;
             padding: 4px 12px;
             border-radius: 4px;
             background-color: {color}20;
-        """)
+        """
+        )
 
         # Resources
         resources = job.get("resources", {})
@@ -345,11 +348,13 @@ class JobsView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Jobs")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         header_layout.addStretch()
@@ -371,14 +376,16 @@ class JobsView(QWidget):
         splitter = QSplitter(Qt.Horizontal)
 
         # Jobs table
-        self.jobs_table = DataTable([
-            ("ID", "id", 120),
-            ("Name", "name", 150),
-            ("Status", "status", 100),
-            ("Command", "command", -1),
-            ("Worker", "worker_id", 120),
-            ("Created", "created_at", 150),
-        ])
+        self.jobs_table = DataTable(
+            [
+                ("ID", "id", 120),
+                ("Name", "name", 150),
+                ("Status", "status", 100),
+                ("Command", "command", -1),
+                ("Worker", "worker_id", 120),
+                ("Created", "created_at", 150),
+            ]
+        )
         self.jobs_table.set_status_column("status")
         self.jobs_table.row_selected.connect(self._on_job_selected)
         self.jobs_table.refresh_btn.clicked.connect(self._on_refresh)
@@ -425,7 +432,7 @@ class JobsView(QWidget):
             "Cancel Job",
             f"Are you sure you want to cancel job {job_id}?",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             # Cancel via API client

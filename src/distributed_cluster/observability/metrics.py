@@ -38,15 +38,17 @@ from typing import Dict, List, Optional
 
 class MetricType(str, Enum):
     """أنواع المقاييس."""
-    COUNTER = "counter"      # عداد تراكمي (مثل عدد requests)
-    GAUGE = "gauge"          # قيمة حالية (مثل CPU %)
+
+    COUNTER = "counter"  # عداد تراكمي (مثل عدد requests)
+    GAUGE = "gauge"  # قيمة حالية (مثل CPU %)
     HISTOGRAM = "histogram"  # توزيع (مثل response time)
-    SUMMARY = "summary"      # ملخص مع percentiles
+    SUMMARY = "summary"  # ملخص مع percentiles
 
 
 @dataclass
 class MetricValue:
     """قيمة مقياس."""
+
     name: str
     type: MetricType
     value: float
@@ -57,6 +59,7 @@ class MetricValue:
 @dataclass
 class HistogramBucket:
     """Bucket للـ histogram."""
+
     le: float  # less than or equal
     count: int = 0
 
@@ -72,8 +75,22 @@ class Histogram:
     """
 
     DEFAULT_BUCKETS = [
-        0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0,
-        2.5, 5.0, 10.0, 30.0, 60.0, 120.0, 300.0, float('inf')
+        0.005,
+        0.01,
+        0.025,
+        0.05,
+        0.1,
+        0.25,
+        0.5,
+        1.0,
+        2.5,
+        5.0,
+        10.0,
+        30.0,
+        60.0,
+        120.0,
+        300.0,
+        float("inf"),
     ]
 
     def __init__(self, name: str, buckets: Optional[List[float]] = None):
@@ -161,24 +178,20 @@ class MetricsCollector:
         """تهيئة histograms افتراضية."""
         # Job timing histograms
         self._histograms["job_queue_time_seconds"] = Histogram(
-            "job_queue_time_seconds",
-            [0.1, 0.5, 1, 5, 10, 30, 60, 120, 300, 600]
+            "job_queue_time_seconds", [0.1, 0.5, 1, 5, 10, 30, 60, 120, 300, 600]
         )
         self._histograms["job_execution_time_seconds"] = Histogram(
-            "job_execution_time_seconds",
-            [1, 5, 10, 30, 60, 300, 600, 1800, 3600, 7200]
+            "job_execution_time_seconds", [1, 5, 10, 30, 60, 300, 600, 1800, 3600, 7200]
         )
 
         # Scheduler timing
         self._histograms["scheduler_decision_time_seconds"] = Histogram(
-            "scheduler_decision_time_seconds",
-            [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
+            "scheduler_decision_time_seconds", [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
         )
 
         # Worker heartbeat latency
         self._histograms["worker_heartbeat_latency_seconds"] = Histogram(
-            "worker_heartbeat_latency_seconds",
-            [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
+            "worker_heartbeat_latency_seconds", [0.01, 0.05, 0.1, 0.5, 1, 5, 10]
         )
 
     def _labels_to_tuple(self, labels: Optional[Dict[str, str]] = None) -> tuple:
@@ -326,15 +339,11 @@ class MetricsCollector:
         with self._lock:
             # Counters
             for name, values in self._counters.items():
-                metrics["counters"][name] = {
-                    str(labels): value for labels, value in values.items()
-                }
+                metrics["counters"][name] = {str(labels): value for labels, value in values.items()}
 
             # Gauges
             for name, values in self._gauges.items():
-                metrics["gauges"][name] = {
-                    str(labels): value for labels, value in values.items()
-                }
+                metrics["gauges"][name] = {str(labels): value for labels, value in values.items()}
 
             # Histograms
             for name, hist in self._histograms.items():

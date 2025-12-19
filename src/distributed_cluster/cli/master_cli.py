@@ -69,9 +69,7 @@ def start(
 
 @app.command()
 def status(
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
 ) -> None:
     """
     عرض حالة الكلاستر.
@@ -127,9 +125,7 @@ def status(
 
 @app.command()
 def workers(
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
 ) -> None:
     """
     عرض قائمة workers.
@@ -180,9 +176,7 @@ def workers(
 
 @app.command()
 def jobs(
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
     status_filter: Optional[str] = typer.Option(None, "--status", "-s", help="Filter by status"),
     limit: int = typer.Option(20, "--limit", "-n", help="Number of jobs to show"),
 ) -> None:

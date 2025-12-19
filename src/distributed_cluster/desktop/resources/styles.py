@@ -5,7 +5,7 @@ Application styles and themes
 
 # Color palette - Modern dark theme
 COLORS = {
-    "primary": "#6366f1",      # Indigo
+    "primary": "#6366f1",  # Indigo
     "primary_hover": "#818cf8",
     "primary_dark": "#4f46e5",
     "secondary": "#64748b",
@@ -13,22 +13,18 @@ COLORS = {
     "warning": "#f59e0b",
     "danger": "#ef4444",
     "info": "#3b82f6",
-
     # Background colors
     "bg_dark": "#0f172a",
     "bg_medium": "#1e293b",
     "bg_light": "#334155",
     "bg_card": "#1e293b",
-
     # Text colors
     "text_primary": "#f8fafc",
     "text_secondary": "#94a3b8",
     "text_muted": "#64748b",
-
     # Border colors
     "border": "#334155",
     "border_light": "#475569",
-
     # Status colors
     "status_running": "#22c55e",
     "status_pending": "#f59e0b",

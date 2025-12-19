@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class RuleTrigger(str, Enum):
     """مشغل القاعدة."""
+
     JOB_COMPLETED = "job.completed"
     JOB_FAILED = "job.failed"
     JOB_TIMEOUT = "job.timeout"
@@ -47,6 +48,7 @@ class RuleTrigger(str, Enum):
 @dataclass
 class NotificationRule:
     """قاعدة إشعار."""
+
     rule_id: str
     name: str
     trigger: RuleTrigger
@@ -166,7 +168,7 @@ class NotificationManager:
         # Store in history
         self._history.append(notification)
         if len(self._history) > self._max_history:
-            self._history = self._history[-self._max_history:]
+            self._history = self._history[-self._max_history :]
 
         # Call hooks
         for hook in self._hooks:
@@ -356,6 +358,7 @@ class NotificationManager:
 # =============================================================================
 # Factory Functions
 # =============================================================================
+
 
 def create_notification_manager(config: Dict[str, Any]) -> NotificationManager:
     """

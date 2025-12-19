@@ -78,9 +78,7 @@ class WorkerAgent:
         # Setup signal handlers
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
-                asyncio.get_event_loop().add_signal_handler(
-                    sig, lambda s=sig: asyncio.create_task(self._shutdown(s))
-                )
+                asyncio.get_event_loop().add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._shutdown(s)))
             except NotImplementedError:
                 # Windows doesn't support add_signal_handler
                 pass
@@ -209,17 +207,19 @@ class WorkerAgent:
 
         gpus_data = []
         for gpu in usage.gpus:
-            gpus_data.append({
-                "index": gpu.index,
-                "name": gpu.name,
-                "uuid": gpu.uuid,
-                "memory_total_mb": gpu.memory_total_mb,
-                "memory_free_mb": gpu.memory_free_mb,
-                "memory_used_mb": gpu.memory_used_mb,
-                "utilization_percent": gpu.utilization_percent,
-                "temperature_c": gpu.temperature_c,
-                "power_draw_w": gpu.power_draw_w,
-            })
+            gpus_data.append(
+                {
+                    "index": gpu.index,
+                    "name": gpu.name,
+                    "uuid": gpu.uuid,
+                    "memory_total_mb": gpu.memory_total_mb,
+                    "memory_free_mb": gpu.memory_free_mb,
+                    "memory_used_mb": gpu.memory_used_mb,
+                    "utilization_percent": gpu.utilization_percent,
+                    "temperature_c": gpu.temperature_c,
+                    "power_draw_w": gpu.power_draw_w,
+                }
+            )
 
         response = await self._client.post(
             f"{self.master_url}/workers/heartbeat",
@@ -317,8 +317,7 @@ class WorkerAgent:
 
             status = "completed" if result.success else "failed"
             logger.info(
-                f"Job {job_id} {status}: exit_code={result.exit_code}, "
-                f"time={result.execution_time_seconds:.2f}s"
+                f"Job {job_id} {status}: exit_code={result.exit_code}, " f"time={result.execution_time_seconds:.2f}s"
             )
 
         except asyncio.CancelledError:

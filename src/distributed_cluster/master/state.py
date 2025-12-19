@@ -33,6 +33,7 @@ class Lease:
 
     يمنع race conditions عند التوزيع.
     """
+
     lease_id: str
     job_id: str
     worker_id: str
@@ -304,14 +305,10 @@ class ClusterState:
             # Stats
             if result.success:
                 self._stats["total_jobs_completed"] += 1
-                event = Event.job_completed(
-                    job_id, worker_id, result.exit_code, result.execution_time_seconds
-                )
+                event = Event.job_completed(job_id, worker_id, result.exit_code, result.execution_time_seconds)
             else:
                 self._stats["total_jobs_failed"] += 1
-                event = Event.job_failed(
-                    job_id, worker_id, result.error_message or "Unknown error", result.exit_code
-                )
+                event = Event.job_failed(job_id, worker_id, result.error_message or "Unknown error", result.exit_code)
 
             self._emit_event(event)
 
@@ -326,8 +323,7 @@ class ClusterState:
                 self._emit_event(event)
 
             logger.info(
-                f"Job {job_id} completed: exit_code={result.exit_code}, "
-                f"time={result.execution_time_seconds:.2f}s"
+                f"Job {job_id} completed: exit_code={result.exit_code}, " f"time={result.execution_time_seconds:.2f}s"
             )
             return True
 

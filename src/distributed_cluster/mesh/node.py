@@ -27,17 +27,19 @@ from .router import RoutingStrategy, TaskRouter
 
 class NodeState(str, Enum):
     """حالة العقدة في الشبكة"""
+
     INITIALIZING = "initializing"  # بدء التشغيل
-    DISCOVERING = "discovering"    # البحث عن العقد الأخرى
-    ACTIVE = "active"              # نشط ويعمل
-    BUSY = "busy"                  # مشغول بمهام
-    DRAINING = "draining"          # يستنزف المهام قبل الإيقاف
-    OFFLINE = "offline"            # غير متصل
+    DISCOVERING = "discovering"  # البحث عن العقد الأخرى
+    ACTIVE = "active"  # نشط ويعمل
+    BUSY = "busy"  # مشغول بمهام
+    DRAINING = "draining"  # يستنزف المهام قبل الإيقاف
+    OFFLINE = "offline"  # غير متصل
 
 
 @dataclass
 class NodeInfo:
     """معلومات العقدة"""
+
     node_id: str
     hostname: str
     ip_address: str
@@ -158,6 +160,7 @@ class MeshNode:
         """اكتشاف موارد الجهاز تلقائياً"""
         try:
             import psutil
+
             cpu_count = psutil.cpu_count()
             memory_mb = psutil.virtual_memory().total // (1024 * 1024)
 
@@ -165,6 +168,7 @@ class MeshNode:
             gpu_count = 0
             try:
                 import warnings as _w
+
                 with _w.catch_warnings():
                     _w.filterwarnings("ignore", category=FutureWarning, module="pynvml")
                     import pynvml
@@ -186,6 +190,7 @@ class MeshNode:
     def info(self) -> NodeInfo:
         """الحصول على معلومات العقدة"""
         import socket
+
         return NodeInfo(
             node_id=self.node_id,
             hostname=socket.gethostname(),

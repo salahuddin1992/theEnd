@@ -31,15 +31,11 @@ def setup_logging(level: str) -> None:
 
 @app.command()
 def start(
-    master_url: str = typer.Option(
-        "http://localhost:8765", "--master", "-m", help="Master URL"
-    ),
+    master_url: str = typer.Option("http://localhost:8765", "--master", "-m", help="Master URL"),
     port: int = typer.Option(8766, "--port", "-p", help="Worker port"),
     tags: Optional[str] = typer.Option(None, "--tags", "-t", help="Comma-separated tags"),
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Worker name"),
-    work_dir: Path = typer.Option(
-        Path("./worker_jobs"), "--work-dir", "-w", help="Working directory"
-    ),
+    work_dir: Path = typer.Option(Path("./worker_jobs"), "--work-dir", "-w", help="Working directory"),
     no_docker: bool = typer.Option(False, "--no-docker", help="Disable Docker"),
     log_level: str = typer.Option("INFO", "--log-level", "-l", help="Log level"),
     config: Optional[Path] = typer.Option(None, "--config", "-c", help="Config file path"),

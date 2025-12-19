@@ -260,11 +260,13 @@ class TemplatesView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Job Templates")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         header_layout.addStretch()
@@ -280,12 +282,14 @@ class TemplatesView(QWidget):
         splitter = QSplitter(Qt.Horizontal)
 
         # Templates table
-        self.templates_table = DataTable([
-            ("Name", "name", 150),
-            ("Description", "description", -1),
-            ("CPU", "cpu_display", 80),
-            ("Memory", "memory_display", 100),
-        ])
+        self.templates_table = DataTable(
+            [
+                ("Name", "name", 150),
+                ("Description", "description", -1),
+                ("CPU", "cpu_display", 80),
+                ("Memory", "memory_display", 100),
+            ]
+        )
         self.templates_table.row_selected.connect(self._on_template_selected)
         self.templates_table.refresh_btn.clicked.connect(self._on_refresh)
         splitter.addWidget(self.templates_table)
@@ -304,11 +308,13 @@ class TemplatesView(QWidget):
         display_data = []
         for template in templates:
             resources = template.get("resources", {})
-            display_data.append({
-                **template,
-                "cpu_display": f"{resources.get('cpu_cores', '-')} cores",
-                "memory_display": f"{resources.get('memory_mb', '-')} MB",
-            })
+            display_data.append(
+                {
+                    **template,
+                    "cpu_display": f"{resources.get('cpu_cores', '-')} cores",
+                    "memory_display": f"{resources.get('memory_mb', '-')} MB",
+                }
+            )
         self.templates_table.set_data(display_data)
 
     def _on_template_selected(self, row_idx: int, template_data: dict):
@@ -330,18 +336,19 @@ class TemplatesView(QWidget):
     def _on_use_template(self, template: dict):
         """Handle use template"""
         QMessageBox.information(
-            self, "Use Template",
-            f"Template '{template.get('name')}' selected.\n"
-            "Navigate to Jobs to submit a job using this template."
+            self,
+            "Use Template",
+            f"Template '{template.get('name')}' selected.\n" "Navigate to Jobs to submit a job using this template.",
         )
 
     def _on_delete_template(self, name: str):
         """Handle delete template"""
         reply = QMessageBox.question(
-            self, "Delete Template",
+            self,
+            "Delete Template",
             f"Are you sure you want to delete template '{name}'?",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             # Delete via API

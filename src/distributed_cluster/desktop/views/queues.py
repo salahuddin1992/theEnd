@@ -39,11 +39,13 @@ class QueuesView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Priority Queues")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         subtitle = QLabel("Manage job scheduling priorities")
@@ -60,14 +62,16 @@ class QueuesView(QWidget):
         layout.addLayout(header_layout)
 
         # Queues table
-        self.queues_table = DataTable([
-            ("Name", "name", 150),
-            ("Priority", "priority", 100),
-            ("Pending Jobs", "pending_count", 120),
-            ("Running Jobs", "running_count", 120),
-            ("Weight", "weight", 80),
-            ("Status", "status", 100),
-        ])
+        self.queues_table = DataTable(
+            [
+                ("Name", "name", 150),
+                ("Priority", "priority", 100),
+                ("Pending Jobs", "pending_count", 120),
+                ("Running Jobs", "running_count", 120),
+                ("Weight", "weight", 80),
+                ("Status", "status", 100),
+            ]
+        )
         self.queues_table.set_status_column("status")
         self.queues_table.refresh_btn.clicked.connect(self._on_refresh)
         layout.addWidget(self.queues_table)
@@ -76,12 +80,14 @@ class QueuesView(QWidget):
         """Update queues list"""
         display_data = []
         for queue in queues:
-            display_data.append({
-                **queue,
-                "pending_count": queue.get("pending_jobs", 0),
-                "running_count": queue.get("running_jobs", 0),
-                "status": "active" if queue.get("enabled", True) else "disabled",
-            })
+            display_data.append(
+                {
+                    **queue,
+                    "pending_count": queue.get("pending_jobs", 0),
+                    "running_count": queue.get("running_jobs", 0),
+                    "status": "active" if queue.get("enabled", True) else "disabled",
+                }
+            )
         self.queues_table.set_data(display_data)
 
     def _on_refresh(self):

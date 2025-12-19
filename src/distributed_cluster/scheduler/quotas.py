@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class QuotaScope(str, Enum):
     """نطاق الحصة."""
+
     USER = "user"
     TEAM = "team"
     NAMESPACE = "namespace"
@@ -34,6 +35,7 @@ class QuotaScope(str, Enum):
 
 class QuotaMetric(str, Enum):
     """مقاييس الحصة."""
+
     CPU_CORES = "cpu_cores"
     MEMORY_MB = "memory_mb"
     GPU_COUNT = "gpu_count"
@@ -47,6 +49,7 @@ class QuotaMetric(str, Enum):
 @dataclass
 class QuotaLimit:
     """حد واحد من الحصة."""
+
     metric: QuotaMetric
     limit: float
     current_usage: float = 0.0
@@ -92,6 +95,7 @@ class QuotaLimit:
 @dataclass
 class Quota:
     """حصة موارد."""
+
     quota_id: str
     name: str
     scope: QuotaScope
@@ -254,6 +258,7 @@ class Quota:
 @dataclass
 class UsageRecord:
     """سجل استخدام."""
+
     scope: QuotaScope
     scope_id: str
     metric: QuotaMetric
@@ -426,9 +431,7 @@ class QuotaManager:
         if hourly_limit:
             # Clean old entries
             hour_ago = now - timedelta(hours=1)
-            self._hourly_jobs[scope_id] = [
-                t for t in self._hourly_jobs[scope_id] if t > hour_ago
-            ]
+            self._hourly_jobs[scope_id] = [t for t in self._hourly_jobs[scope_id] if t > hour_ago]
             if len(self._hourly_jobs[scope_id]) >= hourly_limit.limit:
                 return False, f"Hourly job limit reached: {int(hourly_limit.limit)}"
 
@@ -436,9 +439,7 @@ class QuotaManager:
         daily_limit = quota.limits.get(QuotaMetric.TOTAL_JOBS_PER_DAY)
         if daily_limit:
             day_ago = now - timedelta(days=1)
-            self._daily_jobs[scope_id] = [
-                t for t in self._daily_jobs[scope_id] if t > day_ago
-            ]
+            self._daily_jobs[scope_id] = [t for t in self._daily_jobs[scope_id] if t > day_ago]
             if len(self._daily_jobs[scope_id]) >= daily_limit.limit:
                 return False, f"Daily job limit reached: {int(daily_limit.limit)}"
 
@@ -531,6 +532,7 @@ class QuotaManager:
 # Predefined Quota Templates
 # =============================================================================
 
+
 class QuotaTemplates:
     """قوالب حصص جاهزة."""
 
@@ -586,10 +588,10 @@ class QuotaTemplates:
     def unlimited() -> Dict[QuotaMetric, float]:
         """حصة غير محدودة."""
         return {
-            QuotaMetric.CPU_CORES: float('inf'),
-            QuotaMetric.MEMORY_MB: float('inf'),
-            QuotaMetric.GPU_COUNT: float('inf'),
-            QuotaMetric.CONCURRENT_JOBS: float('inf'),
-            QuotaMetric.TOTAL_JOBS_PER_HOUR: float('inf'),
-            QuotaMetric.TOTAL_JOBS_PER_DAY: float('inf'),
+            QuotaMetric.CPU_CORES: float("inf"),
+            QuotaMetric.MEMORY_MB: float("inf"),
+            QuotaMetric.GPU_COUNT: float("inf"),
+            QuotaMetric.CONCURRENT_JOBS: float("inf"),
+            QuotaMetric.TOTAL_JOBS_PER_HOUR: float("inf"),
+            QuotaMetric.TOTAL_JOBS_PER_DAY: float("inf"),
         }

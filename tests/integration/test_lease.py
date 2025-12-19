@@ -5,15 +5,16 @@ Lease Management Integration Tests
 Tests for job lease management and idempotency.
 """
 
-import pytest
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
+
+import pytest
 
 from distributed_cluster.models.lease import (
     Lease,
-    LeaseState,
-    LeaseManager,
     LeaseConfig,
+    LeaseManager,
+    LeaseState,
 )
 
 
@@ -74,11 +75,7 @@ class TestLeaseManager:
 
     def test_create_lease(self, lease_manager: LeaseManager):
         """Test creating a lease."""
-        lease = lease_manager.create_lease(
-            job_id="job-1",
-            worker_id="worker-1",
-            duration_seconds=60
-        )
+        lease = lease_manager.create_lease(job_id="job-1", worker_id="worker-1", duration_seconds=60)
 
         assert lease is not None
         assert lease.job_id == "job-1"
@@ -240,17 +237,11 @@ class TestLeaseIdempotency:
     def test_idempotency_key_prevents_duplicates(self, lease_manager: LeaseManager):
         """Test that idempotency key prevents duplicate operations."""
         # Create lease with idempotency key
-        lease1 = lease_manager.create_lease(
-            "job-1", "worker-1", 60,
-            idempotency_key="create-job-1-attempt-1"
-        )
+        lease1 = lease_manager.create_lease("job-1", "worker-1", 60, idempotency_key="create-job-1-attempt-1")
         assert lease1 is not None
 
         # Same idempotency key should return same lease, not create new
-        lease2 = lease_manager.create_lease(
-            "job-1", "worker-1", 60,
-            idempotency_key="create-job-1-attempt-1"
-        )
+        lease2 = lease_manager.create_lease("job-1", "worker-1", 60, idempotency_key="create-job-1-attempt-1")
 
         # Should get back the same lease
         assert lease2 is not None

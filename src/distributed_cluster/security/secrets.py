@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 class SecretType(str, Enum):
     """نوع السر."""
+
     OPAQUE = "opaque"  # بيانات عامة
     PASSWORD = "password"
     API_KEY = "api_key"
@@ -46,6 +47,7 @@ class SecretType(str, Enum):
 @dataclass
 class SecretMetadata:
     """بيانات وصفية للسر."""
+
     name: str
     namespace: str = "default"
     secret_type: SecretType = SecretType.OPAQUE
@@ -66,6 +68,7 @@ class SecretMetadata:
 @dataclass
 class Secret:
     """سر واحد."""
+
     metadata: SecretMetadata
     data: Dict[str, bytes] = field(default_factory=dict)  # key -> encrypted value
 
@@ -146,7 +149,7 @@ class Encryptor:
     def _derive_key(self, password: bytes, salt: Optional[bytes] = None) -> bytes:
         """اشتقاق مفتاح من كلمة مرور."""
         if salt is None:
-            salt = b'nebula-secrets-salt'  # Fixed salt for reproducibility
+            salt = b"nebula-secrets-salt"  # Fixed salt for reproducibility
 
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -167,13 +170,13 @@ class Encryptor:
 
     def encrypt_string(self, data: str) -> str:
         """تشفير نص."""
-        encrypted = self.encrypt(data.encode('utf-8'))
-        return base64.b64encode(encrypted).decode('ascii')
+        encrypted = self.encrypt(data.encode("utf-8"))
+        return base64.b64encode(encrypted).decode("ascii")
 
     def decrypt_string(self, encrypted: str) -> str:
         """فك تشفير نص."""
-        data = base64.b64decode(encrypted.encode('ascii'))
-        return self.decrypt(data).decode('utf-8')
+        data = base64.b64decode(encrypted.encode("ascii"))
+        return self.decrypt(data).decode("utf-8")
 
 
 class SecretStore(ABC):
@@ -233,9 +236,7 @@ class FileSecretStore(SecretStore):
         # Encrypt all data
         encrypted_data = {}
         for key, value in secret.data.items():
-            encrypted_data[key] = base64.b64encode(
-                self.encryptor.encrypt(value)
-            ).decode('ascii')
+            encrypted_data[key] = base64.b64encode(self.encryptor.encrypt(value)).decode("ascii")
 
         # Serialize
         data = {
@@ -257,7 +258,7 @@ class FileSecretStore(SecretStore):
             "data": encrypted_data,
         }
 
-        path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding='utf-8')
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         logger.info(f"Created secret: {secret.metadata.namespace}/{secret.metadata.name}")
         return True
 
@@ -268,7 +269,7 @@ class FileSecretStore(SecretStore):
         if not path.exists():
             return None
 
-        data = json.loads(path.read_text(encoding='utf-8'))
+        data = json.loads(path.read_text(encoding="utf-8"))
         meta_data = data["metadata"]
 
         metadata = SecretMetadata(
@@ -290,9 +291,7 @@ class FileSecretStore(SecretStore):
         # Decrypt data
         decrypted_data = {}
         for key, encrypted in data["data"].items():
-            decrypted_data[key] = self.encryptor.decrypt(
-                base64.b64decode(encrypted.encode('ascii'))
-            )
+            decrypted_data[key] = self.encryptor.decrypt(base64.b64decode(encrypted.encode("ascii")))
 
         return Secret(metadata=metadata, data=decrypted_data)
 
@@ -438,7 +437,7 @@ class SecretsManager:
         )
 
         # Encode data as bytes
-        secret_data = {k: v.encode('utf-8') for k, v in data.items()}
+        secret_data = {k: v.encode("utf-8") for k, v in data.items()}
 
         secret = Secret(metadata=metadata, data=secret_data)
         return await self.store.create(secret)
@@ -472,7 +471,7 @@ class SecretsManager:
             return None
 
         # Decode data
-        return {k: v.decode('utf-8') for k, v in secret.data.items()}
+        return {k: v.decode("utf-8") for k, v in secret.data.items()}
 
     async def update_secret(
         self,
@@ -486,7 +485,7 @@ class SecretsManager:
             return False
 
         # Update data
-        secret.data = {k: v.encode('utf-8') for k, v in data.items()}
+        secret.data = {k: v.encode("utf-8") for k, v in data.items()}
         return await self.store.update(secret)
 
     async def delete_secret(self, name: str, namespace: str = "default") -> bool:
@@ -537,7 +536,8 @@ class SecretsManager:
                 namespace, name = "default", ref
 
             secret_data = await self.get_secret(
-                name, namespace,
+                name,
+                namespace,
                 user_id=user_id,
                 job_pattern=job_pattern,
             )
@@ -568,13 +568,14 @@ class SecretsManager:
             return False
 
         if generator is None:
+
             def generator():
                 return py_secrets.token_urlsafe(32)
 
         # Generate new values for all keys
         new_data = {}
         for key in secret.data.keys():
-            new_data[key] = generator().encode('utf-8')
+            new_data[key] = generator().encode("utf-8")
 
         secret.data = new_data
         return await self.store.update(secret)
@@ -591,6 +592,7 @@ class SecretsManager:
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def create_secrets_manager(
     master_key: Optional[str] = None,

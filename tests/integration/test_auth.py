@@ -5,17 +5,16 @@ Authentication Integration Tests
 Tests for the security and authentication layer.
 """
 
-import pytest
 from datetime import datetime, timedelta
 
 from distributed_cluster.security.auth import (
-    AuthManager,
+    ROLE_PERMISSIONS,
     AuthConfig,
+    AuthManager,
     EnrollmentMode,
     Permission,
     Role,
     TokenPayload,
-    ROLE_PERMISSIONS,
 )
 
 
@@ -96,10 +95,7 @@ class TestWorkerEnrollment:
 
     def test_auto_approve_enrollment(self, auth_manager: AuthManager):
         """Test auto-approve enrollment mode."""
-        success, message, token = auth_manager.enroll_worker(
-            fingerprint="abc123def456",
-            enrollment_token=None
-        )
+        success, message, token = auth_manager.enroll_worker(fingerprint="abc123def456", enrollment_token=None)
 
         assert success is True
         assert token is not None
@@ -117,10 +113,7 @@ class TestWorkerEnrollment:
         enrollment_token = auth.create_enrollment_token(expires_in_hours=1)
 
         # With valid token should succeed
-        success, message, token = auth.enroll_worker(
-            fingerprint="abc123",
-            enrollment_token=enrollment_token
-        )
+        success, message, token = auth.enroll_worker(fingerprint="abc123", enrollment_token=enrollment_token)
         assert success is True
         assert token is not None
 
@@ -136,10 +129,7 @@ class TestWorkerEnrollment:
         auth.add_to_allowlist("allowed-fingerprint-1")
 
         # Allowed fingerprint should succeed
-        success, _, token = auth.enroll_worker(
-            fingerprint="allowed-fingerprint-1",
-            enrollment_token=None
-        )
+        success, _, token = auth.enroll_worker(fingerprint="allowed-fingerprint-1", enrollment_token=None)
         assert success is True
         assert token is not None
 

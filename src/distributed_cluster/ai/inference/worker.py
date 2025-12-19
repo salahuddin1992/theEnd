@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WorkerConfig:
     """تكوين العامل."""
+
     worker_id: str = ""
     name: str = "inference-worker"
     host: str = "0.0.0.0"
@@ -57,6 +58,7 @@ class WorkerConfig:
 
 class GenerateRequest(BaseModel):
     """طلب التوليد."""
+
     prompt: str
     model: str
     system_prompt: Optional[str] = None
@@ -72,6 +74,7 @@ class GenerateRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     """طلب المحادثة."""
+
     messages: List[Dict[str, str]]
     model: str
     stream: bool = False
@@ -325,7 +328,7 @@ class InferenceWorker:
         """Stream chat."""
         import json
 
-        if hasattr(self._provider, 'chat_stream'):
+        if hasattr(self._provider, "chat_stream"):
             try:
                 async for chunk in self._provider.chat_stream(
                     messages=messages,

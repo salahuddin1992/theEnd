@@ -39,11 +39,13 @@ class PoolsView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Worker Pools")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         subtitle = QLabel("Manage logical groups of workers")
@@ -60,14 +62,16 @@ class PoolsView(QWidget):
         layout.addLayout(header_layout)
 
         # Pools table
-        self.pools_table = DataTable([
-            ("Name", "name", 150),
-            ("Description", "description", -1),
-            ("Workers", "worker_count", 100),
-            ("Min Workers", "min_workers", 100),
-            ("Max Workers", "max_workers", 100),
-            ("Status", "status", 100),
-        ])
+        self.pools_table = DataTable(
+            [
+                ("Name", "name", 150),
+                ("Description", "description", -1),
+                ("Workers", "worker_count", 100),
+                ("Min Workers", "min_workers", 100),
+                ("Max Workers", "max_workers", 100),
+                ("Status", "status", 100),
+            ]
+        )
         self.pools_table.set_status_column("status")
         self.pools_table.refresh_btn.clicked.connect(self._on_refresh)
         layout.addWidget(self.pools_table)
@@ -76,11 +80,13 @@ class PoolsView(QWidget):
         """Update pools list"""
         display_data = []
         for pool in pools:
-            display_data.append({
-                **pool,
-                "worker_count": len(pool.get("workers", [])),
-                "status": "active" if pool.get("workers") else "empty",
-            })
+            display_data.append(
+                {
+                    **pool,
+                    "worker_count": len(pool.get("workers", [])),
+                    "status": "active" if pool.get("workers") else "empty",
+                }
+            )
         self.pools_table.set_data(display_data)
 
     def _on_refresh(self):

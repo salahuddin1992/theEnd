@@ -60,6 +60,7 @@ class InteractiveShell(cmd.Cmd):
             pass
 
         import atexit
+
         atexit.register(readline.write_history_file, history_file)
 
     def _api_get(self, endpoint: str, params: Optional[Dict] = None) -> Dict:
@@ -115,15 +116,15 @@ class InteractiveShell(cmd.Cmd):
 
         table.add_row("Workers", f"{stats.get('active_workers', 0)} / {stats.get('total_workers', 0)}")
         table.add_row("CPU Cores", f"{stats.get('available_cpu_cores', 0):.1f} / {stats.get('total_cpu_cores', 0):.1f}")
-        avail_mem = stats.get('available_memory_gb', 0)
-        total_mem = stats.get('total_memory_gb', 0)
+        avail_mem = stats.get("available_memory_gb", 0)
+        total_mem = stats.get("total_memory_gb", 0)
         table.add_row("Memory (GB)", f"{avail_mem:.1f} / {total_mem:.1f}")
         table.add_row("GPUs", f"{stats.get('available_gpus', 0)} / {stats.get('total_gpus', 0)}")
         table.add_row("", "")
-        table.add_row("Pending Jobs", str(stats.get('pending_jobs', 0)))
-        table.add_row("Running Jobs", str(stats.get('running_jobs', 0)))
-        table.add_row("Completed Jobs", str(stats.get('completed_jobs', 0)))
-        table.add_row("Failed Jobs", str(stats.get('failed_jobs', 0)))
+        table.add_row("Pending Jobs", str(stats.get("pending_jobs", 0)))
+        table.add_row("Running Jobs", str(stats.get("running_jobs", 0)))
+        table.add_row("Completed Jobs", str(stats.get("completed_jobs", 0)))
+        table.add_row("Failed Jobs", str(stats.get("failed_jobs", 0)))
 
         console.print(table)
 
@@ -279,26 +280,14 @@ class InteractiveShell(cmd.Cmd):
         if not job:
             return
 
-        console.print(Panel(
-            json.dumps(job, indent=2, default=str),
-            title=f"Job: {arg}",
-            border_style="cyan"
-        ))
+        console.print(Panel(json.dumps(job, indent=2, default=str), title=f"Job: {arg}", border_style="cyan"))
 
         # Show output if available
         if job.get("result", {}).get("stdout"):
-            console.print(Panel(
-                job["result"]["stdout"][:3000],
-                title="stdout",
-                border_style="green"
-            ))
+            console.print(Panel(job["result"]["stdout"][:3000], title="stdout", border_style="green"))
 
         if job.get("result", {}).get("stderr"):
-            console.print(Panel(
-                job["result"]["stderr"][:3000],
-                title="stderr",
-                border_style="red"
-            ))
+            console.print(Panel(job["result"]["stderr"][:3000], title="stderr", border_style="red"))
 
     def do_cancel(self, arg: str) -> None:
         """Cancel a job. Usage: cancel <job_id>"""
@@ -507,24 +496,24 @@ class InteractiveShell(cmd.Cmd):
                 console.print()
 
                 if stats:
-                    active = stats.get('active_workers', 0)
-                    total_w = stats.get('total_workers', 0)
+                    active = stats.get("active_workers", 0)
+                    total_w = stats.get("total_workers", 0)
                     console.print(f"Workers: [green]{active}[/green] / {total_w}")
-                    avail_cpu = stats.get('available_cpu_cores', 0)
-                    total_cpu = stats.get('total_cpu_cores', 0)
+                    avail_cpu = stats.get("available_cpu_cores", 0)
+                    total_cpu = stats.get("total_cpu_cores", 0)
                     console.print(f"CPU: [green]{avail_cpu:.1f}[/green] / {total_cpu:.1f} cores")
-                    avail_mem = stats.get('available_memory_gb', 0)
-                    total_mem = stats.get('total_memory_gb', 0)
+                    avail_mem = stats.get("available_memory_gb", 0)
+                    total_mem = stats.get("total_memory_gb", 0)
                     console.print(f"Memory: [green]{avail_mem:.1f}[/green] / {total_mem:.1f} GB")
-                    avail_gpu = stats.get('available_gpus', 0)
-                    total_gpu = stats.get('total_gpus', 0)
+                    avail_gpu = stats.get("available_gpus", 0)
+                    total_gpu = stats.get("total_gpus", 0)
                     console.print(f"GPUs: [green]{avail_gpu}[/green] / {total_gpu}")
                     console.print()
-                    pending = stats.get('pending_jobs', 0)
-                    running = stats.get('running_jobs', 0)
+                    pending = stats.get("pending_jobs", 0)
+                    running = stats.get("running_jobs", 0)
                     console.print(f"Jobs: [blue]{pending}[/blue] pending, [yellow]{running}[/yellow] running")
-                    completed = stats.get('completed_jobs', 0)
-                    failed = stats.get('failed_jobs', 0)
+                    completed = stats.get("completed_jobs", 0)
+                    failed = stats.get("failed_jobs", 0)
                     console.print(f"      [green]{completed}[/green] completed, [red]{failed}[/red] failed")
 
                 time.sleep(interval)
@@ -552,7 +541,8 @@ class InteractiveShell(cmd.Cmd):
             super().do_help(arg)
             return
 
-        console.print("""
+        console.print(
+            """
 [bold cyan]NebulaCompute Interactive Shell[/bold cyan]
 
 [bold]Connection:[/bold]
@@ -580,7 +570,8 @@ class InteractiveShell(cmd.Cmd):
   clear              Clear screen
   help               Show this help
   quit               Exit shell
-""")
+"""
+        )
 
     def do_quit(self, arg: str) -> bool:
         """Exit the shell."""
@@ -619,5 +610,6 @@ def run_interactive(master_url: str = "http://localhost:8765") -> None:
 
 if __name__ == "__main__":
     import sys
+
     url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8765"
     run_interactive(url)

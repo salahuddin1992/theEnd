@@ -18,6 +18,7 @@ from typing import Optional
 try:
     import grpc
     from grpc import aio as grpc_aio
+
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
@@ -37,6 +38,7 @@ logger = StructuredLogger("grpc.server")
 @dataclass
 class GRPCServerConfig:
     """إعدادات سيرفر gRPC."""
+
     host: str = "0.0.0.0"
     port: int = 50051
 
@@ -105,22 +107,14 @@ class MetricsInterceptor(grpc_aio.ServerInterceptor if GRPC_AVAILABLE else objec
 
         try:
             response = await continuation(handler_call_details)
-            self.metrics.counter("grpc_requests_total", 1, {
-                "method": method_name,
-                "status": "ok"
-            })
+            self.metrics.counter("grpc_requests_total", 1, {"method": method_name, "status": "ok"})
             return response
         except Exception:
-            self.metrics.counter("grpc_requests_total", 1, {
-                "method": method_name,
-                "status": "error"
-            })
+            self.metrics.counter("grpc_requests_total", 1, {"method": method_name, "status": "error"})
             raise
         finally:
             duration = (datetime.utcnow() - start_time).total_seconds()
-            self.metrics.histogram("grpc_request_duration_seconds", duration, {
-                "method": method_name
-            })
+            self.metrics.histogram("grpc_request_duration_seconds", duration, {"method": method_name})
 
 
 class LoggingInterceptor(grpc_aio.ServerInterceptor if GRPC_AVAILABLE else object):
@@ -164,9 +158,7 @@ class GRPCServer:
         metrics: Optional[MetricsCollector] = None,
     ):
         if not GRPC_AVAILABLE:
-            raise RuntimeError(
-                "gRPC is not installed. Install with: pip install grpcio grpcio-tools"
-            )
+            raise RuntimeError("gRPC is not installed. Install with: pip install grpcio grpcio-tools")
 
         self.config = config
         self.scheduler = scheduler

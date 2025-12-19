@@ -29,15 +29,17 @@ logger = logging.getLogger(__name__)
 
 class HARole(str, Enum):
     """دور الـ Master في الكلاستر"""
-    LEADER = "leader"          # القائد - يعمل بشكل كامل
-    FOLLOWER = "follower"      # تابع - جاهز للتبديل
-    CANDIDATE = "candidate"    # مرشح - في انتخابات
-    UNKNOWN = "unknown"        # غير معروف - قبل الانتخاب
+
+    LEADER = "leader"  # القائد - يعمل بشكل كامل
+    FOLLOWER = "follower"  # تابع - جاهز للتبديل
+    CANDIDATE = "candidate"  # مرشح - في انتخابات
+    UNKNOWN = "unknown"  # غير معروف - قبل الانتخاب
 
 
 @dataclass
 class LeaderInfo:
     """معلومات القائد الحالي"""
+
     master_id: str
     address: str
     port: int
@@ -57,6 +59,7 @@ class LeaderInfo:
 @dataclass
 class MasterPeer:
     """معلومات Master آخر"""
+
     master_id: str
     address: str
     port: int
@@ -76,6 +79,7 @@ class MasterPeer:
 @dataclass
 class ElectionConfig:
     """إعدادات انتخاب القائد"""
+
     # معرف هذا الـ Master (فريد)
     master_id: str = ""
 
@@ -314,8 +318,9 @@ class LeaderElection:
             higher_priority_responded = False
 
             for peer_id, peer in self._peers.items():
-                if peer.priority > self.config.priority or \
-                   (peer.priority == self.config.priority and peer.master_id > self.config.master_id):
+                if peer.priority > self.config.priority or (
+                    peer.priority == self.config.priority and peer.master_id > self.config.master_id
+                ):
                     try:
                         resp = await self._client.post(
                             f"{peer.url}/ha/election",
@@ -405,8 +410,7 @@ class LeaderElection:
         logger.info(f"Received election request from {master_id} (term={term})")
 
         # إذا كنا بأولوية أعلى أو نفس الأولوية مع ID أكبر
-        if self.config.priority > priority or \
-           (self.config.priority == priority and self.config.master_id > master_id):
+        if self.config.priority > priority or (self.config.priority == priority and self.config.master_id > master_id):
             # نبدأ انتخابنا الخاص
             asyncio.create_task(self._start_election())
             return {"status": "ok", "message": "Starting own election"}

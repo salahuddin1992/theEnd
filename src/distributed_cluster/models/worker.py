@@ -18,6 +18,7 @@ from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
 
 class WorkerStatus(str, Enum):
     """حالات الـ Worker."""
+
     INITIALIZING = "initializing"  # يبدأ ويسجل نفسه
     READY = "ready"  # جاهز لاستلام jobs
     BUSY = "busy"  # يشتغل على jobs
@@ -33,6 +34,7 @@ class WorkerRegistration:
 
     يُرسل مرة واحدة عند بدء الـ Worker.
     """
+
     hostname: str
     ip_address: str
     port: int
@@ -83,6 +85,7 @@ class WorkerInfo:
 
     هذا هو الـ "state" الكامل للـ Worker في الـ cluster.
     """
+
     worker_id: str
     hostname: str
     ip_address: str
@@ -163,18 +166,9 @@ class WorkerInfo:
         self.available_resources = self.available_resources.add(released)
 
         # لا نتجاوز الموارد الإجمالية
-        self.available_resources.cpu_cores = min(
-            self.available_resources.cpu_cores,
-            self.total_resources.cpu_cores
-        )
-        self.available_resources.memory_mb = min(
-            self.available_resources.memory_mb,
-            self.total_resources.memory_mb
-        )
-        self.available_resources.gpu_count = min(
-            self.available_resources.gpu_count,
-            self.total_resources.gpu_count
-        )
+        self.available_resources.cpu_cores = min(self.available_resources.cpu_cores, self.total_resources.cpu_cores)
+        self.available_resources.memory_mb = min(self.available_resources.memory_mb, self.total_resources.memory_mb)
+        self.available_resources.gpu_count = min(self.available_resources.gpu_count, self.total_resources.gpu_count)
 
     def update_heartbeat(self, usage: ResourceUsage) -> None:
         """تحديث معلومات من heartbeat."""

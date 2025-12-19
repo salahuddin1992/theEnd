@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class ContainerState(str, Enum):
     """حالة الحاوية."""
+
     CREATED = "created"
     RUNNING = "running"
     PAUSED = "paused"
@@ -41,6 +42,7 @@ class ContainerState(str, Enum):
 
 class NetworkMode(str, Enum):
     """وضع الشبكة."""
+
     NONE = "none"
     BRIDGE = "bridge"
     HOST = "host"
@@ -50,6 +52,7 @@ class NetworkMode(str, Enum):
 @dataclass
 class ContainerConfig:
     """إعدادات الحاوية."""
+
     image: str
     command: List[str] = field(default_factory=list)
     args: List[str] = field(default_factory=list)
@@ -103,6 +106,7 @@ class ContainerConfig:
 @dataclass
 class ContainerStats:
     """إحصائيات الحاوية."""
+
     cpu_percent: float = 0.0
     memory_usage_mb: float = 0.0
     memory_limit_mb: float = 0.0
@@ -118,6 +122,7 @@ class ContainerStats:
 @dataclass
 class ContainerInfo:
     """معلومات الحاوية."""
+
     container_id: str
     name: str
     image: str
@@ -134,6 +139,7 @@ class ContainerInfo:
 @dataclass
 class ContainerResult:
     """نتيجة تشغيل الحاوية."""
+
     container_id: str
     exit_code: int
     stdout: str = ""
@@ -234,6 +240,7 @@ class DockerRuntime(ContainerRuntime):
         """تهيئة Docker client."""
         try:
             import docker
+
             self._client = docker.from_env()
             self._client.ping()
             self._available = True
@@ -276,7 +283,7 @@ class DockerRuntime(ContainerRuntime):
                 image=config.image,
                 name=name,
                 **container_config,
-            )
+            ),
         )
 
         logger.info(f"Created container: {container.id[:12]}")
@@ -390,16 +397,13 @@ class DockerRuntime(ContainerRuntime):
         try:
             container = self._client.containers.get(container_id)
             loop = asyncio.get_event_loop()
-            stats = await loop.run_in_executor(
-                None,
-                lambda: container.stats(stream=False)
-            )
+            stats = await loop.run_in_executor(None, lambda: container.stats(stream=False))
 
             # Parse CPU
-            cpu_delta = stats["cpu_stats"]["cpu_usage"]["total_usage"] - \
-                       stats["precpu_stats"]["cpu_usage"]["total_usage"]
-            system_delta = stats["cpu_stats"]["system_cpu_usage"] - \
-                          stats["precpu_stats"]["system_cpu_usage"]
+            cpu_delta = (
+                stats["cpu_stats"]["cpu_usage"]["total_usage"] - stats["precpu_stats"]["cpu_usage"]["total_usage"]
+            )
+            system_delta = stats["cpu_stats"]["system_cpu_usage"] - stats["precpu_stats"]["system_cpu_usage"]
             cpu_count = len(stats["cpu_stats"]["cpu_usage"].get("percpu_usage", [1]))
 
             cpu_percent = 0.0
@@ -456,7 +460,7 @@ class DockerRuntime(ContainerRuntime):
                     stdout=stdout,
                     stderr=stderr,
                     tail=tail or "all",
-                )
+                ),
             )
             return logs.decode("utf-8", errors="replace")
         except Exception as e:
@@ -473,9 +477,7 @@ class DockerRuntime(ContainerRuntime):
 
             if timeout:
                 result = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(
-                        None, container.wait
-                    ),
+                    asyncio.get_event_loop().run_in_executor(None, container.wait),
                     timeout=timeout,
                 )
             else:
@@ -512,9 +514,7 @@ class DockerRuntime(ContainerRuntime):
             await self.start_container(container_id)
 
             # Monitor stats in background
-            stats_task = asyncio.create_task(
-                self._monitor_container_stats(container_id)
-            )
+            stats_task = asyncio.create_task(self._monitor_container_stats(container_id))
 
             # Wait for container
             exit_code = await self.wait_container(container_id, config.timeout_seconds)
@@ -625,12 +625,14 @@ class DockerRuntime(ContainerRuntime):
 
         # GPU
         if config.gpu_count > 0:
-            docker_config["device_requests"] = [{
-                "Driver": "nvidia",
-                "Count": config.gpu_count,
-                "DeviceIDs": config.gpu_device_ids if config.gpu_device_ids else None,
-                "Capabilities": [["gpu"]],
-            }]
+            docker_config["device_requests"] = [
+                {
+                    "Driver": "nvidia",
+                    "Count": config.gpu_count,
+                    "DeviceIDs": config.gpu_device_ids if config.gpu_device_ids else None,
+                    "Capabilities": [["gpu"]],
+                }
+            ]
 
         # Volumes
         volumes = {}
@@ -652,9 +654,7 @@ class DockerRuntime(ContainerRuntime):
 
         # Ports
         if config.ports:
-            docker_config["ports"] = {
-                f"{cp}/tcp": hp for cp, hp in config.ports.items()
-            }
+            docker_config["ports"] = {f"{cp}/tcp": hp for cp, hp in config.ports.items()}
 
         # DNS
         if config.dns:
