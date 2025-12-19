@@ -70,11 +70,7 @@ class TestWorkerPersistence:
         new_time = datetime.utcnow() + timedelta(minutes=5)
         new_status = WorkerStatus.BUSY
 
-        updated = await database.update_worker_heartbeat(
-            sample_worker.worker_id,
-            new_time,
-            new_status
-        )
+        updated = await database.update_worker_heartbeat(sample_worker.worker_id, new_time, new_status)
         assert updated is True
 
         retrieved = await database.get_worker(sample_worker.worker_id)
@@ -168,10 +164,7 @@ class TestJobPersistence:
         # Update to running
         now = datetime.utcnow()
         updated = await database.update_job_status(
-            job.job_id,
-            JobStatus.RUNNING,
-            started_at=now,
-            assigned_worker="worker-1"
+            job.job_id, JobStatus.RUNNING, started_at=now, assigned_worker="worker-1"
         )
         assert updated is True
 

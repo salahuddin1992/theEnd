@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class ExecutionMode(str, Enum):
     """أوضاع التنفيذ."""
+
     LOCAL = "local"  # تنفيذ محلي
     DISTRIBUTED = "distributed"  # تنفيذ موزع
     HYBRID = "hybrid"  # مختلط
@@ -37,6 +38,7 @@ class ExecutionMode(str, Enum):
 @dataclass
 class ExecutionConfig:
     """إعدادات التنفيذ."""
+
     mode: ExecutionMode = ExecutionMode.LOCAL
     master_url: Optional[str] = None
     worker_id: Optional[str] = None
@@ -49,6 +51,7 @@ class ExecutionConfig:
 @dataclass
 class AgentJob:
     """مهمة وكيل للتنفيذ."""
+
     job_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     agent_name: str = ""
     task: AgentTask = field(default_factory=AgentTask)
@@ -316,18 +319,20 @@ class AgentExecutor:
             payload = {
                 "job_id": job.job_id,
                 "name": f"agent-{job.agent_name}",
-                "command": json.dumps({
-                    "type": "agent_task",
-                    "agent": job.agent_name,
-                    "task": {
-                        "task_id": job.task.task_id,
-                        "description": job.task.description,
-                        "context": job.task.context,
-                        "priority": job.task.priority,
-                        "timeout_seconds": job.task.timeout_seconds,
-                        "max_iterations": job.task.max_iterations,
-                    },
-                }),
+                "command": json.dumps(
+                    {
+                        "type": "agent_task",
+                        "agent": job.agent_name,
+                        "task": {
+                            "task_id": job.task.task_id,
+                            "description": job.task.description,
+                            "context": job.task.context,
+                            "priority": job.task.priority,
+                            "timeout_seconds": job.task.timeout_seconds,
+                            "max_iterations": job.task.max_iterations,
+                        },
+                    }
+                ),
                 "priority": job.task.priority,
             }
 

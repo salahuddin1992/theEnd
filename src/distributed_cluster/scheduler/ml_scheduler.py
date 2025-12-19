@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class JobHistory:
     """سجل تاريخي لمهمة."""
+
     job_id: str
     name: str
     command: str
@@ -59,6 +60,7 @@ class JobHistory:
 @dataclass
 class ResourcePrediction:
     """تنبؤ الموارد."""
+
     cpu_cores: float
     memory_mb: int
     gpu_count: int
@@ -85,11 +87,13 @@ class JobFeatureExtractor:
         features = []
 
         # Resource features
-        features.extend([
-            job.resources.cpu_cores,
-            job.resources.memory_mb / 1024,  # GB
-            job.resources.gpu_count,
-        ])
+        features.extend(
+            [
+                job.resources.cpu_cores,
+                job.resources.memory_mb / 1024,  # GB
+                job.resources.gpu_count,
+            ]
+        )
 
         # Command features
         cmd_lower = job.command.lower()
@@ -200,7 +204,7 @@ class KNNPredictor:
             distances = np.sqrt(np.sum((self._X - x) ** 2, axis=1))
 
             # Get k nearest
-            k_indices = np.argsort(distances)[:self.k]
+            k_indices = np.argsort(distances)[: self.k]
             k_nearest = self._y[k_indices]
 
             # Average prediction
@@ -530,9 +534,7 @@ class MLScheduler:
             pending_duration += est
 
         # Estimate parallel capacity
-        avg_cpu_per_job = sum(
-            j.resources.cpu_cores for j in pending_jobs
-        ) / max(len(pending_jobs), 1)
+        avg_cpu_per_job = sum(j.resources.cpu_cores for j in pending_jobs) / max(len(pending_jobs), 1)
 
         parallel_capacity = max(1, total_cpu / max(avg_cpu_per_job, 0.5))
 
@@ -540,10 +542,7 @@ class MLScheduler:
         wait_time = pending_duration / parallel_capacity
 
         # Position in queue
-        job_position = len([
-            j for j in pending_jobs
-            if j.priority >= job.priority
-        ])
+        job_position = len([j for j in pending_jobs if j.priority >= job.priority])
 
         # Adjust for position
         wait_time *= (job_position + 1) / len(pending_jobs) if pending_jobs else 1
@@ -560,15 +559,13 @@ class MLScheduler:
             "min_history_required": self.min_history_size,
             "models_trained": len(self._history) >= self.min_history_size,
             "jobs_since_update": self._jobs_since_update,
-            "avg_prediction_error": (
-                np.mean(self._prediction_errors[-100:])
-                if self._prediction_errors else None
-            ),
+            "avg_prediction_error": (np.mean(self._prediction_errors[-100:]) if self._prediction_errors else None),
         }
 
     def save_models(self, directory: str) -> None:
         """حفظ النماذج."""
         import os
+
         os.makedirs(directory, exist_ok=True)
 
         self._duration_model.save(f"{directory}/duration_model.pkl")
@@ -577,10 +574,13 @@ class MLScheduler:
 
         # Save history summary
         with open(f"{directory}/history_stats.pkl", "wb") as f:
-            pickle.dump({
-                "history_size": len(self._history),
-                "saved_at": datetime.utcnow().isoformat(),
-            }, f)
+            pickle.dump(
+                {
+                    "history_size": len(self._history),
+                    "saved_at": datetime.utcnow().isoformat(),
+                },
+                f,
+            )
 
         logger.info(f"ML models saved to {directory}")
 
@@ -598,6 +598,7 @@ class MLScheduler:
 # =============================================================================
 # Usage Example
 # =============================================================================
+
 
 def create_ml_scheduler_from_history(
     history: List[Dict[str, Any]],

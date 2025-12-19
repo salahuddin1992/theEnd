@@ -21,15 +21,17 @@ logger = logging.getLogger(__name__)
 
 class MasterHealthStatus(str, Enum):
     """حالة صحة Master"""
-    HEALTHY = "healthy"        # يعمل بشكل طبيعي
-    DEGRADED = "degraded"      # يعمل مع مشاكل
-    UNHEALTHY = "unhealthy"    # لا يعمل
-    UNKNOWN = "unknown"        # غير معروف
+
+    HEALTHY = "healthy"  # يعمل بشكل طبيعي
+    DEGRADED = "degraded"  # يعمل مع مشاكل
+    UNHEALTHY = "unhealthy"  # لا يعمل
+    UNKNOWN = "unknown"  # غير معروف
 
 
 @dataclass
 class MasterHealth:
     """معلومات صحة Master"""
+
     master_id: str
     address: str
     port: int
@@ -71,6 +73,7 @@ class MasterHealth:
 @dataclass
 class HealthConfig:
     """إعدادات مراقبة الصحة"""
+
     master_id: str = ""
     address: str = "0.0.0.0"
     port: int = 8080
@@ -83,7 +86,7 @@ class HealthConfig:
     http_timeout_seconds: float = 3.0
 
     # عتبات الحالة
-    unhealthy_threshold: int = 3      # عدد الفشل قبل اعتباره غير صحي
+    unhealthy_threshold: int = 3  # عدد الفشل قبل اعتباره غير صحي
     degraded_response_ms: float = 1000.0  # زمن استجابة للاعتبار متدهور
 
     # Failover
@@ -198,10 +201,7 @@ class HAHealthMonitor:
                 await asyncio.sleep(self.config.check_interval_seconds)
 
                 # فحص كل peer
-                tasks = [
-                    self._check_master_health(master)
-                    for master in self._masters.values()
-                ]
+                tasks = [self._check_master_health(master) for master in self._masters.values()]
                 await asyncio.gather(*tasks, return_exceptions=True)
 
             except asyncio.CancelledError:
@@ -217,6 +217,7 @@ class HAHealthMonitor:
 
                 # تحديث مقاييس هذا الـ Master
                 import psutil
+
                 self._self_health.cpu_percent = psutil.cpu_percent()
                 self._self_health.memory_percent = psutil.virtual_memory().percent
                 self._self_health.last_check = datetime.utcnow()
@@ -293,10 +294,7 @@ class HAHealthMonitor:
         old_status: MasterHealthStatus,
     ) -> None:
         """معالجة تغيير حالة master"""
-        logger.info(
-            f"Master {master.master_id} status changed: "
-            f"{old_status.value} -> {master.status.value}"
-        )
+        logger.info(f"Master {master.master_id} status changed: " f"{old_status.value} -> {master.status.value}")
 
         if master.status == MasterHealthStatus.UNHEALTHY:
             # Master أصبح غير صحي
@@ -317,9 +315,9 @@ class HAHealthMonitor:
                 except Exception as e:
                     logger.error(f"trigger_election error: {e}")
 
-        elif (
-            old_status == MasterHealthStatus.UNHEALTHY
-            and master.status in (MasterHealthStatus.HEALTHY, MasterHealthStatus.DEGRADED)
+        elif old_status == MasterHealthStatus.UNHEALTHY and master.status in (
+            MasterHealthStatus.HEALTHY,
+            MasterHealthStatus.DEGRADED,
         ):
             # Master تعافى
             if self._on_master_recovered:
@@ -343,18 +341,9 @@ class HAHealthMonitor:
 
     def get_cluster_health(self) -> dict:
         """الحصول على صحة الكلاستر الكاملة"""
-        healthy_count = sum(
-            1 for m in self._masters.values()
-            if m.status == MasterHealthStatus.HEALTHY
-        )
-        degraded_count = sum(
-            1 for m in self._masters.values()
-            if m.status == MasterHealthStatus.DEGRADED
-        )
-        unhealthy_count = sum(
-            1 for m in self._masters.values()
-            if m.status == MasterHealthStatus.UNHEALTHY
-        )
+        healthy_count = sum(1 for m in self._masters.values() if m.status == MasterHealthStatus.HEALTHY)
+        degraded_count = sum(1 for m in self._masters.values() if m.status == MasterHealthStatus.DEGRADED)
+        unhealthy_count = sum(1 for m in self._masters.values() if m.status == MasterHealthStatus.UNHEALTHY)
 
         # تحديد حالة الكلاستر الإجمالية
         total = len(self._masters) + 1  # +1 لهذا الـ Master
@@ -368,10 +357,7 @@ class HAHealthMonitor:
         return {
             "cluster_status": cluster_status,
             "self": self._self_health.to_dict(),
-            "peers": {
-                mid: m.to_dict()
-                for mid, m in self._masters.items()
-            },
+            "peers": {mid: m.to_dict() for mid, m in self._masters.items()},
             "summary": {
                 "total_masters": total,
                 "healthy": healthy_count + (1 if self._self_health.status == MasterHealthStatus.HEALTHY else 0),

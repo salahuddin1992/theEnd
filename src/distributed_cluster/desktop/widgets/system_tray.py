@@ -3,7 +3,6 @@ System Tray Icon
 أيقونة شريط النظام
 """
 
-
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QAction, QColor, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
@@ -44,7 +43,7 @@ class SystemTrayIcon(QSystemTrayIcon):
         painter.setRenderHint(QPainter.Antialiasing)
 
         # Background circle
-        bg_color = QColor(COLORS['primary']) if connected else QColor(COLORS['secondary'])
+        bg_color = QColor(COLORS["primary"]) if connected else QColor(COLORS["secondary"])
         painter.setBrush(bg_color)
         painter.setPen(QColor(0, 0, 0, 0))
         painter.drawEllipse(4, 4, 56, 56)
@@ -57,7 +56,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
         # Status indicator
         if has_activity:
-            painter.setBrush(QColor(COLORS['warning']))
+            painter.setBrush(QColor(COLORS["warning"]))
             painter.drawEllipse(44, 4, 16, 16)
 
         painter.end()
@@ -67,7 +66,8 @@ class SystemTrayIcon(QSystemTrayIcon):
     def _setup_menu(self):
         """Setup context menu"""
         menu = QMenu()
-        menu.setStyleSheet(f"""
+        menu.setStyleSheet(
+            f"""
             QMenu {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
@@ -87,7 +87,8 @@ class SystemTrayIcon(QSystemTrayIcon):
                 background-color: {COLORS['border']};
                 margin: 4px 8px;
             }}
-        """)
+        """
+        )
 
         # Status header (non-clickable)
         self.status_action = QAction("● Disconnected", self)
@@ -192,14 +193,11 @@ class SystemTrayIcon(QSystemTrayIcon):
         # Update tooltip
         if self._connected:
             self.setToolTip(
-                f"NebulaCompute Desktop\n"
-                f"Jobs: {running_jobs} running\n"
-                f"Workers: {active_workers} active"
+                f"NebulaCompute Desktop\n" f"Jobs: {running_jobs} running\n" f"Workers: {active_workers} active"
             )
 
     def show_message(
-        self, title: str, message: str,
-        icon_type: QSystemTrayIcon.MessageIcon = QSystemTrayIcon.Information
+        self, title: str, message: str, icon_type: QSystemTrayIcon.MessageIcon = QSystemTrayIcon.Information
     ):
         """Show a balloon notification"""
         self.showMessage(title, message, icon_type, 5000)

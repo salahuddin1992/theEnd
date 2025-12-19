@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 class WorkflowStatus(str, Enum):
     """حالة سير العمل."""
+
     DRAFT = "draft"
     ACTIVE = "active"
     PAUSED = "paused"
@@ -40,6 +41,7 @@ class WorkflowStatus(str, Enum):
 
 class TriggerType(str, Enum):
     """نوع التشغيل."""
+
     MANUAL = "manual"
     SCHEDULED = "scheduled"
     WEBHOOK = "webhook"
@@ -49,6 +51,7 @@ class TriggerType(str, Enum):
 @dataclass
 class WorkflowTrigger:
     """مشغل سير العمل."""
+
     trigger_type: TriggerType
     config: Dict[str, Any] = field(default_factory=dict)
     enabled: bool = True
@@ -68,6 +71,7 @@ class WorkflowTrigger:
 @dataclass
 class WorkflowVersion:
     """إصدار سير العمل."""
+
     version_id: str
     workflow_id: str
     version_number: int
@@ -81,6 +85,7 @@ class WorkflowVersion:
 @dataclass
 class WorkflowRun:
     """تشغيل سير عمل واحد."""
+
     run_id: str
     workflow_id: str
     version_id: str
@@ -116,6 +121,7 @@ class WorkflowRun:
 @dataclass
 class Workflow:
     """تعريف سير العمل."""
+
     workflow_id: str
     name: str
     description: str = ""
@@ -272,9 +278,7 @@ class WorkflowEngine:
         if not workflow:
             raise ValueError(f"Workflow {workflow_id} not found")
 
-        version = await self._create_version(
-            workflow, definition, changelog, updated_by
-        )
+        version = await self._create_version(workflow, definition, changelog, updated_by)
         workflow.current_version_id = version.version_id
         workflow.updated_at = datetime.utcnow()
 
@@ -310,10 +314,7 @@ class WorkflowEngine:
             raise ValueError(f"Workflow {workflow_id} is not active")
 
         # Check concurrent runs
-        active_runs = [
-            r for r in workflow.runs
-            if r.status in (DAGStatus.PENDING, DAGStatus.RUNNING)
-        ]
+        active_runs = [r for r in workflow.runs if r.status in (DAGStatus.PENDING, DAGStatus.RUNNING)]
         if len(active_runs) >= workflow.max_concurrent_runs:
             raise ValueError(f"Maximum concurrent runs ({workflow.max_concurrent_runs}) reached")
 
@@ -441,10 +442,7 @@ class WorkflowEngine:
             workflows = [w for w in workflows if w.owner == owner]
 
         if tags:
-            workflows = [
-                w for w in workflows
-                if any(t in w.tags for t in tags)
-            ]
+            workflows = [w for w in workflows if any(t in w.tags for t in tags)]
 
         return workflows
 
@@ -528,18 +526,14 @@ class WorkflowEngine:
                 run.completed_at = datetime.utcnow()
 
                 if run.started_at:
-                    run.duration_seconds = (
-                        run.completed_at - run.started_at
-                    ).total_seconds()
+                    run.duration_seconds = (run.completed_at - run.started_at).total_seconds()
 
                 # Collect output from completed jobs
                 for node in dag.nodes.values():
                     if node.result:
                         run.output_data[node.job_id] = node.result
 
-                logger.info(
-                    f"Workflow run {run.run_id} completed with status {dag.status}"
-                )
+                logger.info(f"Workflow run {run.run_id} completed with status {dag.status}")
 
                 if self.on_workflow_completed:
                     await self.on_workflow_completed(run)
@@ -598,9 +592,7 @@ class WorkflowScheduler:
             try:
                 now = datetime.utcnow()
 
-                workflows = await self.engine.list_workflows(
-                    status=WorkflowStatus.ACTIVE
-                )
+                workflows = await self.engine.list_workflows(status=WorkflowStatus.ACTIVE)
 
                 for workflow in workflows:
                     for trigger in workflow.triggers:
@@ -630,13 +622,9 @@ class WorkflowScheduler:
                                     trigger=TriggerType.SCHEDULED,
                                     triggered_by="scheduler",
                                 )
-                                logger.info(
-                                    f"Scheduled run triggered for {workflow.workflow_id}"
-                                )
+                                logger.info(f"Scheduled run triggered for {workflow.workflow_id}")
                             except Exception as e:
-                                logger.error(
-                                    f"Failed to run scheduled workflow {workflow.workflow_id}: {e}"
-                                )
+                                logger.error(f"Failed to run scheduled workflow {workflow.workflow_id}: {e}")
 
                             # Calculate next run
                             cron = croniter(trigger.cron_expression, now)

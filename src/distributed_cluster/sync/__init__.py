@@ -79,13 +79,11 @@ __all__ = [
     "SyncOperation",
     "SyncEvent",
     "create_sync_manager",
-
     # State
     "StateSync",
     "StateDelta",
     "StateSnapshot",
     "DeltaType",
-
     # Data
     "DataSync",
     "DataChunk",
@@ -93,7 +91,6 @@ __all__ = [
     "TransferStatus",
     "stream_data",
     "collect_stream",
-
     # Realtime
     "RealtimeSync",
     "SyncChannel",
@@ -101,13 +98,11 @@ __all__ = [
     "MessageType",
     "Participant",
     "WebSocketSyncAdapter",
-
     # Conflict Resolution
     "ConflictResolver",
     "ConflictStrategy",
     "VectorClock",
     "Conflict",
-
     # CRDT Types
     "GCounter",
     "PNCounter",

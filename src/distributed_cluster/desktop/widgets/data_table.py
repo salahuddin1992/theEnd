@@ -33,13 +33,15 @@ class StatusLabel(QLabel):
         """Update the status and styling"""
         self.setText(status)
         color = get_status_color(status)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             color: {color};
             font-weight: 600;
             padding: 4px 8px;
             border-radius: 4px;
             background-color: {color}20;
-        """)
+        """
+        )
 
 
 class DataTable(QFrame):
@@ -49,11 +51,7 @@ class DataTable(QFrame):
     row_double_clicked = Signal(int, dict)
     action_clicked = Signal(str, int, dict)  # action name, row index, row data
 
-    def __init__(
-        self,
-        columns: List[tuple],  # [(column_name, column_key, width), ...]
-        parent=None
-    ):
+    def __init__(self, columns: List[tuple], parent=None):  # [(column_name, column_key, width), ...]
         super().__init__(parent)
         self._columns = columns
         self._data: List[dict] = []
@@ -136,11 +134,9 @@ class DataTable(QFrame):
         if filter_text:
             filter_lower = filter_text.lower()
             filtered_data = [
-                row for row in self._data
-                if any(
-                    filter_lower in str(row.get(col[1], "")).lower()
-                    for col in self._columns
-                )
+                row
+                for row in self._data
+                if any(filter_lower in str(row.get(col[1], "")).lower() for col in self._columns)
             ]
 
         self.table.setRowCount(len(filtered_data))

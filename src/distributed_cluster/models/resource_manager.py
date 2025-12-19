@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 class GPUVendor(str, Enum):
     """أنواع GPU المدعومة."""
+
     NVIDIA = "nvidia"
     AMD = "amd"
     INTEL = "intel"
@@ -37,6 +38,7 @@ class GPUVendor(str, Enum):
 
 class ResourceMode(str, Enum):
     """أوضاع استخدام الموارد."""
+
     CONSERVATIVE = "conservative"  # استخدام حذر (50%)
     BALANCED = "balanced"  # متوازن (75%)
     AGGRESSIVE = "aggressive"  # كامل (90%)
@@ -46,6 +48,7 @@ class ResourceMode(str, Enum):
 @dataclass
 class CPUConfig:
     """إعدادات المعالج."""
+
     use_all_cores: bool = True
     max_cores: Optional[int] = None
     max_threads: Optional[int] = None
@@ -72,6 +75,7 @@ class CPUConfig:
 @dataclass
 class GPUConfig:
     """إعدادات GPU."""
+
     enabled: bool = True
     use_all_gpus: bool = True
     gpu_ids: Optional[List[int]] = None
@@ -84,6 +88,7 @@ class GPUConfig:
 @dataclass
 class MemoryConfig:
     """إعدادات الذاكرة."""
+
     max_memory_mb: Optional[int] = None  # None = استخدام كل الذاكرة
     memory_fraction: float = 0.90  # نسبة الذاكرة المسموح باستخدامها
     swap_enabled: bool = True  # السماح باستخدام swap
@@ -94,6 +99,7 @@ class MemoryConfig:
 @dataclass
 class DiskConfig:
     """إعدادات القرص."""
+
     temp_dir: Optional[str] = None
     max_temp_size_gb: float = 100.0
     async_io: bool = True
@@ -103,6 +109,7 @@ class DiskConfig:
 @dataclass
 class NetworkConfig:
     """إعدادات الشبكة."""
+
     max_connections: int = 1000
     connection_timeout: float = 30.0
     keep_alive: bool = True
@@ -116,6 +123,7 @@ class FullResourceConfig:
 
     Full configuration for maximum resource utilization.
     """
+
     cpu: CPUConfig = field(default_factory=CPUConfig)
     gpu: GPUConfig = field(default_factory=GPUConfig)
     memory: MemoryConfig = field(default_factory=MemoryConfig)
@@ -159,6 +167,7 @@ class FullResourceConfig:
 @dataclass
 class GPUDevice:
     """معلومات جهاز GPU."""
+
     index: int
     name: str
     vendor: GPUVendor
@@ -197,6 +206,7 @@ class SystemResources:
 
     Complete system resource information.
     """
+
     # CPU
     cpu_count: int = 0
     cpu_threads: int = 0
@@ -330,6 +340,7 @@ class ResourceManager:
         # Try to get detailed CPU info
         try:
             import psutil
+
             resources.cpu_percent = psutil.cpu_percent(interval=0.1)
             cpu_freq = psutil.cpu_freq()
             if cpu_freq:
@@ -349,9 +360,9 @@ class ResourceManager:
 
             # Disk
             disk = psutil.disk_usage("/")
-            resources.disk_total_gb = disk.total / (1024 ** 3)
-            resources.disk_free_gb = disk.free / (1024 ** 3)
-            resources.disk_used_gb = disk.used / (1024 ** 3)
+            resources.disk_total_gb = disk.total / (1024**3)
+            resources.disk_free_gb = disk.free / (1024**3)
+            resources.disk_used_gb = disk.used / (1024**3)
 
         except ImportError:
             logger.warning("psutil not available, limited resource info")
@@ -398,7 +409,7 @@ class ResourceManager:
                 [
                     "nvidia-smi",
                     "--query-gpu=index,name,uuid,memory.total,memory.free,memory.used,utilization.gpu,temperature.gpu,power.draw,power.limit",
-                    "--format=csv,noheader,nounits"
+                    "--format=csv,noheader,nounits",
                 ],
                 capture_output=True,
                 text=True,
@@ -432,6 +443,7 @@ class ResourceManager:
         if not gpus:
             try:
                 import pynvml
+
                 pynvml.nvmlInit()
                 device_count = pynvml.nvmlDeviceGetCount()
 
@@ -490,6 +502,7 @@ class ResourceManager:
 
             if result.returncode == 0:
                 import json
+
                 data = json.loads(result.stdout)
                 for card_id, card_info in data.items():
                     if card_id.startswith("card"):
@@ -522,6 +535,7 @@ class ResourceManager:
 
             if result.returncode == 0:
                 import json
+
                 data = json.loads(result.stdout)
                 displays = data.get("SPDisplaysDataType", [])
 
@@ -531,8 +545,7 @@ class ResourceManager:
                         name=display.get("sppci_model", "Apple GPU"),
                         vendor=GPUVendor.APPLE,
                         total_memory_mb=int(
-                            display.get("spdisplays_vram", "0")
-                            .replace(" MB", "").replace(" GB", "000") or 0
+                            display.get("spdisplays_vram", "0").replace(" MB", "").replace(" GB", "000") or 0
                         ),
                     )
                     gpus.append(gpu)
@@ -564,10 +577,8 @@ class ResourceManager:
 
             elif system == "Windows":
                 import winreg
-                key = winreg.OpenKey(
-                    winreg.HKEY_LOCAL_MACHINE,
-                    r"HARDWARE\DESCRIPTION\System\CentralProcessor\0"
-                )
+
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
                 return winreg.QueryValueEx(key, "ProcessorNameString")[0]
 
         except Exception:
@@ -755,32 +766,38 @@ class ResourceManager:
         ]
 
         if resources.has_gpu:
-            lines.extend([
-                f"GPU ({resources.gpu_count} device(s)):",
-                f"  Total Memory: {resources.total_gpu_memory_mb:,} MB",
-                f"  Free Memory: {resources.total_gpu_free_mb:,} MB",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"GPU ({resources.gpu_count} device(s)):",
+                    f"  Total Memory: {resources.total_gpu_memory_mb:,} MB",
+                    f"  Free Memory: {resources.total_gpu_free_mb:,} MB",
+                    "",
+                ]
+            )
 
             for gpu in resources.gpus:
-                lines.extend([
-                    f"  [{gpu.index}] {gpu.name} ({gpu.vendor.value})",
-                    f"      Memory: {gpu.free_memory_mb:,} / {gpu.total_memory_mb:,} MB",
-                    f"      Utilization: {gpu.utilization_percent:.1f}%",
-                    f"      Temperature: {gpu.temperature_c:.0f}°C",
-                ])
+                lines.extend(
+                    [
+                        f"  [{gpu.index}] {gpu.name} ({gpu.vendor.value})",
+                        f"      Memory: {gpu.free_memory_mb:,} / {gpu.total_memory_mb:,} MB",
+                        f"      Utilization: {gpu.utilization_percent:.1f}%",
+                        f"      Temperature: {gpu.temperature_c:.0f}°C",
+                    ]
+                )
         else:
             lines.append("GPU: Not detected")
 
-        lines.extend([
-            "",
-            "Disk:",
-            f"  Total: {resources.disk_total_gb:.1f} GB",
-            f"  Free: {resources.disk_free_gb:.1f} GB",
-            f"  Used: {resources.disk_used_gb:.1f} GB",
-            "",
-            "=" * 50,
-        ])
+        lines.extend(
+            [
+                "",
+                "Disk:",
+                f"  Total: {resources.disk_total_gb:.1f} GB",
+                f"  Free: {resources.disk_free_gb:.1f} GB",
+                f"  Used: {resources.disk_used_gb:.1f} GB",
+                "",
+                "=" * 50,
+            ]
+        )
 
         return "\n".join(lines)
 
@@ -788,6 +805,7 @@ class ResourceManager:
 # ============================================================================
 # Convenience Functions
 # ============================================================================
+
 
 def get_resource_manager(mode: ResourceMode = ResourceMode.MAXIMUM) -> ResourceManager:
     """
@@ -835,7 +853,6 @@ __all__ = [
     # Enums
     "GPUVendor",
     "ResourceMode",
-
     # Configs
     "CPUConfig",
     "GPUConfig",
@@ -843,14 +860,11 @@ __all__ = [
     "DiskConfig",
     "NetworkConfig",
     "FullResourceConfig",
-
     # Data Classes
     "GPUDevice",
     "SystemResources",
-
     # Manager
     "ResourceManager",
-
     # Functions
     "get_resource_manager",
     "optimize_system_for_ai",

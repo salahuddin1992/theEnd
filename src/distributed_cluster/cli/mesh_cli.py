@@ -48,7 +48,7 @@ def create_status_table(node: MeshNode) -> Table:
     table.add_row("Local Jobs", str(info["local_jobs"]))
     table.add_row("CPU", f"{info['resources']['cpu_cores']} cores ({info['usage']['cpu_percent']:.1f}%)")
     table.add_row("Memory", f"{info['resources']['memory_mb']} MB ({info['usage']['memory_percent']:.1f}%)")
-    table.add_row("GPU", str(info['resources']['gpu_count']))
+    table.add_row("GPU", str(info["resources"]["gpu_count"]))
 
     return table
 
@@ -111,14 +111,16 @@ def start_node(
     # تحديد العلامات
     node_tags = set(tags.split(",")) if tags else set()
 
-    console.print(Panel(
-        f"[bold green]🚀 Starting Mesh Node[/bold green]\n\n"
-        f"Port: {port}\n"
-        f"Discovery: {', '.join(m.value for m in discovery_methods)}\n"
-        f"Strategy: {routing_strategy.value}\n"
-        f"Tags: {', '.join(node_tags) or 'none'}",
-        title="Mesh Network",
-    ))
+    console.print(
+        Panel(
+            f"[bold green]🚀 Starting Mesh Node[/bold green]\n\n"
+            f"Port: {port}\n"
+            f"Discovery: {', '.join(m.value for m in discovery_methods)}\n"
+            f"Strategy: {routing_strategy.value}\n"
+            f"Tags: {', '.join(node_tags) or 'none'}",
+            title="Mesh Network",
+        )
+    )
 
     async def run():
         node = MeshNode(
@@ -302,6 +304,7 @@ def show_info():
     gpu_count = 0
     try:
         import pynvml
+
         pynvml.nvmlInit()
         gpu_count = pynvml.nvmlDeviceGetCount()
         pynvml.nvmlShutdown()

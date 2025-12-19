@@ -36,6 +36,7 @@ from typing import Optional, Set
 
 class EnrollmentMode(str, Enum):
     """طرق تسجيل Workers."""
+
     AUTO_APPROVE = "auto_approve"  # موافقة تلقائية (للتطوير فقط!)
     TOKEN = "token"  # تسجيل بـ token
     ALLOWLIST = "allowlist"  # تسجيل بـ fingerprint allowlist
@@ -44,6 +45,7 @@ class EnrollmentMode(str, Enum):
 @dataclass
 class AuthConfig:
     """إعدادات المصادقة."""
+
     secret_key: str = "change-me-in-production"
     token_expiry_hours: int = 24
     enrollment_mode: EnrollmentMode = EnrollmentMode.AUTO_APPROVE
@@ -55,6 +57,7 @@ class AuthConfig:
 
 class Permission(str, Enum):
     """صلاحيات النظام."""
+
     # Job permissions
     JOB_SUBMIT = "job:submit"
     JOB_READ = "job:read"
@@ -88,6 +91,7 @@ class Permission(str, Enum):
 
 class Role(str, Enum):
     """أدوار المستخدمين."""
+
     ADMIN = "admin"
     OPERATOR = "operator"
     USER = "user"
@@ -98,7 +102,6 @@ class Role(str, Enum):
 # Role -> Permissions mapping
 ROLE_PERMISSIONS: dict[Role, Set[Permission]] = {
     Role.ADMIN: set(Permission),  # كل الصلاحيات
-
     Role.OPERATOR: {
         Permission.JOB_SUBMIT,
         Permission.JOB_READ,
@@ -109,21 +112,18 @@ ROLE_PERMISSIONS: dict[Role, Set[Permission]] = {
         Permission.CLUSTER_STATS,
         Permission.CLUSTER_EVENTS,
     },
-
     Role.USER: {
         Permission.JOB_SUBMIT,
         Permission.JOB_READ,
         Permission.JOB_CANCEL,
         Permission.CLUSTER_STATS,
     },
-
     Role.WORKER: {
         Permission.WORKER_REGISTER,
         Permission.WORKER_HEARTBEAT,
         Permission.WORKER_REPORT,
         Permission.WORKER_POLL_JOBS,
     },
-
     Role.READONLY: {
         Permission.JOB_READ,
         Permission.WORKER_READ,
@@ -135,6 +135,7 @@ ROLE_PERMISSIONS: dict[Role, Set[Permission]] = {
 @dataclass
 class TokenPayload:
     """محتوى الـ Token (JWT-like)."""
+
     subject: str  # user_id or worker_id
     subject_type: str  # "user", "worker", "api_key"
     role: Role
@@ -332,11 +333,7 @@ class AuthManager:
         payload_b64 = base64.urlsafe_b64encode(payload_json.encode()).decode()
 
         # Sign
-        signature = hmac.new(
-            self.secret_key,
-            payload_b64.encode(),
-            hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(self.secret_key, payload_b64.encode(), hashlib.sha256).hexdigest()
 
         return f"{payload_b64}.{signature}"
 
@@ -355,11 +352,7 @@ class AuthManager:
             payload_b64, signature = parts
 
             # Verify signature
-            expected_sig = hmac.new(
-                self.secret_key,
-                payload_b64.encode(),
-                hashlib.sha256
-            ).hexdigest()
+            expected_sig = hmac.new(self.secret_key, payload_b64.encode(), hashlib.sha256).hexdigest()
 
             if not hmac.compare_digest(signature, expected_sig):
                 return None

@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 class AgentStatus(str, Enum):
     """حالات الوكيل."""
+
     IDLE = "idle"
     THINKING = "thinking"
     EXECUTING = "executing"
@@ -48,6 +49,7 @@ class AgentStatus(str, Enum):
 
 class ToolResultType(str, Enum):
     """نوع نتيجة الأداة."""
+
     SUCCESS = "success"
     ERROR = "error"
     TIMEOUT = "timeout"
@@ -56,6 +58,7 @@ class ToolResultType(str, Enum):
 @dataclass
 class ToolResult:
     """نتيجة تنفيذ أداة."""
+
     tool_name: str
     result_type: ToolResultType
     output: Any
@@ -120,6 +123,7 @@ class Tool(ABC):
 @dataclass
 class AgentTask:
     """مهمة للوكيل."""
+
     task_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""
     context: Dict[str, Any] = field(default_factory=dict)
@@ -136,6 +140,7 @@ class AgentTask:
 @dataclass
 class AgentStep:
     """خطوة في تنفيذ المهمة."""
+
     step_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     thought: str = ""
     action: Optional[str] = None
@@ -147,6 +152,7 @@ class AgentStep:
 @dataclass
 class AgentResult:
     """نتيجة تنفيذ المهمة."""
+
     task_id: str
     status: AgentStatus
     result: Optional[Any] = None
@@ -164,29 +170,34 @@ class AgentResult:
 @dataclass
 class AgentMemory:
     """ذاكرة الوكيل."""
+
     short_term: List[Dict[str, Any]] = field(default_factory=list)
     long_term: Dict[str, Any] = field(default_factory=dict)
     working: Dict[str, Any] = field(default_factory=dict)
 
     def add_observation(self, observation: str, source: str = "system") -> None:
         """إضافة ملاحظة."""
-        self.short_term.append({
-            "type": "observation",
-            "content": observation,
-            "source": source,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        self.short_term.append(
+            {
+                "type": "observation",
+                "content": observation,
+                "source": source,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
         # Keep last 50 observations
         self.short_term = self.short_term[-50:]
 
     def add_action(self, action: str, result: Any) -> None:
         """إضافة فعل."""
-        self.short_term.append({
-            "type": "action",
-            "action": action,
-            "result": str(result)[:500],
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        self.short_term.append(
+            {
+                "type": "action",
+                "action": action,
+                "result": str(result)[:500],
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
     def get_context(self, max_items: int = 10) -> str:
         """الحصول على السياق."""
@@ -287,17 +298,11 @@ Thought:"""
 
         # Filter by allowed tools
         if task.allowed_tools:
-            available_tools = {
-                k: v for k, v in available_tools.items()
-                if k in task.allowed_tools
-            }
+            available_tools = {k: v for k, v in available_tools.items() if k in task.allowed_tools}
 
         # Filter by forbidden tools
         if task.forbidden_tools:
-            available_tools = {
-                k: v for k, v in available_tools.items()
-                if k not in task.forbidden_tools
-            }
+            available_tools = {k: v for k, v in available_tools.items() if k not in task.forbidden_tools}
 
         descriptions = []
         for name, tool in available_tools.items():

@@ -22,6 +22,7 @@ from ..resources.styles import COLORS
 
 class NotificationType(Enum):
     """Notification types"""
+
     INFO = "info"
     SUCCESS = "success"
     WARNING = "warning"
@@ -31,6 +32,7 @@ class NotificationType(Enum):
 @dataclass
 class NotificationConfig:
     """Notification configuration"""
+
     title: str
     message: str
     type: NotificationType = NotificationType.INFO
@@ -70,14 +72,16 @@ class NotificationWidget(QFrame):
         }
         icon = type_icons.get(self._config.type, "ℹ")
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
                 border-left: 4px solid {accent_color};
                 border-radius: 8px;
             }}
-        """)
+        """
+        )
         self.setFixedWidth(350)
         self.setMinimumHeight(70)
 
@@ -87,10 +91,12 @@ class NotificationWidget(QFrame):
 
         # Icon
         icon_label = QLabel(icon)
-        icon_label.setStyleSheet(f"""
+        icon_label.setStyleSheet(
+            f"""
             font-size: 20px;
             color: {accent_color};
-        """)
+        """
+        )
         icon_label.setFixedWidth(24)
         layout.addWidget(icon_label)
 
@@ -99,25 +105,30 @@ class NotificationWidget(QFrame):
         content_layout.setSpacing(4)
 
         title_label = QLabel(self._config.title)
-        title_label.setStyleSheet(f"""
+        title_label.setStyleSheet(
+            f"""
             font-weight: 600;
             font-size: 13px;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         content_layout.addWidget(title_label)
 
         message_label = QLabel(self._config.message)
-        message_label.setStyleSheet(f"""
+        message_label.setStyleSheet(
+            f"""
             font-size: 12px;
             color: {COLORS['text_secondary']};
-        """)
+        """
+        )
         message_label.setWordWrap(True)
         content_layout.addWidget(message_label)
 
         # Action button if provided
         if self._config.action_text:
             action_btn = QPushButton(self._config.action_text)
-            action_btn.setStyleSheet(f"""
+            action_btn.setStyleSheet(
+                f"""
                 QPushButton {{
                     background-color: transparent;
                     color: {accent_color};
@@ -130,7 +141,8 @@ class NotificationWidget(QFrame):
                 QPushButton:hover {{
                     text-decoration: underline;
                 }}
-            """)
+            """
+            )
             action_btn.setCursor(Qt.PointingHandCursor)
             if self._config.action_callback:
                 action_btn.clicked.connect(self._config.action_callback)
@@ -143,7 +155,8 @@ class NotificationWidget(QFrame):
         # Close button
         close_btn = QPushButton("×")
         close_btn.setFixedSize(24, 24)
-        close_btn.setStyleSheet(f"""
+        close_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLORS['text_muted']};
@@ -154,7 +167,8 @@ class NotificationWidget(QFrame):
             QPushButton:hover {{
                 color: {COLORS['text_primary']};
             }}
-        """)
+        """
+        )
         close_btn.clicked.connect(self.dismiss)
         layout.addWidget(close_btn, alignment=Qt.AlignTop)
 
@@ -214,7 +228,7 @@ class NotificationManager(QFrame):
         type: NotificationType = NotificationType.INFO,
         duration: int = 5000,
         action_text: Optional[str] = None,
-        action_callback: Optional[Callable] = None
+        action_callback: Optional[Callable] = None,
     ):
         """Show a new notification"""
         config = NotificationConfig(
@@ -223,7 +237,7 @@ class NotificationManager(QFrame):
             type=type,
             duration=duration,
             action_text=action_text,
-            action_callback=action_callback
+            action_callback=action_callback,
         )
 
         notification = NotificationWidget(config, self)
@@ -261,7 +275,7 @@ class NotificationManager(QFrame):
         self._notifications.clear()
 
     @classmethod
-    def instance(cls, parent=None) -> 'NotificationManager':
+    def instance(cls, parent=None) -> "NotificationManager":
         """Get singleton instance"""
         if cls._instance is None:
             cls._instance = cls(parent)
@@ -280,13 +294,15 @@ class ToastNotification(QLabel):
 
     def _setup_ui(self):
         """Setup toast UI"""
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             background-color: {COLORS['bg_medium']};
             color: {COLORS['text_primary']};
             padding: 12px 24px;
             border-radius: 8px;
             font-size: 13px;
-        """)
+        """
+        )
         self.setAlignment(Qt.AlignCenter)
         self.adjustSize()
 

@@ -25,8 +25,10 @@ logger = logging.getLogger(__name__)
 # Response Models
 # =============================================================================
 
+
 class ClusterOverview(BaseModel):
     """نظرة عامة على الكلاستر."""
+
     cluster_name: str
     status: str
     uptime_seconds: float
@@ -59,6 +61,7 @@ class ClusterOverview(BaseModel):
 
 class WorkerSummary(BaseModel):
     """ملخص worker."""
+
     worker_id: str
     hostname: str
     status: str
@@ -75,6 +78,7 @@ class WorkerSummary(BaseModel):
 
 class JobSummary(BaseModel):
     """ملخص مهمة."""
+
     job_id: str
     name: str
     status: str
@@ -90,12 +94,14 @@ class JobSummary(BaseModel):
 
 class TimeSeriesPoint(BaseModel):
     """نقطة بيانات زمنية."""
+
     timestamp: str
     value: float
 
 
 class MetricsSummary(BaseModel):
     """ملخص المقاييس."""
+
     name: str
     current_value: float
     min_value: float
@@ -106,6 +112,7 @@ class MetricsSummary(BaseModel):
 
 class AlertSummary(BaseModel):
     """ملخص تنبيه."""
+
     alert_id: str
     name: str
     severity: str
@@ -117,6 +124,7 @@ class AlertSummary(BaseModel):
 
 class EventSummary(BaseModel):
     """ملخص حدث."""
+
     event_type: str
     timestamp: str
     source: str
@@ -127,6 +135,7 @@ class EventSummary(BaseModel):
 
 class QuotaUsage(BaseModel):
     """استخدام الحصة."""
+
     scope: str
     scope_id: str
     cpu_used: float
@@ -142,6 +151,7 @@ class QuotaUsage(BaseModel):
 # =============================================================================
 # Dashboard API Router
 # =============================================================================
+
 
 def create_dashboard_router(
     scheduler,
@@ -183,23 +193,15 @@ def create_dashboard_router(
 
         # Resource stats
         total_cpu = sum(w.total_resources.cpu_cores for w in online)
-        used_cpu = sum(
-            w.total_resources.cpu_cores - w.available_resources.cpu_cores
-            for w in online
-        )
+        used_cpu = sum(w.total_resources.cpu_cores - w.available_resources.cpu_cores for w in online)
         total_mem = sum(w.total_resources.memory_mb for w in online) / 1024
-        used_mem = sum(
-            w.total_resources.memory_mb - w.available_resources.memory_mb
-            for w in online
-        ) / 1024
+        used_mem = sum(w.total_resources.memory_mb - w.available_resources.memory_mb for w in online) / 1024
         total_gpu = sum(w.total_resources.gpu_count for w in online)
-        used_gpu = sum(
-            w.total_resources.gpu_count - w.available_resources.gpu_count
-            for w in online
-        )
+        used_gpu = sum(w.total_resources.gpu_count - w.available_resources.gpu_count for w in online)
 
         # Job stats
         from distributed_cluster.models.job import JobStatus
+
         pending = await database.get_jobs_by_status(JobStatus.PENDING)
         running = await database.get_jobs_by_status(JobStatus.RUNNING)
         completed = await database.get_jobs_by_status(JobStatus.COMPLETED)
@@ -325,8 +327,7 @@ def create_dashboard_router(
                     started_at=j.started_at.isoformat() if j.started_at else None,
                     completed_at=j.completed_at.isoformat() if j.completed_at else None,
                     execution_time_seconds=(
-                        (j.completed_at - j.started_at).total_seconds()
-                        if j.completed_at and j.started_at else None
+                        (j.completed_at - j.started_at).total_seconds() if j.completed_at and j.started_at else None
                     ),
                     exit_code=j.result.exit_code if j.result else None,
                 )
@@ -342,6 +343,7 @@ def create_dashboard_router(
             raise HTTPException(status_code=404, detail="Worker not found")
 
         from distributed_cluster.models.worker import WorkerStatus
+
         worker.status = WorkerStatus.DRAINING
         await database.save_worker(worker)
 
@@ -379,7 +381,7 @@ def create_dashboard_router(
 
         # Sort and paginate
         jobs.sort(key=lambda x: x.created_at, reverse=True)
-        jobs = jobs[offset:offset + limit]
+        jobs = jobs[offset : offset + limit]
 
         return [
             JobSummary(
@@ -393,8 +395,7 @@ def create_dashboard_router(
                 started_at=j.started_at.isoformat() if j.started_at else None,
                 completed_at=j.completed_at.isoformat() if j.completed_at else None,
                 execution_time_seconds=(
-                    (j.completed_at - j.started_at).total_seconds()
-                    if j.completed_at and j.started_at else None
+                    (j.completed_at - j.started_at).total_seconds() if j.completed_at and j.started_at else None
                 ),
                 exit_code=j.result.exit_code if j.result else None,
             )
@@ -420,14 +421,13 @@ def create_dashboard_router(
                 started_at=job.started_at.isoformat() if job.started_at else None,
                 completed_at=job.completed_at.isoformat() if job.completed_at else None,
                 execution_time_seconds=(
-                    (job.completed_at - job.started_at).total_seconds()
-                    if job.completed_at and job.started_at else None
+                    (job.completed_at - job.started_at).total_seconds() if job.completed_at and job.started_at else None
                 ),
                 exit_code=job.result.exit_code if job.result else None,
             ),
             "submission": {
                 "command": job.submission.command,
-                "args": job.submission.args if hasattr(job.submission, 'args') else [],
+                "args": job.submission.args if hasattr(job.submission, "args") else [],
                 "environment": job.submission.environment,
                 "resources": {
                     "cpu_cores": job.submission.required_resources.cpu_cores,
@@ -437,12 +437,16 @@ def create_dashboard_router(
                 "timeout_seconds": job.submission.timeout_seconds,
                 "max_retries": job.submission.max_retries,
             },
-            "result": {
-                "exit_code": job.result.exit_code,
-                "stdout": job.result.stdout[:1000] if job.result and job.result.stdout else None,
-                "stderr": job.result.stderr[:1000] if job.result and job.result.stderr else None,
-                "error_message": job.result.error_message if job.result else None,
-            } if job.result else None,
+            "result": (
+                {
+                    "exit_code": job.result.exit_code,
+                    "stdout": job.result.stdout[:1000] if job.result and job.result.stdout else None,
+                    "stderr": job.result.stderr[:1000] if job.result and job.result.stderr else None,
+                    "error_message": job.result.error_message if job.result else None,
+                }
+                if job.result
+                else None
+            ),
         }
 
     # =========================================================================
@@ -458,17 +462,33 @@ def create_dashboard_router(
 
         return {
             "cpu_utilization": {
-                "current": sum(
-                    (w.total_resources.cpu_cores - w.available_resources.cpu_cores) / w.total_resources.cpu_cores * 100
-                    for w in online if w.total_resources.cpu_cores > 0
-                ) / len(online) if online else 0,
+                "current": (
+                    sum(
+                        (w.total_resources.cpu_cores - w.available_resources.cpu_cores)
+                        / w.total_resources.cpu_cores
+                        * 100
+                        for w in online
+                        if w.total_resources.cpu_cores > 0
+                    )
+                    / len(online)
+                    if online
+                    else 0
+                ),
                 "unit": "percent",
             },
             "memory_utilization": {
-                "current": sum(
-                    (w.total_resources.memory_mb - w.available_resources.memory_mb) / w.total_resources.memory_mb * 100
-                    for w in online if w.total_resources.memory_mb > 0
-                ) / len(online) if online else 0,
+                "current": (
+                    sum(
+                        (w.total_resources.memory_mb - w.available_resources.memory_mb)
+                        / w.total_resources.memory_mb
+                        * 100
+                        for w in online
+                        if w.total_resources.memory_mb > 0
+                    )
+                    / len(online)
+                    if online
+                    else 0
+                ),
                 "unit": "percent",
             },
             "pending_jobs": {
@@ -552,6 +572,7 @@ def create_dashboard_router(
     # =========================================================================
 
     if autoscaler:
+
         @router.get("/autoscaler/status")
         async def get_autoscaler_status():
             """حالة التحجيم التلقائي."""
@@ -568,6 +589,7 @@ def create_dashboard_router(
 # =============================================================================
 # Standalone Dashboard Server
 # =============================================================================
+
 
 def create_dashboard_app(
     scheduler,

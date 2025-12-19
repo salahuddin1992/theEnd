@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class MessageType(str, Enum):
     """أنواع الرسائل."""
+
     # Sync messages
     STATE_UPDATE = "state_update"
     STATE_DELTA = "state_delta"
@@ -52,6 +53,7 @@ class MessageType(str, Enum):
 @dataclass
 class SyncMessage:
     """رسالة مزامنة."""
+
     message_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     message_type: MessageType = MessageType.STATE_UPDATE
     channel: str = "default"
@@ -63,16 +65,18 @@ class SyncMessage:
 
     def to_json(self) -> str:
         """تحويل إلى JSON."""
-        return json.dumps({
-            "message_id": self.message_id,
-            "message_type": self.message_type.value,
-            "channel": self.channel,
-            "sender_id": self.sender_id,
-            "payload": self.payload,
-            "timestamp": self.timestamp.isoformat(),
-            "ttl_seconds": self.ttl_seconds,
-            "require_ack": self.require_ack,
-        })
+        return json.dumps(
+            {
+                "message_id": self.message_id,
+                "message_type": self.message_type.value,
+                "channel": self.channel,
+                "sender_id": self.sender_id,
+                "payload": self.payload,
+                "timestamp": self.timestamp.isoformat(),
+                "ttl_seconds": self.ttl_seconds,
+                "require_ack": self.require_ack,
+            }
+        )
 
     @classmethod
     def from_json(cls, data: str) -> SyncMessage:
@@ -93,6 +97,7 @@ class SyncMessage:
 @dataclass
 class SyncChannel:
     """قناة مزامنة."""
+
     channel_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     subscribers: Set[str] = field(default_factory=set)
@@ -116,6 +121,7 @@ class SyncChannel:
 @dataclass
 class Participant:
     """مشارك في المزامنة."""
+
     participant_id: str
     name: str = ""
     node_id: str = ""
@@ -218,11 +224,13 @@ class RealtimeSync:
             self._channel_handlers[channel_name].append(handler)
 
         # Send subscribe message
-        await self._send_message(SyncMessage(
-            message_type=MessageType.SUBSCRIBE,
-            channel=channel_name,
-            sender_id=self.node_id,
-        ))
+        await self._send_message(
+            SyncMessage(
+                message_type=MessageType.SUBSCRIBE,
+                channel=channel_name,
+                sender_id=self.node_id,
+            )
+        )
 
         return True
 
@@ -235,11 +243,13 @@ class RealtimeSync:
         channel.remove_subscriber(self.node_id)
         self._channel_handlers.pop(channel_name, None)
 
-        await self._send_message(SyncMessage(
-            message_type=MessageType.UNSUBSCRIBE,
-            channel=channel_name,
-            sender_id=self.node_id,
-        ))
+        await self._send_message(
+            SyncMessage(
+                message_type=MessageType.UNSUBSCRIBE,
+                channel=channel_name,
+                sender_id=self.node_id,
+            )
+        )
 
         return True
 
@@ -413,11 +423,13 @@ class RealtimeSync:
 
     async def _send_ack(self, message_id: str) -> None:
         """إرسال تأكيد استلام."""
-        await self._send_message(SyncMessage(
-            message_type=MessageType.ACK,
-            sender_id=self.node_id,
-            payload={"message_id": message_id},
-        ))
+        await self._send_message(
+            SyncMessage(
+                message_type=MessageType.ACK,
+                sender_id=self.node_id,
+                payload={"message_id": message_id},
+            )
+        )
 
     async def _wait_for_ack(
         self,
@@ -439,11 +451,13 @@ class RealtimeSync:
 
     async def _send_pong(self, target_id: str) -> None:
         """إرسال pong."""
-        await self._send_message(SyncMessage(
-            message_type=MessageType.PONG,
-            sender_id=self.node_id,
-            payload={"target": target_id},
-        ))
+        await self._send_message(
+            SyncMessage(
+                message_type=MessageType.PONG,
+                sender_id=self.node_id,
+                payload={"target": target_id},
+            )
+        )
 
     # =========================================================================
     # Presence
@@ -458,24 +472,28 @@ class RealtimeSync:
         )
         self._participants[self.node_id] = participant
 
-        await self._send_message(SyncMessage(
-            message_type=MessageType.JOIN,
-            sender_id=self.node_id,
-            payload={
-                "participant": {
-                    "id": participant.participant_id,
-                    "name": participant.name,
-                    "metadata": participant.metadata,
-                }
-            },
-        ))
+        await self._send_message(
+            SyncMessage(
+                message_type=MessageType.JOIN,
+                sender_id=self.node_id,
+                payload={
+                    "participant": {
+                        "id": participant.participant_id,
+                        "name": participant.name,
+                        "metadata": participant.metadata,
+                    }
+                },
+            )
+        )
 
     async def leave(self) -> None:
         """المغادرة."""
-        await self._send_message(SyncMessage(
-            message_type=MessageType.LEAVE,
-            sender_id=self.node_id,
-        ))
+        await self._send_message(
+            SyncMessage(
+                message_type=MessageType.LEAVE,
+                sender_id=self.node_id,
+            )
+        )
 
         self._participants.pop(self.node_id, None)
 
@@ -549,6 +567,7 @@ class RealtimeSync:
 # ============================================================================
 # WebSocket Integration Helper
 # ============================================================================
+
 
 class WebSocketSyncAdapter:
     """

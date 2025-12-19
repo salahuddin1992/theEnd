@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class StepDefinition:
     """تعريف خطوة في سير العمل."""
+
     id: str
     name: str
     command: str
@@ -82,6 +83,7 @@ class StepDefinition:
 @dataclass
 class WorkflowDefinition:
     """تعريف سير العمل الكامل."""
+
     name: str
     description: str = ""
     version: str = "1.0.0"
@@ -95,10 +97,7 @@ class WorkflowDefinition:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> WorkflowDefinition:
         """إنشاء من dictionary."""
-        steps = [
-            StepDefinition.from_dict(s)
-            for s in data.get("steps", [])
-        ]
+        steps = [StepDefinition.from_dict(s) for s in data.get("steps", [])]
 
         return cls(
             name=data.get("name", "unnamed"),
@@ -504,7 +503,4 @@ def get_workflow_template(template_name: str) -> WorkflowDefinition:
 
 def list_workflow_templates() -> List[Dict[str, str]]:
     """قائمة القوالب المتاحة."""
-    return [
-        {"name": name, "description": data.get("description", "")}
-        for name, data in WORKFLOW_TEMPLATES.items()
-    ]
+    return [{"name": name, "description": data.get("description", "")} for name, data in WORKFLOW_TEMPLATES.items()]

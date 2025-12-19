@@ -50,11 +50,13 @@ class SettingsView(QScrollArea):
 
         # Header
         title = QLabel("Settings")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         layout.addWidget(title)
 
         # Connection settings
@@ -229,9 +231,9 @@ class SettingsView(QScrollArea):
 
         # This will be handled by main window
         QMessageBox.information(
-            self, "Test Connection",
-            f"Testing connection to {url}...\n"
-            "This feature will be implemented with API client."
+            self,
+            "Test Connection",
+            f"Testing connection to {url}...\n" "This feature will be implemented with API client.",
         )
 
     def _on_connect(self):
@@ -247,9 +249,7 @@ class SettingsView(QScrollArea):
 
     def _browse_cache_dir(self):
         """Browse for cache directory"""
-        dir_path = QFileDialog.getExistingDirectory(
-            self, "Select Cache Directory"
-        )
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Cache Directory")
         if dir_path:
             self.cache_input.setText(dir_path)
 
@@ -258,10 +258,9 @@ class SettingsView(QScrollArea):
         reply = QMessageBox.question(
             self,
             "Clear Cache",
-            "Are you sure you want to clear the cache?\n"
-            "This will remove all cached job data.",
+            "Are you sure you want to clear the cache?\n" "This will remove all cached job data.",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             # Clear cache implementation
@@ -274,7 +273,7 @@ class SettingsView(QScrollArea):
             "Reset Settings",
             "Are you sure you want to reset all settings to defaults?",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             self._settings = self._get_default_settings()

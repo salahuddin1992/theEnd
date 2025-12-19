@@ -33,22 +33,18 @@ class ScoringWeights:
 
     تتحكم في أهمية كل معيار نسبياً.
     """
-    resource_fit: float = 1.0       # Best-fit vs Worst-fit
-    load_balance: float = 0.5      # توزيع الأحمال
-    locality: float = 0.3          # قرب البيانات
-    affinity: float = 0.2          # تفضيلات
-    freshness: float = 0.1         # حداثة الـ heartbeat
-    reliability: float = 0.2       # نسبة النجاح
+
+    resource_fit: float = 1.0  # Best-fit vs Worst-fit
+    load_balance: float = 0.5  # توزيع الأحمال
+    locality: float = 0.3  # قرب البيانات
+    affinity: float = 0.2  # تفضيلات
+    freshness: float = 0.1  # حداثة الـ heartbeat
+    reliability: float = 0.2  # نسبة النجاح
 
     def normalize(self) -> ScoringWeights:
         """تطبيع الأوزان (مجموعها = 1)."""
         total = (
-            self.resource_fit +
-            self.load_balance +
-            self.locality +
-            self.affinity +
-            self.freshness +
-            self.reliability
+            self.resource_fit + self.load_balance + self.locality + self.affinity + self.freshness + self.reliability
         )
         if total == 0:
             return self
@@ -66,6 +62,7 @@ class ScoringWeights:
 @dataclass
 class ScoreBreakdown:
     """تفصيل النقاط لكل معيار."""
+
     worker_id: str
     total_score: float
     resource_fit_score: float = 0.0
@@ -343,12 +340,12 @@ class CompositeScorer:
 
         # Calculate weighted total
         total = (
-            scores["resource_fit"] * self.weights.resource_fit +
-            scores["load_balance"] * self.weights.load_balance +
-            scores["locality"] * self.weights.locality +
-            scores["affinity"] * self.weights.affinity +
-            scores["freshness"] * self.weights.freshness +
-            scores["reliability"] * self.weights.reliability
+            scores["resource_fit"] * self.weights.resource_fit
+            + scores["load_balance"] * self.weights.load_balance
+            + scores["locality"] * self.weights.locality
+            + scores["affinity"] * self.weights.affinity
+            + scores["freshness"] * self.weights.freshness
+            + scores["reliability"] * self.weights.reliability
         )
 
         # Apply penalties
@@ -360,6 +357,7 @@ class CompositeScorer:
 
         # Penalty for workers in draining status
         from distributed_cluster.models.worker import WorkerStatus
+
         if worker.status == WorkerStatus.DRAINING:
             penalty += 0.5
 

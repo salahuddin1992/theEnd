@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 class MessageType(str, Enum):
     """أنواع الرسائل"""
+
     PING = "ping"
     PONG = "pong"
     PEER_LIST = "peer_list"
@@ -34,6 +35,7 @@ class MessageType(str, Enum):
 @dataclass
 class GossipMessage:
     """رسالة Gossip"""
+
     type: MessageType
     sender_id: str
     data: Dict[str, Any] = field(default_factory=dict)
@@ -44,19 +46,22 @@ class GossipMessage:
     def __post_init__(self):
         if not self.message_id:
             import uuid
+
             self.message_id = str(uuid.uuid4())[:12]
         if not self.timestamp:
             self.timestamp = datetime.utcnow().isoformat()
 
     def to_json(self) -> str:
-        return json.dumps({
-            "type": self.type.value,
-            "sender_id": self.sender_id,
-            "data": self.data,
-            "message_id": self.message_id,
-            "timestamp": self.timestamp,
-            "ttl": self.ttl,
-        })
+        return json.dumps(
+            {
+                "type": self.type.value,
+                "sender_id": self.sender_id,
+                "data": self.data,
+                "message_id": self.message_id,
+                "timestamp": self.timestamp,
+                "ttl": self.ttl,
+            }
+        )
 
     @classmethod
     def from_json(cls, data: str) -> "GossipMessage":
@@ -84,8 +89,8 @@ class GossipProtocol:
     def __init__(
         self,
         node: "MeshNode",
-        fanout: int = 3,          # عدد العقد للإرسال في كل جولة
-        interval: float = 1.0,    # الفترة بين الجولات (ثواني)
+        fanout: int = 3,  # عدد العقد للإرسال في كل جولة
+        interval: float = 1.0,  # الفترة بين الجولات (ثواني)
     ):
         self.node = node
         self.fanout = fanout
@@ -161,7 +166,7 @@ class GossipProtocol:
         # تنظيف الرسائل القديمة
         if len(self._seen_messages) > self._max_seen:
             # إزالة نصف الرسائل القديمة
-            self._seen_messages = set(list(self._seen_messages)[self._max_seen // 2:])
+            self._seen_messages = set(list(self._seen_messages)[self._max_seen // 2 :])
 
     async def receive(self, message: GossipMessage) -> bool:
         """

@@ -87,40 +87,52 @@ ConditionalRouter = RuleEngine
 
 # Manager components - use from channels which has NotificationManager
 NotificationQueue = list  # Simple placeholder
-NotificationScheduler = type('NotificationScheduler', (), {})  # Placeholder
+NotificationScheduler = type("NotificationScheduler", (), {})  # Placeholder
 NotificationHistory = list  # Simple placeholder
-RateLimiter = type('RateLimiter', (), {})  # Placeholder (actual one is in channels)
+RateLimiter = type("RateLimiter", (), {})  # Placeholder (actual one is in channels)
 
 # Template placeholders
-NotificationTemplate = type('NotificationTemplate', (), {})
-TemplateEngine = type('TemplateEngine', (), {})
-HTMLTemplate = type('HTMLTemplate', (), {})
-MarkdownTemplate = type('MarkdownTemplate', (), {})
-RTLTemplate = type('RTLTemplate', (), {})
+NotificationTemplate = type("NotificationTemplate", (), {})
+TemplateEngine = type("TemplateEngine", (), {})
+HTMLTemplate = type("HTMLTemplate", (), {})
+MarkdownTemplate = type("MarkdownTemplate", (), {})
+RTLTemplate = type("RTLTemplate", (), {})
+
 
 # Exception classes
 class NotificationError(Exception):
     """Base exception for notification errors."""
+
     pass
+
 
 class ChannelError(NotificationError):
     """Exception for channel-specific errors."""
+
     pass
+
 
 class DeliveryError(NotificationError):
     """Exception for delivery failures."""
+
     pass
+
 
 class RateLimitError(NotificationError):
     """Exception for rate limiting."""
+
     pass
+
 
 class TemplateError(NotificationError):
     """Exception for template errors."""
+
     pass
+
 
 class ConfigurationError(NotificationError):
     """Exception for configuration errors."""
+
     pass
 
 

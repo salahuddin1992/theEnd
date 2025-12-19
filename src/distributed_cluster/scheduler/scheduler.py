@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class SchedulingPolicy(str, Enum):
     """سياسات الجدولة المتاحة."""
+
     FIRST_FIT = "first_fit"  # أول worker مناسب
     BEST_FIT = "best_fit"  # أقل موارد فائضة (bin packing)
     WORST_FIT = "worst_fit"  # أكثر موارد فائضة (spread)
@@ -41,6 +42,7 @@ class SchedulingPolicy(str, Enum):
 @dataclass
 class SchedulingDecision:
     """قرار الجدولة."""
+
     job: Job
     worker: WorkerInfo
     lease_id: str
@@ -246,18 +248,14 @@ class Scheduler:
             # أقل موارد فائضة (bin packing)
             return min(
                 candidates,
-                key=lambda w: self._calculate_slack(
-                    w.available_resources, job.submission.resources
-                ),
+                key=lambda w: self._calculate_slack(w.available_resources, job.submission.resources),
             )
 
         elif self.policy == SchedulingPolicy.WORST_FIT:
             # أكثر موارد فائضة (spread)
             return max(
                 candidates,
-                key=lambda w: self._calculate_slack(
-                    w.available_resources, job.submission.resources
-                ),
+                key=lambda w: self._calculate_slack(w.available_resources, job.submission.resources),
             )
 
         elif self.policy == SchedulingPolicy.ROUND_ROBIN:

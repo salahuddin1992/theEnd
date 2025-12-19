@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class DeltaType(str, Enum):
     """نوع التغيير."""
+
     SET = "set"
     DELETE = "delete"
     UPDATE = "update"
@@ -34,6 +35,7 @@ class DeltaType(str, Enum):
 @dataclass
 class StateDelta:
     """تغيير في الحالة."""
+
     delta_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     delta_type: DeltaType = DeltaType.SET
     key: str = ""
@@ -86,6 +88,7 @@ class StateDelta:
 @dataclass
 class StateSnapshot:
     """لقطة كاملة للحالة."""
+
     snapshot_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     node_id: str = ""
     version: int = 0
@@ -159,9 +162,7 @@ class StateSync:
     @property
     def checksum(self) -> str:
         """checksum الحالة الحالية."""
-        return hashlib.sha256(
-            json.dumps(self._state, sort_keys=True).encode()
-        ).hexdigest()[:16]
+        return hashlib.sha256(json.dumps(self._state, sort_keys=True).encode()).hexdigest()[:16]
 
     # =========================================================================
     # State Operations
@@ -252,7 +253,7 @@ class StateSync:
 
         # Trim old deltas
         if len(self._deltas) > self._max_deltas:
-            self._deltas = self._deltas[-self._max_deltas:]
+            self._deltas = self._deltas[-self._max_deltas :]
 
     def get_deltas_since(self, version: int) -> List[StateDelta]:
         """الحصول على التغييرات منذ إصدار معين."""
@@ -315,7 +316,7 @@ class StateSync:
 
         # Trim old snapshots
         if len(self._snapshots) > self._max_snapshots:
-            self._snapshots = self._snapshots[-self._max_snapshots:]
+            self._snapshots = self._snapshots[-self._max_snapshots :]
 
         return snapshot
 

@@ -57,8 +57,7 @@ class TestSchedulerWithWorkers:
     """Scheduler tests with workers."""
 
     def test_schedule_simple_job(
-        self, scheduler: Scheduler, sample_worker: WorkerInfo,
-        sample_job_submission: JobSubmission
+        self, scheduler: Scheduler, sample_worker: WorkerInfo, sample_job_submission: JobSubmission
     ):
         """Test scheduling a simple job to a worker."""
         scheduler.add_worker(sample_worker)
@@ -108,8 +107,7 @@ class TestSchedulerWithWorkers:
         assert worker_id == "worker-gpu-1"
 
     def test_schedule_avoids_offline_workers(
-        self, scheduler: Scheduler, multiple_workers: list[WorkerInfo],
-        sample_job_submission: JobSubmission
+        self, scheduler: Scheduler, multiple_workers: list[WorkerInfo], sample_job_submission: JobSubmission
     ):
         """Test that offline workers are not selected."""
         for worker in multiple_workers:

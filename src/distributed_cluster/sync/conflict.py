@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class ConflictStrategy(str, Enum):
     """استراتيجيات حل التعارض."""
+
     LAST_WRITE_WINS = "last_write_wins"  # الكتابة الأخيرة تفوز
     FIRST_WRITE_WINS = "first_write_wins"  # الكتابة الأولى تفوز
     LOCAL_PRIORITY = "local_priority"  # أولوية للمحلي
@@ -42,6 +43,7 @@ class VectorClock:
     Vector clock for tracking causality in distributed systems.
     Each node maintains its own counter, incremented on each update.
     """
+
     clocks: Dict[str, int] = field(default_factory=dict)
 
     def increment(self, node_id: str) -> None:
@@ -106,6 +108,7 @@ class VectorClock:
 @dataclass
 class Conflict:
     """تعارض في البيانات."""
+
     conflict_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     key: str = ""
     local_value: Any = None
@@ -521,6 +524,7 @@ class ConflictResolver:
 # CRDT Types (Conflict-free Replicated Data Types)
 # ============================================================================
 
+
 class GCounter:
     """
     عداد متنامي (Grow-only Counter).
@@ -603,6 +607,7 @@ class LWWRegister:
     def set(self, value: Any, timestamp: Optional[float] = None) -> None:
         """تعيين قيمة."""
         import time
+
         ts = timestamp or time.time()
 
         if ts >= self._timestamp:

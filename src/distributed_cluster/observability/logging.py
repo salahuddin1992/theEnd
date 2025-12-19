@@ -30,6 +30,7 @@ from typing import Any, Dict, Optional
 
 class LogLevel(IntEnum):
     """مستويات التسجيل."""
+
     DEBUG = 10
     INFO = 20
     WARNING = 30
@@ -44,6 +45,7 @@ class LogContext:
 
     يُحمل عبر العمليات لربط الـ logs.
     """
+
     request_id: Optional[str] = None
     job_id: Optional[str] = None
     worker_id: Optional[str] = None
@@ -127,9 +129,14 @@ def log_context(**kwargs):
         user_id=kwargs.get("user_id", old_ctx.user_id),
         trace_id=kwargs.get("trace_id", old_ctx.trace_id),
         span_id=kwargs.get("span_id", old_ctx.span_id),
-        extra={**old_ctx.extra, **{k: v for k, v in kwargs.items()
-                                   if k not in ("request_id", "job_id", "worker_id",
-                                                "user_id", "trace_id", "span_id")}},
+        extra={
+            **old_ctx.extra,
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k not in ("request_id", "job_id", "worker_id", "user_id", "trace_id", "span_id")
+            },
+        },
     )
     set_current_context(new_ctx)
     try:

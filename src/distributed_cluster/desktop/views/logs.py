@@ -40,11 +40,13 @@ class LogsView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("System Logs")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         header_layout.addStretch()
@@ -86,14 +88,16 @@ class LogsView(QWidget):
         # Logs text area
         self.logs_text = QPlainTextEdit()
         self.logs_text.setReadOnly(True)
-        self.logs_text.setStyleSheet(f"""
+        self.logs_text.setStyleSheet(
+            f"""
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             font-size: 12px;
             background-color: {COLORS['bg_dark']};
             color: {COLORS['text_primary']};
             border: 1px solid {COLORS['border']};
             border-radius: 8px;
-        """)
+        """
+        )
         self.logs_text.setPlaceholderText("No logs to display.\n\nConnect to a master server to view system logs.")
         layout.addWidget(self.logs_text)
 
@@ -130,9 +134,7 @@ class LogsView(QWidget):
         color = level_colors.get(level.lower(), COLORS["text_primary"])
 
         # Format and append
-        self.logs_text.appendHtml(
-            f'<span style="color: {color}">{message}</span>'
-        )
+        self.logs_text.appendHtml(f'<span style="color: {color}">{message}</span>')
 
         # Auto-scroll if enabled
         if self._auto_scroll:
@@ -171,9 +173,7 @@ class LogsView(QWidget):
     def _toggle_auto_scroll(self):
         """Toggle auto-scroll"""
         self._auto_scroll = self.auto_scroll_btn.isChecked()
-        self.auto_scroll_btn.setText(
-            f"Auto-scroll: {'ON' if self._auto_scroll else 'OFF'}"
-        )
+        self.auto_scroll_btn.setText(f"Auto-scroll: {'ON' if self._auto_scroll else 'OFF'}")
 
     def get_filter_level(self) -> Optional[str]:
         """Get current level filter"""

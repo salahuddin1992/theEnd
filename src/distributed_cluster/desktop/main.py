@@ -31,9 +31,7 @@ from .main_window import MainWindow
 def setup_application() -> QApplication:
     """Setup Qt application with proper configuration"""
     # Enable high DPI support
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-    )
+    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
     app = QApplication(sys.argv)
 
@@ -75,6 +73,7 @@ def main(server_url: Optional[str] = None, token: Optional[str] = None) -> int:
     # Auto-connect if server URL provided, otherwise show connection dialog
     if server_url:
         window._server_name = server_url
+
         async def auto_connect():
             await window._connect_to_server(server_url, token or "")
 
@@ -105,28 +104,20 @@ Examples:
   dc-desktop --server http://localhost:8765 --token mytoken
 
 For more information, visit: https://github.com/nebulacompute/distributed-cluster
-        """
+        """,
     )
 
     parser.add_argument(
-        "--server", "-s",
+        "--server",
+        "-s",
         type=str,
         help="Master server URL to connect to on startup (e.g., http://localhost:8765)",
-        metavar="URL"
+        metavar="URL",
     )
 
-    parser.add_argument(
-        "--token", "-t",
-        type=str,
-        help="API token for authentication",
-        metavar="TOKEN"
-    )
+    parser.add_argument("--token", "-t", type=str, help="API token for authentication", metavar="TOKEN")
 
-    parser.add_argument(
-        "--version", "-v",
-        action="version",
-        version="%(prog)s 0.1.0"
-    )
+    parser.add_argument("--version", "-v", action="version", version="%(prog)s 0.1.0")
 
     args = parser.parse_args()
 

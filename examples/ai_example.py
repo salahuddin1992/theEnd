@@ -17,11 +17,12 @@ import asyncio
 # Example 1: Basic LLM Usage
 # =============================================================================
 
+
 async def basic_llm_example():
     """مثال أساسي لاستخدام LLM."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 1: Basic LLM Usage")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.llm import GenerationConfig, OllamaProvider
 
@@ -65,11 +66,12 @@ async def basic_llm_example():
 # Example 2: Agent Usage
 # =============================================================================
 
+
 async def agent_example():
     """مثال استخدام الوكلاء."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 2: Agent Usage")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.agents import Agent
     from distributed_cluster.ai.agents.tools import (
@@ -123,11 +125,12 @@ async def agent_example():
 # Example 3: Conversation Management
 # =============================================================================
 
+
 async def conversation_example():
     """مثال إدارة المحادثات."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 3: Conversation Management")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.chat import ConversationManager
     from distributed_cluster.ai.llm import OllamaProvider
@@ -176,11 +179,12 @@ async def conversation_example():
 # Example 4: Streaming Response
 # =============================================================================
 
+
 async def streaming_example():
     """مثال الاستجابة المتدفقة."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 4: Streaming Response")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.llm import OllamaProvider
 
@@ -209,11 +213,12 @@ async def streaming_example():
 # Example 5: Inference Router (Multi-node)
 # =============================================================================
 
+
 async def inference_router_example():
     """مثال موجه الاستنتاج."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 5: Inference Router (Load Balancing)")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.inference import InferenceRouter, RoutingStrategy
 
@@ -263,11 +268,12 @@ async def inference_router_example():
 # Example 6: Model Registry
 # =============================================================================
 
+
 async def model_registry_example():
     """مثال سجل النماذج."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Example 6: Model Registry")
-    print("="*60)
+    print("=" * 60)
 
     from distributed_cluster.ai.models import ModelRegistry
 
@@ -302,10 +308,11 @@ async def model_registry_example():
 # Main
 # =============================================================================
 
+
 async def main():
     """Run all examples."""
     print("🤖 Distributed AI System Examples")
-    print("="*60)
+    print("=" * 60)
 
     examples = [
         ("Basic LLM", basic_llm_example),

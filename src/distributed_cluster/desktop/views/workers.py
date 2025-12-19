@@ -197,13 +197,15 @@ class WorkerDetailPanel(QFrame):
         status = worker.get("status", "unknown")
         color = get_status_color(status)
         self.status_label.setText(status.upper())
-        self.status_label.setStyleSheet(f"""
+        self.status_label.setStyleSheet(
+            f"""
             color: {color};
             font-weight: 600;
             padding: 4px 12px;
             border-radius: 4px;
             background-color: {color}20;
-        """)
+        """
+        )
 
         # Resources
         resources = worker.get("resources", {})
@@ -292,11 +294,13 @@ class WorkersView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Workers")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         header_layout.addStretch()
@@ -327,15 +331,17 @@ class WorkersView(QWidget):
         splitter = QSplitter(Qt.Horizontal)
 
         # Workers table
-        self.workers_table = DataTable([
-            ("ID", "id", 120),
-            ("Hostname", "hostname", 150),
-            ("Status", "status", 100),
-            ("CPU", "cpu_display", 100),
-            ("Memory", "memory_display", 100),
-            ("GPU", "gpu_display", 80),
-            ("Jobs", "running_jobs", 80),
-        ])
+        self.workers_table = DataTable(
+            [
+                ("ID", "id", 120),
+                ("Hostname", "hostname", 150),
+                ("Status", "status", 100),
+                ("CPU", "cpu_display", 100),
+                ("Memory", "memory_display", 100),
+                ("GPU", "gpu_display", 80),
+                ("Jobs", "running_jobs", 80),
+            ]
+        )
         self.workers_table.set_status_column("status")
         self.workers_table.row_selected.connect(self._on_worker_selected)
         self.workers_table.refresh_btn.clicked.connect(self._on_refresh)
@@ -391,13 +397,15 @@ class WorkersView(QWidget):
             elif status in ("offline", "unhealthy"):
                 stats["offline"] += 1
 
-            display_data.append({
-                **worker,
-                "cpu_display": f"{usage.get('cpu_cores', 0)}/{resources.get('cpu_cores', 0)}",
-                "memory_display": f"{usage.get('memory_mb', 0)}/{resources.get('memory_mb', 0)}",
-                "gpu_display": f"{usage.get('gpu_count', 0)}/{resources.get('gpu_count', 0)}",
-                "running_jobs": worker.get("stats", {}).get("running_jobs", 0),
-            })
+            display_data.append(
+                {
+                    **worker,
+                    "cpu_display": f"{usage.get('cpu_cores', 0)}/{resources.get('cpu_cores', 0)}",
+                    "memory_display": f"{usage.get('memory_mb', 0)}/{resources.get('memory_mb', 0)}",
+                    "gpu_display": f"{usage.get('gpu_count', 0)}/{resources.get('gpu_count', 0)}",
+                    "running_jobs": worker.get("stats", {}).get("running_jobs", 0),
+                }
+            )
 
         self.workers_table.set_data(display_data)
 
@@ -426,10 +434,9 @@ class WorkersView(QWidget):
         reply = QMessageBox.question(
             self,
             "Drain Worker",
-            f"Are you sure you want to drain worker {worker_id}?\n"
-            "The worker will stop accepting new jobs.",
+            f"Are you sure you want to drain worker {worker_id}?\n" "The worker will stop accepting new jobs.",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
         if reply == QMessageBox.Yes:
             # Drain via API client

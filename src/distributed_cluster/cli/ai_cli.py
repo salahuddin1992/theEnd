@@ -47,6 +47,7 @@ app.add_typer(inference_app, name="inference")
 # Chat Commands
 # =============================================================================
 
+
 @chat_app.command("start")
 def chat_start(
     model: str = typer.Option("llama3.2", "--model", "-m", help="Model to use"),
@@ -56,11 +57,12 @@ def chat_start(
     """
     بدء محادثة تفاعلية - Start interactive chat
     """
-    console.print(Panel.fit(
-        f"[bold green]🤖 بدء المحادثة مع {model}[/bold green]\n"
-        f"[dim]اكتب 'exit' أو 'خروج' للخروج[/dim]",
-        title="AI Chat",
-    ))
+    console.print(
+        Panel.fit(
+            f"[bold green]🤖 بدء المحادثة مع {model}[/bold green]\n" f"[dim]اكتب 'exit' أو 'خروج' للخروج[/dim]",
+            title="AI Chat",
+        )
+    )
 
     async def run_chat():
         from distributed_cluster.ai.chat.conversation import ConversationManager
@@ -127,6 +129,7 @@ def chat_send(
     """
     إرسال رسالة واحدة - Send a single message
     """
+
     async def run():
         from distributed_cluster.ai.llm.provider import OllamaProvider
 
@@ -140,12 +143,16 @@ def chat_send(
             )
 
             if json_output:
-                console.print_json(json.dumps({
-                    "text": response.text,
-                    "model": response.model,
-                    "tokens": response.total_tokens,
-                    "time_ms": response.generation_time_ms,
-                }))
+                console.print_json(
+                    json.dumps(
+                        {
+                            "text": response.text,
+                            "model": response.model,
+                            "tokens": response.total_tokens,
+                            "time_ms": response.generation_time_ms,
+                        }
+                    )
+                )
             else:
                 console.print(Markdown(response.text))
 
@@ -159,6 +166,7 @@ def chat_send(
 # Model Commands
 # =============================================================================
 
+
 @model_app.command("list")
 def model_list(
     ollama_url: str = typer.Option("http://localhost:11434", "--ollama-url", help="Ollama URL"),
@@ -167,6 +175,7 @@ def model_list(
     """
     عرض النماذج المتاحة - List available models
     """
+
     async def run():
         from distributed_cluster.ai.llm.provider import OllamaProvider
 
@@ -176,15 +185,19 @@ def model_list(
             models = await provider.list_models()
 
             if json_output:
-                console.print_json(json.dumps([
-                    {
-                        "name": m.name,
-                        "size_gb": round(m.size_bytes / 1e9, 2),
-                        "parameter_size": m.parameter_size,
-                        "quantization": m.quantization,
-                    }
-                    for m in models
-                ]))
+                console.print_json(
+                    json.dumps(
+                        [
+                            {
+                                "name": m.name,
+                                "size_gb": round(m.size_bytes / 1e9, 2),
+                                "parameter_size": m.parameter_size,
+                                "quantization": m.quantization,
+                            }
+                            for m in models
+                        ]
+                    )
+                )
             else:
                 table = Table(title="📦 النماذج المتاحة - Available Models")
                 table.add_column("Name", style="cyan")
@@ -217,6 +230,7 @@ def model_pull(
     """
     تحميل نموذج - Pull a model
     """
+
     async def run():
         from distributed_cluster.ai.llm.provider import OllamaProvider
 
@@ -290,6 +304,7 @@ def model_delete(
 # Agent Commands
 # =============================================================================
 
+
 @agent_app.command("run")
 def agent_run(
     task: str = typer.Argument(..., help="Task description"),
@@ -301,6 +316,7 @@ def agent_run(
     """
     تشغيل وكيل لتنفيذ مهمة - Run an agent to execute a task
     """
+
     async def run():
         from distributed_cluster.ai.agents.base import Agent, AgentTask
         from distributed_cluster.ai.agents.tools import get_default_tools
@@ -337,17 +353,21 @@ def agent_run(
 
             # Show results
             if result.is_success:
-                console.print(Panel(
-                    Markdown(str(result.result)),
-                    title="✅ Result",
-                    border_style="green",
-                ))
+                console.print(
+                    Panel(
+                        Markdown(str(result.result)),
+                        title="✅ Result",
+                        border_style="green",
+                    )
+                )
             else:
-                console.print(Panel(
-                    f"[red]{result.error}[/red]",
-                    title="❌ Failed",
-                    border_style="red",
-                ))
+                console.print(
+                    Panel(
+                        f"[red]{result.error}[/red]",
+                        title="❌ Failed",
+                        border_style="red",
+                    )
+                )
 
             # Show steps
             if result.steps:
@@ -392,6 +412,7 @@ def agent_list():
 # =============================================================================
 # Inference Commands
 # =============================================================================
+
 
 @inference_app.command("start-worker")
 def inference_start_worker(
@@ -457,11 +478,13 @@ def inference_test(
                 response.raise_for_status()
                 data = response.json()
 
-                console.print(Panel(
-                    data.get("text", ""),
-                    title="Response",
-                    border_style="green",
-                ))
+                console.print(
+                    Panel(
+                        data.get("text", ""),
+                        title="Response",
+                        border_style="green",
+                    )
+                )
 
                 console.print(f"[dim]Tokens: {data.get('tokens')} | Time: {data.get('generation_time_ms'):.0f}ms[/dim]")
 
@@ -474,6 +497,7 @@ def inference_test(
 # =============================================================================
 # Main Commands
 # =============================================================================
+
 
 @app.command("status")
 def status(

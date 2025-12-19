@@ -26,8 +26,10 @@ logger = logging.getLogger(__name__)
 # Health Status
 # =============================================================================
 
+
 class HealthStatus(str, Enum):
     """حالة الصحة."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -36,6 +38,7 @@ class HealthStatus(str, Enum):
 
 class AlertSeverity(str, Enum):
     """شدة التنبيه."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -44,6 +47,7 @@ class AlertSeverity(str, Enum):
 
 class AlertState(str, Enum):
     """حالة التنبيه."""
+
     PENDING = "pending"  # في انتظار تأكيد
     FIRING = "firing"  # نشط
     RESOLVED = "resolved"  # تم حله
@@ -52,6 +56,7 @@ class AlertState(str, Enum):
 @dataclass
 class HealthCheck:
     """فحص صحة واحد."""
+
     name: str
     status: HealthStatus = HealthStatus.UNKNOWN
     message: str = ""
@@ -63,6 +68,7 @@ class HealthCheck:
 @dataclass
 class HealthReport:
     """تقرير الصحة الكامل."""
+
     overall_status: HealthStatus
     checks: Dict[str, HealthCheck]
     timestamp: datetime = field(default_factory=datetime.utcnow)
@@ -92,6 +98,7 @@ class HealthReport:
 @dataclass
 class Alert:
     """تنبيه."""
+
     alert_id: str
     name: str
     severity: AlertSeverity
@@ -116,15 +123,14 @@ class Alert:
             "annotations": self.annotations,
             "started_at": self.started_at.isoformat(),
             "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
-            "duration_seconds": (
-                (self.resolved_at or datetime.utcnow()) - self.started_at
-            ).total_seconds(),
+            "duration_seconds": ((self.resolved_at or datetime.utcnow()) - self.started_at).total_seconds(),
         }
 
 
 # =============================================================================
 # Health Check Functions
 # =============================================================================
+
 
 class HealthChecker:
     """
@@ -229,6 +235,7 @@ class HealthChecker:
 # Standard Health Checks
 # =============================================================================
 
+
 async def database_health_check(db) -> HealthCheck:
     """فحص صحة قاعدة البيانات."""
     try:
@@ -280,6 +287,7 @@ async def memory_health_check(threshold_percent: float = 90.0) -> HealthCheck:
     """فحص صحة الذاكرة."""
     try:
         import psutil
+
         memory = psutil.virtual_memory()
 
         if memory.percent > threshold_percent:
@@ -328,6 +336,7 @@ async def disk_health_check(path: str = "/", threshold_percent: float = 90.0) ->
     """فحص صحة القرص."""
     try:
         import psutil
+
         disk = psutil.disk_usage(path)
         used_percent = disk.percent
 
@@ -377,9 +386,11 @@ async def disk_health_check(path: str = "/", threshold_percent: float = 90.0) ->
 # Alert Rules
 # =============================================================================
 
+
 @dataclass
 class AlertRule:
     """قاعدة تنبيه."""
+
     name: str
     condition: Callable[[], Awaitable[bool]]
     severity: AlertSeverity
@@ -429,9 +440,7 @@ class AlertManager:
     async def start(self, check_interval: float = 30.0) -> None:
         """بدء المدير."""
         self._running = True
-        self._processor_task = asyncio.create_task(
-            self._evaluate_loop(check_interval)
-        )
+        self._processor_task = asyncio.create_task(self._evaluate_loop(check_interval))
         logger.info("Alert manager started")
 
     async def stop(self) -> None:
@@ -534,10 +543,7 @@ class AlertManager:
 
     def get_active_alerts(self) -> List[Alert]:
         """الحصول على التنبيهات النشطة."""
-        return [
-            alert for alert in self._alerts.values()
-            if alert.state == AlertState.FIRING
-        ]
+        return [alert for alert in self._alerts.values() if alert.state == AlertState.FIRING]
 
     def get_all_alerts(self) -> List[Alert]:
         """الحصول على كل التنبيهات."""
@@ -547,6 +553,7 @@ class AlertManager:
 # =============================================================================
 # Notification Channels
 # =============================================================================
+
 
 class NotificationChannel(ABC):
     """قناة إشعارات مجردة."""
@@ -573,9 +580,7 @@ class LogChannel(NotificationChannel):
 
     async def send_alert(self, alert: Alert) -> None:
         """تسجيل التنبيه."""
-        logger.warning(
-            f"[ALERT] {alert.severity.value.upper()}: {alert.name} - {alert.message}"
-        )
+        logger.warning(f"[ALERT] {alert.severity.value.upper()}: {alert.name} - {alert.message}")
 
     async def send_resolved(self, alert: Alert) -> None:
         """تسجيل الحل."""
@@ -594,6 +599,7 @@ class WebhookChannel(NotificationChannel):
         """إرسال عبر webhook."""
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 payload = {
                     "status": "firing",
@@ -612,6 +618,7 @@ class WebhookChannel(NotificationChannel):
         """إرسال حل عبر webhook."""
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 payload = {
                     "status": "resolved",
@@ -645,16 +652,18 @@ class SlackChannel(NotificationChannel):
         }.get(alert.severity, "#808080")
 
         payload = {
-            "attachments": [{
-                "color": color,
-                "title": f"🚨 Alert: {alert.name}",
-                "text": alert.message,
-                "fields": [
-                    {"title": "Severity", "value": alert.severity.value, "short": True},
-                    {"title": "Started", "value": alert.started_at.isoformat(), "short": True},
-                ],
-                "footer": "NebulaCompute Alert Manager",
-            }]
+            "attachments": [
+                {
+                    "color": color,
+                    "title": f"🚨 Alert: {alert.name}",
+                    "text": alert.message,
+                    "fields": [
+                        {"title": "Severity", "value": alert.severity.value, "short": True},
+                        {"title": "Started", "value": alert.started_at.isoformat(), "short": True},
+                    ],
+                    "footer": "NebulaCompute Alert Manager",
+                }
+            ]
         }
 
         if self.channel:
@@ -662,6 +671,7 @@ class SlackChannel(NotificationChannel):
 
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 await client.post(self.webhook_url, json=payload, timeout=10.0)
         except Exception as e:
@@ -670,12 +680,15 @@ class SlackChannel(NotificationChannel):
     async def send_resolved(self, alert: Alert) -> None:
         """إرسال حل إلى Slack."""
         payload = {
-            "attachments": [{
-                "color": "#36a64f",
-                "title": f"✅ Resolved: {alert.name}",
-                "text": f"Alert resolved after {(alert.resolved_at - alert.started_at).total_seconds():.0f} seconds",
-                "footer": "NebulaCompute Alert Manager",
-            }]
+            "attachments": [
+                {
+                    "color": "#36a64f",
+                    "title": f"✅ Resolved: {alert.name}",
+                    "text": f"Alert resolved after "
+                    f"{(alert.resolved_at - alert.started_at).total_seconds():.0f} seconds",
+                    "footer": "NebulaCompute Alert Manager",
+                }
+            ]
         }
 
         if self.channel:
@@ -683,6 +696,7 @@ class SlackChannel(NotificationChannel):
 
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 await client.post(self.webhook_url, json=payload, timeout=10.0)
         except Exception as e:
@@ -692,6 +706,7 @@ class SlackChannel(NotificationChannel):
 # =============================================================================
 # Standard Alert Rules
 # =============================================================================
+
 
 def create_standard_alert_rules(
     scheduler,
@@ -706,41 +721,48 @@ def create_standard_alert_rules(
     async def no_workers_condition():
         return len(scheduler.workers) == 0
 
-    rules.append(AlertRule(
-        name="no_workers",
-        condition=no_workers_condition,
-        severity=AlertSeverity.CRITICAL,
-        message_template="No workers available in the cluster",
-        for_duration=timedelta(minutes=2),
-    ))
+    rules.append(
+        AlertRule(
+            name="no_workers",
+            condition=no_workers_condition,
+            severity=AlertSeverity.CRITICAL,
+            message_template="No workers available in the cluster",
+            for_duration=timedelta(minutes=2),
+        )
+    )
 
     # High pending jobs
     async def high_pending_jobs_condition():
         return scheduler.pending_jobs_count > pending_jobs_threshold
 
-    rules.append(AlertRule(
-        name="high_pending_jobs",
-        condition=high_pending_jobs_condition,
-        severity=AlertSeverity.WARNING,
-        message_template=f"More than {pending_jobs_threshold} jobs pending",
-        for_duration=timedelta(minutes=5),
-    ))
+    rules.append(
+        AlertRule(
+            name="high_pending_jobs",
+            condition=high_pending_jobs_condition,
+            severity=AlertSeverity.WARNING,
+            message_template=f"More than {pending_jobs_threshold} jobs pending",
+            for_duration=timedelta(minutes=5),
+        )
+    )
 
     # High memory usage
     async def high_memory_condition():
         try:
             import psutil
+
             return psutil.virtual_memory().percent > 90
         except ImportError:
             return False
 
-    rules.append(AlertRule(
-        name="high_memory_usage",
-        condition=high_memory_condition,
-        severity=AlertSeverity.WARNING,
-        message_template="Memory usage above 90%",
-        for_duration=timedelta(minutes=5),
-    ))
+    rules.append(
+        AlertRule(
+            name="high_memory_usage",
+            condition=high_memory_condition,
+            severity=AlertSeverity.WARNING,
+            message_template="Memory usage above 90%",
+            for_duration=timedelta(minutes=5),
+        )
+    )
 
     # High disk usage
     async def high_disk_condition():
@@ -749,6 +771,7 @@ def create_standard_alert_rules(
             import sys
 
             import psutil
+
             # Use platform-appropriate disk path
             if sys.platform == "win32":
                 disk_path = os.environ.get("SystemDrive", "C:") + "\\"
@@ -758,12 +781,14 @@ def create_standard_alert_rules(
         except (ImportError, Exception):
             return False
 
-    rules.append(AlertRule(
-        name="high_disk_usage",
-        condition=high_disk_condition,
-        severity=AlertSeverity.WARNING,
-        message_template="Disk usage above 90%",
-        for_duration=timedelta(minutes=5),
-    ))
+    rules.append(
+        AlertRule(
+            name="high_disk_usage",
+            condition=high_disk_condition,
+            severity=AlertSeverity.WARNING,
+            message_template="Disk usage above 90%",
+            for_duration=timedelta(minutes=5),
+        )
+    )
 
     return rules

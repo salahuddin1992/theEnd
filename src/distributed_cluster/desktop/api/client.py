@@ -16,6 +16,7 @@ from PySide6.QtCore import QObject, Signal
 @dataclass
 class ClusterStats:
     """Cluster statistics"""
+
     total_workers: int = 0
     active_workers: int = 0
     total_jobs: int = 0
@@ -64,11 +65,7 @@ class APIClient(QObject):
     async def connect(self) -> bool:
         """Connect to master server"""
         try:
-            self._client = httpx.AsyncClient(
-                base_url=self.base_url,
-                headers=self.headers,
-                timeout=30.0
-            )
+            self._client = httpx.AsyncClient(base_url=self.base_url, headers=self.headers, timeout=30.0)
             # Test connection
             response = await self._client.get("/health")
             if response.status_code == 200:
@@ -124,10 +121,7 @@ class APIClient(QObject):
             elif event_type == "job_update":
                 self.jobs_updated.emit(data.get("data", []))
             elif event_type == "job_status_changed":
-                self.job_status_changed.emit(
-                    data.get("job_id"),
-                    data.get("status")
-                )
+                self.job_status_changed.emit(data.get("job_id"), data.get("status"))
         except json.JSONDecodeError:
             pass
 

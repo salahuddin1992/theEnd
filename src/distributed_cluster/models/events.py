@@ -51,6 +51,7 @@ class Event:
 
     يُستخدم للمراقبة والإشعارات.
     """
+
     event_type: EventType
     timestamp: datetime = field(default_factory=datetime.utcnow)
     source: str = ""  # من أين جاء الحدث (worker_id, master_id, etc.)

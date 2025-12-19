@@ -18,6 +18,7 @@ from typing import Optional
 
 class ResourceType(str, Enum):
     """أنواع الموارد المدعومة."""
+
     CPU = "cpu"
     MEMORY = "memory"
     GPU = "gpu"
@@ -27,6 +28,7 @@ class ResourceType(str, Enum):
 @dataclass
 class GPUInfo:
     """معلومات GPU واحدة."""
+
     index: int
     name: str
     uuid: str
@@ -55,6 +57,7 @@ class ResourceSpec:
 
     هذا هو "Resource Vector" اللي يستخدمه الـ Scheduler للمطابقة.
     """
+
     cpu_cores: float = 1.0  # عدد الأنوية (يدعم كسور مثل 0.5)
     memory_mb: int = 512  # الذاكرة بالميغابايت
     gpu_count: int = 0  # عدد GPUs المطلوبة
@@ -136,6 +139,7 @@ class ResourceUsage:
 
     يُرسل مع كل heartbeat لمراقبة الأداء.
     """
+
     cpu_percent: float  # نسبة استخدام CPU (0-100)
     memory_used_mb: int
     memory_total_mb: int

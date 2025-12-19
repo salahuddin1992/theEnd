@@ -48,7 +48,7 @@ class CryptoManager:
 
         # Use PBKDF2
         key = hashlib.pbkdf2_hmac(
-            'sha256',
+            "sha256",
             password.encode(),
             salt,
             iterations=100000,
@@ -66,7 +66,7 @@ class CryptoManager:
         expected_key = base64.b64decode(hash_b64)
 
         key = hashlib.pbkdf2_hmac(
-            'sha256',
+            "sha256",
             password.encode(),
             salt,
             iterations=100000,
@@ -91,8 +91,8 @@ class CryptoManager:
         """حساب checksum لملف."""
         hash_func = hashlib.new(algorithm)
 
-        with open(filepath, 'rb') as f:
-            for chunk in iter(lambda: f.read(8192), b''):
+        with open(filepath, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
                 hash_func.update(chunk)
 
         return f"{algorithm}:{hash_func.hexdigest()}"
@@ -118,17 +118,19 @@ class CryptoManager:
         - Machine GUID (Windows)
         """
         import sys
+
         identifiers = []
 
         if sys.platform == "win32":
             # Windows: Get MachineGuid from registry
             try:
                 import winreg
+
                 key = winreg.OpenKey(
                     winreg.HKEY_LOCAL_MACHINE,
                     r"SOFTWARE\Microsoft\Cryptography",
                     0,
-                    winreg.KEY_READ | winreg.KEY_WOW64_64KEY
+                    winreg.KEY_READ | winreg.KEY_WOW64_64KEY,
                 )
                 machine_guid, _ = winreg.QueryValueEx(key, "MachineGuid")
                 winreg.CloseKey(key)
@@ -139,14 +141,12 @@ class CryptoManager:
             # Fallback: Get volume serial number
             try:
                 import subprocess
+
                 result = subprocess.run(
-                    ["wmic", "os", "get", "serialnumber"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
+                    ["wmic", "os", "get", "serialnumber"], capture_output=True, text=True, timeout=5
                 )
                 if result.returncode == 0:
-                    lines = result.stdout.strip().split('\n')
+                    lines = result.stdout.strip().split("\n")
                     if len(lines) > 1:
                         identifiers.append(lines[1].strip())
             except Exception:
@@ -156,14 +156,12 @@ class CryptoManager:
             # macOS: Get hardware UUID
             try:
                 import subprocess
+
                 result = subprocess.run(
-                    ["ioreg", "-rd1", "-c", "IOPlatformExpertDevice"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
+                    ["ioreg", "-rd1", "-c", "IOPlatformExpertDevice"], capture_output=True, text=True, timeout=5
                 )
                 if result.returncode == 0:
-                    for line in result.stdout.split('\n'):
+                    for line in result.stdout.split("\n"):
                         if "IOPlatformUUID" in line:
                             uuid = line.split('"')[-2]
                             identifiers.append(uuid)
@@ -189,6 +187,7 @@ class CryptoManager:
         # Fallback to hostname + random
         if not identifiers:
             import socket
+
             identifiers.append(socket.gethostname())
             identifiers.append(secrets.token_hex(16))
 

@@ -32,6 +32,7 @@ import aiofiles
 @dataclass
 class ArtifactMetadata:
     """معلومات artifact."""
+
     name: str
     uri: str
     size_bytes: int
@@ -133,8 +134,8 @@ class ArtifactStorage(ABC):
         """حساب checksum لملف."""
         hash_func = hashlib.new(algorithm)
 
-        with open(filepath, 'rb') as f:
-            for chunk in iter(lambda: f.read(8192), b''):
+        with open(filepath, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
                 hash_func.update(chunk)
 
         return f"{algorithm}:{hash_func.hexdigest()}"
@@ -185,15 +186,15 @@ class LocalStorage(ArtifactStorage):
                 raise FileNotFoundError(f"Source not found: {source}")
 
             # Async copy
-            async with aiofiles.open(source_path, 'rb') as src:
-                async with aiofiles.open(dest_path, 'wb') as dst:
+            async with aiofiles.open(source_path, "rb") as src:
+                async with aiofiles.open(dest_path, "wb") as dst:
                     while chunk := await src.read(8192):
                         await dst.write(chunk)
 
             size = source_path.stat().st_size
         else:
             # BinaryIO
-            async with aiofiles.open(dest_path, 'wb') as dst:
+            async with aiofiles.open(dest_path, "wb") as dst:
                 size = 0
                 while True:
                     chunk = source.read(8192)
@@ -228,8 +229,8 @@ class LocalStorage(ArtifactStorage):
             raise FileNotFoundError(f"Artifact not found: {uri}")
 
         # Async copy
-        async with aiofiles.open(source_path, 'rb') as src:
-            async with aiofiles.open(dest_path, 'wb') as dst:
+        async with aiofiles.open(source_path, "rb") as src:
+            async with aiofiles.open(dest_path, "wb") as dst:
                 while chunk := await src.read(8192):
                     await dst.write(chunk)
 
@@ -312,17 +313,17 @@ class S3Storage(ArtifactStorage):
 
                 config = Config(
                     region_name=self.region,
-                    signature_version='s3v4',
+                    signature_version="s3v4",
                 )
 
                 session_kwargs = {}
                 if self.access_key and self.secret_key:
-                    session_kwargs['aws_access_key_id'] = self.access_key
-                    session_kwargs['aws_secret_access_key'] = self.secret_key
+                    session_kwargs["aws_access_key_id"] = self.access_key
+                    session_kwargs["aws_secret_access_key"] = self.secret_key
 
                 session = boto3.Session(**session_kwargs)
                 self._client = session.client(
-                    's3',
+                    "s3",
                     endpoint_url=self.endpoint_url,
                     config=config,
                 )
@@ -357,7 +358,7 @@ class S3Storage(ArtifactStorage):
 
         extra_args = {}
         if metadata:
-            extra_args['Metadata'] = metadata
+            extra_args["Metadata"] = metadata
 
         # Upload
         loop = asyncio.get_event_loop()
@@ -374,7 +375,7 @@ class S3Storage(ArtifactStorage):
                     self.bucket,
                     key,
                     ExtraArgs=extra_args if extra_args else None,
-                )
+                ),
             )
         else:
             # BinaryIO - read all to get size (not ideal for large files)
@@ -389,7 +390,7 @@ class S3Storage(ArtifactStorage):
                     Key=key,
                     Body=data,
                     **extra_args,
-                )
+                ),
             )
 
         uri = self._get_uri(key)
@@ -419,7 +420,7 @@ class S3Storage(ArtifactStorage):
                 self.bucket,
                 key,
                 str(dest_path),
-            )
+            ),
         )
 
         return dest_path
@@ -436,7 +437,7 @@ class S3Storage(ArtifactStorage):
                 lambda: client.delete_object(
                     Bucket=self.bucket,
                     Key=key,
-                )
+                ),
             )
             return True
         except Exception:
@@ -454,7 +455,7 @@ class S3Storage(ArtifactStorage):
                 lambda: client.head_object(
                     Bucket=self.bucket,
                     Key=key,
-                )
+                ),
             )
             return True
         except Exception:
@@ -472,17 +473,17 @@ class S3Storage(ArtifactStorage):
                 lambda: client.head_object(
                     Bucket=self.bucket,
                     Key=key,
-                )
+                ),
             )
 
             return ArtifactMetadata(
                 name=Path(key).name,
                 uri=self._get_uri(key),
-                size_bytes=response['ContentLength'],
-                checksum=response.get('ETag', '').strip('"'),
-                content_type=response.get('ContentType', 'application/octet-stream'),
-                created_at=response.get('LastModified', datetime.utcnow()),
-                metadata=response.get('Metadata', {}),
+                size_bytes=response["ContentLength"],
+                checksum=response.get("ETag", "").strip('"'),
+                content_type=response.get("ContentType", "application/octet-stream"),
+                created_at=response.get("LastModified", datetime.utcnow()),
+                metadata=response.get("Metadata", {}),
             )
         except Exception:
             return None
@@ -498,7 +499,7 @@ class S3Storage(ArtifactStorage):
             client = self._get_client()
             key = self._get_key(uri)
 
-            client_method = 'get_object' if method == 'GET' else 'put_object'
+            client_method = "get_object" if method == "GET" else "put_object"
 
             loop = asyncio.get_event_loop()
             url = await loop.run_in_executor(
@@ -506,11 +507,11 @@ class S3Storage(ArtifactStorage):
                 lambda: client.generate_presigned_url(
                     ClientMethod=client_method,
                     Params={
-                        'Bucket': self.bucket,
-                        'Key': key,
+                        "Bucket": self.bucket,
+                        "Key": key,
                     },
                     ExpiresIn=expires_in_seconds,
-                )
+                ),
             )
             return url
         except Exception:

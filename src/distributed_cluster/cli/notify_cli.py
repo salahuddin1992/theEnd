@@ -48,6 +48,7 @@ def test_notification(
         dc-notify test --channel slack --webhook https://hooks.slack.com/...
         dc-notify test --priority critical --title "تنبيه هام"
     """
+
     async def run():
         notifier = Notifier()
 
@@ -108,6 +109,7 @@ def send_notification(
     مثال:
         dc-notify send job_failed -t "فشلت المهمة" -m "المهمة X فشلت بسبب نفاد الذاكرة"
     """
+
     async def run():
         notifier = Notifier()
 
@@ -207,7 +209,7 @@ def show_example():
     """
     عرض مثال على استخدام الإشعارات
     """
-    example_code = '''
+    example_code = """
 # استخدام نظام الإشعارات في الكود
 
 from distributed_cluster.notifications import (
@@ -253,13 +255,15 @@ async def main():
 
     # إيقاف
     await notifier.stop()
-'''
+"""
 
-    console.print(Panel(
-        example_code,
-        title="مثال على استخدام نظام الإشعارات",
-        border_style="blue",
-    ))
+    console.print(
+        Panel(
+            example_code,
+            title="مثال على استخدام نظام الإشعارات",
+            border_style="blue",
+        )
+    )
 
 
 def main():

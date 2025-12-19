@@ -10,6 +10,7 @@ from typing import Dict
 
 class ThemeType(Enum):
     """Available theme types"""
+
     DARK = "dark"
     LIGHT = "light"
     SYSTEM = "system"
@@ -18,6 +19,7 @@ class ThemeType(Enum):
 @dataclass
 class Theme:
     """Theme color definitions"""
+
     name: str
     primary: str
     primary_hover: str
@@ -58,19 +60,15 @@ DARK_THEME = Theme(
     warning="#f59e0b",
     danger="#ef4444",
     info="#3b82f6",
-
     bg_dark="#0f172a",
     bg_medium="#1e293b",
     bg_light="#334155",
     bg_card="#1e293b",
-
     text_primary="#f8fafc",
     text_secondary="#94a3b8",
     text_muted="#64748b",
-
     border="#334155",
     border_light="#475569",
-
     status_running="#22c55e",
     status_pending="#f59e0b",
     status_failed="#ef4444",
@@ -89,19 +87,15 @@ LIGHT_THEME = Theme(
     warning="#d97706",
     danger="#dc2626",
     info="#2563eb",
-
     bg_dark="#f8fafc",
     bg_medium="#f1f5f9",
     bg_light="#e2e8f0",
     bg_card="#ffffff",
-
     text_primary="#0f172a",
     text_secondary="#475569",
     text_muted="#94a3b8",
-
     border="#e2e8f0",
     border_light="#cbd5e1",
-
     status_running="#16a34a",
     status_pending="#d97706",
     status_failed="#dc2626",

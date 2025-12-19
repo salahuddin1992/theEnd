@@ -65,6 +65,7 @@ class ResourceDetector:
         """Initialize NVIDIA Management Library."""
         try:
             import pynvml
+
             pynvml.nvmlInit()
             self._nvml_initialized = True
             logger.info("NVIDIA ML initialized successfully")
@@ -78,6 +79,7 @@ class ResourceDetector:
         if self._nvml_initialized:
             try:
                 import pynvml
+
                 pynvml.nvmlShutdown()
             except Exception:
                 pass
@@ -149,9 +151,7 @@ class ResourceDetector:
 
                     # Temperature (optional)
                     try:
-                        temp = pynvml.nvmlDeviceGetTemperature(
-                            handle, pynvml.NVML_TEMPERATURE_GPU
-                        )
+                        temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
                     except Exception:
                         temp = None
 
@@ -189,6 +189,7 @@ class ResourceDetector:
 
         try:
             import pynvml
+
             version = pynvml.nvmlSystemGetDriverVersion()
             if isinstance(version, bytes):
                 version = version.decode("utf-8")
@@ -229,8 +230,8 @@ class ResourceDetector:
         # Get disk usage with platform-aware path
         try:
             disk = psutil.disk_usage(self._get_disk_path())
-            disk_used_gb = disk.used / (1024 ** 3)
-            disk_total_gb = disk.total / (1024 ** 3)
+            disk_used_gb = disk.used / (1024**3)
+            disk_total_gb = disk.total / (1024**3)
         except Exception:
             disk_used_gb = 0.0
             disk_total_gb = 0.0
@@ -255,6 +256,7 @@ class ResourceDetector:
         """التحقق من توفر Docker."""
         try:
             import docker
+
             client = docker.from_env()
             client.ping()
             return True

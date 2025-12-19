@@ -36,14 +36,16 @@ logger = logging.getLogger(__name__)
 
 class HAMode(str, Enum):
     """أنماط التوفر العالي"""
-    STANDALONE = "standalone"      # Master واحد (بدون HA)
+
+    STANDALONE = "standalone"  # Master واحد (بدون HA)
     ACTIVE_STANDBY = "active_standby"  # قائد + احتياط
-    ACTIVE_ACTIVE = "active_active"    # كلهم نشطين (يحتاج DB مشتركة)
+    ACTIVE_ACTIVE = "active_active"  # كلهم نشطين (يحتاج DB مشتركة)
 
 
 @dataclass
 class HAConfig:
     """إعدادات التوفر العالي"""
+
     # نمط التشغيل
     mode: HAMode = HAMode.STANDALONE
 
@@ -78,6 +80,7 @@ class HAConfig:
 
 # ==================== API Models ====================
 
+
 class ElectionRequest(BaseModel):
     master_id: str
     term: int
@@ -103,6 +106,7 @@ class SyncUpdatesRequest(BaseModel):
 
 
 # ==================== HA Master Server ====================
+
 
 class HAMasterServer:
     """
@@ -206,21 +210,9 @@ class HAMasterServer:
                     if self._election and self._election.current_leader
                     else None
                 ),
-                "election": (
-                    self._election.get_status()
-                    if self._election
-                    else None
-                ),
-                "sync": (
-                    self._state_sync.get_sync_status()
-                    if self._state_sync
-                    else None
-                ),
-                "health": (
-                    self._health_monitor.get_cluster_health()
-                    if self._health_monitor
-                    else None
-                ),
+                "election": (self._election.get_status() if self._election else None),
+                "sync": (self._state_sync.get_sync_status() if self._state_sync else None),
+                "health": (self._health_monitor.get_cluster_health() if self._health_monitor else None),
             }
 
         @app.post("/ha/election")
@@ -228,9 +220,7 @@ class HAMasterServer:
             """معالجة طلب انتخاب"""
             if not self._election:
                 raise HTTPException(status_code=503, detail="HA not enabled")
-            return await self._election.handle_election(
-                req.master_id, req.term, req.priority
-            )
+            return await self._election.handle_election(req.master_id, req.term, req.priority)
 
         @app.post("/ha/leader")
         async def handle_leader(req: LeaderAnnouncement):
@@ -353,15 +343,17 @@ class HAMasterServer:
 
             gpus = []
             for g in data.get("gpus", []):
-                gpus.append(GPUInfo(
-                    index=g.get("index", 0),
-                    name=g.get("name", ""),
-                    uuid=g.get("uuid", ""),
-                    memory_total_mb=g.get("memory_total_mb", 0),
-                    memory_free_mb=g.get("memory_free_mb", 0),
-                    memory_used_mb=g.get("memory_used_mb", 0),
-                    utilization_percent=g.get("utilization_percent", 0),
-                ))
+                gpus.append(
+                    GPUInfo(
+                        index=g.get("index", 0),
+                        name=g.get("name", ""),
+                        uuid=g.get("uuid", ""),
+                        memory_total_mb=g.get("memory_total_mb", 0),
+                        memory_free_mb=g.get("memory_free_mb", 0),
+                        memory_used_mb=g.get("memory_used_mb", 0),
+                        utilization_percent=g.get("utilization_percent", 0),
+                    )
+                )
 
             usage = ResourceUsage(
                 cpu_percent=data.get("cpu_percent", 0),
@@ -378,10 +370,7 @@ class HAMasterServer:
 
             # إرجاع jobs المعينة
             pending_jobs = self.state.get_jobs_by_worker(worker_id)
-            scheduled_jobs = [
-                j.to_dict() for j in pending_jobs
-                if j.status.value in ("scheduled", "running")
-            ]
+            scheduled_jobs = [j.to_dict() for j in pending_jobs if j.status.value in ("scheduled", "running")]
 
             return {"status": "ok", "assigned_jobs": scheduled_jobs}
 
@@ -494,9 +483,7 @@ class HAMasterServer:
                 raise HTTPException(status_code=400, detail="Failed to start job")
 
             if self._state_sync:
-                self._state_sync.queue_job_update(
-                    job_id, "started", {"worker_id": worker_id}
-                )
+                self._state_sync.queue_job_update(job_id, "started", {"worker_id": worker_id})
 
             return {"status": "started"}
 
@@ -507,6 +494,7 @@ class HAMasterServer:
             worker_id = data.get("worker_id")
 
             from distributed_cluster.models.job import JobResult
+
             result = JobResult(
                 exit_code=data.get("exit_code", 0),
                 stdout=data.get("stdout", ""),
@@ -557,8 +545,7 @@ class HAMasterServer:
             await self._start_scheduler()
 
         logger.info(
-            f"HA Master server started on {self.config.host}:{self.config.port} "
-            f"(mode: {self.ha_config.mode.value})"
+            f"HA Master server started on {self.config.host}:{self.config.port} " f"(mode: {self.ha_config.mode.value})"
         )
 
     async def _shutdown(self) -> None:
@@ -734,6 +721,7 @@ class HAMasterServer:
     def run(self) -> None:
         """تشغيل السيرفر"""
         import uvicorn
+
         uvicorn.run(
             self.app,
             host=self.config.host,

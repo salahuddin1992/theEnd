@@ -43,13 +43,15 @@ class LoginDialog(QDialog):
         # Main container with rounded corners
         container = QFrame(self)
         container.setGeometry(0, 0, 420, 520)
-        container.setStyleSheet(f"""
+        container.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_dark']};
                 border: 1px solid {COLORS['border']};
                 border-radius: 16px;
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(container)
         layout.setContentsMargins(40, 40, 40, 40)
@@ -58,7 +60,8 @@ class LoginDialog(QDialog):
         # Close button
         close_btn = QPushButton("×")
         close_btn.setFixedSize(30, 30)
-        close_btn.setStyleSheet(f"""
+        close_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLORS['text_muted']};
@@ -69,7 +72,8 @@ class LoginDialog(QDialog):
             QPushButton:hover {{
                 color: {COLORS['danger']};
             }}
-        """)
+        """
+        )
         close_btn.clicked.connect(self.reject)
 
         close_layout = QHBoxLayout()
@@ -79,20 +83,24 @@ class LoginDialog(QDialog):
 
         # Logo
         logo_label = QLabel("☁")
-        logo_label.setStyleSheet(f"""
+        logo_label.setStyleSheet(
+            f"""
             font-size: 48px;
             color: {COLORS['primary']};
-        """)
+        """
+        )
         logo_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(logo_label)
 
         # Title
         title = QLabel("NebulaCompute")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: bold;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
@@ -130,7 +138,8 @@ class LoginDialog(QDialog):
 
         show_pass_btn = QPushButton("👁")
         show_pass_btn.setFixedSize(44, 44)
-        show_pass_btn.setStyleSheet(f"""
+        show_pass_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
@@ -140,7 +149,8 @@ class LoginDialog(QDialog):
             QPushButton:hover {{
                 background-color: {COLORS['bg_light']};
             }}
-        """)
+        """
+        )
         show_pass_btn.pressed.connect(lambda: self.password_input.setEchoMode(QLineEdit.Normal))
         show_pass_btn.released.connect(lambda: self.password_input.setEchoMode(QLineEdit.Password))
         password_layout.addWidget(show_pass_btn)
@@ -150,7 +160,8 @@ class LoginDialog(QDialog):
         # Remember me checkbox
         self.remember_check = QCheckBox("Remember me")
         self.remember_check.setChecked(self._credentials.get("remember", False))
-        self.remember_check.setStyleSheet(f"""
+        self.remember_check.setStyleSheet(
+            f"""
             QCheckBox {{
                 color: {COLORS['text_secondary']};
                 font-size: 13px;
@@ -166,14 +177,16 @@ class LoginDialog(QDialog):
                 background-color: {COLORS['primary']};
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         layout.addWidget(self.remember_check)
 
         layout.addSpacing(10)
 
         # Login button
         self.login_btn = QPushButton("Sign In")
-        self.login_btn.setStyleSheet(f"""
+        self.login_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['primary']};
                 color: {COLORS['text_primary']};
@@ -189,7 +202,8 @@ class LoginDialog(QDialog):
             QPushButton:disabled {{
                 background-color: {COLORS['secondary']};
             }}
-        """)
+        """
+        )
         self.login_btn.clicked.connect(self._on_login)
         layout.addWidget(self.login_btn)
 
@@ -197,7 +211,8 @@ class LoginDialog(QDialog):
         self.progress_bar = QProgressBar()
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setFixedHeight(4)
-        self.progress_bar.setStyleSheet(f"""
+        self.progress_bar.setStyleSheet(
+            f"""
             QProgressBar {{
                 background-color: {COLORS['bg_light']};
                 border: none;
@@ -207,7 +222,8 @@ class LoginDialog(QDialog):
                 background-color: {COLORS['primary']};
                 border-radius: 2px;
             }}
-        """)
+        """
+        )
         self.progress_bar.hide()
         layout.addWidget(self.progress_bar)
 
@@ -222,7 +238,8 @@ class LoginDialog(QDialog):
 
         # Skip login option
         skip_btn = QPushButton("Continue without login")
-        skip_btn.setStyleSheet(f"""
+        skip_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: transparent;
                 color: {COLORS['text_muted']};
@@ -233,7 +250,8 @@ class LoginDialog(QDialog):
                 color: {COLORS['text_secondary']};
                 text-decoration: underline;
             }}
-        """)
+        """
+        )
         skip_btn.clicked.connect(self._on_skip)
         layout.addWidget(skip_btn)
 
@@ -354,6 +372,6 @@ class LoginDialog(QDialog):
             event.accept()
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton and hasattr(self, '_drag_pos'):
+        if event.buttons() == Qt.LeftButton and hasattr(self, "_drag_pos"):
             self.move(event.globalPosition().toPoint() - self._drag_pos)
             event.accept()

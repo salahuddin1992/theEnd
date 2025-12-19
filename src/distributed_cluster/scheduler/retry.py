@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class RetryStrategy(str, Enum):
     """استراتيجية إعادة المحاولة."""
+
     IMMEDIATE = "immediate"  # فوري
     LINEAR = "linear"  # تأخير ثابت
     EXPONENTIAL = "exponential"  # تصاعدي أسي
@@ -35,6 +36,7 @@ class RetryStrategy(str, Enum):
 
 class FailureReason(str, Enum):
     """سبب الفشل."""
+
     WORKER_FAILURE = "worker_failure"  # فشل العامل
     TIMEOUT = "timeout"  # انتهى الوقت
     OUT_OF_MEMORY = "out_of_memory"  # نفذت الذاكرة
@@ -47,6 +49,7 @@ class FailureReason(str, Enum):
 @dataclass
 class RetryPolicy:
     """سياسة إعادة المحاولة."""
+
     max_retries: int = 3
     strategy: RetryStrategy = RetryStrategy.EXPONENTIAL
 
@@ -91,7 +94,7 @@ class RetryPolicy:
         elif self.strategy == RetryStrategy.LINEAR:
             delay = self.initial_delay_seconds
         elif self.strategy == RetryStrategy.EXPONENTIAL:
-            delay = self.initial_delay_seconds * (self.multiplier ** attempt)
+            delay = self.initial_delay_seconds * (self.multiplier**attempt)
         elif self.strategy == RetryStrategy.FIBONACCI:
             delay = self.initial_delay_seconds * self._fibonacci(attempt + 1)
         else:
@@ -120,6 +123,7 @@ class RetryPolicy:
 @dataclass
 class RetryAttempt:
     """معلومات محاولة إعادة."""
+
     job_id: str
     attempt_number: int
     scheduled_at: datetime
@@ -132,6 +136,7 @@ class RetryAttempt:
 @dataclass
 class PendingRetry:
     """إعادة محاولة معلقة."""
+
     job_id: str
     retry_at: datetime
     attempt_number: int
@@ -274,8 +279,7 @@ class RetryManager:
         heapq.heappush(self._pending_retries, pending)
 
         logger.info(
-            f"Job {job_id} scheduled for retry #{attempt_number + 1} "
-            f"at {retry_at.isoformat()} (delay={delay:.1f}s)"
+            f"Job {job_id} scheduled for retry #{attempt_number + 1} " f"at {retry_at.isoformat()} (delay={delay:.1f}s)"
         )
 
         if self.on_retry_scheduled:
@@ -293,10 +297,7 @@ class RetryManager:
                 while self._pending_retries and self._pending_retries[0].retry_at <= now:
                     pending = heapq.heappop(self._pending_retries)
 
-                    logger.info(
-                        f"Processing retry for job {pending.job_id} "
-                        f"(attempt #{pending.attempt_number})"
-                    )
+                    logger.info(f"Processing retry for job {pending.job_id} " f"(attempt #{pending.attempt_number})")
 
                     # Notify (the scheduler will pick up and reschedule)
                     if self.on_retry_scheduled:
@@ -330,9 +331,7 @@ class RetryManager:
 
         # Keep only recent failures (last 5 minutes)
         cutoff = now - timedelta(minutes=5)
-        self._worker_failures[worker_id] = [
-            t for t in self._worker_failures[worker_id] if t > cutoff
-        ]
+        self._worker_failures[worker_id] = [t for t in self._worker_failures[worker_id] if t > cutoff]
 
         # Check circuit breaker (5 failures in 5 minutes)
         if len(self._worker_failures[worker_id]) >= 5:

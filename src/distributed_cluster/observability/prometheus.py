@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Prometheus Metric Types
 # =============================================================================
 
+
 class PrometheusMetric:
     """Base class for Prometheus metrics."""
 
@@ -144,7 +145,7 @@ class Gauge(PrometheusMetric):
 class Histogram(PrometheusMetric):
     """Prometheus Histogram."""
 
-    DEFAULT_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, float('inf')]
+    DEFAULT_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, float("inf")]
 
     def __init__(
         self,
@@ -155,8 +156,8 @@ class Histogram(PrometheusMetric):
     ):
         super().__init__(name, help_text, labels)
         self.buckets = sorted(buckets or self.DEFAULT_BUCKETS)
-        if self.buckets[-1] != float('inf'):
-            self.buckets.append(float('inf'))
+        if self.buckets[-1] != float("inf"):
+            self.buckets.append(float("inf"))
 
         # Per-label data
         self._data: Dict[str, Dict[str, Any]] = {}
@@ -202,7 +203,7 @@ class Histogram(PrometheusMetric):
             cumulative = 0
             for bucket in self.buckets:
                 cumulative += data["buckets"][bucket]
-                le = "+Inf" if bucket == float('inf') else str(bucket)
+                le = "+Inf" if bucket == float("inf") else str(bucket)
                 lines.append(f'{self.name}_bucket{{{base_labels}le="{le}"}} {cumulative}')
 
             # Sum and count
@@ -214,7 +215,7 @@ class Histogram(PrometheusMetric):
         if not self._data:
             # Empty histogram
             for bucket in self.buckets:
-                le = "+Inf" if bucket == float('inf') else str(bucket)
+                le = "+Inf" if bucket == float("inf") else str(bucket)
                 lines.append(f'{self.name}_bucket{{le="{le}"}} 0')
             lines.append(f"{self.name}_sum 0")
             lines.append(f"{self.name}_count 0")
@@ -286,6 +287,7 @@ class Summary(PrometheusMetric):
 # =============================================================================
 # Prometheus Registry
 # =============================================================================
+
 
 class PrometheusRegistry:
     """
@@ -378,6 +380,7 @@ class PrometheusRegistry:
 # Nebula Metrics
 # =============================================================================
 
+
 class NebulaMetrics:
     """
     مقاييس NebulaCompute.
@@ -389,144 +392,91 @@ class NebulaMetrics:
         self.registry = registry or PrometheusRegistry()
 
         # Cluster metrics
-        self.workers_total = self.registry.gauge(
-            "workers_total",
-            "Total number of workers",
-            ["status"]
-        )
+        self.workers_total = self.registry.gauge("workers_total", "Total number of workers", ["status"])
 
-        self.workers_resources = self.registry.gauge(
-            "workers_resources",
-            "Worker resources",
-            ["worker_id", "resource"]
-        )
+        self.workers_resources = self.registry.gauge("workers_resources", "Worker resources", ["worker_id", "resource"])
 
         # Job metrics
-        self.jobs_total = self.registry.counter(
-            "jobs_total",
-            "Total number of jobs",
-            ["status"]
-        )
+        self.jobs_total = self.registry.counter("jobs_total", "Total number of jobs", ["status"])
 
-        self.jobs_active = self.registry.gauge(
-            "jobs_active",
-            "Number of active jobs",
-            ["status"]
-        )
+        self.jobs_active = self.registry.gauge("jobs_active", "Number of active jobs", ["status"])
 
         self.job_duration_seconds = self.registry.histogram(
             "job_duration_seconds",
             "Job execution duration in seconds",
             ["status"],
-            buckets=[1, 5, 10, 30, 60, 120, 300, 600, 1800, 3600]
+            buckets=[1, 5, 10, 30, 60, 120, 300, 600, 1800, 3600],
         )
 
         self.job_queue_time_seconds = self.registry.histogram(
             "job_queue_time_seconds",
             "Time spent in queue before execution",
-            buckets=[0.1, 0.5, 1, 5, 10, 30, 60, 120, 300]
+            buckets=[0.1, 0.5, 1, 5, 10, 30, 60, 120, 300],
         )
 
         # Scheduler metrics
-        self.scheduler_cycles_total = self.registry.counter(
-            "scheduler_cycles_total",
-            "Total scheduler cycles"
-        )
+        self.scheduler_cycles_total = self.registry.counter("scheduler_cycles_total", "Total scheduler cycles")
 
         self.scheduler_cycle_duration_seconds = self.registry.histogram(
             "scheduler_cycle_duration_seconds",
             "Scheduler cycle duration",
-            buckets=[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
+            buckets=[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
         )
 
-        self.scheduler_pending_jobs = self.registry.gauge(
-            "scheduler_pending_jobs",
-            "Number of pending jobs"
-        )
+        self.scheduler_pending_jobs = self.registry.gauge("scheduler_pending_jobs", "Number of pending jobs")
 
         # API metrics
         self.api_requests_total = self.registry.counter(
-            "api_requests_total",
-            "Total API requests",
-            ["method", "endpoint", "status"]
+            "api_requests_total", "Total API requests", ["method", "endpoint", "status"]
         )
 
         self.api_request_duration_seconds = self.registry.histogram(
             "api_request_duration_seconds",
             "API request duration",
             ["method", "endpoint"],
-            buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+            buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
         )
 
         # gRPC metrics
         self.grpc_requests_total = self.registry.counter(
-            "grpc_requests_total",
-            "Total gRPC requests",
-            ["method", "status"]
+            "grpc_requests_total", "Total gRPC requests", ["method", "status"]
         )
 
         self.grpc_request_duration_seconds = self.registry.histogram(
-            "grpc_request_duration_seconds",
-            "gRPC request duration",
-            ["method"]
+            "grpc_request_duration_seconds", "gRPC request duration", ["method"]
         )
 
         # WebSocket metrics
-        self.websocket_connections = self.registry.gauge(
-            "websocket_connections",
-            "Active WebSocket connections"
-        )
+        self.websocket_connections = self.registry.gauge("websocket_connections", "Active WebSocket connections")
 
         self.websocket_messages_total = self.registry.counter(
-            "websocket_messages_total",
-            "Total WebSocket messages",
-            ["direction"]  # sent, received
+            "websocket_messages_total", "Total WebSocket messages", ["direction"]  # sent, received
         )
 
         # Resource usage
-        self.cluster_cpu_usage = self.registry.gauge(
-            "cluster_cpu_usage",
-            "Cluster CPU usage (cores)"
-        )
+        self.cluster_cpu_usage = self.registry.gauge("cluster_cpu_usage", "Cluster CPU usage (cores)")
 
         self.cluster_memory_usage_bytes = self.registry.gauge(
-            "cluster_memory_usage_bytes",
-            "Cluster memory usage (bytes)"
+            "cluster_memory_usage_bytes", "Cluster memory usage (bytes)"
         )
 
-        self.cluster_gpu_usage = self.registry.gauge(
-            "cluster_gpu_usage",
-            "Cluster GPU usage (count)"
-        )
+        self.cluster_gpu_usage = self.registry.gauge("cluster_gpu_usage", "Cluster GPU usage (count)")
 
         # Retry metrics
-        self.job_retries_total = self.registry.counter(
-            "job_retries_total",
-            "Total job retries",
-            ["reason"]
-        )
+        self.job_retries_total = self.registry.counter("job_retries_total", "Total job retries", ["reason"])
 
         self.dead_letter_queue_size = self.registry.gauge(
-            "dead_letter_queue_size",
-            "Number of jobs in dead letter queue"
+            "dead_letter_queue_size", "Number of jobs in dead letter queue"
         )
 
         # Lease metrics
-        self.leases_active = self.registry.gauge(
-            "leases_active",
-            "Active leases"
-        )
+        self.leases_active = self.registry.gauge("leases_active", "Active leases")
 
-        self.leases_expired_total = self.registry.counter(
-            "leases_expired_total",
-            "Total expired leases"
-        )
+        self.leases_expired_total = self.registry.counter("leases_expired_total", "Total expired leases")
 
         # Quota metrics
         self.quota_usage_percent = self.registry.gauge(
-            "quota_usage_percent",
-            "Quota usage percentage",
-            ["scope", "scope_id", "metric"]
+            "quota_usage_percent", "Quota usage percentage", ["scope", "scope_id", "metric"]
         )
 
     def collect(self) -> str:
@@ -553,15 +503,8 @@ class NebulaMetrics:
         duration: float,
     ) -> None:
         """تسجيل طلب API."""
-        self.api_requests_total.inc({
-            "method": method,
-            "endpoint": endpoint,
-            "status": str(status)
-        })
-        self.api_request_duration_seconds.observe(duration, {
-            "method": method,
-            "endpoint": endpoint
-        })
+        self.api_requests_total.inc({"method": method, "endpoint": endpoint, "status": str(status)})
+        self.api_request_duration_seconds.observe(duration, {"method": method, "endpoint": endpoint})
 
     def update_cluster_status(
         self,
@@ -590,6 +533,7 @@ class NebulaMetrics:
 # FastAPI Integration
 # =============================================================================
 
+
 def create_metrics_endpoint(metrics: NebulaMetrics):
     """
     إنشاء endpoint لـ Prometheus.
@@ -608,15 +552,13 @@ def create_metrics_endpoint(metrics: NebulaMetrics):
     from fastapi.responses import PlainTextResponse
 
     content = metrics.collect()
-    return PlainTextResponse(
-        content=content,
-        media_type="text/plain; version=0.0.4; charset=utf-8"
-    )
+    return PlainTextResponse(content=content, media_type="text/plain; version=0.0.4; charset=utf-8")
 
 
 # =============================================================================
 # Middleware
 # =============================================================================
+
 
 class PrometheusMiddleware:
     """

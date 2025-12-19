@@ -71,13 +71,15 @@ class Sidebar(QFrame):
 
         # Navigation section label
         nav_label = QLabel("  NAVIGATION")
-        nav_label.setStyleSheet(f"""
+        nav_label.setStyleSheet(
+            f"""
             color: {COLORS['text_muted']};
             font-size: 10px;
             font-weight: 600;
             letter-spacing: 1px;
             padding: 16px 16px 8px 16px;
-        """)
+        """
+        )
         layout.addWidget(nav_label)
 
         # Navigation buttons
@@ -101,13 +103,15 @@ class Sidebar(QFrame):
 
         # Settings section label
         settings_label = QLabel("  SYSTEM")
-        settings_label.setStyleSheet(f"""
+        settings_label.setStyleSheet(
+            f"""
             color: {COLORS['text_muted']};
             font-size: 10px;
             font-weight: 600;
             letter-spacing: 1px;
             padding: 16px 16px 8px 16px;
-        """)
+        """
+        )
         layout.addWidget(settings_label)
 
         # System buttons

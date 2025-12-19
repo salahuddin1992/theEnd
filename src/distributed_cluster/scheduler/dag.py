@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class DependencyType(str, Enum):
     """نوع التبعية."""
+
     SUCCESS = "success"  # يعمل فقط إذا نجح الـ parent
     COMPLETION = "completion"  # يعمل بعد اكتمال الـ parent (نجاح أو فشل)
     FAILURE = "failure"  # يعمل فقط إذا فشل الـ parent
@@ -34,6 +35,7 @@ class DependencyType(str, Enum):
 
 class DAGStatus(str, Enum):
     """حالة الـ DAG."""
+
     PENDING = "pending"
     RUNNING = "running"
     SUCCEEDED = "succeeded"
@@ -45,6 +47,7 @@ class DAGStatus(str, Enum):
 @dataclass
 class JobDependency:
     """تبعية بين مهمتين."""
+
     parent_job_id: str
     child_job_id: str
     dependency_type: DependencyType = DependencyType.SUCCESS
@@ -53,6 +56,7 @@ class JobDependency:
 @dataclass
 class DAGNode:
     """عقدة في الـ DAG."""
+
     job_id: str
     job: Optional[Job] = None
     status: JobStatus = JobStatus.PENDING
@@ -71,6 +75,7 @@ class DAG:
 
     يمثل workflow من المهام المترابطة.
     """
+
     dag_id: str
     name: str
     nodes: Dict[str, DAGNode] = field(default_factory=dict)
@@ -359,7 +364,7 @@ class DAGExecutor:
 
         ready_nodes = dag.get_ready_nodes()
 
-        for node in ready_nodes[:self.max_parallel_jobs]:
+        for node in ready_nodes[: self.max_parallel_jobs]:
             # Skip if dependencies not satisfied due to failure
             should_skip = False
             for parent_id in node.parents:
@@ -420,10 +425,7 @@ class DAGExecutor:
         """التحقق من اكتمال الـ DAG."""
         completed_statuses = {JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED}
 
-        all_done = all(
-            node.status in completed_statuses
-            for node in dag.nodes.values()
-        )
+        all_done = all(node.status in completed_statuses for node in dag.nodes.values())
 
         if not all_done:
             return
@@ -486,6 +488,7 @@ class DAGExecutor:
 # =============================================================================
 # DAG Builder - بناء DAG بطريقة سهلة
 # =============================================================================
+
 
 class DAGBuilder:
     """
@@ -591,6 +594,7 @@ class DAGBuilder:
 # =============================================================================
 # DAG from YAML
 # =============================================================================
+
 
 def parse_dag_yaml(yaml_content: str, job_factory: Callable[[Dict], Job]) -> DAG:
     """

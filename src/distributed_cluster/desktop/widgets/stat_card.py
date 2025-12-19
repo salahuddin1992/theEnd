@@ -11,14 +11,7 @@ from ..resources.styles import COLORS
 class StatCard(QFrame):
     """A card widget displaying a statistic with title and value"""
 
-    def __init__(
-        self,
-        title: str,
-        value: str = "0",
-        icon: str = "",
-        color: str = None,
-        parent=None
-    ):
+    def __init__(self, title: str, value: str = "0", icon: str = "", color: str = None, parent=None):
         super().__init__(parent)
         self.setObjectName("stat_card")
 
@@ -63,14 +56,7 @@ class StatCard(QFrame):
 class ResourceCard(QFrame):
     """A card showing resource usage with progress indicator"""
 
-    def __init__(
-        self,
-        title: str,
-        used: float = 0,
-        total: float = 100,
-        unit: str = "",
-        parent=None
-    ):
+    def __init__(self, title: str, used: float = 0, total: float = 100, unit: str = "", parent=None):
         super().__init__(parent)
         self.setObjectName("stat_card")
 
@@ -96,17 +82,21 @@ class ResourceCard(QFrame):
         # Progress bar frame
         self.progress_frame = QFrame()
         self.progress_frame.setFixedHeight(8)
-        self.progress_frame.setStyleSheet(f"""
+        self.progress_frame.setStyleSheet(
+            f"""
             background-color: {COLORS['bg_light']};
             border-radius: 4px;
-        """)
+        """
+        )
 
         self.progress_bar = QFrame(self.progress_frame)
         self.progress_bar.setFixedHeight(8)
-        self.progress_bar.setStyleSheet(f"""
+        self.progress_bar.setStyleSheet(
+            f"""
             background-color: {COLORS['primary']};
             border-radius: 4px;
-        """)
+        """
+        )
 
         layout.addWidget(self.progress_frame)
 
@@ -140,10 +130,12 @@ class ResourceCard(QFrame):
         else:
             color = COLORS["primary"]
 
-        self.progress_bar.setStyleSheet(f"""
+        self.progress_bar.setStyleSheet(
+            f"""
             background-color: {color};
             border-radius: 4px;
-        """)
+        """
+        )
 
     def resizeEvent(self, event):
         """Handle resize to update progress bar"""

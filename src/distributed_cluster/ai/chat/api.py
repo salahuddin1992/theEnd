@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Request/Response Models
 class CreateConversationRequest(BaseModel):
     """طلب إنشاء محادثة."""
+
     title: Optional[str] = None
     system_prompt: Optional[str] = None
     model: Optional[str] = None
@@ -35,6 +36,7 @@ class CreateConversationRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     """طلب محادثة."""
+
     message: str
     conversation_id: Optional[str] = None
     model: Optional[str] = None
@@ -48,6 +50,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     """استجابة المحادثة."""
+
     conversation_id: str
     message_id: str
     content: str
@@ -58,6 +61,7 @@ class ChatResponse(BaseModel):
 
 class ConversationResponse(BaseModel):
     """استجابة المحادثة."""
+
     conversation_id: str
     title: Optional[str]
     message_count: int
@@ -69,6 +73,7 @@ class ConversationResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     """استجابة رسالة."""
+
     message_id: str
     role: str
     content: str
@@ -169,7 +174,7 @@ class ChatAPI:
             if not conv:
                 raise HTTPException(status_code=404, detail="Conversation not found")
 
-            messages = conv.messages[offset:offset + limit]
+            messages = conv.messages[offset : offset + limit]
 
             return {
                 "conversation_id": conversation_id,
@@ -315,9 +320,7 @@ class ChatAPI:
                     # Get conversation
                     conv = self.manager.get_conversation(conversation_id)
                     if not conv:
-                        await websocket.send_json({
-                            "error": "Conversation not found"
-                        })
+                        await websocket.send_json({"error": "Conversation not found"})
                         continue
 
                     # Stream response
@@ -330,17 +333,21 @@ class ChatAPI:
 
                     async for chunk in self.manager.chat_stream(conv, message, config):
                         full_response.append(chunk)
-                        await websocket.send_json({
-                            "type": "chunk",
-                            "content": chunk,
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "chunk",
+                                "content": chunk,
+                            }
+                        )
 
                     # Send complete message
-                    await websocket.send_json({
-                        "type": "complete",
-                        "content": "".join(full_response),
-                        "conversation_id": conversation_id,
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "complete",
+                            "content": "".join(full_response),
+                            "conversation_id": conversation_id,
+                        }
+                    )
 
             except WebSocketDisconnect:
                 # Remove connection

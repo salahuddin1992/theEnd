@@ -43,10 +43,7 @@ def temp_dir() -> Generator[Path, None, None]:
 @pytest_asyncio.fixture
 async def database(temp_dir: Path) -> AsyncGenerator[SQLiteDatabase, None]:
     """Create test database."""
-    config = DatabaseConfig(
-        type="sqlite",
-        path=str(temp_dir / "test_cluster.db")
-    )
+    config = DatabaseConfig(type="sqlite", path=str(temp_dir / "test_cluster.db"))
     db = SQLiteDatabase(config)
     await db.initialize()
     yield db
@@ -85,6 +82,7 @@ def sample_resources() -> ResourceSpec:
 def sample_worker(sample_resources: ResourceSpec) -> WorkerInfo:
     """Sample worker info."""
     from datetime import datetime
+
     return WorkerInfo(
         worker_id="test-worker-1",
         hostname="test-host",
@@ -126,73 +124,81 @@ def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
     now = datetime.utcnow()
 
     # Worker 1: High CPU, low GPU
-    workers.append(WorkerInfo(
-        worker_id="worker-cpu-1",
-        hostname="cpu-host-1",
-        ip_address="192.168.1.101",
-        port=8081,
-        status=WorkerStatus.READY,
-        total_resources=ResourceSpec(cpu_cores=32, memory_mb=65536, gpu_count=0),
-        available_resources=ResourceSpec(cpu_cores=32, memory_mb=65536, gpu_count=0),
-        tags=["cpu", "high-memory"],
-        labels={"type": "cpu-optimized"},
-        platform="linux",
-        docker_available=True,
-        registered_at=now,
-        last_heartbeat=now,
-    ))
+    workers.append(
+        WorkerInfo(
+            worker_id="worker-cpu-1",
+            hostname="cpu-host-1",
+            ip_address="192.168.1.101",
+            port=8081,
+            status=WorkerStatus.READY,
+            total_resources=ResourceSpec(cpu_cores=32, memory_mb=65536, gpu_count=0),
+            available_resources=ResourceSpec(cpu_cores=32, memory_mb=65536, gpu_count=0),
+            tags=["cpu", "high-memory"],
+            labels={"type": "cpu-optimized"},
+            platform="linux",
+            docker_available=True,
+            registered_at=now,
+            last_heartbeat=now,
+        )
+    )
 
     # Worker 2: GPU worker
-    workers.append(WorkerInfo(
-        worker_id="worker-gpu-1",
-        hostname="gpu-host-1",
-        ip_address="192.168.1.102",
-        port=8081,
-        status=WorkerStatus.READY,
-        total_resources=ResourceSpec(cpu_cores=8, memory_mb=32768, gpu_count=4, gpu_memory_mb=32768),
-        available_resources=ResourceSpec(cpu_cores=8, memory_mb=32768, gpu_count=4, gpu_memory_mb=32768),
-        tags=["gpu", "nvidia", "cuda"],
-        labels={"type": "gpu-optimized"},
-        platform="linux",
-        docker_available=True,
-        gpu_driver_version="535.104.05",
-        registered_at=now,
-        last_heartbeat=now,
-    ))
+    workers.append(
+        WorkerInfo(
+            worker_id="worker-gpu-1",
+            hostname="gpu-host-1",
+            ip_address="192.168.1.102",
+            port=8081,
+            status=WorkerStatus.READY,
+            total_resources=ResourceSpec(cpu_cores=8, memory_mb=32768, gpu_count=4, gpu_memory_mb=32768),
+            available_resources=ResourceSpec(cpu_cores=8, memory_mb=32768, gpu_count=4, gpu_memory_mb=32768),
+            tags=["gpu", "nvidia", "cuda"],
+            labels={"type": "gpu-optimized"},
+            platform="linux",
+            docker_available=True,
+            gpu_driver_version="535.104.05",
+            registered_at=now,
+            last_heartbeat=now,
+        )
+    )
 
     # Worker 3: Busy worker (limited available resources)
-    workers.append(WorkerInfo(
-        worker_id="worker-busy-1",
-        hostname="busy-host-1",
-        ip_address="192.168.1.103",
-        port=8081,
-        status=WorkerStatus.BUSY,
-        total_resources=ResourceSpec(cpu_cores=16, memory_mb=32768, gpu_count=2),
-        available_resources=ResourceSpec(cpu_cores=2, memory_mb=4096, gpu_count=0),
-        tags=["cpu", "gpu"],
-        labels={"type": "mixed"},
-        platform="linux",
-        docker_available=True,
-        active_jobs=["job-1", "job-2", "job-3"],
-        registered_at=now,
-        last_heartbeat=now,
-    ))
+    workers.append(
+        WorkerInfo(
+            worker_id="worker-busy-1",
+            hostname="busy-host-1",
+            ip_address="192.168.1.103",
+            port=8081,
+            status=WorkerStatus.BUSY,
+            total_resources=ResourceSpec(cpu_cores=16, memory_mb=32768, gpu_count=2),
+            available_resources=ResourceSpec(cpu_cores=2, memory_mb=4096, gpu_count=0),
+            tags=["cpu", "gpu"],
+            labels={"type": "mixed"},
+            platform="linux",
+            docker_available=True,
+            active_jobs=["job-1", "job-2", "job-3"],
+            registered_at=now,
+            last_heartbeat=now,
+        )
+    )
 
     # Worker 4: Offline worker
-    workers.append(WorkerInfo(
-        worker_id="worker-offline-1",
-        hostname="offline-host-1",
-        ip_address="192.168.1.104",
-        port=8081,
-        status=WorkerStatus.OFFLINE,
-        total_resources=ResourceSpec(cpu_cores=8, memory_mb=16384),
-        available_resources=ResourceSpec(cpu_cores=8, memory_mb=16384),
-        tags=["cpu"],
-        labels={},
-        platform="linux",
-        docker_available=False,
-        registered_at=now,
-        last_heartbeat=None,  # Offline, no heartbeat
-    ))
+    workers.append(
+        WorkerInfo(
+            worker_id="worker-offline-1",
+            hostname="offline-host-1",
+            ip_address="192.168.1.104",
+            port=8081,
+            status=WorkerStatus.OFFLINE,
+            total_resources=ResourceSpec(cpu_cores=8, memory_mb=16384),
+            available_resources=ResourceSpec(cpu_cores=8, memory_mb=16384),
+            tags=["cpu"],
+            labels={},
+            platform="linux",
+            docker_available=False,
+            registered_at=now,
+            last_heartbeat=None,  # Offline, no heartbeat
+        )
+    )
 
     return workers

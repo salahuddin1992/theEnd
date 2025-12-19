@@ -18,6 +18,7 @@ from distributed_cluster.models.resources import ResourceSpec
 
 class JobStatus(str, Enum):
     """حالات الـ Job."""
+
     PENDING = "pending"  # في الطابور، ينتظر worker
     SCHEDULED = "scheduled"  # تم تعيينه لـ worker
     RUNNING = "running"  # يشتغل حالياً
@@ -29,6 +30,7 @@ class JobStatus(str, Enum):
 
 class JobPriority(int, Enum):
     """أولويات الـ Jobs."""
+
     LOW = 0
     NORMAL = 50
     HIGH = 100
@@ -42,6 +44,7 @@ class JobSubmission:
 
     هذا ما يرسله الـ Client للـ Master.
     """
+
     # ما يُنفَّذ
     command: str  # الأمر المباشر (مثل "python script.py")
     args: list[str] = field(default_factory=list)  # arguments إضافية
@@ -128,6 +131,7 @@ class JobResult:
 
     يُرسلها Worker للـ Master عند انتهاء الـ Job.
     """
+
     exit_code: int
     stdout: str = ""
     stderr: str = ""
@@ -162,6 +166,7 @@ class Job:
 
     هذا هو الـ state الكامل للـ job في النظام.
     """
+
     job_id: str
     submission: JobSubmission
     status: JobStatus = JobStatus.PENDING
@@ -228,10 +233,7 @@ class Job:
     @property
     def can_retry(self) -> bool:
         """هل ممكن إعادة المحاولة؟"""
-        return (
-            self.status == JobStatus.FAILED
-            and self.retry_count < self.submission.max_retries
-        )
+        return self.status == JobStatus.FAILED and self.retry_count < self.submission.max_retries
 
     @property
     def wait_time_seconds(self) -> float:
@@ -272,15 +274,17 @@ class Job:
             self.status = JobStatus.FAILED
 
         # تسجيل في التاريخ
-        self.execution_history.append({
-            "worker_id": self.assigned_worker,
-            "attempt": self.retry_count + 1,
-            "status": self.status.value,
-            "exit_code": result.exit_code,
-            "started_at": self.started_at.isoformat() if self.started_at else None,
-            "completed_at": self.completed_at.isoformat(),
-            "execution_time": result.execution_time_seconds,
-        })
+        self.execution_history.append(
+            {
+                "worker_id": self.assigned_worker,
+                "attempt": self.retry_count + 1,
+                "status": self.status.value,
+                "exit_code": result.exit_code,
+                "started_at": self.started_at.isoformat() if self.started_at else None,
+                "completed_at": self.completed_at.isoformat(),
+                "execution_time": result.execution_time_seconds,
+            }
+        )
 
     def timeout(self) -> None:
         """تجاوز الوقت المحدد."""

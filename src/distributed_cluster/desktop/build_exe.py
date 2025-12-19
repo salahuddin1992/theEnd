@@ -26,7 +26,7 @@ def clean_build():
     """Clean previous build artifacts"""
     project_root = get_project_root()
 
-    dirs_to_clean = ['build', 'dist']
+    dirs_to_clean = ["build", "dist"]
     for dir_name in dirs_to_clean:
         dir_path = project_root / dir_name
         if dir_path.exists():
@@ -34,7 +34,7 @@ def clean_build():
             shutil.rmtree(dir_path)
 
     # Clean .spec file
-    spec_file = project_root / 'NebulaCompute.spec'
+    spec_file = project_root / "NebulaCompute.spec"
     if spec_file.exists():
         spec_file.unlink()
 
@@ -42,52 +42,48 @@ def clean_build():
 def build_exe():
     """Build the executable using PyInstaller"""
     project_root = get_project_root()
-    desktop_path = project_root / 'src' / 'distributed_cluster' / 'desktop'
-    main_script = desktop_path / 'main.py'
+    desktop_path = project_root / "src" / "distributed_cluster" / "desktop"
+    main_script = desktop_path / "main.py"
 
     # Icon path (create if needed)
-    icon_path = desktop_path / 'resources' / 'icon.ico'
+    icon_path = desktop_path / "resources" / "icon.ico"
 
     # PyInstaller options
     # On Windows, use ';' as separator, on Unix use ':'
-    data_sep = ';' if sys.platform == 'win32' else ':'
+    data_sep = ";" if sys.platform == "win32" else ":"
 
     options = [
-        'pyinstaller',
-        '--name=NebulaCompute',
-        '--windowed',  # No console window
-        '--onefile',   # Single executable
-        '--clean',     # Clean cache
-
+        "pyinstaller",
+        "--name=NebulaCompute",
+        "--windowed",  # No console window
+        "--onefile",  # Single executable
+        "--clean",  # Clean cache
         # Add data files (use platform-appropriate separator)
         f'--add-data={desktop_path / "resources"}{data_sep}resources',
-
         # Hidden imports for PySide6
-        '--hidden-import=PySide6.QtCore',
-        '--hidden-import=PySide6.QtGui',
-        '--hidden-import=PySide6.QtWidgets',
-        '--hidden-import=PySide6.QtCharts',
-        '--hidden-import=qasync',
-        '--hidden-import=httpx',
-        '--hidden-import=websockets',
-
+        "--hidden-import=PySide6.QtCore",
+        "--hidden-import=PySide6.QtGui",
+        "--hidden-import=PySide6.QtWidgets",
+        "--hidden-import=PySide6.QtCharts",
+        "--hidden-import=qasync",
+        "--hidden-import=httpx",
+        "--hidden-import=websockets",
         # Exclude unnecessary modules to reduce size
-        '--exclude-module=tkinter',
-        '--exclude-module=matplotlib',
-        '--exclude-module=numpy',
-        '--exclude-module=pandas',
-        '--exclude-module=scipy',
-        '--exclude-module=PIL',
-
+        "--exclude-module=tkinter",
+        "--exclude-module=matplotlib",
+        "--exclude-module=numpy",
+        "--exclude-module=pandas",
+        "--exclude-module=scipy",
+        "--exclude-module=PIL",
         # Output directory
         f'--distpath={project_root / "dist"}',
         f'--workpath={project_root / "build"}',
-        f'--specpath={project_root}',
+        f"--specpath={project_root}",
     ]
 
     # Add icon if exists
     if icon_path.exists():
-        options.append(f'--icon={icon_path}')
+        options.append(f"--icon={icon_path}")
 
     # Add main script
     options.append(str(main_script))
@@ -99,10 +95,10 @@ def build_exe():
     result = subprocess.run(options, cwd=project_root)
 
     if result.returncode == 0:
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("Build successful!")
         print(f"Executable location: {project_root / 'dist' / 'NebulaCompute.exe'}")
-        print("="*50)
+        print("=" * 50)
     else:
         print("\nBuild failed!")
         sys.exit(1)
@@ -112,7 +108,7 @@ def create_installer_script():
     """Create NSIS installer script for Windows"""
     project_root = get_project_root()
 
-    nsis_script = '''
+    nsis_script = """
 ; NebulaCompute Desktop Installer
 ; NSIS Installer Script
 
@@ -172,10 +168,10 @@ Section "Uninstall"
 
     DeleteRegKey HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NebulaCompute"
 SectionEnd
-'''
+"""
 
-    nsis_path = project_root / 'installer.nsi'
-    with open(nsis_path, 'w') as f:
+    nsis_path = project_root / "installer.nsi"
+    with open(nsis_path, "w") as f:
         f.write(nsis_script)
 
     print(f"NSIS installer script created: {nsis_path}")
@@ -185,9 +181,9 @@ def main():
     """Main build function"""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Build NebulaCompute Desktop')
-    parser.add_argument('--clean', action='store_true', help='Clean build artifacts only')
-    parser.add_argument('--installer', action='store_true', help='Create NSIS installer script')
+    parser = argparse.ArgumentParser(description="Build NebulaCompute Desktop")
+    parser.add_argument("--clean", action="store_true", help="Clean build artifacts only")
+    parser.add_argument("--installer", action="store_true", help="Create NSIS installer script")
     args = parser.parse_args()
 
     if args.clean:
@@ -204,12 +200,12 @@ def main():
         import PyInstaller  # noqa: F401
     except ImportError:
         print("PyInstaller not found. Installing...")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', 'pyinstaller'])
+        subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # Clean and build
     clean_build()
     build_exe()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

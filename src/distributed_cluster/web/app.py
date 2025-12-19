@@ -206,11 +206,13 @@ class WebDashboard:
 
     async def broadcast_update(self, event_type: str, data: Dict):
         """بث تحديث للمتصلين"""
-        await self.manager.broadcast({
-            "type": event_type,
-            "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self.manager.broadcast(
+            {
+                "type": event_type,
+                "data": data,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
 
 def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
@@ -243,7 +245,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                 "stats": dash.get_stats(),
                 "workers": dash.get_workers(),
                 "jobs": dash.get_jobs(),
-            }
+            },
         )
 
     # صفحة العمال
@@ -251,22 +253,14 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
     async def workers_page(request: Request):
         dash = app.state.dashboard
         await dash.fetch_from_master()
-        return templates.TemplateResponse(
-            request,
-            "workers.html",
-            {"workers": dash.get_workers()}
-        )
+        return templates.TemplateResponse(request, "workers.html", {"workers": dash.get_workers()})
 
     # صفحة المهام
     @app.get("/jobs", response_class=HTMLResponse)
     async def jobs_page(request: Request):
         dash = app.state.dashboard
         await dash.fetch_from_master()
-        return templates.TemplateResponse(
-            request,
-            "jobs.html",
-            {"jobs": dash.get_jobs()}
-        )
+        return templates.TemplateResponse(request, "jobs.html", {"jobs": dash.get_jobs()})
 
     # صفحة مزودي AI
     @app.get("/ai", response_class=HTMLResponse)
@@ -292,7 +286,6 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             "total_models": 150,
             "total_requests": 1234,
             "total_tokens": 567890,
-
             # موارد النظام
             "cpu_cores": 8,
             "cpu_percent": 45,
@@ -308,11 +301,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             "disk_percent": 36,
         }
 
-        return templates.TemplateResponse(
-            request,
-            "ai.html",
-            ai_data
-        )
+        return templates.TemplateResponse(request, "ai.html", ai_data)
 
     # صفحة المزامنة
     @app.get("/sync", response_class=HTMLResponse)
@@ -325,7 +314,6 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             "total_synced_items": 1523,
             "last_sync": datetime.utcnow().isoformat(),
             "sync_mode": "realtime",
-
             # Peers info
             "peers": [
                 {
@@ -353,29 +341,22 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                     "last_seen": datetime.utcnow().isoformat(),
                 },
             ],
-
             # Transfer stats
             "active_transfers": 2,
             "total_bytes_sent": 1024 * 1024 * 156,  # 156 MB
             "total_bytes_received": 1024 * 1024 * 234,  # 234 MB
             "transfer_speed_bps": 1024 * 1024 * 5,  # 5 MB/s
-
             # Conflict resolution stats
             "conflicts_resolved": 45,
             "conflicts_pending": 2,
             "resolution_strategy": "last_write_wins",
-
             # State sync
             "state_version": 1523,
             "state_items": 856,
             "pending_deltas": 3,
         }
 
-        return templates.TemplateResponse(
-            request,
-            "sync.html",
-            sync_data
-        )
+        return templates.TemplateResponse(request, "sync.html", sync_data)
 
     # API endpoints
     @app.get("/api/stats")
@@ -399,6 +380,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
     @app.post("/api/jobs/{job_id}/cancel")
     async def cancel_job(job_id: str):
         import httpx
+
         dash = app.state.dashboard
         try:
             async with httpx.AsyncClient() as client:
@@ -533,13 +515,15 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             while True:
                 # إرسال تحديثات كل 2 ثانية
                 await dash.fetch_from_master()
-                await websocket.send_json({
-                    "type": "update",
-                    "stats": dash.get_stats(),
-                    "workers": dash.get_workers(),
-                    "jobs": dash.get_jobs(),
-                    "timestamp": datetime.utcnow().isoformat(),
-                })
+                await websocket.send_json(
+                    {
+                        "type": "update",
+                        "stats": dash.get_stats(),
+                        "workers": dash.get_workers(),
+                        "jobs": dash.get_jobs(),
+                        "timestamp": datetime.utcnow().isoformat(),
+                    }
+                )
                 await asyncio.sleep(2)
         except WebSocketDisconnect:
             dash.manager.disconnect(websocket)

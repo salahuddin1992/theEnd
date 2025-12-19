@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class ModelSource(str, Enum):
     """مصدر النموذج."""
+
     OLLAMA = "ollama"
     HUGGINGFACE = "huggingface"
     LOCAL = "local"
@@ -35,6 +36,7 @@ class ModelSource(str, Enum):
 
 class ModelFormat(str, Enum):
     """صيغة النموذج."""
+
     GGUF = "gguf"
     SAFETENSORS = "safetensors"
     PYTORCH = "pytorch"
@@ -44,6 +46,7 @@ class ModelFormat(str, Enum):
 
 class ModelStatus(str, Enum):
     """حالة النموذج."""
+
     AVAILABLE = "available"
     DOWNLOADING = "downloading"
     LOADING = "loading"
@@ -54,6 +57,7 @@ class ModelStatus(str, Enum):
 @dataclass
 class ModelVersion:
     """إصدار النموذج."""
+
     version: str
     created_at: datetime = field(default_factory=datetime.utcnow)
     size_bytes: int = 0
@@ -73,6 +77,7 @@ class ModelVersion:
 @dataclass
 class ModelMetadata:
     """بيانات النموذج الوصفية."""
+
     model_id: str
     name: str
     family: str = ""
@@ -148,14 +153,16 @@ class ModelMetadata:
         """إنشاء من قاموس."""
         versions = []
         for v in data.get("versions", []):
-            versions.append(ModelVersion(
-                version=v.get("version", "1.0"),
-                created_at=datetime.fromisoformat(v["created_at"]) if "created_at" in v else datetime.utcnow(),
-                size_bytes=v.get("size_bytes", 0),
-                checksum=v.get("checksum", ""),
-                quantization=v.get("quantization"),
-                context_length=v.get("context_length", 4096),
-            ))
+            versions.append(
+                ModelVersion(
+                    version=v.get("version", "1.0"),
+                    created_at=datetime.fromisoformat(v["created_at"]) if "created_at" in v else datetime.utcnow(),
+                    size_bytes=v.get("size_bytes", 0),
+                    checksum=v.get("checksum", ""),
+                    quantization=v.get("quantization"),
+                    context_length=v.get("context_length", 4096),
+                )
+            )
 
         return cls(
             model_id=data.get("model_id", ""),

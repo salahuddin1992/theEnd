@@ -56,9 +56,10 @@ metrics = get_metrics()
 
 # ==================== Pydantic Models ====================
 
+
 class ResourceSpecRequest(BaseModel):
     cpu_cores: float = Field(default=1.0, ge=0.1, le=1000)
-    memory_mb: int = Field(default=512, ge=64, le=1024*1024)
+    memory_mb: int = Field(default=512, ge=64, le=1024 * 1024)
     gpu_count: int = Field(default=0, ge=0, le=100)
     gpu_memory_mb: int = Field(default=0, ge=0)
     custom: dict[str, float] = Field(default_factory=dict)
@@ -71,7 +72,7 @@ class JobSubmitRequest(BaseModel):
     docker_command: Optional[str] = None
     resources: ResourceSpecRequest = Field(default_factory=ResourceSpecRequest)
     name: Optional[str] = Field(default=None, max_length=200)
-    timeout_seconds: int = Field(default=3600, ge=1, le=86400*7)
+    timeout_seconds: int = Field(default=3600, ge=1, le=86400 * 7)
     max_retries: int = Field(default=3, ge=0, le=100)
     priority: int = Field(default=50, ge=0, le=200)
     required_tags: list[str] = Field(default_factory=list)
@@ -115,8 +116,8 @@ class JobCompleteRequest(BaseModel):
     job_id: str
     worker_id: str
     exit_code: int
-    stdout: str = Field(default="", max_length=1024*1024)
-    stderr: str = Field(default="", max_length=1024*1024)
+    stdout: str = Field(default="", max_length=1024 * 1024)
+    stderr: str = Field(default="", max_length=1024 * 1024)
     execution_time_seconds: float = Field(default=0.0, ge=0)
     peak_memory_mb: int = Field(default=0, ge=0)
     error_message: Optional[str] = Field(default=None, max_length=10000)
@@ -129,6 +130,7 @@ class ErrorResponse(BaseModel):
 
 
 # ==================== Dependencies ====================
+
 
 class APIState:
     """حالة الـ API المشتركة."""
@@ -214,6 +216,7 @@ def require_permission(permission: Permission):
     Usage:
         @app.get("/admin", dependencies=[Depends(require_permission(Permission.ADMIN_CONFIG))])
     """
+
     async def checker(
         token: Annotated[Optional[TokenPayload], Depends(get_current_token)],
     ):
@@ -237,6 +240,7 @@ def require_permission(permission: Permission):
 
 
 # ==================== App Factory ====================
+
 
 def create_app(config: Optional[MasterConfig] = None) -> FastAPI:
     """إنشاء تطبيق FastAPI."""
@@ -446,15 +450,17 @@ def _register_routes(app: FastAPI) -> None:
 
         gpus = []
         for g in req.gpus:
-            gpus.append(GPUInfo(
-                index=g.get("index", 0),
-                name=g.get("name", ""),
-                uuid=g.get("uuid", ""),
-                memory_total_mb=g.get("memory_total_mb", 0),
-                memory_free_mb=g.get("memory_free_mb", 0),
-                memory_used_mb=g.get("memory_used_mb", 0),
-                utilization_percent=g.get("utilization_percent", 0),
-            ))
+            gpus.append(
+                GPUInfo(
+                    index=g.get("index", 0),
+                    name=g.get("name", ""),
+                    uuid=g.get("uuid", ""),
+                    memory_total_mb=g.get("memory_total_mb", 0),
+                    memory_free_mb=g.get("memory_free_mb", 0),
+                    memory_used_mb=g.get("memory_used_mb", 0),
+                    utilization_percent=g.get("utilization_percent", 0),
+                )
+            )
 
         usage = ResourceUsage(
             cpu_percent=req.cpu_percent,
@@ -474,24 +480,21 @@ def _register_routes(app: FastAPI) -> None:
 
         # Return assigned jobs and lease renewals
         pending_jobs = state.state.get_jobs_by_worker(req.worker_id)
-        scheduled_jobs = [
-            j.to_dict() for j in pending_jobs
-            if j.status.value in ("scheduled", "running")
-        ]
+        scheduled_jobs = [j.to_dict() for j in pending_jobs if j.status.value in ("scheduled", "running")]
 
         # Renew leases
         lease_renewals = []
         for job in pending_jobs:
             if job.lease_id:
-                lease = state.lease_manager.renew_lease(
-                    job.lease_id, req.worker_id
-                )
+                lease = state.lease_manager.renew_lease(job.lease_id, req.worker_id)
                 if lease:
-                    lease_renewals.append({
-                        "lease_id": lease.lease_id,
-                        "job_id": job.job_id,
-                        "expires_at": lease.expires_at.isoformat() if lease.expires_at else None,
-                    })
+                    lease_renewals.append(
+                        {
+                            "lease_id": lease.lease_id,
+                            "job_id": job.job_id,
+                            "expires_at": lease.expires_at.isoformat() if lease.expires_at else None,
+                        }
+                    )
 
         return {
             "status": "ok",
@@ -718,10 +721,12 @@ def _register_routes(app: FastAPI) -> None:
         state.ws_connections.append(websocket)
 
         try:
-            await websocket.send_json({
-                "type": "connected",
-                "stats": state.state.get_stats(),
-            })
+            await websocket.send_json(
+                {
+                    "type": "connected",
+                    "stats": state.state.get_stats(),
+                }
+            )
 
             while True:
                 data = await websocket.receive_text()
@@ -736,6 +741,7 @@ def _register_routes(app: FastAPI) -> None:
 
 
 # ==================== Background Tasks ====================
+
 
 async def _scheduler_loop():
     """حلقة الجدولة."""

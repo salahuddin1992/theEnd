@@ -234,9 +234,10 @@ class ClusterConfig:
     def load(cls, path: str | Path) -> ClusterConfig:
         """تحميل من ملف JSON أو YAML."""
         path = Path(path)
-        with open(path, encoding='utf-8') as f:
-            if path.suffix in ('.yaml', '.yml'):
+        with open(path, encoding="utf-8") as f:
+            if path.suffix in (".yaml", ".yml"):
                 import yaml
+
                 data = yaml.safe_load(f)
             else:
                 data = json.load(f)
@@ -255,5 +256,5 @@ class ClusterConfig:
             "artifact_storage_type": self.artifact_storage_type,
             "artifact_storage_path": self.artifact_storage_path,
         }
-        with open(path, "w", encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)

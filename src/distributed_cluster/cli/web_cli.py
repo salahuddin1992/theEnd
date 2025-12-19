@@ -34,13 +34,15 @@ def start_dashboard(
 
     from ..web.app import WebDashboard
 
-    console.print(Panel(
-        f"[bold green]🌐 Starting Web Dashboard[/bold green]\n\n"
-        f"URL: http://{host if host != '0.0.0.0' else 'localhost'}:{port}\n"
-        f"Master: {master}\n\n"
-        f"[dim]Press Ctrl+C to stop[/dim]",
-        title="Web Dashboard",
-    ))
+    console.print(
+        Panel(
+            f"[bold green]🌐 Starting Web Dashboard[/bold green]\n\n"
+            f"URL: http://{host if host != '0.0.0.0' else 'localhost'}:{port}\n"
+            f"Master: {master}\n\n"
+            f"[dim]Press Ctrl+C to stop[/dim]",
+            title="Web Dashboard",
+        )
+    )
 
     # إنشاء التطبيق
     dashboard = WebDashboard(master_url=master)
@@ -64,6 +66,7 @@ def open_browser(
     فتح واجهة الويب في المتصفح
     """
     import webbrowser
+
     console.print(f"[blue]🌐 Opening {url}...[/blue]")
     webbrowser.open(url)
 

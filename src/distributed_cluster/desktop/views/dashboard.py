@@ -46,11 +46,13 @@ class DashboardView(QScrollArea):
 
         # Header
         header = QLabel("Dashboard")
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         layout.addWidget(header)
 
         subtitle = QLabel("Cluster overview and real-time statistics")
@@ -93,12 +95,14 @@ class DashboardView(QScrollArea):
         # Resources section
         resources_label = QLabel("Resource Usage")
         resources_label.setObjectName("section_header")
-        resources_label.setStyleSheet(f"""
+        resources_label.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS['text_primary']};
             margin-top: 16px;
-        """)
+        """
+        )
         layout.addWidget(resources_label)
 
         resources_layout = QHBoxLayout()
@@ -118,12 +122,14 @@ class DashboardView(QScrollArea):
         # Health status section
         health_label = QLabel("Cluster Health")
         health_label.setObjectName("section_header")
-        health_label.setStyleSheet(f"""
+        health_label.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS['text_primary']};
             margin-top: 16px;
-        """)
+        """
+        )
         layout.addWidget(health_label)
 
         self.health_frame = QFrame()
@@ -150,12 +156,14 @@ class DashboardView(QScrollArea):
         # Charts section
         charts_label = QLabel("Real-time Metrics")
         charts_label.setObjectName("section_header")
-        charts_label.setStyleSheet(f"""
+        charts_label.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS['text_primary']};
             margin-top: 16px;
-        """)
+        """
+        )
         layout.addWidget(charts_label)
 
         charts_layout = QHBoxLayout()
@@ -163,23 +171,13 @@ class DashboardView(QScrollArea):
 
         # CPU usage chart
         self.cpu_chart = LineChart(
-            title="CPU Usage",
-            max_points=60,
-            min_value=0,
-            max_value=100,
-            unit="%",
-            color=COLORS["primary"]
+            title="CPU Usage", max_points=60, min_value=0, max_value=100, unit="%", color=COLORS["primary"]
         )
         charts_layout.addWidget(self.cpu_chart)
 
         # Memory usage chart
         self.memory_chart = LineChart(
-            title="Memory Usage",
-            max_points=60,
-            min_value=0,
-            max_value=100,
-            unit="%",
-            color=COLORS["info"]
+            title="Memory Usage", max_points=60, min_value=0, max_value=100, unit="%", color=COLORS["info"]
         )
         charts_layout.addWidget(self.memory_chart)
 
@@ -251,19 +249,23 @@ class DashboardView(QScrollArea):
             self.memory_chart.add_value(mem_percent)
 
         # Update jobs donut chart
-        self.jobs_donut.set_data([
-            ("Running", stats.running_jobs, COLORS["warning"]),
-            ("Pending", stats.pending_jobs, COLORS["info"]),
-            ("Completed", stats.completed_jobs, COLORS["success"]),
-            ("Failed", stats.failed_jobs, COLORS["danger"]),
-        ])
+        self.jobs_donut.set_data(
+            [
+                ("Running", stats.running_jobs, COLORS["warning"]),
+                ("Pending", stats.pending_jobs, COLORS["info"]),
+                ("Completed", stats.completed_jobs, COLORS["success"]),
+                ("Failed", stats.failed_jobs, COLORS["danger"]),
+            ]
+        )
 
         # Update resource bar chart
-        self.resource_bar.set_data([
-            ("CPU", stats.used_cpu, stats.total_cpu, COLORS["primary"]),
-            ("Memory", stats.used_memory / 1024, stats.total_memory / 1024, COLORS["info"]),  # Convert to GB
-            ("GPU", stats.used_gpu, max(stats.total_gpu, 1), COLORS["warning"]),
-        ])
+        self.resource_bar.set_data(
+            [
+                ("CPU", stats.used_cpu, stats.total_cpu, COLORS["primary"]),
+                ("Memory", stats.used_memory / 1024, stats.total_memory / 1024, COLORS["info"]),  # Convert to GB
+                ("GPU", stats.used_gpu, max(stats.total_gpu, 1), COLORS["warning"]),
+            ]
+        )
 
     def update_health(self, health_data: dict):
         """Update health status display"""
