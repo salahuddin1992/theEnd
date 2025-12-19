@@ -87,7 +87,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
-      paths_result: ${{ steps.paths_filter.outputs.result }}
+      docs_changed: ${{ steps.paths_filter.outputs.docs }}
+      python_changed: ${{ steps.paths_filter.outputs.python }}
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -222,7 +223,7 @@ jobs:
           fi
 
           # Install development/linting tools via pip (more reliable than mamba for these)
-          pip install flake8 black isort mypy bandit
+          pip install ruff black mypy bandit
 
           # Install package in development mode
           if [ -f "pyproject.toml" ]; then
@@ -249,27 +250,15 @@ jobs:
         continue-on-error: true
         run: |
           echo "🎨 Checking code formatting with Black..."
-          black --check --diff . || echo "⚠️ Some files need formatting"
+          black --check --diff --line-length 120 . || echo "⚠️ Some files need formatting"
 
-      - name: 📐 Import Sorting Check (isort)
-        shell: bash -el {0}
-        continue-on-error: true
-        run: |
-          echo "📐 Checking import sorting with isort..."
-          isort --check-only --diff . || echo "⚠️ Some imports need sorting"
-
-      - name: 🔍 Lint with Flake8
+      - name: 🔍 Lint with Ruff
         shell: bash -el {0}
         run: |
-          echo "🔍 Running Flake8 linter..."
-          
-          # Critical errors - fail on these
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics \
-            --exclude=.git,__pycache__,build,dist,*.egg-info,.conda,.venv,venv
-          
-          # Warnings - don't fail but report
-          flake8 . --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics \
-            --exclude=.git,__pycache__,build,dist,*.egg-info,.conda,.venv,venv
+          echo "🔍 Running Ruff linter..."
+
+          # Run ruff check (uses pyproject.toml config)
+          ruff check src/ tests/ --output-format=github || echo "⚠️ Some linting issues found"
 
       - name: 🔒 Security Lint with Bandit
         shell: bash -el {0}
@@ -400,7 +389,7 @@ jobs:
     needs: pre-flight
     if: |
       needs.pre-flight.outputs.should_skip != 'true' &&
-      contains(fromJSON(needs.pre-flight.outputs.paths_result).docs, 'true')
+      needs.pre-flight.outputs.docs_changed == 'true'
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4

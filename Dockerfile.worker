@@ -70,9 +70,9 @@ USER nebula
 # Expose ports
 EXPOSE 8081
 
-# Health check
+# Health check using curl (more reliable)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8081/health')" || exit 1
+    CMD curl -f http://localhost:8081/health || exit 1
 
 # Default command
 CMD ["dc-worker", "start", "--master-url", "http://master:8080"]
