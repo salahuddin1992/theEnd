@@ -1,12 +1,11 @@
 """Tests for the scheduler."""
 
-import pytest
 from datetime import datetime
 
-from distributed_cluster.scheduler.scheduler import Scheduler, SchedulingPolicy
-from distributed_cluster.models.job import Job, JobSubmission, JobPriority
-from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
+from distributed_cluster.models.job import Job, JobPriority, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
+from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
+from distributed_cluster.scheduler.scheduler import Scheduler, SchedulingPolicy
 
 
 def create_worker(

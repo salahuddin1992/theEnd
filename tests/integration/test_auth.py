@@ -5,17 +5,16 @@ Authentication Integration Tests
 Tests for the security and authentication layer.
 """
 
-import pytest
 from datetime import datetime, timedelta
 
 from distributed_cluster.security.auth import (
-    AuthManager,
+    ROLE_PERMISSIONS,
     AuthConfig,
+    AuthManager,
     EnrollmentMode,
     Permission,
     Role,
     TokenPayload,
-    ROLE_PERMISSIONS,
 )
 
 

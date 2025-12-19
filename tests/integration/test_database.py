@@ -5,13 +5,13 @@ Database Integration Tests
 Tests for SQLite database persistence.
 """
 
-import pytest
 from datetime import datetime, timedelta
 
-from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
-from distributed_cluster.models.job import Job, JobSubmission, JobStatus, JobPriority, JobResult
-from distributed_cluster.models.resources import ResourceSpec
+import pytest
+
 from distributed_cluster.models.events import Event, EventType
+from distributed_cluster.models.job import Job, JobResult, JobStatus, JobSubmission
+from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
 from distributed_cluster.storage.database import SQLiteDatabase
 
 

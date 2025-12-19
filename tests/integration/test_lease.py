@@ -5,15 +5,16 @@ Lease Management Integration Tests
 Tests for job lease management and idempotency.
 """
 
-import pytest
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
+
+import pytest
 
 from distributed_cluster.models.lease import (
     Lease,
-    LeaseState,
-    LeaseManager,
     LeaseConfig,
+    LeaseManager,
+    LeaseState,
 )
 
 

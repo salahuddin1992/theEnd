@@ -6,7 +6,7 @@ Tests for Web Dashboard
 import pytest
 from fastapi.testclient import TestClient
 
-from distributed_cluster.web.app import create_app, WebDashboard, ConnectionManager
+from distributed_cluster.web.app import ConnectionManager, WebDashboard, create_app
 
 
 class TestWebDashboard:

@@ -16,14 +16,13 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
 
+from distributed_cluster.models.job import JobPriority, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
 from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
-from distributed_cluster.models.job import JobSubmission, JobPriority
 from distributed_cluster.scheduler import Scheduler, SchedulingPolicy
-from distributed_cluster.security.auth import AuthManager, AuthConfig, EnrollmentMode
-from distributed_cluster.storage.database import SQLiteDatabase, DatabaseConfig
+from distributed_cluster.security.auth import AuthConfig, AuthManager, EnrollmentMode
+from distributed_cluster.storage.database import DatabaseConfig, SQLiteDatabase
 
 
 @pytest.fixture(scope="session")

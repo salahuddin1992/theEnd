@@ -3,22 +3,21 @@ Tests for Notification System
 اختبارات نظام الإشعارات
 """
 
-import pytest
 import asyncio
-from datetime import datetime
 
+import pytest
+
+from distributed_cluster.notifications.channels import (
+    ConsoleChannel,
+    DiscordChannel,
+    SlackChannel,
+    WebhookChannel,
+)
 from distributed_cluster.notifications.notifier import (
-    Notifier,
     Notification,
     NotificationCategory,
     NotificationPriority,
-    NotificationChannel,
-)
-from distributed_cluster.notifications.channels import (
-    ConsoleChannel,
-    WebhookChannel,
-    SlackChannel,
-    DiscordChannel,
+    Notifier,
 )
 from distributed_cluster.notifications.rules import (
     NotificationRule,
@@ -401,7 +400,8 @@ class TestDiscordChannel:
 
     def test_build_message(self):
         """اختبار بناء الرسالة"""
-        from distributed_cluster.notifications.channels import Notification as ChannelNotification, NotificationPriority as ChPriority
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.channels import NotificationPriority as ChPriority
         channel = DiscordChannel(webhook_url="https://test.com")
         notification = ChannelNotification(
             title="Test Alert",
