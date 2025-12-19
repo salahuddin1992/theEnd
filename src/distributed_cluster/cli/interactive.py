@@ -115,7 +115,9 @@ class InteractiveShell(cmd.Cmd):
 
         table.add_row("Workers", f"{stats.get('active_workers', 0)} / {stats.get('total_workers', 0)}")
         table.add_row("CPU Cores", f"{stats.get('available_cpu_cores', 0):.1f} / {stats.get('total_cpu_cores', 0):.1f}")
-        table.add_row("Memory (GB)", f"{stats.get('available_memory_gb', 0):.1f} / {stats.get('total_memory_gb', 0):.1f}")
+        avail_mem = stats.get('available_memory_gb', 0)
+        total_mem = stats.get('total_memory_gb', 0)
+        table.add_row("Memory (GB)", f"{avail_mem:.1f} / {total_mem:.1f}")
         table.add_row("GPUs", f"{stats.get('available_gpus', 0)} / {stats.get('total_gpus', 0)}")
         table.add_row("", "")
         table.add_row("Pending Jobs", str(stats.get('pending_jobs', 0)))

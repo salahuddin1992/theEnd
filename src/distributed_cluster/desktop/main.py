@@ -10,7 +10,7 @@ from typing import Optional
 # Check for PySide6 availability
 try:
     from PySide6.QtCore import Qt
-    from PySide6.QtGui import QFont, QIcon
+    from PySide6.QtGui import QFont, QIcon  # noqa: F401 - QIcon used by dependent modules
     from PySide6.QtWidgets import QApplication
 except ImportError:
     print("Error: PySide6 is not installed.")

@@ -201,7 +201,7 @@ def main():
 
     # Check for PyInstaller
     try:
-        import PyInstaller
+        import PyInstaller  # noqa: F401
     except ImportError:
         print("PyInstaller not found. Installing...")
         subprocess.run([sys.executable, '-m', 'pip', 'install', 'pyinstaller'])

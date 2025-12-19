@@ -530,7 +530,10 @@ class ResourceManager:
                         index=i,
                         name=display.get("sppci_model", "Apple GPU"),
                         vendor=GPUVendor.APPLE,
-                        total_memory_mb=int(display.get("spdisplays_vram", "0").replace(" MB", "").replace(" GB", "000") or 0),
+                        total_memory_mb=int(
+                            display.get("spdisplays_vram", "0")
+                            .replace(" MB", "").replace(" GB", "000") or 0
+                        ),
                     )
                     gpus.append(gpu)
 

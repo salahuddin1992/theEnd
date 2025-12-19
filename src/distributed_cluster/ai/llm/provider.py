@@ -276,7 +276,10 @@ class OllamaProvider(LLMProvider):
                     completion_tokens=data.get("eval_count", 0),
                     total_tokens=data.get("prompt_eval_count", 0) + data.get("eval_count", 0),
                     generation_time_ms=generation_time,
-                    tokens_per_second=data.get("eval_count", 0) / (generation_time / 1000) if generation_time > 0 else 0,
+                    tokens_per_second=(
+                        data.get("eval_count", 0) / (generation_time / 1000)
+                        if generation_time > 0 else 0
+                    ),
                     raw_response=data,
                     finish_reason="stop" if data.get("done") else "length",
                 )
@@ -534,7 +537,10 @@ class VLLMProvider(LLMProvider):
             completion_tokens=usage.get("completion_tokens", 0),
             total_tokens=usage.get("total_tokens", 0),
             generation_time_ms=generation_time,
-            tokens_per_second=usage.get("completion_tokens", 0) / (generation_time / 1000) if generation_time > 0 else 0,
+            tokens_per_second=(
+                usage.get("completion_tokens", 0) / (generation_time / 1000)
+                if generation_time > 0 else 0
+            ),
             raw_response=data,
             finish_reason=choice.get("finish_reason", "stop"),
         )
