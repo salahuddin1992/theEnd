@@ -5,10 +5,10 @@ Worker CLI - واجهة سطر الأوامر للـ Worker
 أوامر تشغيل وإدارة Worker node.
 """
 
-from pathlib import Path
-from typing import Optional
 import asyncio
 import logging
+from pathlib import Path
+from typing import Optional
 
 import typer
 from rich.console import Console
@@ -52,7 +52,7 @@ def start(
     """
     setup_logging(log_level)
 
-    from distributed_cluster.core.config import WorkerConfig, ClusterConfig
+    from distributed_cluster.core.config import ClusterConfig, WorkerConfig
     from distributed_cluster.worker.agent import run_worker
 
     # Load config
@@ -75,7 +75,7 @@ def start(
     if tags:
         worker_config.tags = [t.strip() for t in tags.split(",")]
 
-    console.print(f"[bold green]Starting Worker Agent...[/bold green]")
+    console.print("[bold green]Starting Worker Agent...[/bold green]")
     console.print(f"  Master: {master_url}")
     console.print(f"  Tags: {worker_config.tags or 'none'}")
     console.print(f"  Docker: {'enabled' if worker_config.docker_enabled else 'disabled'}")
@@ -94,8 +94,9 @@ def info() -> None:
     مثال:
         dc-worker info
     """
-    from distributed_cluster.core.resource_detector import ResourceDetector
     from rich.table import Table
+
+    from distributed_cluster.core.resource_detector import ResourceDetector
 
     detector = ResourceDetector()
     info = detector.get_system_info()

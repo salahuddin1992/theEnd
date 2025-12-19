@@ -15,12 +15,12 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import logging
 import socket
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Optional, Callable, Any
-import logging
+from typing import Any, Callable, Optional
 
 import httpx
 

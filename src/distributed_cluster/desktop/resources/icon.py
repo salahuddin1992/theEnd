@@ -103,9 +103,10 @@ def main():
 
     # Try to create ICO if dependencies available
     try:
+        import io
+
         import cairosvg
         from PIL import Image
-        import io
 
         png_data = cairosvg.svg2png(url=str(svg_path), output_width=256, output_height=256)
         img = Image.open(io.BytesIO(png_data))

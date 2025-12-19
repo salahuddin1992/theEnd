@@ -6,22 +6,19 @@ Login Dialog - Authentication interface
 import hashlib
 import json
 from pathlib import Path
-from typing import Optional
 
-from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QDialog,
-    QVBoxLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QPushButton,
-    QFrame,
-    QCheckBox,
-    QMessageBox,
     QProgressBar,
+    QPushButton,
+    QVBoxLayout,
 )
-from PySide6.QtGui import QPixmap
 
 from ..resources.styles import COLORS
 

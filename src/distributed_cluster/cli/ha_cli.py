@@ -5,7 +5,8 @@ HA CLI - واجهة سطر الأوامر للتوفر العالي
 أوامر تشغيل وإدارة Masters عالية التوفر.
 """
 
-from typing import Optional, List
+from typing import Optional
+
 import typer
 
 app = typer.Typer(
@@ -47,7 +48,7 @@ def start_ha_master(
     logging.basicConfig(level=getattr(logging, log_level.upper()))
 
     from distributed_cluster.core.config import MasterConfig
-    from distributed_cluster.master.ha import HAMasterServer, HAConfig, HAMode
+    from distributed_cluster.master.ha import HAConfig, HAMasterServer, HAMode
 
     # Parse peers
     peer_list = []
@@ -77,7 +78,7 @@ def start_ha_master(
         peers=peer_list,
     )
 
-    typer.echo(f"Starting HA Master server...")
+    typer.echo("Starting HA Master server...")
     typer.echo(f"  Mode: {ha_mode.value}")
     typer.echo(f"  Address: {host}:{port}")
     typer.echo(f"  Priority: {priority}")
@@ -135,7 +136,7 @@ def start_ha_worker(
         masters=master_list,
     )
 
-    typer.echo(f"Starting HA Worker agent...")
+    typer.echo("Starting HA Worker agent...")
     typer.echo(f"  Masters: {master_list}")
     typer.echo(f"  Tags: {tag_list}")
 
@@ -172,7 +173,7 @@ def ha_status(
 
         leader = data.get('current_leader')
         if leader:
-            typer.echo(f"\nCurrent Leader:")
+            typer.echo("\nCurrent Leader:")
             typer.echo(f"  ID: {leader.get('master_id')}")
             typer.echo(f"  Address: {leader.get('address')}:{leader.get('port')}")
             typer.echo(f"  Term: {leader.get('term')}")

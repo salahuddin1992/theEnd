@@ -4,10 +4,10 @@ Notifier - نظام الإشعارات الرئيسي
 
 import asyncio
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Dict, Any, List, Callable
-from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional
 
 
 class NotificationPriority(str, Enum):
@@ -117,7 +117,7 @@ class NotificationChannel(ABC):
             if result:
                 self.sent_count += 1
             return result
-        except Exception as e:
+        except Exception:
             self.error_count += 1
             return False
 

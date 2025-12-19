@@ -3,7 +3,7 @@ Data Table Widget
 ويدجت جدول البيانات
 """
 
-from typing import Any, Callable, List, Optional
+from typing import List, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
@@ -17,7 +17,6 @@ from PySide6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
-    QWidget,
 )
 
 from ..resources.styles import COLORS, get_status_color

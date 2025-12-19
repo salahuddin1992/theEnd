@@ -2,10 +2,10 @@
 
 from distributed_cluster.scheduler.scheduler import Scheduler, SchedulingPolicy
 from distributed_cluster.scheduler.scoring import (
-    CompositeScorer,
-    ScoringWeights,
-    ScoreBreakdown,
     SCORING_PROFILES,
+    CompositeScorer,
+    ScoreBreakdown,
+    ScoringWeights,
 )
 
 __all__ = [

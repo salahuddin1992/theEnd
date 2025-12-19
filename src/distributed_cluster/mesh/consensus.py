@@ -9,14 +9,14 @@ Consensus & Leader Election - التوافق وانتخاب القائد
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import TYPE_CHECKING, Optional, Dict, Any, Set
 from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Dict, Optional, Set
 
 if TYPE_CHECKING:
-    from .node import MeshNode
     from .gossip import GossipMessage
+    from .node import MeshNode
 
 
 class ConsensusState(str, Enum):

@@ -13,13 +13,10 @@ from __future__ import annotations
 
 import asyncio
 import json
-import sys
-from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -66,8 +63,8 @@ def chat_start(
     ))
 
     async def run_chat():
-        from distributed_cluster.ai.llm.provider import OllamaProvider, GenerationConfig
-        from distributed_cluster.ai.chat.conversation import Conversation, ConversationManager
+        from distributed_cluster.ai.chat.conversation import ConversationManager
+        from distributed_cluster.ai.llm.provider import OllamaProvider
 
         # Create provider
         provider = OllamaProvider(base_url=ollama_url)
@@ -131,7 +128,7 @@ def chat_send(
     إرسال رسالة واحدة - Send a single message
     """
     async def run():
-        from distributed_cluster.ai.llm.provider import OllamaProvider, GenerationConfig
+        from distributed_cluster.ai.llm.provider import OllamaProvider
 
         provider = OllamaProvider(base_url=ollama_url)
 
@@ -305,9 +302,9 @@ def agent_run(
     تشغيل وكيل لتنفيذ مهمة - Run an agent to execute a task
     """
     async def run():
-        from distributed_cluster.ai.llm.provider import OllamaProvider
         from distributed_cluster.ai.agents.base import Agent, AgentTask
         from distributed_cluster.ai.agents.tools import get_default_tools
+        from distributed_cluster.ai.llm.provider import OllamaProvider
 
         provider = OllamaProvider(base_url=ollama_url)
 
@@ -359,7 +356,10 @@ def agent_run(
                     if step.thought:
                         console.print(f"  {i}. [dim]{step.thought[:100]}...[/dim]")
 
-            console.print(f"\n[dim]Tokens: {result.total_tokens} | Time: {result.total_time_ms:.0f}ms | Iterations: {result.iterations}[/dim]")
+            tokens = result.total_tokens
+            time_ms = result.total_time_ms
+            iters = result.iterations
+            console.print(f"\n[dim]Tokens: {tokens} | Time: {time_ms:.0f}ms | Iterations: {iters}[/dim]")
 
         finally:
             await provider.close()
@@ -443,7 +443,7 @@ def inference_test(
                     console.print(f"[yellow]⚠ Worker is {health_data.get('status')}[/yellow]")
 
                 # Generate
-                console.print(f"[cyan]Testing generation...[/cyan]")
+                console.print("[cyan]Testing generation...[/cyan]")
 
                 response = await client.post(
                     f"{worker_url}/generate",

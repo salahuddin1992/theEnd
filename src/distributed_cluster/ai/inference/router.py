@@ -18,16 +18,14 @@ import random
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, AsyncIterator
-
-import httpx
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 from distributed_cluster.ai.llm.provider import (
+    GenerationConfig,
     LLMProvider,
     LLMResponse,
-    GenerationConfig,
     create_provider,
 )
 
@@ -178,7 +176,7 @@ class InferenceNode:
 
             return response
 
-        except Exception as e:
+        except Exception:
             self.metrics.requests_total += 1
             self.metrics.requests_failed += 1
             raise

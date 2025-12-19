@@ -6,7 +6,7 @@ Extensible plugin system for the distributed cluster.
 نظام إضافات قابل للتوسيع للكلاستر الموزّع.
 """
 
-from .base import Plugin, PluginManager, PluginType, PluginMetadata
+from .base import Plugin, PluginManager, PluginMetadata, PluginType
 from .hooks import HookManager, HookType
 
 __all__ = [

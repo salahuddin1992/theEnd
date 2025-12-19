@@ -3,19 +3,18 @@ Notification System
 نظام الإشعارات
 """
 
-from enum import Enum
-from typing import Optional, Callable
 from dataclasses import dataclass
+from enum import Enum
+from typing import Callable, Optional
 
-from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, Property, QPoint
+from PySide6.QtCore import QEasingCurve, QPropertyAnimation, Qt, QTimer
 from PySide6.QtWidgets import (
     QFrame,
-    QVBoxLayout,
+    QGraphicsOpacityEffect,
     QHBoxLayout,
     QLabel,
     QPushButton,
-    QGraphicsOpacityEffect,
-    QWidget,
+    QVBoxLayout,
 )
 
 from ..resources.styles import COLORS

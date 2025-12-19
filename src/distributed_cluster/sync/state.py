@@ -371,7 +371,7 @@ class StateSync:
             # Verify checksum
             expected_checksum = sync_data.get("checksum", "")
             if expected_checksum and self.checksum != expected_checksum:
-                logger.warning(f"Checksum mismatch after sync")
+                logger.warning("Checksum mismatch after sync")
                 return False
 
             return True

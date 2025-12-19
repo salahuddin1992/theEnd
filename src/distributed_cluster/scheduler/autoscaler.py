@@ -12,13 +12,13 @@ Worker Auto-scaler - التحجيم التلقائي
 from __future__ import annotations
 
 import asyncio
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Optional, Dict, List, Any, Callable, Awaitable
 import logging
 import statistics
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

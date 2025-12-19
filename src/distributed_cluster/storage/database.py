@@ -15,19 +15,19 @@ Database Persistence - تخزين قاعدة البيانات
 
 from __future__ import annotations
 
+import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Any
-import json
-import asyncio
+from typing import List, Optional
+
 import aiosqlite
 
-from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
-from distributed_cluster.models.job import Job, JobStatus, JobSubmission, JobResult, JobPriority
-from distributed_cluster.models.resources import ResourceSpec
 from distributed_cluster.models.events import Event, EventType
+from distributed_cluster.models.job import Job, JobResult, JobStatus, JobSubmission
+from distributed_cluster.models.resources import ResourceSpec
+from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
 
 
 @dataclass

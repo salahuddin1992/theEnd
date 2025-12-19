@@ -23,15 +23,15 @@ Authentication & Authorization - المصادقة والتفويض
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
+import json
+import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, Set
-import hashlib
-import hmac
-import secrets
-import base64
-import json
 
 
 class EnrollmentMode(str, Enum):
@@ -434,7 +434,7 @@ class AuthManager:
             (api_key_id, api_key) - الـ api_key يُعطى للمستخدم مرة واحدة
         """
         api_key_id = f"ak_{secrets.token_hex(8)}"
-        api_key_secret = secrets.token_urlsafe(32)
+        secrets.token_urlsafe(32)
 
         payload = TokenPayload(
             subject=api_key_id,

@@ -3,10 +3,10 @@ Peer - تمثيل عقدة متصلة في الشبكة
 """
 
 import asyncio
-from datetime import datetime
-from typing import Optional, Dict, Any, Set
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, Optional, Set
 
 from ..models.resources import ResourceSpec
 
@@ -125,7 +125,7 @@ class PeerConnection:
                 self.peer.connection_failures = 0
                 return True
 
-            except Exception as e:
+            except Exception:
                 self.state = ConnectionState.FAILED
                 self.peer.connection_failures += 1
                 return False

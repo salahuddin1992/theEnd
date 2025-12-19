@@ -11,14 +11,13 @@ Resource Detector - كاشف الموارد
 
 from __future__ import annotations
 
+import logging
 import os
 import platform
 import socket
 import sys
 import warnings
-from pathlib import Path
 from typing import Optional
-import logging
 
 import psutil
 
@@ -28,7 +27,7 @@ IS_WINDOWS = sys.platform == "win32"
 # Suppress pynvml deprecation warning (use nvidia-ml-py instead)
 warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
-from distributed_cluster.models.resources import ResourceSpec, ResourceUsage, GPUInfo
+from distributed_cluster.models.resources import GPUInfo, ResourceSpec, ResourceUsage
 
 logger = logging.getLogger(__name__)
 

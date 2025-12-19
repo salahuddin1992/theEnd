@@ -3,15 +3,15 @@ NebulaCompute Desktop Application Entry Point
 نقطة الدخول الرئيسية لتطبيق سطح المكتب
 """
 
-import sys
 import asyncio
+import sys
 from typing import Optional
 
 # Check for PySide6 availability
 try:
-    from PySide6.QtWidgets import QApplication
     from PySide6.QtCore import Qt
     from PySide6.QtGui import QFont, QIcon
+    from PySide6.QtWidgets import QApplication
 except ImportError:
     print("Error: PySide6 is not installed.")
     print("Install it with: pip install 'distributed-cluster[desktop]'")

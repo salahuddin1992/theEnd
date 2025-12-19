@@ -5,9 +5,9 @@ Master CLI - واجهة سطر الأوامر للـ Master
 أوامر تشغيل وإدارة Master node.
 """
 
+import logging
 from pathlib import Path
 from typing import Optional
-import logging
 
 import typer
 from rich.console import Console
@@ -44,7 +44,7 @@ def start(
     """
     setup_logging(log_level)
 
-    from distributed_cluster.core.config import MasterConfig, ClusterConfig
+    from distributed_cluster.core.config import ClusterConfig, MasterConfig
     from distributed_cluster.master.server import MasterServer
 
     # Load config

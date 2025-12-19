@@ -3,13 +3,12 @@ Chart Widgets for Dashboard
 ويدجت الرسوم البيانية للوحة التحكم
 """
 
-from typing import List, Tuple
 from collections import deque
-from datetime import datetime
+from typing import List, Tuple
 
-from PySide6.QtCore import Qt, QTimer, QPointF, QRectF
-from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QPainterPath, QLinearGradient, QFont
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QWidget
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QBrush, QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen
+from PySide6.QtWidgets import QFrame, QWidget
 
 from ..resources.styles import COLORS
 

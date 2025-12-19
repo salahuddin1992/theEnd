@@ -8,10 +8,10 @@ Gossip Protocol - بروتوكول نشر المعلومات
 import asyncio
 import json
 import random
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Any, List, Set, Optional
-from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
     from .node import MeshNode

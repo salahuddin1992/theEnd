@@ -31,7 +31,8 @@ def start_dashboard(
         dc-web start --port 3000 --master http://192.168.1.10:8765
     """
     import uvicorn
-    from ..web.app import WebDashboard, create_app
+
+    from ..web.app import WebDashboard
 
     console.print(Panel(
         f"[bold green]🌐 Starting Web Dashboard[/bold green]\n\n"

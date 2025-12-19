@@ -1,10 +1,10 @@
 """Artifact Storage module."""
 
 from distributed_cluster.artifacts.storage import (
+    ArtifactMetadata,
     ArtifactStorage,
     LocalStorage,
     S3Storage,
-    ArtifactMetadata,
 )
 
 __all__ = [

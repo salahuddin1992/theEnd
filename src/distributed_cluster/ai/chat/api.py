@@ -8,7 +8,7 @@ FastAPI-based REST API for chat functionality.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
@@ -18,9 +18,8 @@ from distributed_cluster.ai.chat.conversation import (
     Conversation,
     ConversationManager,
     Message,
-    MessageRole,
 )
-from distributed_cluster.ai.llm.provider import LLMProvider, GenerationConfig
+from distributed_cluster.ai.llm.provider import GenerationConfig, LLMProvider
 
 logger = logging.getLogger(__name__)
 

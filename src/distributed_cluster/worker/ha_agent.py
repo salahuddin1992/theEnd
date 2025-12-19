@@ -11,17 +11,16 @@ HA Worker Agent - وكيل العامل عالي التوفر
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Optional, List
 import logging
 import signal
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
 
 import httpx
 
 from distributed_cluster.core.config import WorkerConfig
 from distributed_cluster.core.resource_detector import ResourceDetector
-from distributed_cluster.models.worker import WorkerRegistration
 from distributed_cluster.models.job import Job, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
 from distributed_cluster.worker.executor import JobExecutor

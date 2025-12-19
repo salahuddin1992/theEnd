@@ -11,18 +11,17 @@ Cluster State - حالة الكلاستر
 
 from __future__ import annotations
 
+import logging
+import threading
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional, Callable
-import asyncio
-import logging
-from collections import deque
-import threading
+from typing import Callable, Optional
 
-from distributed_cluster.models.worker import WorkerInfo, WorkerStatus, WorkerRegistration
-from distributed_cluster.models.job import Job, JobStatus, JobSubmission, JobResult
 from distributed_cluster.models.events import Event, EventType
+from distributed_cluster.models.job import Job, JobResult, JobStatus, JobSubmission
 from distributed_cluster.models.resources import ResourceUsage
+from distributed_cluster.models.worker import WorkerInfo, WorkerRegistration, WorkerStatus
 
 logger = logging.getLogger(__name__)
 

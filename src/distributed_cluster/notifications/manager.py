@@ -13,17 +13,17 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional
 
 from distributed_cluster.notifications.channels import (
+    ConsoleChannel,
+    EmailChannel,
+    Notification,
     NotificationChannel,
     NotificationPriority,
-    Notification,
-    EmailChannel,
+    PagerDutyChannel,
     SlackChannel,
     WebhookChannel,
-    PagerDutyChannel,
-    ConsoleChannel,
 )
 
 logger = logging.getLogger(__name__)

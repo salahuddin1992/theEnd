@@ -1,5 +1,5 @@
 """CLI tools for distributed cluster."""
 
-from .main import cli, main, app
+from .main import app, cli, main
 
 __all__ = ["cli", "main", "app"]

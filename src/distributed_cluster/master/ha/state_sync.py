@@ -11,12 +11,11 @@ State Synchronization - مزامنة الحالة
 from __future__ import annotations
 
 import asyncio
-import json
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, Callable, Any
-import logging
+from typing import TYPE_CHECKING, Callable, Optional
 
 import httpx
 
@@ -342,8 +341,8 @@ class StateSync:
 
         if action == "registered":
             # إضافة worker جديد
-            from distributed_cluster.models.worker import WorkerRegistration
             from distributed_cluster.models.resources import ResourceSpec
+            from distributed_cluster.models.worker import WorkerRegistration
 
             reg_data = data.get("registration", {})
             res_data = reg_data.get("total_resources", {})

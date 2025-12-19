@@ -3,9 +3,9 @@ Theme System - Light and Dark themes
 نظام السمات - السمات الفاتحة والداكنة
 """
 
-from typing import Dict
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict
 
 
 class ThemeType(Enum):

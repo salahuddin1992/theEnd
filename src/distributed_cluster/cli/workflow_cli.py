@@ -11,7 +11,6 @@ from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 
@@ -234,8 +233,9 @@ def workflow_run(
     wait: bool = typer.Option(False, "--wait", "-w", help="Wait for completion"),
 ):
     """Run a workflow."""
-    import httpx
     import time
+
+    import httpx
 
     # Parse parameters
     run_params = {}
@@ -278,7 +278,7 @@ def workflow_run(
                         break
 
             if status == "succeeded":
-                console.print(f"[green]Workflow completed successfully![/green]")
+                console.print("[green]Workflow completed successfully![/green]")
             else:
                 console.print(f"[red]Workflow {status}[/red]")
                 if run.get("error_message"):
@@ -542,11 +542,11 @@ def workflow_validate(
         is_valid, errors = definition.validate()
 
         if is_valid:
-            console.print(f"[green]✓ Workflow definition is valid[/green]")
+            console.print("[green]✓ Workflow definition is valid[/green]")
             console.print(f"  Name: {definition.name}")
             console.print(f"  Steps: {len(definition.steps)}")
         else:
-            console.print(f"[red]✗ Workflow definition is invalid[/red]")
+            console.print("[red]✗ Workflow definition is invalid[/red]")
             for error in errors:
                 console.print(f"  • {error}")
             raise typer.Exit(1)

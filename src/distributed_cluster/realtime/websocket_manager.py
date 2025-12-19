@@ -12,13 +12,12 @@ WebSocket Manager - مدير WebSocket
 from __future__ import annotations
 
 import asyncio
-import json
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Dict, Set, List, Any, Callable
-import logging
-import uuid
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState

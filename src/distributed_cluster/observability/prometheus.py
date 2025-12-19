@@ -11,14 +11,9 @@ Prometheus Metrics Exporter
 
 from __future__ import annotations
 
-import asyncio
-import time
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Optional, Dict, List, Any, Callable
 import logging
-
-from distributed_cluster.observability.metrics import MetricsCollector
+import time
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

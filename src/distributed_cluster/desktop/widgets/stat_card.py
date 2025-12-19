@@ -3,7 +3,6 @@ Statistics Card Widget
 ويدجت بطاقة الإحصائيات
 """
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout
 
 from ..resources.styles import COLORS

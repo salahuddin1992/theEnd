@@ -3,14 +3,12 @@ Dashboard View - Main overview page
 صفحة لوحة التحكم الرئيسية
 """
 
-import asyncio
 from collections import deque
 from typing import Optional
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QFrame,
-    QGridLayout,
     QHBoxLayout,
     QLabel,
     QScrollArea,
@@ -20,8 +18,8 @@ from PySide6.QtWidgets import (
 
 from ..api.client import APIClient, ClusterStats
 from ..resources.styles import COLORS
+from ..widgets.charts import BarChart, DonutChart, LineChart
 from ..widgets.stat_card import ResourceCard, StatCard
-from ..widgets.charts import LineChart, DonutChart, BarChart
 
 
 class DashboardView(QScrollArea):

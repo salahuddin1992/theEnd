@@ -11,10 +11,9 @@ Requirements:
 This will create a standalone Windows executable in the 'dist' folder.
 """
 
-import os
-import sys
-import subprocess
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -155,8 +154,10 @@ Section "Install"
     WriteUninstaller "$INSTDIR\\Uninstall.exe"
 
     ; Registry entries
-    WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NebulaCompute" "DisplayName" "NebulaCompute Desktop"
-    WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NebulaCompute" "UninstallString" "$INSTDIR\\Uninstall.exe"
+    WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NebulaCompute" \\
+        "DisplayName" "NebulaCompute Desktop"
+    WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NebulaCompute" \\
+        "UninstallString" "$INSTDIR\\Uninstall.exe"
 SectionEnd
 
 ; Uninstaller Section

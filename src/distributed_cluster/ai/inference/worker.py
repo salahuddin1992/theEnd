@@ -11,22 +11,19 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import signal
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import httpx
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-import uvicorn
 
 from distributed_cluster.ai.llm.provider import (
-    LLMProvider,
-    LLMResponse,
     GenerationConfig,
+    LLMProvider,
     OllamaProvider,
     VLLMProvider,
 )

@@ -13,16 +13,14 @@ Job Dependencies & DAG Execution
 from __future__ import annotations
 
 import asyncio
-from collections import defaultdict
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Dict, List, Set, Callable, Awaitable, Any
-import logging
-import uuid
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
 from distributed_cluster.models.job import Job, JobStatus
-from distributed_cluster.models.events import Event, EventType
 
 logger = logging.getLogger(__name__)
 

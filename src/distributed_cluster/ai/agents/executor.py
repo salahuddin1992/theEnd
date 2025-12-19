@@ -14,13 +14,13 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 from distributed_cluster.ai.agents.base import (
     Agent,
-    AgentTask,
     AgentResult,
     AgentStatus,
+    AgentTask,
 )
 from distributed_cluster.ai.llm.provider import LLMProvider, create_provider
 
@@ -466,7 +466,7 @@ def create_default_executor(
     **kwargs,
 ) -> AgentExecutor:
     """إنشاء منفذ افتراضي مع وكلاء جاهزين."""
-    from distributed_cluster.ai.agents.base import Agent, CodeAgent, ResearchAgent
+    from distributed_cluster.ai.agents.base import Agent
     from distributed_cluster.ai.agents.tools import get_default_tools
 
     # Create LLM provider

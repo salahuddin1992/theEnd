@@ -5,15 +5,15 @@ NebulaCompute CLI - Unified Command-Line Interface
 واجهة سطر أوامر موحدة للتفاعل مع نظام NebulaCompute.
 """
 
+import json
+from pathlib import Path
+from typing import Optional
+
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 from rich.tree import Tree
-from typing import Optional
-from pathlib import Path
-import json
-import sys
 
 # Create main app
 app = typer.Typer(
@@ -42,10 +42,12 @@ app.add_typer(config_app, name="config")
 
 # Import and add workflow commands
 from distributed_cluster.cli.workflow_cli import workflow_app
+
 app.add_typer(workflow_app, name="workflows")
 
 # Import and add HA commands
 from distributed_cluster.cli.ha_cli import app as ha_app
+
 app.add_typer(ha_app, name="ha")
 
 console = Console()
@@ -175,8 +177,9 @@ def jobs_submit(
     output: str = typer.Option("text", "--output", "-o", help="Output format"),
 ):
     """Submit a new job to the cluster."""
-    import httpx
     import time
+
+    import httpx
 
     # Parse env vars
     environment = {}
@@ -240,7 +243,7 @@ def jobs_submit(
                             break
 
                 if status == "completed":
-                    console.print(f"[green]Job completed[/green]")
+                    console.print("[green]Job completed[/green]")
                     if job.get("result", {}).get("stdout"):
                         console.print(Panel(job["result"]["stdout"][:3000], title="Output"))
                 else:
@@ -432,8 +435,9 @@ def jobs_logs(
     tail: int = typer.Option(100, "--tail", "-n", help="Number of lines"),
 ):
     """View job logs."""
-    import httpx
     import time
+
+    import httpx
 
     try:
         with httpx.Client(timeout=10) as client:
@@ -775,8 +779,9 @@ def templates_use(
     wait: bool = typer.Option(False, "--wait", "-w"),
 ):
     """Submit a job using a template."""
-    import httpx
     import time
+
+    import httpx
 
     environment = {}
     if env:
@@ -888,7 +893,7 @@ def pools_create(
     """Create a new worker pool."""
     import httpx
 
-    pool_labels = [l.strip() for l in labels.split(",")] if labels else []
+    pool_labels = [label.strip() for label in labels.split(",")] if labels else []
 
     pool_data = {
         "name": name,
@@ -1252,9 +1257,10 @@ def watch(
     interval: int = typer.Option(2, "--interval", "-i", help="Update interval in seconds"),
 ):
     """Live cluster dashboard. Press Ctrl+C to stop."""
-    import httpx
     import time
     from datetime import datetime
+
+    import httpx
 
     console.print("Starting live dashboard (Ctrl+C to stop)...")
 

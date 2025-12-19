@@ -12,8 +12,8 @@ Resource Models - نماذج الموارد
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
 
 class ResourceType(str, Enum):
