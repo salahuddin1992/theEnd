@@ -8,13 +8,13 @@ Peer Discovery - اكتشاف العقد في الشبكة
 """
 
 import asyncio
+import json
 import socket
 import struct
-import json
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional, Set, Dict, Any
-from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
     from .node import MeshNode
@@ -160,7 +160,7 @@ class PeerDiscovery:
                 except Exception:
                     await asyncio.sleep(0.1)
 
-        except Exception as e:
+        except Exception:
             # Multicast قد لا يعمل في بعض البيئات
             pass
         finally:

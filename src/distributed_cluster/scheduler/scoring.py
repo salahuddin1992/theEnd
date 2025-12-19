@@ -19,13 +19,11 @@ Scheduler Scoring - خوارزميات التسجيل
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Optional, List
-import math
+from dataclasses import dataclass
+from typing import List, Optional
 
-from distributed_cluster.models.resources import ResourceSpec
-from distributed_cluster.models.worker import WorkerInfo
 from distributed_cluster.models.job import Job
+from distributed_cluster.models.worker import WorkerInfo
 
 
 @dataclass

@@ -11,12 +11,9 @@ gRPC Server - سيرفر gRPC
 
 from __future__ import annotations
 
-import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Optional, Callable, Any
-import logging
+from typing import Optional
 
 try:
     import grpc
@@ -27,12 +24,12 @@ except ImportError:
     grpc = None
     grpc_aio = None
 
+from distributed_cluster.models.lease import LeaseManager
+from distributed_cluster.observability.logging import StructuredLogger
+from distributed_cluster.observability.metrics import MetricsCollector
 from distributed_cluster.scheduler import Scheduler
 from distributed_cluster.security.auth import AuthManager
-from distributed_cluster.models.lease import LeaseManager
 from distributed_cluster.storage.database import Database
-from distributed_cluster.observability.metrics import MetricsCollector
-from distributed_cluster.observability.logging import StructuredLogger
 
 logger = StructuredLogger("grpc.server")
 
@@ -113,7 +110,7 @@ class MetricsInterceptor(grpc_aio.ServerInterceptor if GRPC_AVAILABLE else objec
                 "status": "ok"
             })
             return response
-        except Exception as e:
+        except Exception:
             self.metrics.counter("grpc_requests_total", 1, {
                 "method": method_name,
                 "status": "error"
@@ -134,15 +131,14 @@ class LoggingInterceptor(grpc_aio.ServerInterceptor if GRPC_AVAILABLE else objec
     async def intercept_service(self, continuation, handler_call_details):
         """Log RPC calls."""
         method_name = handler_call_details.method
-        peer = handler_call_details.invocation_metadata
 
-        logger.debug(f"gRPC call", method=method_name)
+        logger.debug("gRPC call", method=method_name)
 
         try:
             response = await continuation(handler_call_details)
             return response
         except Exception as e:
-            logger.error(f"gRPC error", method=method_name, error=str(e))
+            logger.error("gRPC error", method=method_name, error=str(e))
             raise
 
 
@@ -216,24 +212,24 @@ class GRPCServer:
             # Load credentials
             credentials = self._load_credentials()
             self._server.add_secure_port(address, credentials)
-            logger.info(f"gRPC server starting with TLS", address=address)
+            logger.info("gRPC server starting with TLS", address=address)
         else:
             self._server.add_insecure_port(address)
-            logger.info(f"gRPC server starting (insecure)", address=address)
+            logger.info("gRPC server starting (insecure)", address=address)
 
         await self._server.start()
         self._started = True
 
-        logger.info(f"gRPC server started", address=address)
+        logger.info("gRPC server started", address=address)
 
     def _register_services(self) -> None:
         """تسجيل الخدمات."""
         # Import servicers
-        from distributed_cluster.grpc.master_service import MasterServicer
         from distributed_cluster.grpc.client_service import ClientServicer
+        from distributed_cluster.grpc.master_service import MasterServicer
 
         # Create servicers
-        master_servicer = MasterServicer(
+        MasterServicer(
             scheduler=self.scheduler,
             auth_manager=self.auth_manager,
             lease_manager=self.lease_manager,
@@ -241,7 +237,7 @@ class GRPCServer:
             metrics=self.metrics,
         )
 
-        client_servicer = ClientServicer(
+        ClientServicer(
             scheduler=self.scheduler,
             auth_manager=self.auth_manager,
             database=self.database,

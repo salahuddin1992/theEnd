@@ -5,10 +5,9 @@ Submit CLI - واجهة إرسال Jobs
 أوامر إرسال وإدارة jobs.
 """
 
+import json
 from pathlib import Path
 from typing import Optional
-import json
-import sys
 
 import typer
 from rich.console import Console
@@ -46,8 +45,9 @@ def run(
         dc-submit run "python train.py" --gpu 1 --memory 8192
         dc-submit run "echo hello" --docker python:3.11
     """
-    import httpx
     import time
+
+    import httpx
 
     # Parse environment variables
     environment = {}
@@ -99,7 +99,7 @@ def run(
                 status = job["status"]
                 if status in ("completed", "failed", "cancelled", "timeout"):
                     if status == "completed":
-                        console.print(f"[green]Job completed successfully[/green]")
+                        console.print("[green]Job completed successfully[/green]")
                         if job.get("result", {}).get("stdout"):
                             console.print("\n[bold]Output:[/bold]")
                             console.print(job["result"]["stdout"][:5000])
@@ -149,7 +149,7 @@ def status(
 
         if job.get("result"):
             result = job["result"]
-            console.print(f"\n[bold]Result:[/bold]")
+            console.print("\n[bold]Result:[/bold]")
             console.print(f"  Exit Code: {result['exit_code']}")
             if result.get("stdout"):
                 console.print(f"\n[bold]stdout:[/bold]\n{result['stdout'][:2000]}")

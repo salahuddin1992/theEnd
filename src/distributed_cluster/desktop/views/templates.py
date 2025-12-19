@@ -323,7 +323,7 @@ class TemplatesView(QWidget):
         """Handle create template"""
         dialog = CreateTemplateDialog(self)
         if dialog.exec() == QDialog.Accepted:
-            spec = dialog.get_template_spec()
+            dialog.get_template_spec()
             # Create template via API
             self.refresh_requested.emit()
 

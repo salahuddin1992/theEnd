@@ -12,13 +12,12 @@ Health Monitoring & Alerts
 from __future__ import annotations
 
 import asyncio
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Dict, List, Any, Callable, Awaitable
-import logging
-import json
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -746,9 +745,10 @@ def create_standard_alert_rules(
     # High disk usage
     async def high_disk_condition():
         try:
-            import psutil
-            import sys
             import os
+            import sys
+
+            import psutil
             # Use platform-appropriate disk path
             if sys.platform == "win32":
                 disk_path = os.environ.get("SystemDrive", "C:") + "\\"

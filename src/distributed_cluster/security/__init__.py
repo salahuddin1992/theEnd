@@ -2,10 +2,10 @@
 
 from distributed_cluster.security.auth import (
     AuthManager,
-    TokenPayload,
-    WorkerEnrollment,
     Permission,
     Role,
+    TokenPayload,
+    WorkerEnrollment,
 )
 from distributed_cluster.security.crypto import CryptoManager
 

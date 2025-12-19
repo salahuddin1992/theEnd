@@ -3,22 +3,20 @@ Embedded Terminal Widget
 ويدجت الطرفية المدمجة
 """
 
-import asyncio
-from collections import deque
 from datetime import datetime
-from typing import Optional, Callable, List
+from typing import Callable, List
 
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QFont, QTextCursor, QColor, QTextCharFormat
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor, QFont, QTextCharFormat, QTextCursor
 from PySide6.QtWidgets import (
-    QFrame,
-    QVBoxLayout,
-    QHBoxLayout,
-    QPlainTextEdit,
-    QLineEdit,
-    QPushButton,
-    QLabel,
     QComboBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPlainTextEdit,
+    QPushButton,
+    QVBoxLayout,
 )
 
 from ..resources.styles import COLORS
@@ -31,13 +29,13 @@ class TerminalOutput(QPlainTextEdit):
         super().__init__(parent)
         self.setReadOnly(True)
         self.setFont(QFont("Consolas", 11))
-        self.setStyleSheet(f"""
-            QPlainTextEdit {{
+        self.setStyleSheet("""
+            QPlainTextEdit {
                 background-color: #0d1117;
                 color: #c9d1d9;
                 border: none;
                 padding: 8px;
-            }}
+            }
         """)
         self.setLineWrapMode(QPlainTextEdit.NoWrap)
 
@@ -257,7 +255,7 @@ class TerminalWidget(QFrame):
 
         # Prompt
         prompt = QLabel("$")
-        prompt.setStyleSheet(f"color: #3fb950; font-family: Consolas; font-size: 14px;")
+        prompt.setStyleSheet("color: #3fb950; font-family: Consolas; font-size: 14px;")
         input_layout.addWidget(prompt)
 
         # Command input
@@ -339,7 +337,10 @@ class TerminalWidget(QFrame):
 
     def _cmd_jobs(self, args: str) -> str:
         """Jobs command handler"""
-        return "Recent jobs:\n  job-001  running   python train.py\n  job-002  pending   ./process.sh\n  job-003  completed python test.py"
+        return (
+            "Recent jobs:\n  job-001  running   python train.py\n"
+            "  job-002  pending   ./process.sh\n  job-003  completed python test.py"
+        )
 
     def _cmd_workers(self, args: str) -> str:
         """Workers command handler"""

@@ -24,12 +24,12 @@ Lease Model - نموذج الـ Lease
 
 from __future__ import annotations
 
+import hashlib
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
-import uuid
-import hashlib
 
 
 @dataclass
@@ -505,10 +505,10 @@ class LeaseManager:
 
     def get_stats(self) -> dict:
         """إحصائيات الـ leases."""
-        active = sum(1 for l in self._leases.values() if l.is_active)
-        expired = sum(1 for l in self._leases.values() if l.state == LeaseState.EXPIRED)
-        released = sum(1 for l in self._leases.values() if l.state == LeaseState.RELEASED)
-        revoked = sum(1 for l in self._leases.values() if l.state == LeaseState.REVOKED)
+        active = sum(1 for lease in self._leases.values() if lease.is_active)
+        expired = sum(1 for lease in self._leases.values() if lease.state == LeaseState.EXPIRED)
+        released = sum(1 for lease in self._leases.values() if lease.state == LeaseState.RELEASED)
+        revoked = sum(1 for lease in self._leases.values() if lease.state == LeaseState.REVOKED)
 
         return {
             "total_leases": len(self._leases),

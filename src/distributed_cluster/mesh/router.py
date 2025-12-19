@@ -9,14 +9,15 @@ Task Router - توجيه المهام في شبكة Mesh
 """
 
 import random
-from enum import Enum
-from typing import TYPE_CHECKING, Optional, List, Dict, Any
 from dataclasses import dataclass
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
+    from ..models.job import Job
+    from ..models.resources import ResourceSpec
     from .node import MeshNode
     from .peer import Peer
-    from ..models.job import Job
 
 
 class RoutingStrategy(str, Enum):

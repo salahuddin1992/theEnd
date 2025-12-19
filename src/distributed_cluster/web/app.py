@@ -3,13 +3,12 @@ Web Dashboard Application - تطبيق واجهة الويب
 """
 
 import asyncio
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -97,7 +96,7 @@ class WebDashboard:
                 if stats_resp.status_code == 200:
                     self._stats = stats_resp.json()
 
-        except Exception as e:
+        except Exception:
             # في حالة عدم الاتصال، نستخدم بيانات تجريبية
             self._generate_demo_data()
 
@@ -272,7 +271,6 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
     # صفحة مزودي AI
     @app.get("/ai", response_class=HTMLResponse)
     async def ai_page(request: Request):
-        dash = app.state.dashboard
 
         # بيانات المزودين
         ai_data = {
@@ -319,7 +317,6 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
     # صفحة المزامنة
     @app.get("/sync", response_class=HTMLResponse)
     async def sync_page(request: Request):
-        dash = app.state.dashboard
 
         # بيانات المزامنة
         sync_data = {

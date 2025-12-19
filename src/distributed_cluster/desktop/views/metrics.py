@@ -4,29 +4,28 @@ Metrics View - Advanced metrics and monitoring page
 """
 
 from collections import deque
-from typing import Optional, Dict, List
-from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
-from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
+    QComboBox,
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
-    QScrollArea,
-    QVBoxLayout,
-    QWidget,
-    QComboBox,
     QPushButton,
-    QTabWidget,
+    QScrollArea,
     QTableWidget,
     QTableWidgetItem,
-    QHeaderView,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
 
 from ..api.client import APIClient
 from ..resources.styles import COLORS
-from ..widgets.charts import LineChart, DonutChart, BarChart
+from ..widgets.charts import BarChart, DonutChart, LineChart
 
 
 class MetricCard(QFrame):
@@ -71,7 +70,7 @@ class MetricCard(QFrame):
         header.addStretch()
 
         self.change_label = QLabel("")
-        self.change_label.setStyleSheet(f"font-size: 11px;")
+        self.change_label.setStyleSheet("font-size: 11px;")
         header.addWidget(self.change_label)
 
         layout.addLayout(header)
@@ -102,7 +101,7 @@ class MetricCard(QFrame):
 
     def set_value(self, value: float):
         """Update metric value"""
-        old_value = float(self.value_label.text()) if self.value_label.text().replace('.', '').isdigit() else 0
+        float(self.value_label.text()) if self.value_label.text().replace('.', '').isdigit() else 0
 
         self._history.append(value)
         self.value_label.setText(f"{value:.1f}" if isinstance(value, float) else str(value))
@@ -421,10 +420,26 @@ class MetricsView(QScrollArea):
 
         # Update table
         table_metrics = [
-            {"name": "CPU Usage", "current": metrics.get("cpu_percent", 0), "average": metrics.get("cpu_avg", 0), "min": metrics.get("cpu_min", 0), "max": metrics.get("cpu_max", 0)},
-            {"name": "Memory Usage", "current": metrics.get("memory_percent", 0), "average": metrics.get("memory_avg", 0), "min": metrics.get("memory_min", 0), "max": metrics.get("memory_max", 0)},
-            {"name": "Jobs/Minute", "current": metrics.get("jobs_per_minute", 0), "average": metrics.get("jobs_avg", 0), "min": metrics.get("jobs_min", 0), "max": metrics.get("jobs_max", 0)},
-            {"name": "Latency (ms)", "current": metrics.get("avg_latency", 0), "average": metrics.get("latency_avg", 0), "min": metrics.get("latency_min", 0), "max": metrics.get("latency_max", 0)},
+            {
+                "name": "CPU Usage", "current": metrics.get("cpu_percent", 0),
+                "average": metrics.get("cpu_avg", 0), "min": metrics.get("cpu_min", 0),
+                "max": metrics.get("cpu_max", 0)
+            },
+            {
+                "name": "Memory Usage", "current": metrics.get("memory_percent", 0),
+                "average": metrics.get("memory_avg", 0), "min": metrics.get("memory_min", 0),
+                "max": metrics.get("memory_max", 0)
+            },
+            {
+                "name": "Jobs/Minute", "current": metrics.get("jobs_per_minute", 0),
+                "average": metrics.get("jobs_avg", 0), "min": metrics.get("jobs_min", 0),
+                "max": metrics.get("jobs_max", 0)
+            },
+            {
+                "name": "Latency (ms)", "current": metrics.get("avg_latency", 0),
+                "average": metrics.get("latency_avg", 0), "min": metrics.get("latency_min", 0),
+                "max": metrics.get("latency_max", 0)
+            },
         ]
         self.metrics_table.set_metrics(table_metrics)
 

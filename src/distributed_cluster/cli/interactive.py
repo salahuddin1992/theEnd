@@ -5,7 +5,6 @@ Interactive CLI Mode - وضع CLI التفاعلي
 Provides an interactive shell for the distributed cluster.
 """
 
-import asyncio
 import cmd
 import json
 import os
@@ -13,15 +12,12 @@ import readline
 import shlex
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import httpx
 from rich.console import Console
-from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
-from rich.layout import Layout
 
 console = Console()
 
@@ -509,13 +505,25 @@ class InteractiveShell(cmd.Cmd):
                 console.print()
 
                 if stats:
-                    console.print(f"Workers: [green]{stats.get('active_workers', 0)}[/green] / {stats.get('total_workers', 0)}")
-                    console.print(f"CPU: [green]{stats.get('available_cpu_cores', 0):.1f}[/green] / {stats.get('total_cpu_cores', 0):.1f} cores")
-                    console.print(f"Memory: [green]{stats.get('available_memory_gb', 0):.1f}[/green] / {stats.get('total_memory_gb', 0):.1f} GB")
-                    console.print(f"GPUs: [green]{stats.get('available_gpus', 0)}[/green] / {stats.get('total_gpus', 0)}")
+                    active = stats.get('active_workers', 0)
+                    total_w = stats.get('total_workers', 0)
+                    console.print(f"Workers: [green]{active}[/green] / {total_w}")
+                    avail_cpu = stats.get('available_cpu_cores', 0)
+                    total_cpu = stats.get('total_cpu_cores', 0)
+                    console.print(f"CPU: [green]{avail_cpu:.1f}[/green] / {total_cpu:.1f} cores")
+                    avail_mem = stats.get('available_memory_gb', 0)
+                    total_mem = stats.get('total_memory_gb', 0)
+                    console.print(f"Memory: [green]{avail_mem:.1f}[/green] / {total_mem:.1f} GB")
+                    avail_gpu = stats.get('available_gpus', 0)
+                    total_gpu = stats.get('total_gpus', 0)
+                    console.print(f"GPUs: [green]{avail_gpu}[/green] / {total_gpu}")
                     console.print()
-                    console.print(f"Jobs: [blue]{stats.get('pending_jobs', 0)}[/blue] pending, [yellow]{stats.get('running_jobs', 0)}[/yellow] running")
-                    console.print(f"      [green]{stats.get('completed_jobs', 0)}[/green] completed, [red]{stats.get('failed_jobs', 0)}[/red] failed")
+                    pending = stats.get('pending_jobs', 0)
+                    running = stats.get('running_jobs', 0)
+                    console.print(f"Jobs: [blue]{pending}[/blue] pending, [yellow]{running}[/yellow] running")
+                    completed = stats.get('completed_jobs', 0)
+                    failed = stats.get('failed_jobs', 0)
+                    console.print(f"      [green]{completed}[/green] completed, [red]{failed}[/red] failed")
 
                 time.sleep(interval)
 

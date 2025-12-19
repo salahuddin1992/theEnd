@@ -11,16 +11,14 @@ Resource Quotas - حصص الموارد
 
 from __future__ import annotations
 
-import asyncio
+import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Dict, List, Set, Any
-import logging
-from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
-from distributed_cluster.models.resources import ResourceSpec
-from distributed_cluster.models.job import Job, JobStatus
+from distributed_cluster.models.job import Job
 
 logger = logging.getLogger(__name__)
 
@@ -351,7 +349,7 @@ class QuotaManager:
                 name=f"Default {scope.value} quota",
                 scope=scope,
                 scope_id=scope_id,
-                limits={m: l.limit for m, l in default.limits.items()},
+                limits={m: limit.limit for m, limit in default.limits.items()},
             )
 
         # Create with provided defaults

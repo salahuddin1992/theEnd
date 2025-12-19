@@ -6,20 +6,18 @@ Main Application Window
 import asyncio
 from typing import Optional
 
-from PySide6.QtCore import QTimer, Qt
-from PySide6.QtGui import QShortcut, QKeySequence, QAction
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QAction, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QMainWindow,
     QMessageBox,
+    QSplitter,
     QStackedWidget,
     QStatusBar,
-    QWidget,
-    QMenu,
-    QMenuBar,
     QVBoxLayout,
-    QSplitter,
+    QWidget,
 )
 
 from .api.client import APIClient, ClusterStats
@@ -27,15 +25,15 @@ from .resources.styles import COLORS, MAIN_STYLESHEET
 from .views.dashboard import DashboardView
 from .views.jobs import JobsView
 from .views.logs import LogsView
+from .views.metrics import MetricsView
 from .views.pools import PoolsView
 from .views.queues import QueuesView
 from .views.settings import SettingsView
 from .views.templates import TemplatesView
 from .views.workers import WorkersView
-from .views.metrics import MetricsView
-from .widgets.sidebar import Sidebar
 from .widgets.connection_dialog import ConnectionDialog
-from .widgets.notifications import NotificationManager, NotificationType
+from .widgets.notifications import NotificationManager
+from .widgets.sidebar import Sidebar
 from .widgets.system_tray import SystemTrayIcon
 from .widgets.terminal import TerminalWidget
 
@@ -667,10 +665,11 @@ class MainWindow(QMainWindow):
 
     def _export_data(self):
         """Export current view data"""
-        from PySide6.QtWidgets import QFileDialog
-        import json
         import csv
+        import json
         from datetime import datetime
+
+        from PySide6.QtWidgets import QFileDialog
 
         current_index = self.content_stack.currentIndex()
         page_id = list(self._page_indices.keys())[current_index]

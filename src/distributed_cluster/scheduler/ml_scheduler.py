@@ -12,18 +12,16 @@ Uses historical job data to predict:
 from __future__ import annotations
 
 import logging
-import math
 import pickle
-from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
 from distributed_cluster.models.job import Job, JobStatus
-from distributed_cluster.models.worker import Worker
 from distributed_cluster.models.resources import ResourceRequirements
+from distributed_cluster.models.worker import Worker
 
 logger = logging.getLogger(__name__)
 
@@ -523,7 +521,7 @@ class MLScheduler:
 
         # Calculate total available capacity
         total_cpu = sum(w.available_resources.cpu_cores for w in workers)
-        total_mem = sum(w.available_resources.memory_mb for w in workers)
+        sum(w.available_resources.memory_mb for w in workers)
 
         # Calculate pending job requirements
         pending_duration = 0.0

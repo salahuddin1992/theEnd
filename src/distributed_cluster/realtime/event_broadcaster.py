@@ -12,16 +12,17 @@ Event Broadcaster - موزع الأحداث
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import Optional, Dict, Set, List, Callable, Any, Awaitable
 import logging
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
-from distributed_cluster.realtime.websocket_manager import WebSocketManager, EventCategory
+from starlette.websockets import WebSocket
+
 from distributed_cluster.models.events import Event, EventType
-from distributed_cluster.models.job import Job, JobStatus
-from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
+from distributed_cluster.models.job import Job
+from distributed_cluster.models.worker import WorkerInfo
+from distributed_cluster.realtime.websocket_manager import EventCategory, WebSocketManager
 
 logger = logging.getLogger(__name__)
 

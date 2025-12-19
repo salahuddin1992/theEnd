@@ -11,12 +11,12 @@ directly without a central master. Features:
 - Fault tolerance and self-healing
 """
 
-from .node import MeshNode, NodeState, NodeInfo
+from .consensus import ConsensusState, LeaderElection
+from .discovery import DiscoveryMethod, PeerDiscovery
+from .gossip import GossipMessage, GossipProtocol
+from .node import MeshNode, NodeInfo, NodeState
 from .peer import Peer, PeerConnection
-from .discovery import PeerDiscovery, DiscoveryMethod
-from .gossip import GossipProtocol, GossipMessage
-from .router import TaskRouter, RoutingStrategy
-from .consensus import LeaderElection, ConsensusState
+from .router import RoutingStrategy, TaskRouter
 
 __all__ = [
     "MeshNode",

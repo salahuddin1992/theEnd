@@ -12,12 +12,12 @@ HA Master Server - سيرفر الماستر عالي التوفر
 from __future__ import annotations
 
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-import logging
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,12 +25,11 @@ from pydantic import BaseModel
 
 from distributed_cluster.core.config import MasterConfig
 from distributed_cluster.master.state import ClusterState
-from distributed_cluster.master.server import MasterServer
 from distributed_cluster.scheduler.scheduler import Scheduler, SchedulerLoop, SchedulingPolicy
 
-from .leader_election import LeaderElection, ElectionConfig, HARole, LeaderInfo
-from .state_sync import StateSync, SyncConfig, SyncMessageType
 from .health_monitor import HAHealthMonitor, HealthConfig
+from .leader_election import ElectionConfig, LeaderElection, LeaderInfo
+from .state_sync import StateSync, SyncConfig
 
 logger = logging.getLogger(__name__)
 
@@ -311,8 +310,8 @@ class HAMasterServer:
             self._check_active()
             data = await request.json()
 
-            from distributed_cluster.models.worker import WorkerRegistration
             from distributed_cluster.models.resources import ResourceSpec
+            from distributed_cluster.models.worker import WorkerRegistration
 
             res = data.get("total_resources", {})
             registration = WorkerRegistration(
@@ -350,7 +349,7 @@ class HAMasterServer:
             data = await request.json()
             worker_id = data.get("worker_id")
 
-            from distributed_cluster.models.resources import ResourceUsage, GPUInfo
+            from distributed_cluster.models.resources import GPUInfo, ResourceUsage
 
             gpus = []
             for g in data.get("gpus", []):
@@ -421,7 +420,7 @@ class HAMasterServer:
             self._check_active()
             data = await request.json()
 
-            from distributed_cluster.models.job import JobSubmission, JobPriority
+            from distributed_cluster.models.job import JobPriority, JobSubmission
             from distributed_cluster.models.resources import ResourceSpec
 
             res = data.get("resources", {})

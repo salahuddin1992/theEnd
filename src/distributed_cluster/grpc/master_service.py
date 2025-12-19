@@ -8,25 +8,23 @@ Master Service gRPC Implementation
 
 from __future__ import annotations
 
-import asyncio
 import os
 import sys
 import tempfile
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Optional, Dict, List, Any
 import uuid
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
+from distributed_cluster.models.events import Event, EventType
+from distributed_cluster.models.job import Job, JobStatus
+from distributed_cluster.models.lease import LeaseManager
+from distributed_cluster.models.resources import ResourceSpec
+from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
+from distributed_cluster.observability.logging import StructuredLogger
+from distributed_cluster.observability.metrics import MetricsCollector
 from distributed_cluster.scheduler import Scheduler
 from distributed_cluster.security.auth import AuthManager, Permission
-from distributed_cluster.models.lease import LeaseManager
-from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
-from distributed_cluster.models.job import Job, JobStatus
-from distributed_cluster.models.resources import ResourceSpec
-from distributed_cluster.models.events import Event, EventType
 from distributed_cluster.storage.database import Database
-from distributed_cluster.observability.metrics import MetricsCollector
-from distributed_cluster.observability.logging import StructuredLogger
 
 logger = StructuredLogger("grpc.master_service")
 
@@ -247,8 +245,8 @@ class MasterServicer:
                     })
 
         # Metrics
-        self.metrics.gauge(f"worker_cpu_utilization", cpu_util, {"worker_id": worker_id})
-        self.metrics.gauge(f"worker_active_jobs", len(running_jobs), {"worker_id": worker_id})
+        self.metrics.gauge("worker_cpu_utilization", cpu_util, {"worker_id": worker_id})
+        self.metrics.gauge("worker_active_jobs", len(running_jobs), {"worker_id": worker_id})
 
         return {
             "acknowledged": True,
@@ -274,7 +272,7 @@ class MasterServicer:
         """
         worker_id = request.get("worker_id")
         reason = request.get("reason", "")
-        graceful = request.get("graceful", True)
+        request.get("graceful", True)
 
         logger.info("Worker deregistration", worker_id=worker_id, reason=reason)
 
@@ -402,7 +400,7 @@ class MasterServicer:
                 source="master",
                 job_id=job_id,
                 worker_id=worker_id,
-                message=f"Job assigned to worker",
+                message="Job assigned to worker",
             ))
 
             logger.info("Job assigned", job_id=job_id, worker_id=worker_id)
@@ -469,7 +467,7 @@ class MasterServicer:
         Returns:
             استجابة مع إشارة الإلغاء
         """
-        worker_id = request.get("worker_id")
+        request.get("worker_id")
         job_id = request.get("job_id")
         progress = request.get("progress_percent", 0)
 

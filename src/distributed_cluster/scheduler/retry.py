@@ -12,16 +12,15 @@ Job Retry Manager - مدير إعادة المحاولة
 from __future__ import annotations
 
 import asyncio
+import heapq
+import logging
 import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Dict, List, Set, Callable, Awaitable, Any
-import logging
-import heapq
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
-from distributed_cluster.models.job import Job, JobStatus
-from distributed_cluster.models.events import Event, EventType
+from distributed_cluster.models.job import Job
 
 logger = logging.getLogger(__name__)
 

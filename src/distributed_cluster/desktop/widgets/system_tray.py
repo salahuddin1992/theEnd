@@ -3,11 +3,10 @@ System Tray Icon
 أيقونة شريط النظام
 """
 
-from typing import Optional, Callable
 
-from PySide6.QtCore import Signal, QObject
-from PySide6.QtGui import QIcon, QAction, QPixmap, QPainter, QColor, QFont
-from PySide6.QtWidgets import QSystemTrayIcon, QMenu, QApplication
+from PySide6.QtCore import Signal
+from PySide6.QtGui import QAction, QColor, QIcon, QPainter, QPixmap
+from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
 from ..resources.styles import COLORS
 

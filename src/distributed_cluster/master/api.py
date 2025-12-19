@@ -12,21 +12,21 @@ REST API مع:
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
-from datetime import datetime
-from typing import Optional, Annotated
 import asyncio
 import time
+from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Annotated, Optional
 
 from fastapi import (
+    Depends,
     FastAPI,
+    Header,
     HTTPException,
+    Query,
+    Request,
     WebSocket,
     WebSocketDisconnect,
-    Query,
-    Depends,
-    Header,
-    Request,
     status,
 )
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,21 +35,20 @@ from pydantic import BaseModel, Field
 
 from distributed_cluster.core.config import MasterConfig
 from distributed_cluster.master.state import ClusterState
-from distributed_cluster.scheduler.scheduler import Scheduler, SchedulingPolicy
-from distributed_cluster.scheduler.scoring import CompositeScorer, SCORING_PROFILES
-from distributed_cluster.models.worker import WorkerRegistration
-from distributed_cluster.models.job import JobSubmission, JobResult, JobPriority
-from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
+from distributed_cluster.models.job import JobPriority, JobResult, JobSubmission
 from distributed_cluster.models.lease import LeaseManager
-from distributed_cluster.models.events import Event
+from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
+from distributed_cluster.models.worker import WorkerRegistration
+from distributed_cluster.observability.logging import get_logger
+from distributed_cluster.observability.metrics import get_metrics
+from distributed_cluster.scheduler.scheduler import Scheduler, SchedulingPolicy
+from distributed_cluster.scheduler.scoring import SCORING_PROFILES, CompositeScorer
 from distributed_cluster.security.auth import (
     AuthManager,
     Permission,
     Role,
     TokenPayload,
 )
-from distributed_cluster.observability.metrics import get_metrics
-from distributed_cluster.observability.logging import get_logger, log_context
 
 logger = get_logger("master.api")
 metrics = get_metrics()
@@ -778,7 +777,7 @@ async def _scheduler_loop():
                     metrics.lease_expired()
                     logger.warning("Lease expired, job returned to queue", job_id=lease.job_id)
 
-        except Exception as e:
+        except Exception:
             logger.error("Scheduler error", exc_info=True)
 
         await asyncio.sleep(1.0)
@@ -802,7 +801,7 @@ async def _health_check_loop():
                 metrics.worker_offline(worker_id)
                 logger.worker_offline(worker_id, "heartbeat timeout")
 
-        except Exception as e:
+        except Exception:
             logger.error("Health check error", exc_info=True)
 
         await asyncio.sleep(30)

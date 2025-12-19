@@ -28,40 +28,50 @@ Author: Dawood AI Assistant Project
 License: MIT
 """
 
-from typing import TYPE_CHECKING
-
 # Version info
 __version__ = "2.0.0"
 __author__ = "Dawood AI Assistant"
 
 # Core notification components
-from .notifier import (
-    Notifier,
-    NotificationChannel,
-    NotificationPriority,
-    NotificationStatus,
-    Notification,
-    NotificationResult,
-    NotificationBatch,
-    NotificationCategory,
+from .channels import (
+    ConsoleChannel,
+    DiscordChannel,
+    EmailChannel,
+    NotificationManager,  # From channels
+    PagerDutyChannel,
+    SlackChannel,
+    TwilioSMSChannel,
+    WebhookChannel,
+)
+from .channels import (
+    ConsoleChannel as DesktopChannel,  # Alias - Desktop uses console for now
+)
+from .channels import (
+    EmailChannel as SMTPChannel,  # Alias
+)
+from .channels import (
+    MicrosoftTeamsChannel as TeamsChannel,  # Alias
 )
 
 # Channel implementations
 from .channels import (
     NotificationChannel as BaseChannel,  # Alias for backwards compatibility
-    WebhookChannel,
-    SlackChannel,
-    DiscordChannel,
-    MicrosoftTeamsChannel as TeamsChannel,  # Alias
-    EmailChannel,
-    EmailChannel as SMTPChannel,  # Alias
-    ConsoleChannel,
-    ConsoleChannel as DesktopChannel,  # Alias - Desktop uses console for now
-    PagerDutyChannel,
-    TwilioSMSChannel,
+)
+from .channels import (
     TelegramChannel as FirebasePushChannel,  # Placeholder alias
+)
+from .channels import (
     WebhookChannel as CustomChannel,  # Alias
-    NotificationManager,  # From channels
+)
+from .notifier import (
+    Notification,
+    NotificationBatch,
+    NotificationCategory,
+    NotificationChannel,
+    NotificationPriority,
+    NotificationResult,
+    NotificationStatus,
+    Notifier,
 )
 
 # Rules and conditions engine
@@ -70,6 +80,7 @@ from .rules import (
     RuleCondition,
     RuleEngine,
 )
+
 # Aliases for backwards compatibility
 RuleAction = RuleCondition
 ConditionalRouter = RuleEngine

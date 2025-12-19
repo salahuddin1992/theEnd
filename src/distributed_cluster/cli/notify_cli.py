@@ -11,17 +11,17 @@ from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 
 from ..notifications import (
-    Notifier,
+    ConsoleChannel,
+    DiscordChannel,
     Notification,
     NotificationCategory,
     NotificationPriority,
-    ConsoleChannel,
+    Notifier,
     SlackChannel,
-    DiscordChannel,
     WebhookChannel,
 )
 
@@ -81,7 +81,7 @@ def test_notification(
             data={"source": "cli", "test": True},
         )
 
-        console.print(f"\n[blue]📤 إرسال إشعار تجريبي...[/blue]\n")
+        console.print("\n[blue]📤 إرسال إشعار تجريبي...[/blue]\n")
 
         results = await notifier.notify_immediate(notification)
 
@@ -144,9 +144,9 @@ def send_notification(
 
         for ch_name, success in results.items():
             if success:
-                console.print(f"[green]✅ تم الإرسال[/green]")
+                console.print("[green]✅ تم الإرسال[/green]")
             else:
-                console.print(f"[red]❌ فشل الإرسال[/red]")
+                console.print("[red]❌ فشل الإرسال[/red]")
 
     asyncio.run(run())
 

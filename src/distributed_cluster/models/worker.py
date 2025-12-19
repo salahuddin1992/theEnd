@@ -7,11 +7,11 @@ Worker Models - نماذج الـ Worker
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-import uuid
 
 from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
 

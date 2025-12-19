@@ -4,9 +4,9 @@ Notification Rules - قواعد الإشعارات
 تحديد متى وأين يتم إرسال الإشعارات
 """
 
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, List, Dict, Any, Callable
-from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional
 
 from .notifier import Notification, NotificationCategory, NotificationPriority
 

@@ -3,24 +3,21 @@ Connection Dialog - Server connection interface
 نافذة الاتصال بالخادم
 """
 
-from pathlib import Path
 import json
-from typing import Optional, List
+from pathlib import Path
+from typing import List
 
-from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QDialog,
-    QVBoxLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QPushButton,
-    QFrame,
-    QListWidget,
-    QListWidgetItem,
     QMessageBox,
-    QCheckBox,
-    QWidget,
+    QPushButton,
+    QVBoxLayout,
 )
 
 from ..resources.styles import COLORS

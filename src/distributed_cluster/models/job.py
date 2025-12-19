@@ -7,11 +7,11 @@ Job Models - نماذج الـ Jobs
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Any
-import uuid
+from typing import Optional
 
 from distributed_cluster.models.resources import ResourceSpec
 

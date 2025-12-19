@@ -21,14 +21,10 @@ Complete integration with all major AI providers:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-import time
 import os
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime
+import time
 from enum import Enum
 from typing import (
     Any,
@@ -42,9 +38,9 @@ from typing import (
 import httpx
 
 from distributed_cluster.ai.llm.provider import (
+    GenerationConfig,
     LLMProvider,
     LLMResponse,
-    GenerationConfig,
     ModelInfo,
     ProviderType,
 )
@@ -259,18 +255,33 @@ class ClaudeProvider(LLMProvider):
     async def list_models(self) -> List[ModelInfo]:
         """قائمة نماذج Claude."""
         return [
-            ModelInfo(name="claude-3-5-sonnet-20241022", provider="claude", context_length=200000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="claude-3-5-haiku-20241022", provider="claude", context_length=200000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="claude-3-opus-20240229", provider="claude", context_length=200000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="claude-3-sonnet-20240229", provider="claude", context_length=200000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="claude-3-haiku-20240307", provider="claude", context_length=200000, supports_vision=True, supports_tools=True),
+            ModelInfo(
+                name="claude-3-5-sonnet-20241022", provider="claude",
+                context_length=200000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="claude-3-5-haiku-20241022", provider="claude",
+                context_length=200000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="claude-3-opus-20240229", provider="claude",
+                context_length=200000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="claude-3-sonnet-20240229", provider="claude",
+                context_length=200000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="claude-3-haiku-20240307", provider="claude",
+                context_length=200000, supports_vision=True, supports_tools=True
+            ),
         ]
 
     async def health_check(self) -> bool:
         """فحص صحة الاتصال."""
         try:
             # Just check if we can reach the API
-            client = await self._get_client()
+            await self._get_client()
             # Simple check - try to access the API
             return self.api_key is not None and len(self.api_key) > 0
         except Exception:
@@ -490,11 +501,26 @@ class GeminiProvider(LLMProvider):
     async def list_models(self) -> List[ModelInfo]:
         """قائمة نماذج Gemini."""
         return [
-            ModelInfo(name="gemini-2.0-flash-exp", provider="gemini", context_length=1000000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="gemini-1.5-pro", provider="gemini", context_length=2000000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="gemini-1.5-flash", provider="gemini", context_length=1000000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="gemini-1.5-flash-8b", provider="gemini", context_length=1000000, supports_vision=True, supports_tools=True),
-            ModelInfo(name="gemini-1.0-pro", provider="gemini", context_length=32000, supports_tools=True),
+            ModelInfo(
+                name="gemini-2.0-flash-exp", provider="gemini",
+                context_length=1000000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="gemini-1.5-pro", provider="gemini",
+                context_length=2000000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="gemini-1.5-flash", provider="gemini",
+                context_length=1000000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="gemini-1.5-flash-8b", provider="gemini",
+                context_length=1000000, supports_vision=True, supports_tools=True
+            ),
+            ModelInfo(
+                name="gemini-1.0-pro", provider="gemini",
+                context_length=32000, supports_tools=True
+            ),
         ]
 
     async def health_check(self) -> bool:
@@ -1124,12 +1150,30 @@ class TogetherProvider(LLMProvider):
     async def list_models(self) -> List[ModelInfo]:
         """قائمة نماذج Together."""
         return [
-            ModelInfo(name="meta-llama/Llama-3.3-70B-Instruct-Turbo", provider="together", context_length=128000, supports_tools=True),
-            ModelInfo(name="meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo", provider="together", context_length=128000, supports_vision=True),
-            ModelInfo(name="meta-llama/Llama-3.1-405B-Instruct-Turbo", provider="together", context_length=128000, supports_tools=True),
-            ModelInfo(name="Qwen/Qwen2.5-72B-Instruct-Turbo", provider="together", context_length=32000, supports_tools=True),
-            ModelInfo(name="mistralai/Mixtral-8x22B-Instruct-v0.1", provider="together", context_length=64000),
-            ModelInfo(name="deepseek-ai/DeepSeek-R1-Distill-Llama-70B", provider="together", context_length=128000),
+            ModelInfo(
+                name="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+                provider="together", context_length=128000, supports_tools=True
+            ),
+            ModelInfo(
+                name="meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
+                provider="together", context_length=128000, supports_vision=True
+            ),
+            ModelInfo(
+                name="meta-llama/Llama-3.1-405B-Instruct-Turbo",
+                provider="together", context_length=128000, supports_tools=True
+            ),
+            ModelInfo(
+                name="Qwen/Qwen2.5-72B-Instruct-Turbo",
+                provider="together", context_length=32000, supports_tools=True
+            ),
+            ModelInfo(
+                name="mistralai/Mixtral-8x22B-Instruct-v0.1",
+                provider="together", context_length=64000
+            ),
+            ModelInfo(
+                name="deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+                provider="together", context_length=128000
+            ),
         ]
 
     async def health_check(self) -> bool:

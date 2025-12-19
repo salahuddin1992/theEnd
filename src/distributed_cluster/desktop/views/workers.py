@@ -149,7 +149,7 @@ class WorkerDetailPanel(QFrame):
         jobs_layout.setContentsMargins(0, 8, 0, 0)
 
         self.running_jobs_label = QLabel("Running Jobs: 0")
-        self.running_jobs_label.setStyleSheet(f"font-weight: 600;")
+        self.running_jobs_label.setStyleSheet("font-weight: 600;")
         jobs_layout.addWidget(self.running_jobs_label)
 
         self.completed_jobs_label = QLabel("Completed Jobs: 0")

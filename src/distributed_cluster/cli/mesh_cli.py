@@ -10,25 +10,20 @@ dc-mesh submit    - إرسال مهمة للشبكة
 
 import asyncio
 import signal
-import sys
 import warnings
-from typing import Optional, List
+from typing import List, Optional
 
 # Suppress pynvml deprecation warning
 warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
 import typer
 from rich.console import Console
-from rich.table import Table
-from rich.live import Live
 from rich.panel import Panel
-from rich.text import Text
+from rich.table import Table
 
-from ..mesh.node import MeshNode, NodeState
 from ..mesh.discovery import DiscoveryMethod
+from ..mesh.node import MeshNode
 from ..mesh.router import RoutingStrategy
-from ..models.resources import ResourceSpec
-from ..models.job import Job, JobSubmission
 
 app = typer.Typer(
     name="dc-mesh",
@@ -246,7 +241,6 @@ def list_peers(
     """
     عرض العقد المتصلة
     """
-    import httpx
 
     # ملاحظة: هذا يحتاج API endpoint - للتبسيط نعرض رسالة
     console.print("[yellow]⚠️ Use 'dc-mesh start --interactive' to see live peers[/yellow]")
@@ -291,6 +285,7 @@ def show_info():
     عرض معلومات الجهاز المحلي
     """
     import socket
+
     import psutil
 
     table = Table(title="💻 Local System Info", show_header=True)
@@ -310,7 +305,7 @@ def show_info():
         pynvml.nvmlInit()
         gpu_count = pynvml.nvmlDeviceGetCount()
         pynvml.nvmlShutdown()
-    except:
+    except Exception:
         pass
     table.add_row("GPUs", str(gpu_count))
 

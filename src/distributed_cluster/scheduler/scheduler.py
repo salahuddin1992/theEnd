@@ -14,18 +14,17 @@ Scheduler - المجدول
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from typing import Optional, Callable
 import asyncio
 import logging
 import uuid
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Callable, Optional
 
-from distributed_cluster.models.job import Job, JobStatus, JobPriority
-from distributed_cluster.models.worker import WorkerInfo
+from distributed_cluster.models.job import Job
 from distributed_cluster.models.resources import ResourceSpec
-from distributed_cluster.models.events import Event
+from distributed_cluster.models.worker import WorkerInfo
 
 logger = logging.getLogger(__name__)
 

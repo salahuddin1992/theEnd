@@ -8,6 +8,6 @@ Provides a web-based dashboard for:
 - Statistics and charts
 """
 
-from .app import create_app, WebDashboard
+from .app import WebDashboard, create_app
 
 __all__ = ["create_app", "WebDashboard"]

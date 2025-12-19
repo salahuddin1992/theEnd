@@ -11,12 +11,12 @@ API لوحة تحكم المدير:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-from typing import Optional, Dict, List, Any
 import logging
+from datetime import datetime, timedelta
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -324,7 +324,10 @@ def create_dashboard_router(
                     created_at=j.created_at.isoformat(),
                     started_at=j.started_at.isoformat() if j.started_at else None,
                     completed_at=j.completed_at.isoformat() if j.completed_at else None,
-                    execution_time_seconds=(j.completed_at - j.started_at).total_seconds() if j.completed_at and j.started_at else None,
+                    execution_time_seconds=(
+                        (j.completed_at - j.started_at).total_seconds()
+                        if j.completed_at and j.started_at else None
+                    ),
                     exit_code=j.result.exit_code if j.result else None,
                 )
                 for j in sorted(jobs, key=lambda x: x.created_at, reverse=True)[:10]
@@ -389,7 +392,10 @@ def create_dashboard_router(
                 created_at=j.created_at.isoformat(),
                 started_at=j.started_at.isoformat() if j.started_at else None,
                 completed_at=j.completed_at.isoformat() if j.completed_at else None,
-                execution_time_seconds=(j.completed_at - j.started_at).total_seconds() if j.completed_at and j.started_at else None,
+                execution_time_seconds=(
+                    (j.completed_at - j.started_at).total_seconds()
+                    if j.completed_at and j.started_at else None
+                ),
                 exit_code=j.result.exit_code if j.result else None,
             )
             for j in jobs
@@ -413,7 +419,10 @@ def create_dashboard_router(
                 created_at=job.created_at.isoformat(),
                 started_at=job.started_at.isoformat() if job.started_at else None,
                 completed_at=job.completed_at.isoformat() if job.completed_at else None,
-                execution_time_seconds=(job.completed_at - job.started_at).total_seconds() if job.completed_at and job.started_at else None,
+                execution_time_seconds=(
+                    (job.completed_at - job.started_at).total_seconds()
+                    if job.completed_at and job.started_at else None
+                ),
                 exit_code=job.result.exit_code if job.result else None,
             ),
             "submission": {

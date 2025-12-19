@@ -8,21 +8,21 @@ Nodes discover each other automatically and share workload.
 import asyncio
 import uuid
 import warnings
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Dict, List, Set, Callable, Any
-from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Set
 
 # Suppress pynvml deprecation warning
 warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
-from ..models.resources import ResourceSpec, ResourceUsage
 from ..models.job import Job, JobStatus
-from .peer import Peer, PeerConnection
-from .discovery import PeerDiscovery, DiscoveryMethod
-from .gossip import GossipProtocol, GossipMessage, MessageType
-from .router import TaskRouter, RoutingStrategy
+from ..models.resources import ResourceSpec, ResourceUsage
 from .consensus import LeaderElection
+from .discovery import DiscoveryMethod, PeerDiscovery
+from .gossip import GossipMessage, GossipProtocol, MessageType
+from .peer import Peer, PeerConnection
+from .router import RoutingStrategy, TaskRouter
 
 
 class NodeState(str, Enum):
@@ -171,7 +171,7 @@ class MeshNode:
                 pynvml.nvmlInit()
                 gpu_count = pynvml.nvmlDeviceGetCount()
                 pynvml.nvmlShutdown()
-            except:
+            except Exception:
                 pass
 
             return ResourceSpec(

@@ -28,13 +28,12 @@ Metrics Collection - جمع المقاييس
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Optional, Dict, List, Callable
-from collections import defaultdict
 import threading
-import time
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional
 
 
 class MetricType(str, Enum):

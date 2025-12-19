@@ -8,19 +8,19 @@ Client Service gRPC Implementation
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional, Dict, List, Any
 import uuid
+from datetime import datetime
+from typing import Any, Dict, Optional
 
-from distributed_cluster.scheduler import Scheduler
-from distributed_cluster.security.auth import AuthManager, Permission
-from distributed_cluster.models.job import Job, JobSubmission, JobStatus, JobPriority
-from distributed_cluster.models.worker import WorkerStatus
-from distributed_cluster.models.resources import ResourceSpec
 from distributed_cluster.models.events import Event, EventType
-from distributed_cluster.storage.database import Database
-from distributed_cluster.observability.metrics import MetricsCollector
+from distributed_cluster.models.job import Job, JobPriority, JobStatus, JobSubmission
+from distributed_cluster.models.resources import ResourceSpec
+from distributed_cluster.models.worker import WorkerStatus
 from distributed_cluster.observability.logging import StructuredLogger
+from distributed_cluster.observability.metrics import MetricsCollector
+from distributed_cluster.scheduler import Scheduler
+from distributed_cluster.security.auth import AuthManager
+from distributed_cluster.storage.database import Database
 
 logger = StructuredLogger("grpc.client_service")
 

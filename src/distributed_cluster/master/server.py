@@ -7,23 +7,23 @@ REST API + WebSocket للتحكم بالكلاستر.
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
-import asyncio
-import logging
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Query, Depends
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from distributed_cluster.core.config import MasterConfig
 from distributed_cluster.master.state import ClusterState
-from distributed_cluster.scheduler.scheduler import Scheduler, SchedulerLoop, SchedulingPolicy
-from distributed_cluster.models.worker import WorkerRegistration, WorkerStatus
-from distributed_cluster.models.job import JobSubmission, JobResult, JobPriority
-from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
 from distributed_cluster.models.events import Event
+from distributed_cluster.models.job import JobPriority, JobResult, JobSubmission
+from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
+from distributed_cluster.models.worker import WorkerRegistration
+from distributed_cluster.scheduler.scheduler import Scheduler, SchedulerLoop, SchedulingPolicy
 
 logger = logging.getLogger(__name__)
 

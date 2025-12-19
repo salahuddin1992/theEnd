@@ -11,14 +11,14 @@ Job Templates System
 - إصدارات القوالب
 """
 
+import copy
+import json
+import re
+import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Set
 from datetime import datetime
 from enum import Enum
-import uuid
-import re
-import json
-import copy
+from typing import Any, Dict, List, Optional
 
 
 class TemplateError(Exception):
@@ -615,19 +615,19 @@ class TemplateManager:
             "preemptible"
         ]
 
-        for field in simple_fields:
-            if child_dict.get(field) is not None:
-                merged[field] = child_dict[field]
+        for field_name in simple_fields:
+            if child_dict.get(field_name) is not None:
+                merged[field_name] = child_dict[field_name]
 
         # Merge fields - combine with parent
         merge_fields = [
             "environment", "labels", "annotations", "secrets"
         ]
 
-        for field in merge_fields:
-            parent_val = merged.get(field, {})
-            child_val = child_dict.get(field, {})
-            merged[field] = {**parent_val, **child_val}
+        for field_name in merge_fields:
+            parent_val = merged.get(field_name, {})
+            child_val = child_dict.get(field_name, {})
+            merged[field_name] = {**parent_val, **child_val}
 
         # List fields - extend
         list_fields = [
@@ -635,10 +635,10 @@ class TemplateManager:
             "input_artifacts", "output_artifacts"
         ]
 
-        for field in list_fields:
-            parent_val = merged.get(field, [])
-            child_val = child_dict.get(field, [])
-            merged[field] = parent_val + child_val
+        for field_name in list_fields:
+            parent_val = merged.get(field_name, [])
+            child_val = child_dict.get(field_name, [])
+            merged[field_name] = parent_val + child_val
 
         # Variables - merge by name
         parent_vars = {v["name"]: v for v in merged.get("variables", [])}

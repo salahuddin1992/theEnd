@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QVBoxLayout,
-    QWidget,
 )
 
 from ..resources.styles import COLORS
@@ -156,7 +155,7 @@ class Sidebar(QFrame):
         """Update connection status display"""
         if connected:
             self.status_indicator.setStyleSheet(f"color: {COLORS['success']}; font-size: 10px;")
-            self.status_text.setText(f"Connected")
+            self.status_text.setText("Connected")
             self.status_text.setStyleSheet(f"color: {COLORS['success']}; font-size: 12px;")
         else:
             self.status_indicator.setStyleSheet(f"color: {COLORS['danger']}; font-size: 10px;")

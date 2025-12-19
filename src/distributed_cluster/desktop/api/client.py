@@ -6,7 +6,7 @@ API Client for communicating with NebulaCompute Master Server
 import asyncio
 import json
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Optional
 
 import httpx
 import websockets

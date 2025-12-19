@@ -13,8 +13,8 @@ Secrets Management - إدارة الأسرار
 from __future__ import annotations
 
 import base64
-import hashlib
 import json
+import logging
 import os
 import secrets as py_secrets
 from abc import ABC, abstractmethod
@@ -22,8 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Dict, List, Set, Any
-import logging
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -569,7 +568,8 @@ class SecretsManager:
             return False
 
         if generator is None:
-            generator = lambda: py_secrets.token_urlsafe(32)
+            def generator():
+                return py_secrets.token_urlsafe(32)
 
         # Generate new values for all keys
         new_data = {}

@@ -12,19 +12,17 @@ Worker Agent - وكيل العامل
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
-from typing import Optional
 import logging
 import signal
-import sys
+from typing import Optional
 
 import httpx
 
 from distributed_cluster.core.config import WorkerConfig
 from distributed_cluster.core.resource_detector import ResourceDetector
-from distributed_cluster.models.worker import WorkerRegistration
 from distributed_cluster.models.job import Job, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
+from distributed_cluster.models.worker import WorkerRegistration
 from distributed_cluster.worker.executor import JobExecutor
 
 logger = logging.getLogger(__name__)

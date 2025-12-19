@@ -11,12 +11,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from dataclasses import dataclass, field, asdict
+import uuid
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
-import uuid
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
