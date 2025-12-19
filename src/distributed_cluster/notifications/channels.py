@@ -66,13 +66,13 @@ except ImportError:
     HTTPX_AVAILABLE = False
 
 try:
-    import aiofiles
+    import aiofiles  # noqa: F401
     AIOFILES_AVAILABLE = True
 except ImportError:
     AIOFILES_AVAILABLE = False
 
 try:
-    from jinja2 import BaseLoader, Environment, TemplateError
+    from jinja2 import BaseLoader, Environment, TemplateError  # noqa: F401
     JINJA2_AVAILABLE = True
 except ImportError:
     JINJA2_AVAILABLE = False

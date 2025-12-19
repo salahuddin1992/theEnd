@@ -197,7 +197,10 @@ class SystemTrayIcon(QSystemTrayIcon):
                 f"Workers: {active_workers} active"
             )
 
-    def show_message(self, title: str, message: str, icon_type: QSystemTrayIcon.MessageIcon = QSystemTrayIcon.Information):
+    def show_message(
+        self, title: str, message: str,
+        icon_type: QSystemTrayIcon.MessageIcon = QSystemTrayIcon.Information
+    ):
         """Show a balloon notification"""
         self.showMessage(title, message, icon_type, 5000)
 

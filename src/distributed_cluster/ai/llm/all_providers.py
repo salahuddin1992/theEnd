@@ -999,7 +999,10 @@ class GroqProvider(LLMProvider):
             completion_tokens=usage.get("completion_tokens", 0),
             total_tokens=usage.get("total_tokens", 0),
             generation_time_ms=generation_time,
-            tokens_per_second=usage.get("completion_tokens", 0) / (generation_time / 1000) if generation_time > 0 else 0,
+            tokens_per_second=(
+                usage.get("completion_tokens", 0) / (generation_time / 1000)
+                if generation_time > 0 else 0
+            ),
             raw_response=data,
             finish_reason=choice.get("finish_reason", "stop"),
         )
@@ -1007,10 +1010,22 @@ class GroqProvider(LLMProvider):
     async def list_models(self) -> List[ModelInfo]:
         """قائمة نماذج Groq."""
         return [
-            ModelInfo(name="llama-3.3-70b-versatile", provider="groq", context_length=128000, supports_tools=True),
-            ModelInfo(name="llama-3.2-90b-vision-preview", provider="groq", context_length=128000, supports_vision=True),
-            ModelInfo(name="llama-3.1-70b-versatile", provider="groq", context_length=128000, supports_tools=True),
-            ModelInfo(name="llama-3.1-8b-instant", provider="groq", context_length=128000, supports_tools=True),
+            ModelInfo(
+                name="llama-3.3-70b-versatile", provider="groq",
+                context_length=128000, supports_tools=True
+            ),
+            ModelInfo(
+                name="llama-3.2-90b-vision-preview", provider="groq",
+                context_length=128000, supports_vision=True
+            ),
+            ModelInfo(
+                name="llama-3.1-70b-versatile", provider="groq",
+                context_length=128000, supports_tools=True
+            ),
+            ModelInfo(
+                name="llama-3.1-8b-instant", provider="groq",
+                context_length=128000, supports_tools=True
+            ),
             ModelInfo(name="mixtral-8x7b-32768", provider="groq", context_length=32768),
             ModelInfo(name="gemma2-9b-it", provider="groq", context_length=8192),
         ]
@@ -1726,10 +1741,22 @@ class FireworksProvider(LLMProvider):
     async def list_models(self) -> List[ModelInfo]:
         """قائمة نماذج Fireworks."""
         return [
-            ModelInfo(name="accounts/fireworks/models/llama-v3p1-405b-instruct", provider="fireworks", context_length=128000),
-            ModelInfo(name="accounts/fireworks/models/llama-v3p1-70b-instruct", provider="fireworks", context_length=128000),
-            ModelInfo(name="accounts/fireworks/models/llama-v3p1-8b-instruct", provider="fireworks", context_length=128000),
-            ModelInfo(name="accounts/fireworks/models/mixtral-8x22b-instruct", provider="fireworks", context_length=64000),
+            ModelInfo(
+                name="accounts/fireworks/models/llama-v3p1-405b-instruct",
+                provider="fireworks", context_length=128000
+            ),
+            ModelInfo(
+                name="accounts/fireworks/models/llama-v3p1-70b-instruct",
+                provider="fireworks", context_length=128000
+            ),
+            ModelInfo(
+                name="accounts/fireworks/models/llama-v3p1-8b-instruct",
+                provider="fireworks", context_length=128000
+            ),
+            ModelInfo(
+                name="accounts/fireworks/models/mixtral-8x22b-instruct",
+                provider="fireworks", context_length=64000
+            ),
         ]
 
     async def health_check(self) -> bool:
@@ -2056,11 +2083,18 @@ def create_all_provider(
     else:
         provider_type = provider_type.value
 
+    def _lazy_import(module_name: str, class_name: str):
+        """Lazy import helper for providers."""
+        def factory(**kw):
+            mod = __import__(module_name, fromlist=[class_name])
+            return getattr(mod, class_name)(**kw)
+        return factory
+
     providers = {
         # Original providers
-        "ollama": lambda **kw: __import__('distributed_cluster.ai.llm.provider', fromlist=['OllamaProvider']).OllamaProvider(**kw),
-        "vllm": lambda **kw: __import__('distributed_cluster.ai.llm.provider', fromlist=['VLLMProvider']).VLLMProvider(**kw),
-        "openai": lambda **kw: __import__('distributed_cluster.ai.llm.provider', fromlist=['OpenAIProvider']).OpenAIProvider(**kw),
+        "ollama": _lazy_import('distributed_cluster.ai.llm.provider', 'OllamaProvider'),
+        "vllm": _lazy_import('distributed_cluster.ai.llm.provider', 'VLLMProvider'),
+        "openai": _lazy_import('distributed_cluster.ai.llm.provider', 'OpenAIProvider'),
 
         # Claude / Anthropic
         "claude": ClaudeProvider,
