@@ -22,6 +22,12 @@
             <li><a href="/jobs" class="{% if request.url.path == '/jobs' %}active{% endif %}">
                 <span class="icon">📋</span> المهام
             </a></li>
+            <li><a href="/ai" class="{% if request.url.path == '/ai' %}active{% endif %}">
+                <span class="icon">🤖</span> AI Providers
+            </a></li>
+            <li><a href="/sync" class="{% if request.url.path == '/sync' %}active{% endif %}">
+                <span class="icon">🔄</span> المزامنة
+            </a></li>
         </ul>
         <div class="sidebar-footer">
             <div class="connection-status" id="connectionStatus">

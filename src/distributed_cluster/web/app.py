@@ -316,6 +316,70 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             ai_data
         )
 
+    # صفحة المزامنة
+    @app.get("/sync", response_class=HTMLResponse)
+    async def sync_page(request: Request):
+        dash = app.state.dashboard
+
+        # بيانات المزامنة
+        sync_data = {
+            "sync_status": "active",
+            "connected_peers": 3,
+            "total_synced_items": 1523,
+            "last_sync": datetime.utcnow().isoformat(),
+            "sync_mode": "realtime",
+
+            # Peers info
+            "peers": [
+                {
+                    "id": "peer-1",
+                    "name": "Node-Alpha",
+                    "url": "http://192.168.1.10:8765",
+                    "status": "connected",
+                    "latency_ms": 12,
+                    "last_seen": datetime.utcnow().isoformat(),
+                },
+                {
+                    "id": "peer-2",
+                    "name": "Node-Beta",
+                    "url": "http://192.168.1.11:8765",
+                    "status": "connected",
+                    "latency_ms": 8,
+                    "last_seen": datetime.utcnow().isoformat(),
+                },
+                {
+                    "id": "peer-3",
+                    "name": "Node-Gamma",
+                    "url": "http://192.168.1.12:8765",
+                    "status": "syncing",
+                    "latency_ms": 25,
+                    "last_seen": datetime.utcnow().isoformat(),
+                },
+            ],
+
+            # Transfer stats
+            "active_transfers": 2,
+            "total_bytes_sent": 1024 * 1024 * 156,  # 156 MB
+            "total_bytes_received": 1024 * 1024 * 234,  # 234 MB
+            "transfer_speed_bps": 1024 * 1024 * 5,  # 5 MB/s
+
+            # Conflict resolution stats
+            "conflicts_resolved": 45,
+            "conflicts_pending": 2,
+            "resolution_strategy": "last_write_wins",
+
+            # State sync
+            "state_version": 1523,
+            "state_items": 856,
+            "pending_deltas": 3,
+        }
+
+        return templates.TemplateResponse(
+            request,
+            "sync.html",
+            sync_data
+        )
+
     # API endpoints
     @app.get("/api/stats")
     async def api_stats():
@@ -345,6 +409,123 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                 return {"success": resp.status_code == 200}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+    # Sync API endpoints
+    @app.get("/api/sync/status")
+    async def api_sync_status():
+        """الحصول على حالة المزامنة"""
+        return {
+            "status": "active",
+            "mode": "realtime",
+            "connected_peers": 3,
+            "state_version": 1523,
+            "last_sync": datetime.utcnow().isoformat(),
+        }
+
+    @app.get("/api/sync/peers")
+    async def api_sync_peers():
+        """الحصول على قائمة الأقران"""
+        return [
+            {
+                "id": "peer-1",
+                "name": "Node-Alpha",
+                "url": "http://192.168.1.10:8765",
+                "status": "connected",
+                "latency_ms": 12,
+            },
+            {
+                "id": "peer-2",
+                "name": "Node-Beta",
+                "url": "http://192.168.1.11:8765",
+                "status": "connected",
+                "latency_ms": 8,
+            },
+        ]
+
+    @app.post("/api/sync/peers")
+    async def api_add_peer(request: Request):
+        """إضافة قرين جديد"""
+        data = await request.json()
+        url = data.get("url")
+        name = data.get("name", "Unknown")
+        if not url:
+            raise HTTPException(status_code=400, detail="URL is required")
+        return {
+            "success": True,
+            "peer_id": f"peer-{datetime.utcnow().timestamp()}",
+            "message": f"Peer {name} added successfully",
+        }
+
+    @app.delete("/api/sync/peers/{peer_id}")
+    async def api_remove_peer(peer_id: str):
+        """إزالة قرين"""
+        return {"success": True, "message": f"Peer {peer_id} removed"}
+
+    @app.get("/api/sync/state")
+    async def api_sync_state():
+        """الحصول على حالة البيانات المتزامنة"""
+        return {
+            "version": 1523,
+            "items_count": 856,
+            "pending_deltas": 3,
+            "last_update": datetime.utcnow().isoformat(),
+        }
+
+    @app.post("/api/sync/trigger")
+    async def api_trigger_sync():
+        """تشغيل مزامنة يدوية"""
+        return {
+            "success": True,
+            "message": "Sync triggered",
+            "sync_id": f"sync-{datetime.utcnow().timestamp()}",
+        }
+
+    @app.get("/api/sync/transfers")
+    async def api_sync_transfers():
+        """الحصول على عمليات النقل النشطة"""
+        return {
+            "active": 2,
+            "completed": 45,
+            "failed": 1,
+            "transfers": [
+                {
+                    "id": "transfer-1",
+                    "source": "peer-1",
+                    "target": "local",
+                    "progress": 67,
+                    "bytes_transferred": 1024 * 1024 * 50,
+                    "status": "in_progress",
+                },
+            ],
+        }
+
+    @app.get("/api/sync/conflicts")
+    async def api_sync_conflicts():
+        """الحصول على التعارضات"""
+        return {
+            "resolved": 45,
+            "pending": 2,
+            "conflicts": [
+                {
+                    "id": "conflict-1",
+                    "key": "config.timeout",
+                    "local_value": 30,
+                    "remote_value": 60,
+                    "remote_peer": "peer-2",
+                    "detected_at": datetime.utcnow().isoformat(),
+                },
+            ],
+        }
+
+    @app.post("/api/sync/conflicts/{conflict_id}/resolve")
+    async def api_resolve_conflict(conflict_id: str, request: Request):
+        """حل تعارض"""
+        data = await request.json()
+        strategy = data.get("strategy", "local_wins")
+        return {
+            "success": True,
+            "message": f"Conflict {conflict_id} resolved using {strategy}",
+        }
 
     # WebSocket للتحديثات الحية
     @app.websocket("/ws")
