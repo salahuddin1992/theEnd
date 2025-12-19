@@ -8,10 +8,8 @@ This file demonstrates advanced features of the Distributed Computing System.
 """
 
 import asyncio
-import httpx
-from datetime import datetime
-from typing import Optional
 
+import httpx
 
 # =============================================================================
 # Basic Configuration
@@ -182,7 +180,7 @@ async def monitor_cluster_realtime():
     """
     import websockets
 
-    async with websockets.connect(f"ws://localhost:8765/ws") as ws:
+    async with websockets.connect("ws://localhost:8765/ws") as ws:
         print("Connected to cluster WebSocket")
 
         # Send ping to keep alive
@@ -204,7 +202,7 @@ async def monitor_cluster_realtime():
                 data = json.loads(message)
 
                 if data["type"] == "initial_state":
-                    print(f"\n=== Initial Cluster State ===")
+                    print("\n=== Initial Cluster State ===")
                     stats = data["stats"]
                     print(f"Workers: {stats.get('active_workers', 0)}/{stats.get('total_workers', 0)}")
                     print(f"Jobs Running: {stats.get('running_jobs', 0)}")
@@ -433,7 +431,9 @@ async def get_custom_metrics():
         print(f"Active Workers: {stats.get('active_workers', 0)}")
         print(f"Total CPU Cores: {stats.get('total_cpu_cores', 0)}")
         print(f"Available CPU Cores: {stats.get('available_cpu_cores', 0)}")
-        print(f"CPU Utilization: {100 - (stats.get('available_cpu_cores', 0) / max(stats.get('total_cpu_cores', 1), 1) * 100):.1f}%")
+        available = stats.get('available_cpu_cores', 0)
+        total = max(stats.get('total_cpu_cores', 1), 1)
+        print(f"CPU Utilization: {100 - (available / total * 100):.1f}%")
 
         print(f"\nTotal Memory: {stats.get('total_memory_gb', 0):.1f} GB")
         print(f"Available Memory: {stats.get('available_memory_gb', 0):.1f} GB")
@@ -441,7 +441,7 @@ async def get_custom_metrics():
         print(f"\nTotal GPUs: {stats.get('total_gpus', 0)}")
         print(f"Available GPUs: {stats.get('available_gpus', 0)}")
 
-        print(f"\n=== Job Metrics ===")
+        print("\n=== Job Metrics ===")
         print(f"Total Jobs: {stats.get('total_jobs', 0)}")
         print(f"Pending: {stats.get('pending_jobs', 0)}")
         print(f"Running: {stats.get('running_jobs', 0)}")
@@ -450,7 +450,7 @@ async def get_custom_metrics():
 
         # Get workers detail
         workers = (await client.get("/workers")).json().get("workers", [])
-        print(f"\n=== Worker Details ===")
+        print("\n=== Worker Details ===")
         for w in workers:
             print(f"\n{w.get('hostname', 'unknown')} ({w.get('status', 'unknown')})")
             res = w.get('total_resources', {})

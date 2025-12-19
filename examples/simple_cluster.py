@@ -10,8 +10,8 @@ Simple example of using the distributed computing system.
 """
 
 import asyncio
+
 import httpx
-import time
 
 
 async def main():
@@ -77,7 +77,7 @@ async def main():
         # عرض النتيجة
         if job.get("result"):
             result = job["result"]
-            print(f"\n=== Result ===")
+            print("\n=== Result ===")
             print(f"Exit code: {result['exit_code']}")
             print(f"Time: {result['execution_time_seconds']:.2f}s")
             if result.get("stdout"):
