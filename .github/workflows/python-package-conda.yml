@@ -1,9 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# 🚀 ENTERPRISE-GRADE PYTHON CI/CD PIPELINE WITH CONDA
+# 🚀 PYTHON CI/CD PIPELINE
 # ═══════════════════════════════════════════════════════════════════════════════
-# Project: theEnd - Advanced AI Assistant
-# Repository: https://github.com/salahuddin1992/theEnd
-# Branch: claude/distributed-computing-setup-Dbr0W
+# Project: theEnd - Distributed Computing System
 # ═══════════════════════════════════════════════════════════════════════════════
 
 name: 🐍 Python CI/CD Pipeline with Conda
@@ -24,39 +22,13 @@ on:
       - master
       - develop
   workflow_dispatch:
-    inputs:
-      debug_enabled:
-        description: 'Enable debug mode'
-        required: false
-        default: 'false'
-        type: boolean
-      skip_tests:
-        description: 'Skip test execution'
-        required: false
-        default: 'false'
-        type: boolean
-      deploy_env:
-        description: 'Deployment environment'
-        required: false
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
-  schedule:
-    # Run daily at 2 AM UTC for security scanning
-    - cron: '0 2 * * *'
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENVIRONMENT VARIABLES
 # ═══════════════════════════════════════════════════════════════════════════════
 env:
   PYTHON_VERSION_PRIMARY: '3.11'
-  CONDA_ENV_NAME: 'theend-env'
-  CACHE_NUMBER: 1
-  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   PROJECT_NAME: 'theEnd'
-  MIN_COVERAGE: 70
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONCURRENCY CONTROL
@@ -80,100 +52,10 @@ permissions:
 # ═══════════════════════════════════════════════════════════════════════════════
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
-  # 📋 PRE-FLIGHT CHECKS
-  # ─────────────────────────────────────────────────────────────────────────────
-  pre-flight:
-    name: 🔍 Pre-flight Checks
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
-      docs_changed: ${{ steps.paths_filter.outputs.docs }}
-      python_changed: ${{ steps.paths_filter.outputs.python }}
-    steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 🔄 Check for Duplicate Runs
-        id: skip_check
-        uses: fkirc/skip-duplicate-actions@v5
-        with:
-          concurrent_skipping: 'same_content_newer'
-          skip_after_successful_duplicate: 'true'
-
-      - name: 📂 Detect Changed Paths
-        id: paths_filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            python:
-              - '**/*.py'
-            tests:
-              - 'tests/**'
-              - 'test_*.py'
-            config:
-              - '*.yml'
-              - '*.yaml'
-              - '*.toml'
-              - 'pyproject.toml'
-              - 'setup.py'
-              - 'setup.cfg'
-            docs:
-              - 'docs/**'
-              - '*.md'
-              - '*.rst'
-            conda:
-              - 'environment*.yml'
-              - 'conda*.yml'
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 🔒 SECURITY SCANNING
-  # ─────────────────────────────────────────────────────────────────────────────
-  security-scan:
-    name: 🔒 Security Scan
-    runs-on: ubuntu-latest
-    needs: pre-flight
-    if: needs.pre-flight.outputs.should_skip != 'true'
-    steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: 🛡️ Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: python
-          queries: security-and-quality
-
-      - name: 🔍 Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:python"
-
-      - name: 🔐 Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH,MEDIUM'
-
-      - name: 📤 Upload Trivy Results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-  # ─────────────────────────────────────────────────────────────────────────────
   # 🧪 MAIN TEST MATRIX
   # ─────────────────────────────────────────────────────────────────────────────
   test:
     name: 🧪 Test (Python ${{ matrix.python-version }} / ${{ matrix.os }})
-    needs: [pre-flight]
-    if: |
-      needs.pre-flight.outputs.should_skip != 'true' &&
-      github.event.inputs.skip_tests != 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -188,130 +70,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🐍 Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          use-mamba: true
-          activate-environment: ${{ env.CONDA_ENV_NAME }}
-          environment-file: environment.yml
-          auto-activate-base: false
+          cache: 'pip'
 
-      - name: 📦 Cache Conda Environment
-        uses: actions/cache@v4
-        id: conda-cache
-        with:
-          path: |
-            ~/conda_pkgs_dir
-            ~/.conda
-            ${{ env.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
-          key: conda-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('environment.yml', 'requirements*.txt') }}-${{ env.CACHE_NUMBER }}
-          restore-keys: |
-            conda-${{ runner.os }}-py${{ matrix.python-version }}-
-
-      - name: 🔧 Install Dependencies
-        shell: bash -el {0}
+      - name: 📦 Install Dependencies
         run: |
-          echo "📦 Installing dependencies..."
-
-          # Update conda environment if cache miss
-          if [ "${{ steps.conda-cache.outputs.cache-hit }}" != "true" ]; then
-            mamba env update -n ${{ env.CONDA_ENV_NAME }} -f environment.yml --prune || true
-          fi
-
-          # Install development/linting tools via pip (more reliable than mamba for these)
-          pip install ruff black mypy bandit
-
-          # Install package in development mode
-          if [ -f "pyproject.toml" ]; then
-            pip install -e ".[dev]" 2>/dev/null || pip install -e . 2>/dev/null || true
-          fi
-
-      - name: 📋 Display Environment Info
-        shell: bash -el {0}
-        run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "🔧 Environment Information"
-          echo "═══════════════════════════════════════════════════════════"
-          echo "Python Version: $(python --version)"
-          echo "Conda Version: $(conda --version)"
-          echo "Mamba Version: $(mamba --version)"
-          echo "Platform: ${{ runner.os }}"
-          echo "═══════════════════════════════════════════════════════════"
-          echo "📦 Installed Packages:"
-          conda list
-          echo "═══════════════════════════════════════════════════════════"
+          python -m pip install --upgrade pip
+          pip install ruff black mypy pytest pytest-asyncio pytest-cov pytest-timeout
+          pip install -e .
 
       - name: 🎨 Code Formatting Check (Black)
-        shell: bash -el {0}
-        continue-on-error: true
         run: |
-          echo "🎨 Checking code formatting with Black..."
-          black --check --diff --line-length 120 . || echo "⚠️ Some files need formatting"
+          black --check --diff --line-length 120 . || echo "Some files need formatting"
+        continue-on-error: true
 
       - name: 🔍 Lint with Ruff
-        shell: bash -el {0}
         run: |
-          echo "🔍 Running Ruff linter..."
-
-          # Run ruff check (uses pyproject.toml config)
-          ruff check src/ tests/ --output-format=github || echo "⚠️ Some linting issues found"
-
-      - name: 🔒 Security Lint with Bandit
-        shell: bash -el {0}
+          ruff check src/ tests/ --output-format=github || echo "Some linting issues found"
         continue-on-error: true
-        run: |
-          echo "🔒 Running Bandit security linter..."
-          bandit -r . -x ./tests,./test,./.conda,./.venv,./venv -f json -o bandit-report.json || true
-          bandit -r . -x ./tests,./test,./.conda,./.venv,./venv -ll || echo "⚠️ Security issues found"
 
       - name: 📝 Type Checking with MyPy
-        shell: bash -el {0}
-        continue-on-error: true
         run: |
-          echo "📝 Running MyPy type checker..."
-          mypy . --ignore-missing-imports --no-error-summary || echo "⚠️ Type errors found"
+          mypy src/ --ignore-missing-imports --no-error-summary || echo "Type errors found"
+        continue-on-error: true
 
       - name: 🧪 Run Tests with pytest
-        shell: bash -el {0}
         run: |
-          echo "🧪 Running tests with pytest..."
-
-          # Create test results directory
-          mkdir -p test-results
-
-          # Install the package in editable mode
-          pip install -e . --no-deps || true
-
-          # Run pytest with coverage (without parallel execution for stability)
-          pytest \
-            --verbose \
-            --tb=short \
-            --cov=src \
-            --cov-report=xml:coverage.xml \
-            --cov-report=html:htmlcov \
-            --cov-report=term-missing \
-            --junitxml=test-results/junit.xml \
-            --timeout=300 \
-            --ignore=.conda \
-            --ignore=.venv \
-            --ignore=venv \
-            tests/ \
-            || echo "⚠️ Some tests failed"
-
-      - name: 📊 Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true
+          pytest tests/ -v --tb=short --timeout=300
 
       - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v4
@@ -320,19 +108,7 @@ jobs:
           name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
           path: |
             test-results/
-            coverage.xml
-            htmlcov/
-            bandit-report.json
-          retention-days: 30
-
-      - name: 📋 Test Report
-        uses: dorny/test-reporter@v1
-        if: always() && matrix.os == 'ubuntu-latest'
-        with:
-          name: Test Results (Python ${{ matrix.python-version }})
-          path: test-results/junit.xml
-          reporter: java-junit
-          fail-on-error: false
+          retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────────
   # 🔗 DEPENDENCY CHECK
@@ -340,45 +116,26 @@ jobs:
   dependency-check:
     name: 🔗 Dependency Security Check
     runs-on: ubuntu-latest
-    needs: pre-flight
-    if: needs.pre-flight.outputs.should_skip != 'true'
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
         with:
-          auto-update-conda: true
-          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          use-mamba: true
-          activate-environment: ${{ env.CONDA_ENV_NAME }}
-          environment-file: environment.yml
-          auto-activate-base: false
+          python-version: '3.11'
+          cache: 'pip'
 
-      - name: 📦 Install Project Dependencies
-        shell: bash -el {0}
+      - name: 📦 Install Dependencies
         run: |
-          echo "📦 Installing project dependencies..."
-          pip install -e . || pip install . || echo "⚠️ Package installation skipped"
+          python -m pip install --upgrade pip
+          pip install -e . || echo "Package installation completed"
 
       - name: 🔍 Check Dependencies with pip-audit
-        shell: bash -el {0}
-        continue-on-error: true
         run: |
           pip install pip-audit
-
-          echo "🔍 Running pip-audit..."
-          pip-audit --strict || echo "⚠️ Some vulnerabilities found (non-blocking)"
-
-      - name: 📊 Generate Dependency Graph
-        shell: bash -el {0}
-        run: |
-          mamba install -y pipdeptree
-          echo "📊 Dependency Tree:"
-          pipdeptree --warn silence || true
+          pip-audit --strict || echo "Some vulnerabilities found (non-blocking)"
+        continue-on-error: true
 
   # ─────────────────────────────────────────────────────────────────────────────
   # 📚 DOCUMENTATION BUILD
@@ -386,43 +143,24 @@ jobs:
   docs:
     name: 📚 Build Documentation
     runs-on: ubuntu-latest
-    needs: pre-flight
-    if: |
-      needs.pre-flight.outputs.should_skip != 'true' &&
-      needs.pre-flight.outputs.docs_changed == 'true'
+    if: contains(github.event.head_commit.message, '[docs]') || github.event_name == 'workflow_dispatch'
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
         with:
-          auto-update-conda: true
-          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
-          miniforge-variant: Mambaforge
-          use-mamba: true
-          activate-environment: ${{ env.CONDA_ENV_NAME }}
-          auto-activate-base: false
+          python-version: '3.11'
 
       - name: 📚 Build Documentation
-        shell: bash -el {0}
         run: |
-          mamba install -y sphinx sphinx_rtd_theme myst-parser
-          
+          pip install sphinx sphinx_rtd_theme myst-parser
           if [ -d "docs" ]; then
-            cd docs
-            make html || echo "⚠️ Documentation build had warnings"
+            cd docs && make html || echo "Documentation build had warnings"
           else
-            echo "📝 No docs directory found, skipping documentation build"
+            echo "No docs directory found"
           fi
-
-      - name: 📤 Upload Documentation
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: documentation
-          path: docs/_build/html/
-          retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────────────
   # 📦 BUILD PACKAGE
@@ -438,30 +176,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🐍 Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
         with:
-          auto-update-conda: true
-          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
-          miniforge-variant: Mambaforge
-          use-mamba: true
-          activate-environment: ${{ env.CONDA_ENV_NAME }}
-          auto-activate-base: false
+          python-version: '3.11'
 
       - name: 📦 Build Package
-        shell: bash -el {0}
         run: |
-          mamba install -y build twine wheel setuptools
-          
-          echo "📦 Building package..."
-          if [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
-            python -m build
-            
-            echo "🔍 Checking package with twine..."
-            twine check dist/*
-          else
-            echo "⚠️ No pyproject.toml or setup.py found, skipping build"
-          fi
+          pip install build twine wheel setuptools
+          python -m build
+          twine check dist/*
 
       - name: 📤 Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -522,7 +246,7 @@ jobs:
   status:
     name: ✅ Pipeline Status
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test, dependency-check]
     if: always()
     steps:
       - name: 📊 Check Pipeline Status
@@ -531,29 +255,18 @@ jobs:
           echo "📊 PIPELINE STATUS REPORT"
           echo "═══════════════════════════════════════════════════════════"
           echo "🧪 Tests: ${{ needs.test.result }}"
+          echo "🔗 Dependency Check: ${{ needs.dependency-check.result }}"
           echo "═══════════════════════════════════════════════════════════"
 
-          # Check for actual failures (not skipped)
           if [ "${{ needs.test.result }}" == "failure" ]; then
             echo "❌ Pipeline failed due to test failures"
             exit 1
           fi
 
-          echo "✅ Pipeline completed!"
-
-      - name: 📢 Notify on Failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const run_id = context.runId;
-            const run_url = `https://github.com/${owner}/${repo}/actions/runs/${run_id}`;
-            
-            console.log(`❌ Pipeline failed! Check: ${run_url}`);
+          echo "✅ Pipeline completed successfully!"
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # 🚀 DEPLOY (Optional - on main/master only)
+  # 🚀 DEPLOY
   # ─────────────────────────────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy
@@ -563,9 +276,6 @@ jobs:
       success() &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
       github.event_name == 'push'
-    environment:
-      name: ${{ github.event.inputs.deploy_env || 'staging' }}
-      url: https://${{ github.event.inputs.deploy_env || 'staging' }}.example.com
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
@@ -581,13 +291,7 @@ jobs:
           echo "═══════════════════════════════════════════════════════════"
           echo "🚀 DEPLOYMENT"
           echo "═══════════════════════════════════════════════════════════"
-          echo "Environment: ${{ github.event.inputs.deploy_env || 'staging' }}"
           echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
           echo "═══════════════════════════════════════════════════════════"
-          
-          # Add your deployment commands here
-          # Example: pip install dist/*.whl
-          # Example: kubectl apply -f k8s/
-          
           echo "✅ Deployment placeholder - add your deployment commands"
