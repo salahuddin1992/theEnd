@@ -546,6 +546,75 @@ def _register_routes(app: FastAPI) -> None:
             "orphaned_jobs": orphaned_jobs,
         }
 
+    @app.post("/workers/{worker_id}/execute", tags=["Workers"])
+    async def execute_on_worker(
+        worker_id: str,
+        request: Request,
+        _: None = Depends(require_permission(Permission.WORKER_MANAGE)),
+    ):
+        """
+        تنفيذ أمر على Worker محدد.
+
+        يستخدم للتحكم عن بعد في الحواسيب المتصلة.
+        """
+        state = get_api_state()
+        worker = state.state.get_worker(worker_id)
+        if not worker:
+            raise HTTPException(status_code=404, detail="Worker not found")
+
+        body = await request.json()
+        command = body.get("command", "")
+        timeout = body.get("timeout", 300)
+        command_type = body.get("command_type", "shell")
+
+        # إرسال الأمر للـ Worker عبر HTTP
+        import httpx
+
+        worker_url = f"http://{worker.ip_address}:{worker.port}"
+
+        try:
+            async with httpx.AsyncClient(timeout=timeout + 10) as client:
+                response = await client.post(
+                    f"{worker_url}/execute",
+                    json={
+                        "command": command,
+                        "command_type": command_type,
+                        "timeout": timeout,
+                    },
+                )
+                return response.json()
+        except Exception as e:
+            return {
+                "success": False,
+                "output": "",
+                "error": str(e),
+                "exit_code": -1,
+            }
+
+    @app.post("/scheduler/distribution", tags=["Scheduler"])
+    async def set_load_distribution(
+        request: Request,
+        _: None = Depends(require_permission(Permission.WORKER_MANAGE)),
+    ):
+        """
+        تعيين توزيع الحمل بين Workers.
+
+        يسمح بتحديد نسبة الحمل لكل Worker.
+        """
+        body = await request.json()
+        distributions = body.get("distributions", [])
+
+        state = get_api_state()
+
+        # تخزين التوزيع في الحالة
+        state.load_distribution = {
+            d["worker_id"]: d for d in distributions
+        }
+
+        logger.info(f"Load distribution updated: {distributions}")
+
+        return {"status": "ok", "distributions": distributions}
+
     # ==================== Jobs ====================
 
     @app.post("/jobs", tags=["Jobs"])

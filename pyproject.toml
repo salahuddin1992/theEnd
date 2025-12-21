@@ -83,6 +83,7 @@ dc-notify = "distributed_cluster.cli.notify_cli:app"
 dc-desktop = "distributed_cluster.desktop.main:main"
 dc-ai = "distributed_cluster.cli.ai_cli:main"
 dc-inference = "distributed_cluster.ai.inference.worker:main"
+dc-control = "distributed_cluster.cli.control_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
