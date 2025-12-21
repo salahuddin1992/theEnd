@@ -1,0 +1,260 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🖥️ DESKTOP APPLICATION BUILD PIPELINE
+# ═══════════════════════════════════════════════════════════════════════════════
+# Builds NebulaCompute Desktop for Windows, Linux, and macOS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: 🖥️ Build Desktop App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'release/**'
+      - 'claude/**'
+    paths:
+      - 'src/distributed_cluster/desktop/**'
+      - '.github/workflows/build-desktop.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: 'Build mode (full or minimal)'
+        required: false
+        default: 'minimal'
+        type: choice
+        options:
+          - minimal
+          - full
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENVIRONMENT VARIABLES
+# ═══════════════════════════════════════════════════════════════════════════════
+env:
+  PYTHON_VERSION: '3.11'
+  BUILD_MODE: ${{ github.event.inputs.build_mode || 'minimal' }}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PERMISSIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+permissions:
+  contents: write
+  actions: read
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# JOBS
+# ═══════════════════════════════════════════════════════════════════════════════
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 🪟 BUILD WINDOWS EXECUTABLE
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-windows:
+    name: 🪟 Build Windows EXE
+    runs-on: windows-latest
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PySide6 qasync pyinstaller httpx websockets
+          pip install -e .
+
+      - name: 🔨 Build Windows Executable
+        run: |
+          python src/distributed_cluster/desktop/build_exe.py --mode ${{ env.BUILD_MODE }}
+
+      - name: 📊 Show Build Info
+        run: |
+          Get-ChildItem dist/ -Recurse | Format-Table Name, Length -AutoSize
+          $exe = Get-Item "dist/NebulaCompute.exe"
+          Write-Host "Executable Size: $([math]::Round($exe.Length / 1MB, 2)) MB"
+
+      - name: 📤 Upload Windows Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: NebulaCompute-Windows
+          path: dist/NebulaCompute.exe
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 🐧 BUILD LINUX EXECUTABLE
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-linux:
+    name: 🐧 Build Linux Executable
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 🔧 Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxcb-xinerama0 \
+            libxcb-cursor0 \
+            libxkbcommon-x11-0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-xkb1 \
+            libegl1 \
+            libgl1-mesa-glx
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PySide6 qasync pyinstaller httpx websockets
+          pip install -e .
+
+      - name: 🔨 Build Linux Executable
+        run: |
+          python src/distributed_cluster/desktop/build_exe.py --mode ${{ env.BUILD_MODE }}
+
+      - name: 📊 Show Build Info
+        run: |
+          ls -lh dist/
+          file dist/NebulaCompute
+
+      - name: 📤 Upload Linux Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: NebulaCompute-Linux
+          path: dist/NebulaCompute
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 🍎 BUILD MACOS EXECUTABLE
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-macos:
+    name: 🍎 Build macOS Executable
+    runs-on: macos-latest
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PySide6 qasync pyinstaller httpx websockets
+          pip install -e .
+
+      - name: 🔨 Build macOS Executable
+        run: |
+          python src/distributed_cluster/desktop/build_exe.py --mode ${{ env.BUILD_MODE }}
+
+      - name: 📊 Show Build Info
+        run: |
+          ls -lh dist/
+          file dist/NebulaCompute
+
+      - name: 📤 Upload macOS Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: NebulaCompute-macOS
+          path: dist/NebulaCompute
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 📦 CREATE RELEASE (on tags)
+  # ─────────────────────────────────────────────────────────────────────────────
+  create-release:
+    name: 📦 Create Release
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-linux, build-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: 📥 Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: 📦 Prepare Release Files
+        run: |
+          mkdir -p release
+
+          # Windows
+          if [ -f "artifacts/NebulaCompute-Windows/NebulaCompute.exe" ]; then
+            cp artifacts/NebulaCompute-Windows/NebulaCompute.exe release/NebulaCompute-Windows.exe
+          fi
+
+          # Linux
+          if [ -f "artifacts/NebulaCompute-Linux/NebulaCompute" ]; then
+            cp artifacts/NebulaCompute-Linux/NebulaCompute release/NebulaCompute-Linux
+            chmod +x release/NebulaCompute-Linux
+          fi
+
+          # macOS
+          if [ -f "artifacts/NebulaCompute-macOS/NebulaCompute" ]; then
+            cp artifacts/NebulaCompute-macOS/NebulaCompute release/NebulaCompute-macOS
+            chmod +x release/NebulaCompute-macOS
+          fi
+
+          ls -lh release/
+
+      - name: 📦 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ✅ BUILD STATUS
+  # ─────────────────────────────────────────────────────────────────────────────
+  status:
+    name: ✅ Build Status
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-linux, build-macos]
+    if: always()
+    steps:
+      - name: 📊 Check Build Status
+        run: |
+          echo "═══════════════════════════════════════════════════════════"
+          echo "📊 DESKTOP BUILD STATUS REPORT"
+          echo "═══════════════════════════════════════════════════════════"
+          echo "🪟 Windows: ${{ needs.build-windows.result }}"
+          echo "🐧 Linux:   ${{ needs.build-linux.result }}"
+          echo "🍎 macOS:   ${{ needs.build-macos.result }}"
+          echo "═══════════════════════════════════════════════════════════"
+
+          if [ "${{ needs.build-windows.result }}" == "success" ] && \
+             [ "${{ needs.build-linux.result }}" == "success" ] && \
+             [ "${{ needs.build-macos.result }}" == "success" ]; then
+            echo "✅ All desktop builds completed successfully!"
+          else
+            echo "⚠️ Some builds may have issues"
+          fi
