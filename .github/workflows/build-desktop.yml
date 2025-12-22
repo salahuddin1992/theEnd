@@ -70,8 +70,9 @@ jobs:
       - name: 📦 Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PySide6 qasync pyinstaller httpx websockets
-          pip install -e .
+          pip install PySide6 qasync pyinstaller httpx websockets certifi anyio sniffio h11 httpcore
+          # Install package without heavy dependencies (docker/cryptography/pynvml cause PyInstaller issues)
+          pip install -e . --no-deps
 
       - name: 🔨 Build Windows Executable
         run: |
@@ -126,8 +127,9 @@ jobs:
       - name: 📦 Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PySide6 qasync pyinstaller httpx websockets
-          pip install -e .
+          pip install PySide6 qasync pyinstaller httpx websockets certifi anyio sniffio h11 httpcore
+          # Install package without heavy dependencies (docker/cryptography/pynvml cause PyInstaller issues)
+          pip install -e . --no-deps
 
       - name: 🔨 Build Linux Executable
         run: |
@@ -166,8 +168,9 @@ jobs:
       - name: 📦 Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PySide6 qasync pyinstaller httpx websockets
-          pip install -e .
+          pip install PySide6 qasync pyinstaller httpx websockets certifi anyio sniffio h11 httpcore
+          # Install package without heavy dependencies (docker/cryptography/pynvml cause PyInstaller issues)
+          pip install -e . --no-deps
 
       - name: 🔨 Build macOS Executable
         run: |
