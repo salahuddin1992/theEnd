@@ -118,7 +118,8 @@ def build_exe(mode="full"):
     src_path = get_src_path()
     desktop_path = src_path / "distributed_cluster" / "desktop"
     web_path = src_path / "distributed_cluster" / "web"
-    main_script = desktop_path / "main.py"
+    # Use app_entry.py which has absolute imports for PyInstaller
+    main_script = desktop_path / "app_entry.py"
 
     # Create icon if missing
     icon_path = create_icon_if_missing()
