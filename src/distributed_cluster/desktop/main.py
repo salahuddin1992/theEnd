@@ -25,7 +25,11 @@ except ImportError:
     print("Install it with: pip install qasync")
     sys.exit(1)
 
-from .main_window import MainWindow
+# Handle both package import and direct execution
+try:
+    from .main_window import MainWindow
+except ImportError:
+    from main_window import MainWindow
 
 
 def setup_application() -> QApplication:
