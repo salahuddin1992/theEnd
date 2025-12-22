@@ -12,15 +12,12 @@ Control CLI - واجهة التحكم الموحد
 
 import asyncio
 import platform
-import sys
 from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.live import Live
-from rich.text import Text
 
 app = typer.Typer(
     name="dc-control",
@@ -51,13 +48,13 @@ def run_command(
         dc-control run "ls -la" --on worker-2
         dc-control run "pip install numpy" --all
     """
-    from distributed_cluster.control.remote import RemoteController, CommandType
+    from distributed_cluster.control.remote import RemoteController
 
     async def execute():
         async with RemoteController(master) as controller:
             if all_workers:
                 # تنفيذ على الجميع
-                console.print(f"[bold blue]تنفيذ على جميع Workers...[/]")
+                console.print("[bold blue]تنفيذ على جميع Workers...[/]")
                 results = await controller.execute_all(
                     command,
                     timeout=timeout,
@@ -197,7 +194,7 @@ def set_load(
                 console.print(f"[green]✓[/] تم نقل {percentage}% من الحمل إلى {worker}")
                 console.print(f"    الحاسوب المحلي: {100 - percentage}%")
             else:
-                console.print(f"[red]✗[/] فشل في تعيين التوزيع")
+                console.print("[red]✗[/] فشل في تعيين التوزيع")
 
     asyncio.run(run())
 

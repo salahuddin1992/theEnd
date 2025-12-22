@@ -6,18 +6,14 @@ Remote Controller - التحكم عن بعد
 """
 
 import asyncio
-import json
 import platform
 import subprocess
-import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Optional
 
 import httpx
-
-from distributed_cluster.core.config import ClusterConfig
 
 
 class CommandType(str, Enum):
@@ -90,7 +86,7 @@ class RemoteController:
             response.raise_for_status()
             self._workers = {w["worker_id"]: w for w in response.json()}
             return list(self._workers.values())
-        except Exception as e:
+        except Exception:
             return []
 
     async def execute_on(
@@ -219,8 +215,15 @@ class RemoteController:
             else:
                 shell_cmd = command if shell else command.split()
 
+            if shell and platform.system() != "Windows":
+                cmd_to_run = command
+            elif isinstance(shell_cmd, list):
+                cmd_to_run = " ".join(shell_cmd)
+            else:
+                cmd_to_run = shell_cmd
+
             process = await asyncio.create_subprocess_shell(
-                command if shell and platform.system() != "Windows" else " ".join(shell_cmd) if isinstance(shell_cmd, list) else shell_cmd,
+                cmd_to_run,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
