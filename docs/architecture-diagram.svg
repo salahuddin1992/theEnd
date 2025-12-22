@@ -1,0 +1,399 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="50%" style="stop-color:#16213e"/>
+      <stop offset="100%" style="stop-color:#0f3460"/>
+    </linearGradient>
+
+    <linearGradient id="masterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="100%" style="stop-color:#0077b6"/>
+    </linearGradient>
+
+    <linearGradient id="workerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7b2cbf"/>
+      <stop offset="100%" style="stop-color:#9d4edd"/>
+    </linearGradient>
+
+    <linearGradient id="aiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ff88"/>
+      <stop offset="100%" style="stop-color:#00cc6a"/>
+    </linearGradient>
+
+    <linearGradient id="meshGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e94560"/>
+      <stop offset="100%" style="stop-color:#ff6b6b"/>
+    </linearGradient>
+
+    <linearGradient id="storageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700"/>
+      <stop offset="100%" style="stop-color:#ffaa00"/>
+    </linearGradient>
+
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="50%" style="stop-color:#7b2cbf"/>
+      <stop offset="100%" style="stop-color:#e94560"/>
+    </linearGradient>
+
+    <!-- Drop Shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+
+    <!-- Glow Effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="url(#bgGrad)"/>
+
+  <!-- Grid Pattern -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  </pattern>
+  <rect width="1200" height="900" fill="url(#grid)"/>
+
+  <!-- Title -->
+  <text x="600" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="url(#titleGrad)">NebulaCompute - System Architecture</text>
+  <text x="600" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#a0a0a0">نظام الحوسبة الموزعة</text>
+
+  <!-- ============ CONTROL PLANE ============ -->
+  <g filter="url(#shadow)">
+    <!-- Control Plane Box -->
+    <rect x="50" y="110" width="1100" height="140" rx="15" fill="rgba(0,212,255,0.1)" stroke="#00d4ff" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="70" y="135" font-family="Arial, sans-serif" font-size="14" fill="#00d4ff" font-weight="bold">CONTROL PLANE</text>
+  </g>
+
+  <!-- Master Server -->
+  <g filter="url(#shadow)" transform="translate(100, 150)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#masterGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🎛️</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Master Server</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">REST API + WebSocket</text>
+  </g>
+
+  <!-- Scheduler -->
+  <g filter="url(#shadow)" transform="translate(320, 150)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#masterGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">📋</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Scheduler</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Job Scheduling</text>
+  </g>
+
+  <!-- HA Manager -->
+  <g filter="url(#shadow)" transform="translate(540, 150)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#masterGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🔄</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">HA Manager</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">High Availability</text>
+  </g>
+
+  <!-- Security -->
+  <g filter="url(#shadow)" transform="translate(760, 150)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#masterGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🔐</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Security</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">JWT + RBAC</text>
+  </g>
+
+  <!-- Observability -->
+  <g filter="url(#shadow)" transform="translate(980, 150)">
+    <rect width="140" height="80" rx="12" fill="#1a1a3a" stroke="url(#masterGrad)" stroke-width="2"/>
+    <text x="70" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">📊</text>
+    <text x="70" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Metrics</text>
+    <text x="70" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Prometheus</text>
+  </g>
+
+  <!-- Connection Arrows from Control to AI -->
+  <g stroke="#00d4ff" stroke-width="2" fill="none" filter="url(#glow)">
+    <path d="M 190 230 L 190 280 L 300 280" marker-end="url(#arrowBlue)"/>
+    <path d="M 410 230 L 410 280 L 500 280" marker-end="url(#arrowBlue)"/>
+    <path d="M 630 230 L 630 280 L 700 280" marker-end="url(#arrowBlue)"/>
+  </g>
+
+  <!-- Arrow Markers -->
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#00d4ff"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#00ff88"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7b2cbf"/>
+    </marker>
+  </defs>
+
+  <!-- ============ AI LAYER ============ -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="270" width="700" height="140" rx="15" fill="rgba(0,255,136,0.1)" stroke="#00ff88" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="70" y="295" font-family="Arial, sans-serif" font-size="14" fill="#00ff88" font-weight="bold">AI / LLM LAYER</text>
+  </g>
+
+  <!-- LLM Providers -->
+  <g filter="url(#shadow)" transform="translate(100, 310)">
+    <rect width="200" height="80" rx="12" fill="#1a1a3a" stroke="url(#aiGrad)" stroke-width="2"/>
+    <text x="100" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🤖</text>
+    <text x="100" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">LLM Providers</text>
+    <text x="100" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Claude, OpenAI, Gemini, Ollama...</text>
+  </g>
+
+  <!-- Inference Router -->
+  <g filter="url(#shadow)" transform="translate(340, 310)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#aiGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">⚡</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Inference Router</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Multi-model Serving</text>
+  </g>
+
+  <!-- AI Agents -->
+  <g filter="url(#shadow)" transform="translate(560, 310)">
+    <rect width="160" height="80" rx="12" fill="#1a1a3a" stroke="url(#aiGrad)" stroke-width="2"/>
+    <text x="80" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🕵️</text>
+    <text x="80" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">AI Agents</text>
+    <text x="80" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Tools & Execution</text>
+  </g>
+
+  <!-- ============ INTERFACES ============ -->
+  <g filter="url(#shadow)">
+    <rect x="780" y="270" width="370" height="140" rx="15" fill="rgba(157,78,221,0.1)" stroke="#9d4edd" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="800" y="295" font-family="Arial, sans-serif" font-size="14" fill="#9d4edd" font-weight="bold">INTERFACES</text>
+  </g>
+
+  <!-- Web Dashboard -->
+  <g filter="url(#shadow)" transform="translate(810, 310)">
+    <rect width="100" height="80" rx="12" fill="#1a1a3a" stroke="#9d4edd" stroke-width="2"/>
+    <text x="50" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🌐</text>
+    <text x="50" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Web</text>
+    <text x="50" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">Dashboard</text>
+  </g>
+
+  <!-- Desktop App -->
+  <g filter="url(#shadow)" transform="translate(930, 310)">
+    <rect width="100" height="80" rx="12" fill="#1a1a3a" stroke="#9d4edd" stroke-width="2"/>
+    <text x="50" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🖥️</text>
+    <text x="50" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Desktop</text>
+    <text x="50" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">Qt App</text>
+  </g>
+
+  <!-- CLI -->
+  <g filter="url(#shadow)" transform="translate(1050, 310)">
+    <rect width="80" height="80" rx="12" fill="#1a1a3a" stroke="#9d4edd" stroke-width="2"/>
+    <text x="40" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">💻</text>
+    <text x="40" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">CLI</text>
+    <text x="40" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">Commands</text>
+  </g>
+
+  <!-- Connection Arrows to Workers -->
+  <g stroke="#7b2cbf" stroke-width="2" fill="none">
+    <line x1="200" y1="390" x2="200" y2="440" stroke-dasharray="5,5"/>
+    <line x1="430" y1="390" x2="430" y2="440" stroke-dasharray="5,5"/>
+    <line x1="640" y1="390" x2="640" y2="440" stroke-dasharray="5,5"/>
+  </g>
+
+  <!-- ============ WORKER LAYER ============ -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="430" width="700" height="140" rx="15" fill="rgba(123,44,191,0.1)" stroke="#7b2cbf" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="70" y="455" font-family="Arial, sans-serif" font-size="14" fill="#7b2cbf" font-weight="bold">WORKER NODES</text>
+  </g>
+
+  <!-- Worker Agent -->
+  <g filter="url(#shadow)" transform="translate(100, 470)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#workerGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">👷</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Worker Agent</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Registration & Heartbeat</text>
+  </g>
+
+  <!-- Executor -->
+  <g filter="url(#shadow)" transform="translate(320, 470)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#workerGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">⚙️</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Executor</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Job Execution</text>
+  </g>
+
+  <!-- Container Runtime -->
+  <g filter="url(#shadow)" transform="translate(540, 470)">
+    <rect width="180" height="80" rx="12" fill="#1a1a3a" stroke="url(#workerGrad)" stroke-width="2"/>
+    <text x="90" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🐳</text>
+    <text x="90" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#fff" font-weight="bold">Container Runtime</text>
+    <text x="90" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">Docker / Podman</text>
+  </g>
+
+  <!-- ============ NOTIFICATIONS ============ -->
+  <g filter="url(#shadow)">
+    <rect x="780" y="430" width="370" height="140" rx="15" fill="rgba(255,107,107,0.1)" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="800" y="455" font-family="Arial, sans-serif" font-size="14" fill="#ff6b6b" font-weight="bold">NOTIFICATIONS</text>
+  </g>
+
+  <!-- Email -->
+  <g filter="url(#shadow)" transform="translate(810, 470)">
+    <rect width="70" height="80" rx="12" fill="#1a1a3a" stroke="#ff6b6b" stroke-width="2"/>
+    <text x="35" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">📧</text>
+    <text x="35" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#fff">Email</text>
+  </g>
+
+  <!-- Slack -->
+  <g filter="url(#shadow)" transform="translate(900, 470)">
+    <rect width="70" height="80" rx="12" fill="#1a1a3a" stroke="#ff6b6b" stroke-width="2"/>
+    <text x="35" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">💬</text>
+    <text x="35" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#fff">Slack</text>
+  </g>
+
+  <!-- PagerDuty -->
+  <g filter="url(#shadow)" transform="translate(990, 470)">
+    <rect width="70" height="80" rx="12" fill="#1a1a3a" stroke="#ff6b6b" stroke-width="2"/>
+    <text x="35" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🚨</text>
+    <text x="35" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#fff">Pager</text>
+  </g>
+
+  <!-- Webhook -->
+  <g filter="url(#shadow)" transform="translate(1080, 470)">
+    <rect width="70" height="80" rx="12" fill="#1a1a3a" stroke="#ff6b6b" stroke-width="2"/>
+    <text x="35" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🔗</text>
+    <text x="35" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#fff">Webhook</text>
+  </g>
+
+  <!-- Connection to bottom layer -->
+  <g stroke="#e94560" stroke-width="2" fill="none">
+    <line x1="400" y1="570" x2="400" y2="600" stroke-dasharray="5,5"/>
+  </g>
+
+  <!-- ============ MESH & STORAGE LAYER ============ -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="590" width="550" height="140" rx="15" fill="rgba(233,69,96,0.1)" stroke="#e94560" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="70" y="615" font-family="Arial, sans-serif" font-size="14" fill="#e94560" font-weight="bold">MESH NETWORK (P2P)</text>
+  </g>
+
+  <!-- Mesh Node -->
+  <g filter="url(#shadow)" transform="translate(80, 630)">
+    <rect width="120" height="80" rx="12" fill="#1a1a3a" stroke="url(#meshGrad)" stroke-width="2"/>
+    <text x="60" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🕸️</text>
+    <text x="60" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Node</text>
+    <text x="60" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">mesh/node.py</text>
+  </g>
+
+  <!-- Discovery -->
+  <g filter="url(#shadow)" transform="translate(220, 630)">
+    <rect width="120" height="80" rx="12" fill="#1a1a3a" stroke="url(#meshGrad)" stroke-width="2"/>
+    <text x="60" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🔍</text>
+    <text x="60" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Discovery</text>
+    <text x="60" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">Peer Finding</text>
+  </g>
+
+  <!-- Router -->
+  <g filter="url(#shadow)" transform="translate(360, 630)">
+    <rect width="120" height="80" rx="12" fill="#1a1a3a" stroke="url(#meshGrad)" stroke-width="2"/>
+    <text x="60" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🔀</text>
+    <text x="60" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Router</text>
+    <text x="60" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">Task Routing</text>
+  </g>
+
+  <!-- Consensus -->
+  <g filter="url(#shadow)" transform="translate(500, 630)">
+    <rect width="120" height="80" rx="12" fill="#1a1a3a" stroke="url(#meshGrad)" stroke-width="2"/>
+    <text x="60" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🤝</text>
+    <text x="60" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Consensus</text>
+    <text x="60" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">Leader Election</text>
+  </g>
+
+  <!-- ============ STORAGE LAYER ============ -->
+  <g filter="url(#shadow)">
+    <rect x="630" y="590" width="520" height="140" rx="15" fill="rgba(255,215,0,0.1)" stroke="#ffd700" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="650" y="615" font-family="Arial, sans-serif" font-size="14" fill="#ffd700" font-weight="bold">STORAGE & DATA</text>
+  </g>
+
+  <!-- Database -->
+  <g filter="url(#shadow)" transform="translate(660, 630)">
+    <rect width="140" height="80" rx="12" fill="#1a1a3a" stroke="url(#storageGrad)" stroke-width="2"/>
+    <text x="70" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">💾</text>
+    <text x="70" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Database</text>
+    <text x="70" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">SQLite / PostgreSQL</text>
+  </g>
+
+  <!-- Artifacts -->
+  <g filter="url(#shadow)" transform="translate(820, 630)">
+    <rect width="140" height="80" rx="12" fill="#1a1a3a" stroke="url(#storageGrad)" stroke-width="2"/>
+    <text x="70" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">📦</text>
+    <text x="70" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">Artifacts</text>
+    <text x="70" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">S3 / MinIO / NFS</text>
+  </g>
+
+  <!-- gRPC -->
+  <g filter="url(#shadow)" transform="translate(980, 630)">
+    <rect width="140" height="80" rx="12" fill="#1a1a3a" stroke="url(#storageGrad)" stroke-width="2"/>
+    <text x="70" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24">🔌</text>
+    <text x="70" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff" font-weight="bold">gRPC</text>
+    <text x="70" y="72" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#a0a0a0">Service Layer</text>
+  </g>
+
+  <!-- ============ DEPLOYMENT OPTIONS ============ -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="760" width="1100" height="80" rx="15" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    <text x="70" y="785" font-family="Arial, sans-serif" font-size="14" fill="#a0a0a0" font-weight="bold">DEPLOYMENT OPTIONS</text>
+  </g>
+
+  <!-- Docker -->
+  <g transform="translate(120, 790)">
+    <rect width="100" height="40" rx="8" fill="#1a1a3a" stroke="#00d4ff" stroke-width="1"/>
+    <text x="50" y="27" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff">🐳 Docker</text>
+  </g>
+
+  <!-- Kubernetes -->
+  <g transform="translate(240, 790)">
+    <rect width="120" height="40" rx="8" fill="#1a1a3a" stroke="#7b2cbf" stroke-width="1"/>
+    <text x="60" y="27" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff">☸️ Kubernetes</text>
+  </g>
+
+  <!-- Helm -->
+  <g transform="translate(380, 790)">
+    <rect width="100" height="40" rx="8" fill="#1a1a3a" stroke="#00ff88" stroke-width="1"/>
+    <text x="50" y="27" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff">⎈ Helm</text>
+  </g>
+
+  <!-- Desktop -->
+  <g transform="translate(500, 790)">
+    <rect width="100" height="40" rx="8" fill="#1a1a3a" stroke="#e94560" stroke-width="1"/>
+    <text x="50" y="27" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff">🖥️ Desktop</text>
+  </g>
+
+  <!-- CLI -->
+  <g transform="translate(620, 790)">
+    <rect width="80" height="40" rx="8" fill="#1a1a3a" stroke="#ffd700" stroke-width="1"/>
+    <text x="40" y="27" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#fff">💻 CLI</text>
+  </g>
+
+  <!-- ============ LEGEND ============ -->
+  <g transform="translate(750, 785)">
+    <rect width="380" height="50" rx="8" fill="rgba(0,0,0,0.3)"/>
+    <text x="15" y="20" font-family="Arial, sans-serif" font-size="10" fill="#a0a0a0">LEGEND:</text>
+
+    <circle cx="80" cy="25" r="8" fill="#00d4ff"/>
+    <text x="95" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff">Control</text>
+
+    <circle cx="155" cy="25" r="8" fill="#00ff88"/>
+    <text x="170" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff">AI</text>
+
+    <circle cx="210" cy="25" r="8" fill="#7b2cbf"/>
+    <text x="225" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff">Worker</text>
+
+    <circle cx="285" cy="25" r="8" fill="#e94560"/>
+    <text x="300" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff">Mesh</text>
+
+    <circle cx="350" cy="25" r="8" fill="#ffd700"/>
+    <text x="365" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff">Storage</text>
+  </g>
+
+  <!-- Version -->
+  <text x="1180" y="890" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#505050">v1.0 - NebulaCompute Architecture</text>
+</svg>
