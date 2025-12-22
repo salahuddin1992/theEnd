@@ -247,11 +247,11 @@ def build_exe(mode="full"):
             "distributed_cluster.web",
             "distributed_cluster.web.app",
             "distributed_cluster.master",
-            "distributed_cluster.master.api",
             "distributed_cluster.master.state",
-            "distributed_cluster.scheduler",
-            "distributed_cluster.security",
-            "distributed_cluster.ai",
+            # Note: distributed_cluster.master.api removed to avoid cryptography deps
+            # Note: distributed_cluster.scheduler removed to avoid heavy deps
+            # Note: distributed_cluster.security removed to avoid cryptography deps
+            # Note: distributed_cluster.ai removed to avoid heavy deps
 
             # FastAPI (for embedded server)
             "fastapi",
@@ -274,10 +274,9 @@ def build_exe(mode="full"):
         "websockets",
     ]
 
-    if mode == "full":
-        collect_all.extend([
-            "distributed_cluster",
-        ])
+    # Note: We don't collect all of distributed_cluster even in full mode
+    # because it may pull in cryptography/docker/pynvml dependencies
+    # that cause PyInstaller issues. Hidden imports handle the needed modules.
 
     for pkg in collect_all:
         options.append(f"--collect-all={pkg}")
@@ -300,6 +299,15 @@ def build_exe(mode="full"):
         "setuptools",
         "pip",
         "wheel",
+        # Cryptography causes issues with PyInstaller
+        "cryptography",
+        "cryptography.hazmat",
+        "cryptography.hazmat.backends",
+        "cryptography.hazmat.backends.openssl",
+        # Docker not needed for desktop GUI
+        "docker",
+        # pynvml not needed for desktop GUI
+        "pynvml",
     ]
 
     for mod in exclude_modules:
