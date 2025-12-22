@@ -155,22 +155,22 @@ def build_exe(mode="full"):
     # Desktop resources
     if (desktop_path / "resources").exists():
         options.append(f'--add-data={desktop_path / "resources"}{data_sep}distributed_cluster/desktop/resources')
-        print(f"   ✓ Desktop resources")
+        print("   ✓ Desktop resources")
 
     # Web templates and static files (for embedded web server)
     if (web_path / "templates").exists():
         options.append(f'--add-data={web_path / "templates"}{data_sep}distributed_cluster/web/templates')
-        print(f"   ✓ Web templates")
+        print("   ✓ Web templates")
 
     if (web_path / "static").exists():
         options.append(f'--add-data={web_path / "static"}{data_sep}distributed_cluster/web/static')
-        print(f"   ✓ Web static files")
+        print("   ✓ Web static files")
 
     # Config files
     config_path = project_root / "config"
     if config_path.exists():
         options.append(f'--add-data={config_path}{data_sep}config')
-        print(f"   ✓ Config files")
+        print("   ✓ Config files")
 
     # ============ Hidden Imports ============
     print("\n📦 Adding hidden imports...")

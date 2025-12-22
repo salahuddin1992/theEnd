@@ -8,15 +8,12 @@ Remote Executor - منفذ الأوامر عن بعد
 
 import asyncio
 import platform
-import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 import uvicorn
+from fastapi import FastAPI, Request
 
 
 @dataclass
