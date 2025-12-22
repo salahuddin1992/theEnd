@@ -278,52 +278,59 @@ jobs:
       - name: 🔍 Extract Version Information
         id: version
         run: |
+          set +e  # Don't exit on error, we handle errors manually
           echo "═══════════════════════════════════════════════════════════"
           echo "📊 EXTRACTING VERSION INFORMATION"
           echo "═══════════════════════════════════════════════════════════"
-          
+
           # Try multiple version sources
           VERSION=""
-          
+
           # 1. Check git tags
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF#refs/tags/v}"
             echo "📌 Version from tag: $VERSION"
           fi
-          
+
           # 2. Check pyproject.toml
           if [ -z "$VERSION" ] && [ -f "pyproject.toml" ]; then
-            VERSION=$(grep -Po '(?<=version = ")[^"]*' pyproject.toml | head -1) || true
-            echo "📌 Version from pyproject.toml: $VERSION"
-          fi
-          
-          # 3. Check setup.py
-          if [ -z "$VERSION" ] && [ -f "setup.py" ]; then
-            VERSION=$(grep -Po "(?<=version=['\"])[^'\"]*" setup.py | head -1) || true
-            echo "📌 Version from setup.py: $VERSION"
-          fi
-          
-          # 4. Check __version__.py
-          if [ -z "$VERSION" ]; then
-            VERSION_FILE=$(find . -name "__version__.py" -o -name "_version.py" | head -1)
-            if [ -n "$VERSION_FILE" ]; then
-              VERSION=$(grep -Po '(?<=__version__ = ["\'])[^"'\'']*' "$VERSION_FILE" | head -1) || true
-              echo "📌 Version from $VERSION_FILE: $VERSION"
+            VERSION=$(grep -E 'version\s*=\s*"[^"]*"' pyproject.toml | head -1 | sed 's/.*version\s*=\s*"\([^"]*\)".*/\1/') || true
+            if [ -n "$VERSION" ]; then
+              echo "📌 Version from pyproject.toml: $VERSION"
             fi
           fi
-          
-          # 5. Generate version from git
+
+          # 3. Check setup.py
+          if [ -z "$VERSION" ] && [ -f "setup.py" ]; then
+            VERSION=$(grep -E "version\s*=\s*['\"][^'\"]*['\"]" setup.py | head -1 | sed "s/.*version\s*=\s*['\"]\\([^'\"]*\\)['\"].*/\\1/") || true
+            if [ -n "$VERSION" ]; then
+              echo "📌 Version from setup.py: $VERSION"
+            fi
+          fi
+
+          # 4. Check __version__.py (with safe find)
           if [ -z "$VERSION" ]; then
-            COMMIT_COUNT=$(git rev-list --count HEAD)
-            SHORT_SHA=$(git rev-parse --short HEAD)
+            VERSION_FILE=$(find . -maxdepth 4 -type f \( -name "__version__.py" -o -name "_version.py" \) 2>/dev/null | head -1)
+            if [ -n "$VERSION_FILE" ] && [ -f "$VERSION_FILE" ]; then
+              VERSION=$(grep -E "__version__\s*=\s*['\"][^'\"]*['\"]" "$VERSION_FILE" | head -1 | sed "s/.*__version__\s*=\s*['\"]\\([^'\"]*\\)['\"].*/\\1/") || true
+              if [ -n "$VERSION" ]; then
+                echo "📌 Version from $VERSION_FILE: $VERSION"
+              fi
+            fi
+          fi
+
+          # 5. Generate version from git (fallback)
+          if [ -z "$VERSION" ]; then
+            COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+            SHORT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
             VERSION="0.0.${COMMIT_COUNT}+${SHORT_SHA}"
             echo "📌 Generated version: $VERSION"
           fi
-          
+
           # Add build metadata for non-release builds
           if [[ "$GITHUB_REF" != refs/tags/v* ]]; then
             BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | tr '/' '-')
-            BUILD_NUM="${GITHUB_RUN_NUMBER}"
+            BUILD_NUM="${GITHUB_RUN_NUMBER:-0}"
             if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
               VERSION="${VERSION}-nightly.${BUILD_NUM}"
             elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
@@ -333,12 +340,17 @@ jobs:
               VERSION="${VERSION}-dev.${BUILD_NUM}"
             fi
           fi
-          
-          VERSION_SHORT=$(echo "$VERSION" | grep -Po '^[0-9]+\.[0-9]+\.[0-9]+' || echo "$VERSION")
-          
+
+          # Extract short version (semantic version part)
+          VERSION_SHORT=$(echo "$VERSION" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+' || echo "$VERSION" | cut -d'-' -f1 || echo "0.0.0")
+
+          # Ensure we have valid outputs
+          VERSION="${VERSION:-0.0.0-dev}"
+          VERSION_SHORT="${VERSION_SHORT:-0.0.0}"
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "version_short=$VERSION_SHORT" >> $GITHUB_OUTPUT
-          
+
           echo "═══════════════════════════════════════════════════════════"
           echo "✅ Final Version: $VERSION"
           echo "✅ Short Version: $VERSION_SHORT"
@@ -456,28 +468,39 @@ jobs:
           MATRIX_INCLUDE="["
           FIRST="true"
 
+          # Get platform values with defaults
+          BUILD_WINDOWS="${{ steps.platforms.outputs.build_windows }}"
+          BUILD_LINUX="${{ steps.platforms.outputs.build_linux }}"
+          BUILD_MACOS="${{ steps.platforms.outputs.build_macos }}"
+
+          # Default to true if not set
+          BUILD_WINDOWS="${BUILD_WINDOWS:-true}"
+          BUILD_LINUX="${BUILD_LINUX:-true}"
+          BUILD_MACOS="${BUILD_MACOS:-true}"
+
           # Windows configurations
-          if [[ "${{ steps.platforms.outputs.build_windows }}" == "true" ]]; then
+          if [[ "$BUILD_WINDOWS" == "true" ]]; then
             if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
             MATRIX_INCLUDE+='{"os":"windows-latest","platform":"windows","arch":"x64","runner":"windows-latest","icon":"🪟","artifact_ext":".exe","installer_ext":".msi"}'
             FIRST="false"
           fi
 
           # Linux configurations
-          if [[ "${{ steps.platforms.outputs.build_linux }}" == "true" ]]; then
+          if [[ "$BUILD_LINUX" == "true" ]]; then
             if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
             MATRIX_INCLUDE+='{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}'
             FIRST="false"
 
             # Add ARM64 for full builds
-            if [[ "${{ env.BUILD_MODE }}" == "full" ]] || [[ "${{ env.BUILD_MODE }}" == "ultra" ]]; then
+            BUILD_MODE_VAL="${{ env.BUILD_MODE }}"
+            if [[ "$BUILD_MODE_VAL" == "full" ]] || [[ "$BUILD_MODE_VAL" == "ultra" ]]; then
               MATRIX_INCLUDE+=','
               MATRIX_INCLUDE+='{"os":"ubuntu-latest","platform":"linux","arch":"arm64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}'
             fi
           fi
 
           # macOS configurations
-          if [[ "${{ steps.platforms.outputs.build_macos }}" == "true" ]]; then
+          if [[ "$BUILD_MACOS" == "true" ]]; then
             if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
             MATRIX_INCLUDE+='{"os":"macos-latest","platform":"macos","arch":"universal","runner":"macos-latest","icon":"🍎","artifact_ext":".app","installer_ext":".dmg"}'
             FIRST="false"
@@ -491,9 +514,17 @@ jobs:
             MATRIX_INCLUDE='[{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}]'
           fi
 
+          # Validate JSON before setting output
+          if echo "$MATRIX_INCLUDE" | jq empty 2>/dev/null; then
+            echo "✅ Matrix JSON is valid"
+          else
+            echo "⚠️ Matrix JSON validation failed, using fallback"
+            MATRIX_INCLUDE='[{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}]'
+          fi
+
           echo "include=$MATRIX_INCLUDE" >> $GITHUB_OUTPUT
           echo "📋 Build Matrix:"
-          echo "$MATRIX_INCLUDE" | jq .
+          echo "$MATRIX_INCLUDE" | jq . || echo "$MATRIX_INCLUDE"
 
       - name: 🔑 Generate Cache Key
         id: cache-key
@@ -510,24 +541,26 @@ jobs:
           echo "═══════════════════════════════════════════════════════════"
           echo "📝 GENERATING CHANGELOG"
           echo "═══════════════════════════════════════════════════════════"
-          
+
           # Get previous tag
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          
+
           if [ -n "$PREV_TAG" ]; then
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG"..HEAD -- . ':!.github' | head -50)
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREV_TAG"..HEAD -- . ':!.github' | head -50) || CHANGELOG=""
           else
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" -20)
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" -20) || CHANGELOG=""
           fi
-          
-          # Escape for GitHub Actions
-          CHANGELOG="${CHANGELOG//'%'/'%25'}"
-          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-          
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Use a unique delimiter that won't appear in commit messages
+          DELIMITER="CHANGELOG_DELIMITER_$(date +%s)_$$"
+
+          {
+            echo "changelog<<${DELIMITER}"
+            echo "$CHANGELOG"
+            echo "${DELIMITER}"
+          } >> $GITHUB_OUTPUT
+
+          echo "📋 Changelog generated with ${#CHANGELOG} characters"
 
       - name: 📤 Upload Build Info
         uses: actions/upload-artifact@v4
@@ -543,7 +576,7 @@ jobs:
     name: 🛡️ Security Analysis
     runs-on: ubuntu-latest
     needs: initialize
-    if: ${{ github.event.inputs.run_security_scan != 'false' }}
+    if: ${{ needs.initialize.result == 'success' && github.event.inputs.run_security_scan != 'false' }}
 
     steps:
       - name: 📥 Checkout Repository
@@ -655,6 +688,7 @@ jobs:
     name: 📊 Code Quality Analysis
     runs-on: ubuntu-latest
     needs: initialize
+    if: ${{ needs.initialize.result == 'success' }}
 
     steps:
       - name: 📥 Checkout Repository
@@ -771,7 +805,7 @@ jobs:
     name: 🧪 Test Suite
     runs-on: ubuntu-latest
     needs: initialize
-    if: ${{ github.event.inputs.run_tests != 'false' }}
+    if: ${{ needs.initialize.result == 'success' && github.event.inputs.run_tests != 'false' }}
 
     strategy:
       fail-fast: false
@@ -1462,7 +1496,7 @@ jobs:
     if: |
       always() &&
       needs.initialize.result == 'success' &&
-      (needs.build.result == 'success' || needs.build.result == 'skipped')
+      needs.build.result == 'success'
 
     steps:
       - name: 📥 Download All Artifacts
