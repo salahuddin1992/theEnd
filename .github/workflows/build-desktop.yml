@@ -452,39 +452,45 @@ jobs:
           echo "═══════════════════════════════════════════════════════════"
           echo "🔧 GENERATING BUILD MATRIX"
           echo "═══════════════════════════════════════════════════════════"
-          
+
           MATRIX_INCLUDE="["
           FIRST="true"
-          
+
           # Windows configurations
           if [[ "${{ steps.platforms.outputs.build_windows }}" == "true" ]]; then
             if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
             MATRIX_INCLUDE+='{"os":"windows-latest","platform":"windows","arch":"x64","runner":"windows-latest","icon":"🪟","artifact_ext":".exe","installer_ext":".msi"}'
             FIRST="false"
           fi
-          
+
           # Linux configurations
           if [[ "${{ steps.platforms.outputs.build_linux }}" == "true" ]]; then
             if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
             MATRIX_INCLUDE+='{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}'
             FIRST="false"
-            
+
             # Add ARM64 for full builds
             if [[ "${{ env.BUILD_MODE }}" == "full" ]] || [[ "${{ env.BUILD_MODE }}" == "ultra" ]]; then
               MATRIX_INCLUDE+=','
               MATRIX_INCLUDE+='{"os":"ubuntu-latest","platform":"linux","arch":"arm64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}'
             fi
           fi
-          
+
           # macOS configurations
           if [[ "${{ steps.platforms.outputs.build_macos }}" == "true" ]]; then
             if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
             MATRIX_INCLUDE+='{"os":"macos-latest","platform":"macos","arch":"universal","runner":"macos-latest","icon":"🍎","artifact_ext":".app","installer_ext":".dmg"}'
             FIRST="false"
           fi
-          
+
           MATRIX_INCLUDE+="]"
-          
+
+          # Fallback: if matrix is empty, add at least Linux x64
+          if [[ "$MATRIX_INCLUDE" == "[]" ]]; then
+            echo "⚠️ No platforms selected, using default Linux x64"
+            MATRIX_INCLUDE='[{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}]'
+          fi
+
           echo "include=$MATRIX_INCLUDE" >> $GITHUB_OUTPUT
           echo "📋 Build Matrix:"
           echo "$MATRIX_INCLUDE" | jq .
@@ -824,7 +830,11 @@ jobs:
     name: ${{ matrix.icon }} Build ${{ matrix.platform }} (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
     needs: [initialize, security-scan, code-quality]
-    if: always() && needs.initialize.result == 'success'
+    if: |
+      always() &&
+      needs.initialize.result == 'success' &&
+      (needs.security-scan.result == 'success' || needs.security-scan.result == 'skipped') &&
+      (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped')
 
     strategy:
       fail-fast: false
@@ -1449,7 +1459,10 @@ jobs:
     name: 📦 Aggregate Build Artifacts
     runs-on: ubuntu-latest
     needs: [initialize, build]
-    if: always() && needs.initialize.result == 'success'
+    if: |
+      always() &&
+      needs.initialize.result == 'success' &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped')
 
     steps:
       - name: 📥 Download All Artifacts
@@ -1627,14 +1640,19 @@ jobs:
       - name: 📊 Determine Build Status
         id: status
         run: |
-          if [ "${{ needs.build.result }}" == "success" ]; then
+          BUILD_RESULT="${{ needs.build.result }}"
+          if [ "$BUILD_RESULT" == "success" ]; then
             echo "status=success" >> $GITHUB_OUTPUT
             echo "emoji=✅" >> $GITHUB_OUTPUT
             echo "color=good" >> $GITHUB_OUTPUT
-          elif [ "${{ needs.build.result }}" == "failure" ]; then
+          elif [ "$BUILD_RESULT" == "failure" ]; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "emoji=❌" >> $GITHUB_OUTPUT
             echo "color=danger" >> $GITHUB_OUTPUT
+          elif [ "$BUILD_RESULT" == "skipped" ]; then
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "emoji=⏭️" >> $GITHUB_OUTPUT
+            echo "color=warning" >> $GITHUB_OUTPUT
           else
             echo "status=warning" >> $GITHUB_OUTPUT
             echo "emoji=⚠️" >> $GITHUB_OUTPUT
@@ -1779,7 +1797,8 @@ jobs:
           echo "║                                                                                                  ║"
           echo "╚══════════════════════════════════════════════════════════════════════════════════════════════════╝"
           
-          # Exit with appropriate code
-          if [ "${{ needs.build.result }}" != "success" ]; then
+          # Exit with appropriate code (allow skipped as success)
+          BUILD_RESULT="${{ needs.build.result }}"
+          if [ "$BUILD_RESULT" != "success" ] && [ "$BUILD_RESULT" != "skipped" ]; then
             exit 1
           fi
