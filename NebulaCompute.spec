@@ -13,7 +13,7 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
-    ['/home/user/theEnd/src/distributed_cluster/desktop/main.py'],
+    ['/home/user/theEnd/src/distributed_cluster/desktop/app_entry.py'],
     pathex=['/home/user/theEnd/src'],
     binaries=binaries,
     datas=datas,
@@ -21,7 +21,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tkinter', 'matplotlib', 'numpy', 'pandas', 'scipy', 'PIL', 'IPython', 'jupyter', 'notebook', 'pytest', 'setuptools', 'pip', 'wheel'],
+    excludes=['tkinter', 'matplotlib', 'numpy', 'pandas', 'scipy', 'PIL', 'IPython', 'jupyter', 'notebook', 'pytest', 'setuptools', 'pip', 'wheel', 'cryptography', 'cryptography.hazmat', 'cryptography.hazmat.backends', 'cryptography.hazmat.backends.openssl', 'docker', 'pynvml'],
     noarchive=False,
     optimize=0,
 )
