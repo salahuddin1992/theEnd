@@ -85,18 +85,49 @@ from .rules import (
 RuleAction = RuleCondition
 ConditionalRouter = RuleEngine
 
-# Manager components - use from channels which has NotificationManager
-NotificationQueue = list  # Simple placeholder
-NotificationScheduler = type("NotificationScheduler", (), {})  # Placeholder
-NotificationHistory = list  # Simple placeholder
-RateLimiter = type("RateLimiter", (), {})  # Placeholder (actual one is in channels)
+# Queue components
+from .queue import (
+    NotificationQueue,
+    MultiPriorityQueue,
+    QueueOverflowPolicy,
+    QueueFullError,
+)
 
-# Template placeholders
-NotificationTemplate = type("NotificationTemplate", (), {})
-TemplateEngine = type("TemplateEngine", (), {})
-HTMLTemplate = type("HTMLTemplate", (), {})
-MarkdownTemplate = type("MarkdownTemplate", (), {})
-RTLTemplate = type("RTLTemplate", (), {})
+# History components
+from .history import (
+    NotificationHistory,
+    HistoryQuery,
+    HistoryStats,
+    RetentionPolicy,
+)
+
+# Scheduler components
+from .scheduler import (
+    NotificationScheduler,
+    ScheduledJob,
+    Schedule,
+    ScheduleType,
+    JobStatus,
+)
+
+# Template components
+from .templates import (
+    NotificationTemplate,
+    TemplateEngine,
+    HTMLTemplate,
+    MarkdownTemplate,
+    RTLTemplate,
+    StringTemplate,
+    TemplateContext,
+    TemplateFormat,
+    TextDirection,
+    default_engine,
+    render_template,
+    create_notification_content,
+)
+
+# Rate limiter from channels (already implemented)
+from .channels import RateLimiter
 
 
 # Exception classes
@@ -171,16 +202,36 @@ __all__ = [
     "ConditionalRouter",
     # Manager
     "NotificationManager",
-    "NotificationQueue",
-    "NotificationScheduler",
-    "NotificationHistory",
     "RateLimiter",
+    # Queue
+    "NotificationQueue",
+    "MultiPriorityQueue",
+    "QueueOverflowPolicy",
+    "QueueFullError",
+    # History
+    "NotificationHistory",
+    "HistoryQuery",
+    "HistoryStats",
+    "RetentionPolicy",
+    # Scheduler
+    "NotificationScheduler",
+    "ScheduledJob",
+    "Schedule",
+    "ScheduleType",
+    "JobStatus",
     # Templates
     "NotificationTemplate",
     "TemplateEngine",
     "HTMLTemplate",
     "MarkdownTemplate",
     "RTLTemplate",
+    "StringTemplate",
+    "TemplateContext",
+    "TemplateFormat",
+    "TextDirection",
+    "default_engine",
+    "render_template",
+    "create_notification_content",
     # Exceptions
     "NotificationError",
     "ChannelError",
