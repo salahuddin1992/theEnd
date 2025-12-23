@@ -130,6 +130,9 @@ from .views import (
     FluentSettingsView,
     FluentLogsView,
     FluentMetricsView,
+    FluentTemplatesView,
+    FluentPoolsView,
+    FluentQueuesView,
 )
 from .main_window import (
     FluentMainWindow,
@@ -243,6 +246,9 @@ __all__ = [
     "FluentSettingsView",
     "FluentLogsView",
     "FluentMetricsView",
+    "FluentTemplatesView",
+    "FluentPoolsView",
+    "FluentQueuesView",
     # Main Window
     "FluentMainWindow",
     "create_fluent_app",

@@ -37,7 +37,10 @@ from .views import (
     FluentWorkersView,
     FluentSettingsView,
     FluentLogsView,
-    FluentMetricsView
+    FluentMetricsView,
+    FluentTemplatesView,
+    FluentPoolsView,
+    FluentQueuesView
 )
 from .dialogs import ConnectionDialog, ConfirmationDialog, ConfirmationType
 from .windows_integration import (
@@ -189,12 +192,20 @@ class FluentMainWindow(FramelessWindow):
         self._views["settings"] = self._settings_view
         self._content_stack.addWidget(self._settings_view)
 
-        # Placeholder views for remaining pages (to be implemented)
-        placeholders = ["templates", "pools", "queues"]
-        for page_id in placeholders:
-            view = self._create_placeholder_view(page_id.title())
-            self._views[page_id] = view
-            self._content_stack.addWidget(view)
+        # Templates View
+        self._templates_view = FluentTemplatesView()
+        self._views["templates"] = self._templates_view
+        self._content_stack.addWidget(self._templates_view)
+
+        # Pools View
+        self._pools_view = FluentPoolsView()
+        self._views["pools"] = self._pools_view
+        self._content_stack.addWidget(self._pools_view)
+
+        # Queues View
+        self._queues_view = FluentQueuesView()
+        self._views["queues"] = self._queues_view
+        self._content_stack.addWidget(self._queues_view)
 
     def _create_placeholder_view(self, title: str) -> QWidget:
         """Create a placeholder view"""
