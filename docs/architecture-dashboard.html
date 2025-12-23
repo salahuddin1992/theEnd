@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NebulaCompute - هيكل النظام</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #e94560);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+        }
+
+        .architecture-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Main Architecture Diagram */
+        .main-diagram {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .diagram-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #00d4ff;
+        }
+
+        /* Tier Layout */
+        .tier {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .tier-label {
+            position: absolute;
+            left: 0;
+            background: linear-gradient(90deg, #7b2cbf, #e94560);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Nodes */
+        .node {
+            background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px;
+            min-width: 200px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0,212,255,0.3);
+        }
+
+        .node.master {
+            border-color: #00d4ff;
+            background: linear-gradient(145deg, #0a3d62, #1a1a3a);
+        }
+
+        .node.worker {
+            border-color: #7b2cbf;
+            background: linear-gradient(145deg, #4a1a6b, #1a1a3a);
+        }
+
+        .node.mesh {
+            border-color: #e94560;
+            background: linear-gradient(145deg, #6b1a2a, #1a1a3a);
+        }
+
+        .node.storage {
+            border-color: #ffd700;
+            background: linear-gradient(145deg, #5a4a0a, #1a1a3a);
+        }
+
+        .node.ai {
+            border-color: #00ff88;
+            background: linear-gradient(145deg, #0a5a3a, #1a1a3a);
+        }
+
+        .node-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .node-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .node-desc {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+        }
+
+        /* Connection Lines */
+        .connections {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .arrow {
+            color: #00d4ff;
+            font-size: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Component Grid */
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .component-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .component-card:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(0,212,255,0.5);
+        }
+
+        .component-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .component-icon {
+            font-size: 1.8rem;
+            margin-left: 15px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .component-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .file-list {
+            list-style: none;
+        }
+
+        .file-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+
+        .file-list li::before {
+            content: "📄";
+            margin-left: 10px;
+        }
+
+        .file-path {
+            color: #00d4ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        /* Flow Diagram */
+        .flow-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .flow-title {
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #7b2cbf;
+        }
+
+        .flow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .flow-step {
+            background: linear-gradient(145deg, #2a2a4a, #1a1a3a);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid #7b2cbf;
+            text-align: center;
+        }
+
+        .flow-arrow {
+            color: #7b2cbf;
+            font-size: 1.5rem;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .tier {
+                flex-direction: column;
+            }
+
+            .tier-label {
+                position: relative;
+                margin-bottom: 10px;
+            }
+
+            .node {
+                min-width: 150px;
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            border: 1px solid #00d4ff;
+            z-index: 100;
+        }
+
+        .node:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌌 NebulaCompute</h1>
+        <p>نظام الحوسبة الموزعة - هيكل النظام الخارجي</p>
+    </div>
+
+    <div class="architecture-container">
+        <!-- Stats Section -->
+        <div class="stats-section fade-in">
+            <div class="stat-card">
+                <div class="stat-number">18+</div>
+                <div class="stat-label">وحدة نظام</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100+</div>
+                <div class="stat-label">ملف كود</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">10+</div>
+                <div class="stat-label">مزود AI</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">طرق نشر</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">واجهات</div>
+            </div>
+        </div>
+
+        <!-- Main Architecture Diagram -->
+        <div class="main-diagram fade-in">
+            <div class="diagram-title">📊 الهيكل المعماري الرئيسي</div>
+
+            <!-- Control Plane Tier -->
+            <div class="tier">
+                <span class="tier-label">طبقة التحكم</span>
+                <div class="node master">
+                    <div class="tooltip">src/distributed_cluster/master/</div>
+                    <div class="node-icon">🎛️</div>
+                    <div class="node-title">Master Server</div>
+                    <div class="node-desc">REST API + WebSocket</div>
+                </div>
+                <div class="node master">
+                    <div class="tooltip">src/distributed_cluster/scheduler/</div>
+                    <div class="node-icon">📋</div>
+                    <div class="node-title">Scheduler</div>
+                    <div class="node-desc">جدولة المهام</div>
+                </div>
+                <div class="node master">
+                    <div class="tooltip">src/distributed_cluster/master/ha/</div>
+                    <div class="node-icon">🔄</div>
+                    <div class="node-title">HA Manager</div>
+                    <div class="node-desc">التوفر العالي</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <span class="arrow">⬇️ ⬇️ ⬇️</span>
+            </div>
+
+            <!-- AI Tier -->
+            <div class="tier">
+                <span class="tier-label">طبقة AI</span>
+                <div class="node ai">
+                    <div class="tooltip">src/distributed_cluster/ai/llm/</div>
+                    <div class="node-icon">🤖</div>
+                    <div class="node-title">LLM Providers</div>
+                    <div class="node-desc">Claude, OpenAI, Gemini...</div>
+                </div>
+                <div class="node ai">
+                    <div class="tooltip">src/distributed_cluster/ai/inference/</div>
+                    <div class="node-icon">⚡</div>
+                    <div class="node-title">Inference Router</div>
+                    <div class="node-desc">توجيه الاستدلال</div>
+                </div>
+                <div class="node ai">
+                    <div class="tooltip">src/distributed_cluster/ai/agents/</div>
+                    <div class="node-icon">🕵️</div>
+                    <div class="node-title">AI Agents</div>
+                    <div class="node-desc">وكلاء ذكاء اصطناعي</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <span class="arrow">⬇️ ⬇️ ⬇️</span>
+            </div>
+
+            <!-- Worker Tier -->
+            <div class="tier">
+                <span class="tier-label">طبقة العمل</span>
+                <div class="node worker">
+                    <div class="tooltip">src/distributed_cluster/worker/agent.py</div>
+                    <div class="node-icon">👷</div>
+                    <div class="node-title">Worker Agent</div>
+                    <div class="node-desc">وكيل العامل</div>
+                </div>
+                <div class="node worker">
+                    <div class="tooltip">src/distributed_cluster/worker/executor.py</div>
+                    <div class="node-icon">⚙️</div>
+                    <div class="node-title">Executor</div>
+                    <div class="node-desc">منفذ المهام</div>
+                </div>
+                <div class="node worker">
+                    <div class="tooltip">src/distributed_cluster/worker/container_runtime.py</div>
+                    <div class="node-icon">🐳</div>
+                    <div class="node-title">Container Runtime</div>
+                    <div class="node-desc">Docker / Containers</div>
+                </div>
+            </div>
+
+            <div class="connections">
+                <span class="arrow">⬇️ ⬇️ ⬇️</span>
+            </div>
+
+            <!-- Mesh & Storage Tier -->
+            <div class="tier">
+                <span class="tier-label">طبقة الشبكة والتخزين</span>
+                <div class="node mesh">
+                    <div class="tooltip">src/distributed_cluster/mesh/</div>
+                    <div class="node-icon">🕸️</div>
+                    <div class="node-title">Mesh Network</div>
+                    <div class="node-desc">شبكة P2P موزعة</div>
+                </div>
+                <div class="node storage">
+                    <div class="tooltip">src/distributed_cluster/storage/</div>
+                    <div class="node-icon">💾</div>
+                    <div class="node-title">Storage</div>
+                    <div class="node-desc">قاعدة البيانات</div>
+                </div>
+                <div class="node storage">
+                    <div class="tooltip">src/distributed_cluster/artifacts/</div>
+                    <div class="node-icon">📦</div>
+                    <div class="node-title">Artifacts</div>
+                    <div class="node-desc">S3 / MinIO / NFS</div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00d4ff;"></div>
+                    <span>Control Plane</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00ff88;"></div>
+                    <span>AI/LLM</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #7b2cbf;"></div>
+                    <span>Workers</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e94560;"></div>
+                    <span>Mesh Network</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffd700;"></div>
+                    <span>Storage</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Flow Section -->
+        <div class="flow-section fade-in">
+            <div class="flow-title">🔄 تدفق المهام (Job Flow)</div>
+            <div class="flow-diagram">
+                <div class="flow-step">📝 إرسال المهمة</div>
+                <span class="flow-arrow">←</span>
+                <div class="flow-step">📋 الجدولة</div>
+                <span class="flow-arrow">←</span>
+                <div class="flow-step">👷 تخصيص العامل</div>
+                <span class="flow-arrow">←</span>
+                <div class="flow-step">⚙️ التنفيذ</div>
+                <span class="flow-arrow">←</span>
+                <div class="flow-step">✅ النتيجة</div>
+            </div>
+        </div>
+
+        <!-- Components Grid -->
+        <div class="components-grid">
+            <!-- Master Components -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #00d4ff, #0077b6);">🎛️</div>
+                    <div class="component-title">Master Server</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">master/server.py</span> - خادم API</li>
+                    <li><span class="file-path">master/api.py</span> - واجهة محسّنة</li>
+                    <li><span class="file-path">master/state.py</span> - إدارة الحالة</li>
+                    <li><span class="file-path">master/dashboard.py</span> - لوحة التحكم</li>
+                </ul>
+            </div>
+
+            <!-- HA Components -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #7b2cbf, #9d4edd);">🔄</div>
+                    <div class="component-title">High Availability</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">master/ha/ha_master.py</span> - خادم HA</li>
+                    <li><span class="file-path">master/ha/leader_election.py</span> - انتخاب القائد</li>
+                    <li><span class="file-path">master/ha/state_sync.py</span> - مزامنة الحالة</li>
+                    <li><span class="file-path">master/ha/health_monitor.py</span> - مراقبة الصحة</li>
+                </ul>
+            </div>
+
+            <!-- Worker Components -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #e94560, #ff6b6b);">👷</div>
+                    <div class="component-title">Worker Nodes</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">worker/agent.py</span> - وكيل العامل</li>
+                    <li><span class="file-path">worker/ha_agent.py</span> - وكيل HA</li>
+                    <li><span class="file-path">worker/executor.py</span> - منفذ المهام</li>
+                    <li><span class="file-path">worker/container_runtime.py</span> - حاويات</li>
+                </ul>
+            </div>
+
+            <!-- Scheduler Components -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #ffd700, #ffaa00);">📋</div>
+                    <div class="component-title">Scheduler</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">scheduler/scheduler.py</span> - الجدولة الأساسية</li>
+                    <li><span class="file-path">scheduler/autoscaler.py</span> - التوسع التلقائي</li>
+                    <li><span class="file-path">scheduler/priority_queues.py</span> - الأولويات</li>
+                    <li><span class="file-path">scheduler/dag.py</span> - تنفيذ DAG</li>
+                </ul>
+            </div>
+
+            <!-- Mesh Network -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #e94560, #ff8fa3);">🕸️</div>
+                    <div class="component-title">Mesh Network</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">mesh/node.py</span> - عقدة الشبكة</li>
+                    <li><span class="file-path">mesh/discovery.py</span> - اكتشاف الأقران</li>
+                    <li><span class="file-path">mesh/router.py</span> - التوجيه</li>
+                    <li><span class="file-path">mesh/consensus.py</span> - التوافق</li>
+                </ul>
+            </div>
+
+            <!-- AI/LLM -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #00ff88, #00cc6a);">🤖</div>
+                    <div class="component-title">AI / LLM</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">ai/llm/provider.py</span> - واجهة المزودين</li>
+                    <li><span class="file-path">ai/llm/all_providers.py</span> - جميع المزودين</li>
+                    <li><span class="file-path">ai/inference/router.py</span> - توجيه الاستدلال</li>
+                    <li><span class="file-path">ai/agents/base.py</span> - الوكلاء</li>
+                </ul>
+            </div>
+
+            <!-- Security -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #ff6b6b, #ee5a5a);">🔐</div>
+                    <div class="component-title">Security</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">security/auth.py</span> - JWT & RBAC</li>
+                    <li><span class="file-path">security/crypto.py</span> - التشفير</li>
+                    <li><span class="file-path">security/secrets.py</span> - الأسرار</li>
+                    <li><span class="file-path">security/audit.py</span> - التدقيق</li>
+                </ul>
+            </div>
+
+            <!-- Observability -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #00d4ff, #00a8cc);">📊</div>
+                    <div class="component-title">Observability</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">observability/metrics.py</span> - المقاييس</li>
+                    <li><span class="file-path">observability/prometheus.py</span> - Prometheus</li>
+                    <li><span class="file-path">observability/health.py</span> - فحص الصحة</li>
+                    <li><span class="file-path">observability/logging.py</span> - السجلات</li>
+                </ul>
+            </div>
+
+            <!-- Interfaces -->
+            <div class="component-card fade-in">
+                <div class="component-header">
+                    <div class="component-icon" style="background: linear-gradient(135deg, #9d4edd, #7b2cbf);">🖥️</div>
+                    <div class="component-title">Interfaces</div>
+                </div>
+                <ul class="file-list">
+                    <li><span class="file-path">web/app.py</span> - واجهة الويب</li>
+                    <li><span class="file-path">desktop/main_window.py</span> - سطح المكتب</li>
+                    <li><span class="file-path">cli/main.py</span> - سطر الأوامر</li>
+                    <li><span class="file-path">grpc/master_service.py</span> - gRPC</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Deployment Options -->
+        <div class="flow-section fade-in" style="margin-top: 30px;">
+            <div class="flow-title">🚀 خيارات النشر</div>
+            <div class="flow-diagram">
+                <div class="flow-step">🐳 Docker Compose</div>
+                <div class="flow-step">☸️ Kubernetes</div>
+                <div class="flow-step">⎈ Helm Charts</div>
+                <div class="flow-step">🖥️ Desktop App</div>
+                <div class="flow-step">💻 CLI</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add fade-in animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.component-card, .flow-section').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Add click handler for nodes
+        document.querySelectorAll('.node').forEach(node => {
+            node.addEventListener('click', () => {
+                const tooltip = node.querySelector('.tooltip');
+                if (tooltip) {
+                    alert('المسار: ' + tooltip.textContent);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
