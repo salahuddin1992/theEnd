@@ -9,6 +9,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -16,6 +17,7 @@ from PySide6.QtWidgets import (
 
 from ..api.client import APIClient
 from ..resources.styles import COLORS
+from ..ui.dialogs import PoolCreateDialog
 from ..widgets.data_table import DataTable
 
 
@@ -95,8 +97,26 @@ class PoolsView(QWidget):
 
     def _on_create_pool(self):
         """Handle create pool"""
-        # TODO: Implement pool creation dialog
-        pass
+        dialog = PoolCreateDialog(self)
+        dialog.pool_created.connect(self._handle_pool_created)
+        dialog.exec()
+
+    def _handle_pool_created(self, pool_config: dict):
+        """Handle pool creation from dialog"""
+        if self.api_client:
+            try:
+                # Call API to create pool
+                self.api_client.create_pool(pool_config)
+                self.refresh_requested.emit()
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Failed to create pool: {str(e)}"
+                )
+        else:
+            # No API client - just emit refresh
+            self.refresh_requested.emit()
 
     def set_api_client(self, client: APIClient):
         """Set the API client"""

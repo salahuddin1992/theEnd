@@ -15,6 +15,7 @@ import json
 import logging
 import secrets
 import time
+from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -174,12 +175,13 @@ class Span:
         }
 
 
-class SpanExporter:
+class SpanExporter(ABC):
     """واجهة تصدير الـ Spans."""
 
+    @abstractmethod
     async def export(self, spans: List[Span]) -> bool:
         """تصدير spans."""
-        raise NotImplementedError
+        pass
 
 
 class ConsoleSpanExporter(SpanExporter):

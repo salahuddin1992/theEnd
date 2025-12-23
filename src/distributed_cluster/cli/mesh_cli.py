@@ -258,6 +258,68 @@ def show_status(
     console.print("[yellow]⚠️ Use 'dc-mesh start --interactive' to see live status[/yellow]")
 
 
+async def _submit_job_to_node(
+    host: str,
+    port: int,
+    command: str,
+    cpu: float,
+    memory: int,
+    gpu: int,
+    timeout: int,
+) -> dict:
+    """Submit a job to a mesh node via TCP connection."""
+    import json
+    import uuid
+    from datetime import datetime
+
+    try:
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port),
+            timeout=10.0
+        )
+
+        # Create job submission message
+        job_id = f"job-{uuid.uuid4().hex[:12]}"
+        message = {
+            "type": "job_submit",
+            "sender_id": f"cli-{uuid.uuid4().hex[:8]}",
+            "data": {
+                "job_id": job_id,
+                "command": command,
+                "resources": {
+                    "cpu_cores": cpu,
+                    "memory_mb": memory,
+                    "gpu_count": gpu,
+                },
+                "timeout_seconds": timeout,
+            },
+            "message_id": uuid.uuid4().hex[:12],
+            "timestamp": datetime.utcnow().isoformat(),
+            "ttl": 5,
+        }
+
+        # Send message
+        writer.write((json.dumps(message) + "\n").encode())
+        await writer.drain()
+
+        # Wait for response
+        response_data = await asyncio.wait_for(reader.readline(), timeout=30.0)
+        writer.close()
+        await writer.wait_closed()
+
+        if response_data:
+            return {"success": True, "job_id": job_id, "response": json.loads(response_data.decode())}
+        else:
+            return {"success": True, "job_id": job_id, "response": None}
+
+    except asyncio.TimeoutError:
+        return {"success": False, "error": "Connection timeout"}
+    except ConnectionRefusedError:
+        return {"success": False, "error": "Connection refused - is the mesh node running?"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 @app.command("submit")
 def submit_job(
     command: str = typer.Argument(..., help="الأمر للتنفيذ"),
@@ -276,9 +338,36 @@ def submit_job(
     """
     console.print(f"[blue]📤 Submitting job: {command}[/blue]")
     console.print(f"[dim]Resources: CPU={cpu}, Memory={memory}MB, GPU={gpu}[/dim]")
+    console.print(f"[dim]Target node: {address}[/dim]")
 
-    # TODO: تنفيذ الاتصال بالعقدة وإرسال المهمة
-    console.print("[yellow]⚠️ Direct job submission requires running node. Use dc-mesh start first.[/yellow]")
+    # Parse address
+    if ":" in address:
+        host, port_str = address.rsplit(":", 1)
+        port = int(port_str)
+    else:
+        host = address
+        port = 9000
+
+    # Submit job
+    with console.status("[bold green]Connecting to mesh node..."):
+        result = asyncio.run(_submit_job_to_node(
+            host=host,
+            port=port,
+            command=command,
+            cpu=cpu,
+            memory=memory,
+            gpu=gpu,
+            timeout=timeout,
+        ))
+
+    if result["success"]:
+        console.print(f"[green]✓ Job submitted successfully![/green]")
+        console.print(f"[cyan]Job ID: {result['job_id']}[/cyan]")
+        if result.get("response"):
+            console.print(f"[dim]Response: {result['response']}[/dim]")
+    else:
+        console.print(f"[red]✗ Failed to submit job: {result['error']}[/red]")
+        console.print("[yellow]Tip: Make sure a mesh node is running with 'dc-mesh start'[/yellow]")
 
 
 @app.command("info")
