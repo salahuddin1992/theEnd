@@ -1,129 +1,355 @@
 {% extends "base.html" %}
 
-{% block title %}المهام - Distributed Cluster{% endblock %}
+{% block title %}المهام - NebulaCompute{% endblock %}
 {% block page_title %}إدارة المهام{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="header-info">
-        <p>إجمالي المهام: <strong>{{ jobs|length }}</strong></p>
+<!-- شريط الإجراءات -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 text-text-secondary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span>إجمالي المهام: <strong class="text-text-primary" id="jobsCount">{{ jobs|length }}</strong></span>
+        </div>
     </div>
-    <div class="header-actions">
-        <div class="filter-group">
-            <label>تصفية:</label>
-            <select id="statusFilter" onchange="filterJobs()">
-                <option value="all">الكل</option>
+
+    <div class="flex items-center gap-3">
+        <!-- تصفية الحالة -->
+        <div class="relative">
+            <select id="statusFilter" onchange="filterJobs()" class="fluent-select">
+                <option value="all">جميع الحالات</option>
                 <option value="running">قيد التنفيذ</option>
                 <option value="pending">في الانتظار</option>
                 <option value="completed">مكتملة</option>
                 <option value="failed">فاشلة</option>
+                <option value="cancelled">ملغاة</option>
             </select>
+        </div>
+
+        <!-- بحث -->
+        <div class="relative">
+            <input type="text" id="searchInput" placeholder="بحث..."
+                   onkeyup="searchJobs()" class="fluent-input pr-10">
+            <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+        </div>
+
+        <!-- زر إضافة مهمة -->
+        <button onclick="showSubmitDialog()" class="fluent-button fluent-button-accent">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>مهمة جديدة</span>
+        </button>
+    </div>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="fluent-card p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-2xl font-semibold" id="runningCount">{{ running_count|default(0) }}</div>
+            <div class="text-sm text-text-secondary">قيد التنفيذ</div>
+        </div>
+    </div>
+
+    <div class="fluent-card p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-2xl font-semibold" id="pendingCount">{{ pending_count|default(0) }}</div>
+            <div class="text-sm text-text-secondary">في الانتظار</div>
+        </div>
+    </div>
+
+    <div class="fluent-card p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-2xl font-semibold" id="completedCount">{{ completed_count|default(0) }}</div>
+            <div class="text-sm text-text-secondary">مكتملة</div>
+        </div>
+    </div>
+
+    <div class="fluent-card p-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-error/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-2xl font-semibold" id="failedCount">{{ failed_count|default(0) }}</div>
+            <div class="text-sm text-text-secondary">فاشلة</div>
         </div>
     </div>
 </div>
 
-<div class="jobs-table-container">
-    <table class="jobs-table">
-        <thead>
-            <tr>
-                <th>المهمة</th>
-                <th>الحالة</th>
-                <th>العامل</th>
-                <th>التقدم</th>
-                <th>وقت الإنشاء</th>
-                <th>الإجراءات</th>
-            </tr>
-        </thead>
-        <tbody id="jobsTableBody">
-            {% for job in jobs %}
-            <tr class="job-row" data-status="{{ job.status }}">
-                <td>
-                    <div class="job-cell">
-                        <span class="job-name">{{ job.name or 'بدون اسم' }}</span>
-                        <span class="job-id">{{ job.job_id }}</span>
-                    </div>
-                </td>
-                <td>
-                    <span class="status-badge status-{{ job.status }}">
-                        {% if job.status == 'running' %}<span class="spinner-small"></span>{% endif %}
-                        {{ job.status }}
-                    </span>
-                </td>
-                <td>
-                    {% if job.worker_id %}
-                    <span class="worker-link">{{ job.worker_id }}</span>
-                    {% else %}
-                    <span class="no-worker">--</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if job.progress is defined %}
-                    <div class="progress-cell">
-                        <div class="progress-bar-table">
-                            <div class="bar" style="width: {{ job.progress }}%"></div>
+<!-- جدول المهام -->
+<div class="fluent-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-white/5">
+                    <th class="text-right p-4 text-text-secondary font-medium text-sm">المهمة</th>
+                    <th class="text-right p-4 text-text-secondary font-medium text-sm">الحالة</th>
+                    <th class="text-right p-4 text-text-secondary font-medium text-sm">العامل</th>
+                    <th class="text-right p-4 text-text-secondary font-medium text-sm">التقدم</th>
+                    <th class="text-right p-4 text-text-secondary font-medium text-sm">الأولوية</th>
+                    <th class="text-right p-4 text-text-secondary font-medium text-sm">وقت البدء</th>
+                    <th class="text-right p-4 text-text-secondary font-medium text-sm">المدة</th>
+                    <th class="text-center p-4 text-text-secondary font-medium text-sm">الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="jobsTableBody">
+                {% for job in jobs %}
+                <tr class="job-row border-b border-white/5 hover:bg-white/5 transition-colors"
+                    data-status="{{ job.status }}" data-name="{{ job.name|default('') }}">
+                    <td class="p-4">
+                        <div class="flex flex-col">
+                            <span class="font-medium text-text-primary">{{ job.name or 'بدون اسم' }}</span>
+                            <span class="text-xs text-text-tertiary font-mono">{{ job.job_id[:12] }}...</span>
                         </div>
-                        <span>{{ job.progress }}%</span>
-                    </div>
-                    {% else %}
-                    <span class="no-progress">--</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <span class="time-cell">{{ job.created_at }}</span>
-                </td>
-                <td>
-                    <div class="actions-cell">
-                        {% if job.status in ['running', 'pending'] %}
-                        <button class="btn btn-danger btn-small" onclick="cancelJob('{{ job.job_id }}')">
-                            إلغاء
-                        </button>
+                    </td>
+                    <td class="p-4">
+                        {% if job.status == 'running' %}
+                        <span class="fluent-badge fluent-badge-accent flex items-center gap-1">
+                            <span class="w-2 h-2 bg-accent rounded-full animate-pulse"></span>
+                            قيد التنفيذ
+                        </span>
+                        {% elif job.status == 'pending' %}
+                        <span class="fluent-badge fluent-badge-warning">في الانتظار</span>
+                        {% elif job.status == 'completed' %}
+                        <span class="fluent-badge fluent-badge-success">مكتملة</span>
+                        {% elif job.status == 'failed' %}
+                        <span class="fluent-badge fluent-badge-error">فاشلة</span>
+                        {% elif job.status == 'cancelled' %}
+                        <span class="fluent-badge" style="background: rgba(128,128,128,0.2); color: #888;">ملغاة</span>
+                        {% else %}
+                        <span class="fluent-badge">{{ job.status }}</span>
                         {% endif %}
-                        <button class="btn btn-secondary btn-small" onclick="viewJobDetails('{{ job.job_id }}')">
-                            تفاصيل
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                    <td class="p-4">
+                        {% if job.worker_id %}
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded bg-accent/20 flex items-center justify-center text-xs text-accent">W</div>
+                            <span class="text-sm text-text-secondary font-mono">{{ job.worker_id[:8] }}...</span>
+                        </div>
+                        {% else %}
+                        <span class="text-text-tertiary">--</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% if job.progress is defined %}
+                        <div class="flex items-center gap-2 min-w-[120px]">
+                            <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full bg-accent rounded-full transition-all duration-300"
+                                     style="width: {{ job.progress }}%"></div>
+                            </div>
+                            <span class="text-xs text-text-secondary w-10 text-left">{{ job.progress }}%</span>
+                        </div>
+                        {% else %}
+                        <span class="text-text-tertiary">--</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% set priority = job.priority|default(5) %}
+                        {% if priority >= 8 %}
+                        <span class="text-error font-medium">عالية</span>
+                        {% elif priority >= 5 %}
+                        <span class="text-warning font-medium">متوسطة</span>
+                        {% else %}
+                        <span class="text-text-secondary">عادية</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        <span class="text-sm text-text-secondary">{{ job.created_at }}</span>
+                    </td>
+                    <td class="p-4">
+                        <span class="text-sm text-text-secondary">{{ job.duration|default('--') }}</span>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="viewJobDetails('{{ job.job_id }}')"
+                                    class="p-2 rounded hover:bg-white/10 text-text-secondary hover:text-accent transition-colors"
+                                    title="تفاصيل">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                            {% if job.status in ['running', 'pending'] %}
+                            <button onclick="cancelJob('{{ job.job_id }}')"
+                                    class="p-2 rounded hover:bg-error/20 text-text-secondary hover:text-error transition-colors"
+                                    title="إلغاء">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                            {% endif %}
+                            {% if job.status == 'failed' %}
+                            <button onclick="retryJob('{{ job.job_id }}')"
+                                    class="p-2 rounded hover:bg-accent/20 text-text-secondary hover:text-accent transition-colors"
+                                    title="إعادة المحاولة">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {% if not jobs %}
-<div class="empty-state">
-    <span class="icon">📋</span>
-    <h3>لا توجد مهام</h3>
-    <p>قم بإرسال مهمة جديدة</p>
-    <code>dc-submit run "echo hello"</code>
+<div class="fluent-card p-12 text-center mt-6">
+    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+        <svg class="w-8 h-8 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+    </div>
+    <h3 class="text-xl font-semibold text-text-primary mb-2">لا توجد مهام</h3>
+    <p class="text-text-secondary mb-4">قم بإرسال مهمة جديدة للبدء</p>
+    <code class="px-4 py-2 bg-white/5 rounded-lg text-accent font-mono text-sm">dc-submit run "echo hello"</code>
 </div>
 {% endif %}
 
-<!-- Modal لتفاصيل المهمة -->
-<div id="jobModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>تفاصيل المهمة</h3>
-            <button class="close-btn" onclick="closeModal()">&times;</button>
+<!-- نافذة تفاصيل المهمة -->
+<div id="jobModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="fluent-card w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col m-4">
+        <div class="flex items-center justify-between p-4 border-b border-white/10">
+            <h3 class="text-lg font-semibold">تفاصيل المهمة</h3>
+            <button onclick="closeModal()" class="p-2 rounded hover:bg-white/10 text-text-secondary">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
-        <div class="modal-body" id="jobModalBody">
+        <div class="p-4 overflow-y-auto" id="jobModalBody">
             <!-- سيتم ملؤه بـ JavaScript -->
         </div>
     </div>
 </div>
 
+<!-- نافذة إرسال مهمة -->
+<div id="submitModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="fluent-card w-full max-w-lg m-4">
+        <div class="flex items-center justify-between p-4 border-b border-white/10">
+            <h3 class="text-lg font-semibold">إرسال مهمة جديدة</h3>
+            <button onclick="closeSubmitDialog()" class="p-2 rounded hover:bg-white/10 text-text-secondary">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form onsubmit="submitJob(event)" class="p-4 space-y-4">
+            <div>
+                <label class="block text-sm text-text-secondary mb-2">اسم المهمة</label>
+                <input type="text" id="jobName" class="fluent-input w-full" placeholder="مهمة جديدة">
+            </div>
+            <div>
+                <label class="block text-sm text-text-secondary mb-2">الأمر</label>
+                <textarea id="jobCommand" class="fluent-input w-full h-24 resize-none"
+                          placeholder="echo 'Hello World'" required></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-text-secondary mb-2">الأولوية</label>
+                    <select id="jobPriority" class="fluent-select w-full">
+                        <option value="3">عادية</option>
+                        <option value="5" selected>متوسطة</option>
+                        <option value="8">عالية</option>
+                        <option value="10">حرجة</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-text-secondary mb-2">المهلة (ثواني)</label>
+                    <input type="number" id="jobTimeout" class="fluent-input w-full" value="3600">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" onclick="closeSubmitDialog()" class="fluent-button">إلغاء</button>
+                <button type="submit" class="fluent-button fluent-button-accent">إرسال</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.fluent-select {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 8px 32px 8px 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 8px center;
+    background-size: 16px;
+}
+
+.fluent-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.fluent-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.fluent-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.fluent-input::placeholder {
+    color: var(--text-tertiary);
+}
+</style>
+
 {% block extra_js %}
 <script>
 function filterJobs() {
     const filter = document.getElementById('statusFilter').value;
+    const search = document.getElementById('searchInput').value.toLowerCase();
     const rows = document.querySelectorAll('.job-row');
 
     rows.forEach(row => {
-        if (filter === 'all' || row.dataset.status === filter) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        const status = row.dataset.status;
+        const name = row.dataset.name.toLowerCase();
+        const matchesFilter = filter === 'all' || status === filter;
+        const matchesSearch = !search || name.includes(search);
+        row.style.display = matchesFilter && matchesSearch ? '' : 'none';
     });
+}
+
+function searchJobs() {
+    filterJobs();
 }
 
 async function cancelJob(jobId) {
@@ -133,23 +359,144 @@ async function cancelJob(jobId) {
         const response = await fetch(`/api/jobs/${jobId}/cancel`, { method: 'POST' });
         const result = await response.json();
         if (result.success) {
+            showNotification('تم إلغاء المهمة بنجاح', 'success');
             location.reload();
         } else {
-            alert('فشل إلغاء المهمة');
+            showNotification('فشل إلغاء المهمة', 'error');
         }
     } catch (error) {
-        alert('خطأ في الاتصال');
+        showNotification('خطأ في الاتصال', 'error');
     }
 }
 
-function viewJobDetails(jobId) {
-    document.getElementById('jobModal').style.display = 'flex';
-    document.getElementById('jobModalBody').innerHTML = `<p>جاري تحميل تفاصيل المهمة ${jobId}...</p>`;
+async function retryJob(jobId) {
+    try {
+        const response = await fetch(`/api/jobs/${jobId}/retry`, { method: 'POST' });
+        const result = await response.json();
+        if (result.success) {
+            showNotification('تم إعادة تشغيل المهمة', 'success');
+            location.reload();
+        } else {
+            showNotification('فشل إعادة تشغيل المهمة', 'error');
+        }
+    } catch (error) {
+        showNotification('خطأ في الاتصال', 'error');
+    }
+}
+
+async function viewJobDetails(jobId) {
+    document.getElementById('jobModal').classList.remove('hidden');
+    document.getElementById('jobModal').classList.add('flex');
+    document.getElementById('jobModalBody').innerHTML = `
+        <div class="flex items-center justify-center py-8">
+            <div class="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/api/jobs/${jobId}`);
+        const job = await response.json();
+
+        document.getElementById('jobModalBody').innerHTML = `
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-text-tertiary text-sm">معرف المهمة</span>
+                        <p class="font-mono text-sm">${job.job_id}</p>
+                    </div>
+                    <div>
+                        <span class="text-text-tertiary text-sm">الحالة</span>
+                        <p>${job.status}</p>
+                    </div>
+                    <div>
+                        <span class="text-text-tertiary text-sm">وقت الإنشاء</span>
+                        <p>${job.created_at}</p>
+                    </div>
+                    <div>
+                        <span class="text-text-tertiary text-sm">العامل</span>
+                        <p>${job.worker_id || '--'}</p>
+                    </div>
+                </div>
+                ${job.result ? `
+                <div>
+                    <span class="text-text-tertiary text-sm">النتيجة</span>
+                    <pre class="mt-2 p-3 bg-white/5 rounded-lg text-sm overflow-x-auto">${JSON.stringify(job.result, null, 2)}</pre>
+                </div>
+                ` : ''}
+                ${job.error ? `
+                <div>
+                    <span class="text-text-tertiary text-sm">الخطأ</span>
+                    <pre class="mt-2 p-3 bg-error/10 rounded-lg text-sm text-error overflow-x-auto">${job.error}</pre>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    } catch (error) {
+        document.getElementById('jobModalBody').innerHTML = `
+            <div class="text-center py-8 text-error">خطأ في تحميل التفاصيل</div>
+        `;
+    }
 }
 
 function closeModal() {
-    document.getElementById('jobModal').style.display = 'none';
+    document.getElementById('jobModal').classList.add('hidden');
+    document.getElementById('jobModal').classList.remove('flex');
 }
+
+function showSubmitDialog() {
+    document.getElementById('submitModal').classList.remove('hidden');
+    document.getElementById('submitModal').classList.add('flex');
+}
+
+function closeSubmitDialog() {
+    document.getElementById('submitModal').classList.add('hidden');
+    document.getElementById('submitModal').classList.remove('flex');
+}
+
+async function submitJob(event) {
+    event.preventDefault();
+
+    const data = {
+        name: document.getElementById('jobName').value,
+        command: document.getElementById('jobCommand').value,
+        priority: parseInt(document.getElementById('jobPriority').value),
+        timeout: parseInt(document.getElementById('jobTimeout').value)
+    };
+
+    try {
+        const response = await fetch('/api/jobs/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success || result.job_id) {
+            showNotification('تم إرسال المهمة بنجاح', 'success');
+            closeSubmitDialog();
+            location.reload();
+        } else {
+            showNotification('فشل إرسال المهمة', 'error');
+        }
+    } catch (error) {
+        showNotification('خطأ في الاتصال', 'error');
+    }
+}
+
+// تحديث البيانات عبر WebSocket
+function onDataUpdate(data) {
+    if (data.jobs) {
+        document.getElementById('jobsCount').textContent = data.jobs.length;
+        // يمكن تحديث الجدول هنا
+    }
+}
+
+// إغلاق النوافذ بالنقر خارجها
+document.getElementById('jobModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+document.getElementById('submitModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSubmitDialog();
+});
 </script>
 {% endblock %}
 {% endblock %}

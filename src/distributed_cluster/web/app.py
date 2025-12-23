@@ -358,6 +358,37 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
 
         return templates.TemplateResponse(request, "sync.html", sync_data)
 
+    # صفحة المقاييس
+    @app.get("/metrics", response_class=HTMLResponse)
+    async def metrics_page(request: Request):
+        dash = app.state.dashboard
+        await dash.fetch_from_master()
+
+        # بيانات المقاييس
+        metrics_data = {
+            "throughput": "1,234",
+            "latency": 45,
+            "success_rate": 99.2,
+            "resource_usage": 67,
+            "cpu_usage": 45,
+            "cpu_min": 12,
+            "cpu_avg": 38,
+            "cpu_max": 78,
+            "memory_usage": 62,
+            "mem_min": 45,
+            "mem_avg": 58,
+            "mem_max": 85,
+            "network_in": 89,
+            "network_out": 125,
+            "disk_read": 45,
+            "disk_write": 32,
+            "default_queue": 23,
+            "high_priority_queue": 8,
+            "background_queue": 156,
+        }
+
+        return templates.TemplateResponse(request, "metrics.html", metrics_data)
+
     # API endpoints
     @app.get("/api/stats")
     async def api_stats():

@@ -1,90 +1,137 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة التحكم - Distributed Cluster{% endblock %}
+{% block title %}NebulaCompute - لوحة التحكم{% endblock %}
+
 {% block page_title %}لوحة التحكم{% endblock %}
 
 {% block content %}
-<!-- إحصائيات سريعة -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon workers">🖥️</div>
-        <div class="stat-info">
-            <span class="stat-value" id="totalWorkers">{{ stats.total_workers }}</span>
-            <span class="stat-label">إجمالي العمال</span>
+<div class="space-y-6">
+    <!-- Stats Grid -->
+    <div class="grid-stats animate-in">
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl">📋</span>
+                <span class="stat-change up">↑ 12%</span>
+            </div>
+            <div class="stat-value" style="color: var(--accent);" id="totalJobs">{{ stats.total_jobs }}</div>
+            <div class="stat-label">إجمالي المهام</div>
         </div>
-        <div class="stat-detail">
-            <span class="active">{{ stats.active_workers }} نشط</span>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl">🔄</span>
+                <span class="badge badge-info">نشط</span>
+            </div>
+            <div class="stat-value" style="color: var(--info);" id="runningJobs">{{ stats.running_jobs }}</div>
+            <div class="stat-label">مهام قيد التنفيذ</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl">🖥️</span>
+                <span class="stat-change up">↑ 2</span>
+            </div>
+            <div class="stat-value" style="color: var(--success);" id="activeWorkers">{{ stats.active_workers }}</div>
+            <div class="stat-label">العمال النشطين</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl">✅</span>
+            </div>
+            <div class="stat-value" style="color: var(--success);" id="completedJobs">{{ stats.completed_jobs }}</div>
+            <div class="stat-label">مهام مكتملة</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl">⏳</span>
+            </div>
+            <div class="stat-value" style="color: var(--warning);" id="pendingJobs">{{ stats.pending_jobs or 0 }}</div>
+            <div class="stat-label">مهام معلقة</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl">❌</span>
+            </div>
+            <div class="stat-value" style="color: var(--error);" id="failedJobs">{{ stats.failed_jobs }}</div>
+            <div class="stat-label">مهام فاشلة</div>
         </div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon jobs">📋</div>
-        <div class="stat-info">
-            <span class="stat-value" id="totalJobs">{{ stats.total_jobs }}</span>
-            <span class="stat-label">إجمالي المهام</span>
-        </div>
-        <div class="stat-detail">
-            <span class="running">{{ stats.running_jobs }} قيد التنفيذ</span>
-        </div>
-    </div>
+    <!-- Main Grid -->
+    <div class="grid-cards">
+        <!-- Resource Usage -->
+        <div class="card animate-in" style="animation-delay: 0.1s;">
+            <div class="card-header">
+                <h3 class="card-title">استخدام الموارد</h3>
+                <button class="btn btn-ghost text-sm">عرض التفاصيل</button>
+            </div>
 
-    <div class="stat-card">
-        <div class="stat-icon cpu">⚡</div>
-        <div class="stat-info">
-            <span class="stat-value" id="cpuUsage">{{ stats.used_cpu_cores }}/{{ stats.total_cpu_cores }}</span>
-            <span class="stat-label">أنوية CPU</span>
-        </div>
-        <div class="stat-progress">
-            <div class="progress-bar" style="width: {{ (stats.used_cpu_cores / stats.total_cpu_cores * 100) if stats.total_cpu_cores > 0 else 0 }}%"></div>
-        </div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-icon memory">💾</div>
-        <div class="stat-info">
-            <span class="stat-value" id="memoryUsage">{{ stats.used_memory_gb }}/{{ stats.total_memory_gb }} GB</span>
-            <span class="stat-label">الذاكرة</span>
-        </div>
-        <div class="stat-progress">
-            <div class="progress-bar" style="width: {{ (stats.used_memory_gb / stats.total_memory_gb * 100) if stats.total_memory_gb > 0 else 0 }}%"></div>
-        </div>
-    </div>
-</div>
-
-<!-- قسم العمال والمهام -->
-<div class="dashboard-grid">
-    <!-- العمال -->
-    <div class="card">
-        <div class="card-header">
-            <h3>👥 العمال النشطون</h3>
-            <a href="/workers" class="view-all">عرض الكل</a>
-        </div>
-        <div class="card-body">
-            <div class="workers-list" id="workersList">
-                {% for worker in workers %}
-                <div class="worker-item">
-                    <div class="worker-info">
-                        <span class="worker-name">{{ worker.hostname }}</span>
-                        <span class="worker-id">{{ worker.worker_id }}</span>
+            <div class="space-y-6">
+                <!-- CPU -->
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm text-gray-400">CPU</span>
+                        <span class="text-sm font-semibold" id="cpuUsage">{{ stats.used_cpu_cores }}/{{ stats.total_cpu_cores }} cores</span>
                     </div>
-                    <div class="worker-status status-{{ worker.status }}">
-                        {{ worker.status }}
+                    <div class="progress-bar">
+                        <div class="progress-fill accent" style="width: {{ (stats.used_cpu_cores / stats.total_cpu_cores * 100) if stats.total_cpu_cores else 0 }}%"></div>
                     </div>
-                    <div class="worker-resources">
-                        <div class="resource">
-                            <span class="label">CPU</span>
-                            <div class="mini-progress">
-                                <div class="bar" style="width: {{ worker.current_usage.cpu_percent }}%"></div>
-                            </div>
-                            <span class="value">{{ worker.current_usage.cpu_percent|round(1) }}%</span>
+                </div>
+
+                <!-- Memory -->
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm text-gray-400">الذاكرة</span>
+                        <span class="text-sm font-semibold" id="memoryUsage">{{ stats.used_memory_gb }}/{{ stats.total_memory_gb }} GB</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill success" style="width: {{ (stats.used_memory_gb / stats.total_memory_gb * 100) if stats.total_memory_gb else 0 }}%"></div>
+                    </div>
+                </div>
+
+                <!-- GPU -->
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm text-gray-400">GPU</span>
+                        <span class="text-sm font-semibold" id="gpuUsage">{{ stats.used_gpu or 0 }}/{{ stats.total_gpu or 0 }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill warning" style="width: {{ (stats.used_gpu / stats.total_gpu * 100) if stats.total_gpu else 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Workers -->
+        <div class="card animate-in" style="animation-delay: 0.2s;">
+            <div class="card-header">
+                <h3 class="card-title">العمال النشطين</h3>
+                <a href="/workers" class="btn btn-ghost text-sm">عرض الكل</a>
+            </div>
+
+            <div class="space-y-3" id="workersList">
+                {% for worker in workers[:5] %}
+                <div class="flex items-center justify-between p-3 rounded-lg" style="background: var(--bg-hover);">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--accent); opacity: 0.2;">
+                            <span style="color: var(--accent);">🖥️</span>
                         </div>
-                        <div class="resource">
-                            <span class="label">RAM</span>
-                            <div class="mini-progress">
-                                <div class="bar" style="width: {{ worker.current_usage.memory_percent }}%"></div>
-                            </div>
-                            <span class="value">{{ worker.current_usage.memory_percent|round(1) }}%</span>
+                        <div>
+                            <div class="font-medium">{{ worker.hostname }}</div>
+                            <div class="text-xs text-gray-400">{{ worker.worker_id }}</div>
                         </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-left">
+                            <div class="text-sm font-semibold">{{ worker.current_usage.cpu_percent|round(1) }}%</div>
+                            <div class="text-xs text-gray-400">CPU</div>
+                        </div>
+                        <span class="badge {% if worker.status == 'ready' %}badge-success{% elif worker.status == 'busy' %}badge-warning{% else %}badge-neutral{% endif %}">
+                            {{ worker.status }}
+                        </span>
                     </div>
                 </div>
                 {% endfor %}
@@ -92,65 +139,243 @@
         </div>
     </div>
 
-    <!-- المهام الأخيرة -->
-    <div class="card">
+    <!-- Recent Jobs -->
+    <div class="card animate-in" style="animation-delay: 0.3s;">
         <div class="card-header">
-            <h3>📋 المهام الأخيرة</h3>
-            <a href="/jobs" class="view-all">عرض الكل</a>
-        </div>
-        <div class="card-body">
-            <div class="jobs-list" id="jobsList">
-                {% for job in jobs %}
-                <div class="job-item">
-                    <div class="job-info">
-                        <span class="job-name">{{ job.name or job.job_id }}</span>
-                        <span class="job-id">{{ job.job_id }}</span>
-                    </div>
-                    <div class="job-status status-{{ job.status }}">
-                        {% if job.status == 'running' %}
-                        <span class="spinner"></span>
-                        {% endif %}
-                        {{ job.status }}
-                    </div>
-                    {% if job.progress is defined %}
-                    <div class="job-progress">
-                        <div class="progress-bar-small">
-                            <div class="bar" style="width: {{ job.progress }}%"></div>
-                        </div>
-                        <span class="progress-text">{{ job.progress }}%</span>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
+            <h3 class="card-title">المهام الأخيرة</h3>
+            <div class="flex gap-2">
+                <a href="/jobs" class="btn btn-ghost text-sm">عرض الكل</a>
+                <button class="btn btn-primary text-sm" onclick="showNewJobModal()">
+                    <span>+</span>
+                    <span>مهمة جديدة</span>
+                </button>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- ملخص الحالة -->
-<div class="card status-summary">
-    <div class="card-header">
-        <h3>📈 ملخص الحالة</h3>
+        <div class="overflow-x-auto">
+            <table class="data-table" id="jobsTable">
+                <thead>
+                    <tr>
+                        <th>المهمة</th>
+                        <th>الحالة</th>
+                        <th>العامل</th>
+                        <th>التقدم</th>
+                        <th>الوقت</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs[:10] %}
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg">
+                                    {% if job.status == 'running' %}🔄{% elif job.status == 'completed' %}✅{% elif job.status == 'failed' %}❌{% else %}⏳{% endif %}
+                                </span>
+                                <div>
+                                    <div class="font-medium">{{ job.name }}</div>
+                                    <div class="text-xs text-gray-400">{{ job.job_id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {% if job.status == 'running' %}badge-info{% elif job.status == 'completed' %}badge-success{% elif job.status == 'failed' %}badge-error{% else %}badge-warning{% endif %}">
+                                {{ job.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-sm">{{ job.worker_id or '-' }}</span>
+                        </td>
+                        <td style="min-width: 150px;">
+                            <div class="flex items-center gap-2">
+                                <div class="progress-bar flex-1">
+                                    <div class="progress-fill {% if job.status == 'completed' %}success{% elif job.status == 'failed' %}error{% else %}accent{% endif %}" style="width: {{ job.progress }}%"></div>
+                                </div>
+                                <span class="text-sm font-medium">{{ job.progress }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-sm text-gray-400">{{ job.created_at[:16] if job.created_at else '-' }}</span>
+                        </td>
+                        <td>
+                            <div class="flex gap-2">
+                                <button class="btn btn-ghost text-sm" onclick="viewJob('{{ job.job_id }}')">👁️</button>
+                                {% if job.status == 'running' %}
+                                <button class="btn btn-ghost text-sm text-red-400" onclick="cancelJob('{{ job.job_id }}')">⏹️</button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="status-grid">
-            <div class="status-item">
-                <span class="count completed">{{ stats.completed_jobs }}</span>
-                <span class="label">مكتملة</span>
+
+    <!-- Activity & Health -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Activity -->
+        <div class="card animate-in" style="animation-delay: 0.4s;">
+            <div class="card-header">
+                <h3 class="card-title">النشاط الأخير</h3>
             </div>
-            <div class="status-item">
-                <span class="count running">{{ stats.running_jobs }}</span>
-                <span class="label">قيد التنفيذ</span>
+
+            <div class="space-y-4" id="activityFeed">
+                <div class="flex items-start gap-3 p-3 rounded-lg" style="background: var(--bg-hover);">
+                    <span class="text-lg">✅</span>
+                    <div class="flex-1">
+                        <div class="font-medium">اكتملت المهمة</div>
+                        <div class="text-sm text-gray-400">Training job #1234 finished successfully</div>
+                        <div class="text-xs text-gray-500 mt-1">منذ دقيقتين</div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 rounded-lg" style="background: var(--bg-hover);">
+                    <span class="text-lg">🚀</span>
+                    <div class="flex-1">
+                        <div class="font-medium">بدأت مهمة جديدة</div>
+                        <div class="text-sm text-gray-400">Inference job #1235 started on worker-03</div>
+                        <div class="text-xs text-gray-500 mt-1">منذ 5 دقائق</div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 rounded-lg" style="background: var(--bg-hover);">
+                    <span class="text-lg">⚠️</span>
+                    <div class="flex-1">
+                        <div class="font-medium">تحذير من العامل</div>
+                        <div class="text-sm text-gray-400">Worker-05 memory usage above 90%</div>
+                        <div class="text-xs text-gray-500 mt-1">منذ 12 دقيقة</div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 rounded-lg" style="background: var(--bg-hover);">
+                    <span class="text-lg">🖥️</span>
+                    <div class="flex-1">
+                        <div class="font-medium">عامل جديد متصل</div>
+                        <div class="text-sm text-gray-400">Worker-06 joined the cluster</div>
+                        <div class="text-xs text-gray-500 mt-1">منذ 30 دقيقة</div>
+                    </div>
+                </div>
             </div>
-            <div class="status-item">
-                <span class="count pending">{{ stats.pending_jobs or 0 }}</span>
-                <span class="label">في الانتظار</span>
+        </div>
+
+        <!-- System Health -->
+        <div class="card animate-in" style="animation-delay: 0.5s;">
+            <div class="card-header">
+                <h3 class="card-title">صحة النظام</h3>
+                <span class="badge badge-success">سليم</span>
             </div>
-            <div class="status-item">
-                <span class="count failed">{{ stats.failed_jobs }}</span>
-                <span class="label">فاشلة</span>
+
+            <div class="grid grid-cols-3 gap-6">
+                <!-- CPU Gauge -->
+                <div class="text-center">
+                    <div class="gauge-container mx-auto mb-2">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <circle class="gauge-circle gauge-bg" cx="50" cy="50" r="42"/>
+                            <circle class="gauge-circle gauge-fill" cx="50" cy="50" r="42"
+                                stroke-dasharray="264"
+                                stroke-dashoffset="{{ 264 - (264 * (stats.used_cpu_cores / stats.total_cpu_cores * 100) / 100) if stats.total_cpu_cores else 264 }}"
+                                style="stroke: var(--accent);"/>
+                        </svg>
+                        <div class="gauge-text" id="cpuGauge">{{ ((stats.used_cpu_cores / stats.total_cpu_cores * 100) if stats.total_cpu_cores else 0)|round|int }}%</div>
+                    </div>
+                    <div class="text-sm text-gray-400">CPU</div>
+                </div>
+
+                <!-- Memory Gauge -->
+                <div class="text-center">
+                    <div class="gauge-container mx-auto mb-2">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <circle class="gauge-circle gauge-bg" cx="50" cy="50" r="42"/>
+                            <circle class="gauge-circle gauge-fill" cx="50" cy="50" r="42"
+                                stroke-dasharray="264"
+                                stroke-dashoffset="{{ 264 - (264 * (stats.used_memory_gb / stats.total_memory_gb * 100) / 100) if stats.total_memory_gb else 264 }}"
+                                style="stroke: var(--success);"/>
+                        </svg>
+                        <div class="gauge-text" id="memGauge">{{ ((stats.used_memory_gb / stats.total_memory_gb * 100) if stats.total_memory_gb else 0)|round|int }}%</div>
+                    </div>
+                    <div class="text-sm text-gray-400">الذاكرة</div>
+                </div>
+
+                <!-- Disk Gauge -->
+                <div class="text-center">
+                    <div class="gauge-container mx-auto mb-2">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <circle class="gauge-circle gauge-bg" cx="50" cy="50" r="42"/>
+                            <circle class="gauge-circle gauge-fill" cx="50" cy="50" r="42"
+                                stroke-dasharray="264"
+                                stroke-dashoffset="{{ 264 - (264 * 38 / 100) }}"
+                                style="stroke: var(--warning);"/>
+                        </svg>
+                        <div class="gauge-text">38%</div>
+                    </div>
+                    <div class="text-sm text-gray-400">القرص</div>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t" style="border-color: var(--stroke-divider);">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Uptime:</span>
+                        <span class="font-medium">14 يوم 6 ساعات</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">الإصدار:</span>
+                        <span class="font-medium">v1.0.0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Cluster:</span>
+                        <span class="font-medium text-green-400">متصل</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">API:</span>
+                        <span class="font-medium text-green-400">يعمل</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time data update handler
+    function onDataUpdate(data) {
+        if (data.stats) {
+            document.getElementById('totalJobs').textContent = data.stats.total_jobs;
+            document.getElementById('runningJobs').textContent = data.stats.running_jobs;
+            document.getElementById('activeWorkers').textContent = data.stats.active_workers;
+            document.getElementById('completedJobs').textContent = data.stats.completed_jobs;
+            document.getElementById('pendingJobs').textContent = data.stats.pending_jobs || 0;
+            document.getElementById('failedJobs').textContent = data.stats.failed_jobs;
+        }
+    }
+
+    async function cancelJob(jobId) {
+        if (!confirm('هل أنت متأكد من إلغاء هذه المهمة؟')) return;
+
+        try {
+            const response = await fetch(`/api/jobs/${jobId}/cancel`, { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('فشل إلغاء المهمة');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('حدث خطأ');
+        }
+    }
+
+    function viewJob(jobId) {
+        window.location.href = `/jobs?id=${jobId}`;
+    }
+
+    function showNewJobModal() {
+        // Would open job creation modal
+        alert('سيتم فتح نافذة إنشاء مهمة جديدة');
+    }
+</script>
 {% endblock %}
