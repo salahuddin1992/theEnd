@@ -53,6 +53,47 @@ from distributed_cluster.ai.llm.provider import (
     create_provider,
 )
 
+# Cache support
+from distributed_cluster.ai.llm.cache import (
+    CacheConfig,
+    CacheEntry,
+    CacheStats,
+    LLMCache,
+    SemanticCache,
+    create_cache,
+)
+
+# Cost tracking
+from distributed_cluster.ai.llm.cost_tracker import (
+    BudgetConfig,
+    CostCurrency,
+    CostSummary,
+    CostTracker,
+    ModelPricing,
+    UsageRecord,
+    create_cost_tracker,
+    DEFAULT_PRICING,
+)
+
+# Vision & Embeddings
+from distributed_cluster.ai.llm.vision import (
+    ImageInput,
+    ImageSource,
+    MediaType,
+    VisionMessage,
+    EmbeddingResult,
+    BatchEmbeddingResult,
+    EmbeddingProvider,
+    OpenAIEmbeddingProvider,
+    CohereEmbeddingProvider,
+    VoyageEmbeddingProvider,
+    OllamaEmbeddingProvider,
+    SemanticSearchIndex,
+    SearchResult,
+    cosine_similarity,
+    create_embedding_provider,
+)
+
 __all__ = [
     # Base Classes
     "LLMProvider",
@@ -83,4 +124,37 @@ __all__ = [
     "create_all_provider",
     # Manager
     "MultiProviderManager",
+    # Cache
+    "CacheConfig",
+    "CacheEntry",
+    "CacheStats",
+    "LLMCache",
+    "SemanticCache",
+    "create_cache",
+    # Cost Tracking
+    "BudgetConfig",
+    "CostCurrency",
+    "CostSummary",
+    "CostTracker",
+    "ModelPricing",
+    "UsageRecord",
+    "create_cost_tracker",
+    "DEFAULT_PRICING",
+    # Vision
+    "ImageInput",
+    "ImageSource",
+    "MediaType",
+    "VisionMessage",
+    # Embeddings
+    "EmbeddingResult",
+    "BatchEmbeddingResult",
+    "EmbeddingProvider",
+    "OpenAIEmbeddingProvider",
+    "CohereEmbeddingProvider",
+    "VoyageEmbeddingProvider",
+    "OllamaEmbeddingProvider",
+    "SemanticSearchIndex",
+    "SearchResult",
+    "cosine_similarity",
+    "create_embedding_provider",
 ]
