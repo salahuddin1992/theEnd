@@ -396,8 +396,14 @@ class MasterServicer:
                     "lease_duration_seconds": self.lease_duration,
                     "lease_expires_at": lease.expires_at.isoformat(),
                     "spec": self._job_to_spec(job),
-                    "inputs": [],  # TODO: Load from job spec
-                    "outputs": [],
+                    "inputs": [
+                        {"local_path": local, "remote_path": remote}
+                        for local, remote in job.submission.input_files.items()
+                    ],
+                    "outputs": [
+                        {"pattern": pattern}
+                        for pattern in job.submission.output_patterns
+                    ],
                 }
             )
 

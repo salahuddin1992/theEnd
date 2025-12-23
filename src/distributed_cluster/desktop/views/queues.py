@@ -9,6 +9,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -16,6 +17,7 @@ from PySide6.QtWidgets import (
 
 from ..api.client import APIClient
 from ..resources.styles import COLORS
+from ..ui.dialogs import QueueCreateDialog
 from ..widgets.data_table import DataTable
 
 
@@ -96,8 +98,26 @@ class QueuesView(QWidget):
 
     def _on_create_queue(self):
         """Handle create queue"""
-        # TODO: Implement queue creation dialog
-        pass
+        dialog = QueueCreateDialog(self)
+        dialog.queue_created.connect(self._handle_queue_created)
+        dialog.exec()
+
+    def _handle_queue_created(self, queue_config: dict):
+        """Handle queue creation from dialog"""
+        if self.api_client:
+            try:
+                # Call API to create queue
+                self.api_client.create_queue(queue_config)
+                self.refresh_requested.emit()
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Failed to create queue: {str(e)}"
+                )
+        else:
+            # No API client - just emit refresh
+            self.refresh_requested.emit()
 
     def set_api_client(self, client: APIClient):
         """Set the API client"""

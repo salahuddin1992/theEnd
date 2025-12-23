@@ -635,7 +635,7 @@ class LogCleaner:
         """حلقة التنظيف الدوري."""
         while self._running:
             try:
-                await asyncio.get_event_loop().run_in_executor(
+                await asyncio.get_running_loop().run_in_executor(
                     None, self._do_cleanup
                 )
             except Exception:

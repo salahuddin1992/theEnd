@@ -876,7 +876,7 @@ class EmailChannel(NotificationChannel):
         if not self.recipients:
             raise ValueError("No recipients configured")
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self._send_email_sync, notification)
 
     def _send_email_sync(self, notification: Notification) -> bool:
@@ -1079,7 +1079,7 @@ Notification System
     async def test_connection(self) -> bool:
         """اختبار اتصال SMTP."""
         try:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             return await loop.run_in_executor(None, self._test_smtp_sync)
         except Exception as e:
             logger.error(f"SMTP test failed: {e}")

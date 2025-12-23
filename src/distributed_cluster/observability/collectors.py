@@ -155,7 +155,7 @@ class SystemCollector:
 
     async def collect_cpu(self) -> CPUMetrics:
         """جمع مقاييس CPU."""
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         # Run CPU-intensive operations in executor
         cpu_percent = await loop.run_in_executor(

@@ -283,7 +283,7 @@ class HookManager:
                     if hook.is_async:
                         task = asyncio.create_task(hook.handler(context))
                     else:
-                        task = asyncio.get_event_loop().run_in_executor(None, hook.handler, context)
+                        task = asyncio.get_running_loop().run_in_executor(None, hook.handler, context)
                     background_tasks.append(task)
                 else:
                     # Run and wait

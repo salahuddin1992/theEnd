@@ -900,6 +900,354 @@ class JobSubmitDialog(FluentDialog):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# POOL CREATION DIALOG
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class PoolCreateDialog(FluentDialog):
+    """
+    Pool creation dialog.
+    نافذة إنشاء مجموعة العمال
+    """
+
+    pool_created = Signal(dict)
+
+    def __init__(self, parent=None):
+        super().__init__("Create Worker Pool", parent, width=520)
+        self._setup_content()
+
+    def _setup_content(self):
+        """Setup pool creation form"""
+        colors = FluentDesignSystem().colors
+
+        # Pool name
+        name_card = FluentCard("Pool Information")
+        name_layout = QVBoxLayout()
+
+        name_label = QLabel("Pool Name:")
+        name_label.setStyleSheet(f"color: {colors.text_secondary};")
+        name_layout.addWidget(name_label)
+
+        self._name_input = FluentInput("Enter pool name (e.g., gpu-workers)")
+        name_layout.addWidget(self._name_input)
+
+        desc_label = QLabel("Description:")
+        desc_label.setStyleSheet(f"color: {colors.text_secondary}; margin-top: 8px;")
+        name_layout.addWidget(desc_label)
+
+        self._desc_input = FluentInput("Enter pool description")
+        name_layout.addWidget(self._desc_input)
+
+        name_card.add_content(self._wrap_layout(name_layout))
+        self.add_content(name_card)
+
+        # Scaling configuration
+        scaling_card = FluentCard("Scaling Configuration")
+        scaling_layout = QVBoxLayout()
+
+        # Min workers
+        min_layout = QHBoxLayout()
+        min_label = QLabel("Min Workers:")
+        min_label.setFixedWidth(120)
+        min_label.setStyleSheet(f"color: {colors.text_secondary};")
+        min_layout.addWidget(min_label)
+
+        self._min_spin = QSpinBox()
+        self._min_spin.setRange(0, 1000)
+        self._min_spin.setValue(1)
+        self._min_spin.setStyleSheet(f"""
+            QSpinBox {{
+                background-color: {colors.fill_control};
+                color: {colors.text_primary};
+                border: 1px solid {colors.stroke_control};
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+        min_layout.addWidget(self._min_spin)
+        min_layout.addStretch()
+        scaling_layout.addLayout(min_layout)
+
+        # Max workers
+        max_layout = QHBoxLayout()
+        max_label = QLabel("Max Workers:")
+        max_label.setFixedWidth(120)
+        max_label.setStyleSheet(f"color: {colors.text_secondary};")
+        max_layout.addWidget(max_label)
+
+        self._max_spin = QSpinBox()
+        self._max_spin.setRange(1, 10000)
+        self._max_spin.setValue(10)
+        self._max_spin.setStyleSheet(f"""
+            QSpinBox {{
+                background-color: {colors.fill_control};
+                color: {colors.text_primary};
+                border: 1px solid {colors.stroke_control};
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+        max_layout.addWidget(self._max_spin)
+        max_layout.addStretch()
+        scaling_layout.addLayout(max_layout)
+
+        # Auto-scaling
+        autoscale_layout = QHBoxLayout()
+        self._autoscale_check = QCheckBox("Enable auto-scaling")
+        self._autoscale_check.setStyleSheet(f"color: {colors.text_secondary};")
+        autoscale_layout.addWidget(self._autoscale_check)
+        autoscale_layout.addStretch()
+        scaling_layout.addLayout(autoscale_layout)
+
+        scaling_card.add_content(self._wrap_layout(scaling_layout))
+        self.add_content(scaling_card)
+
+        # Worker requirements
+        req_card = FluentCard("Worker Requirements")
+        req_layout = QVBoxLayout()
+
+        # Tags
+        tags_label = QLabel("Required Tags (comma-separated):")
+        tags_label.setStyleSheet(f"color: {colors.text_secondary};")
+        req_layout.addWidget(tags_label)
+
+        self._tags_input = FluentInput("e.g., gpu, cuda, high-memory")
+        req_layout.addWidget(self._tags_input)
+
+        # Labels
+        labels_label = QLabel("Labels (key=value, comma-separated):")
+        labels_label.setStyleSheet(f"color: {colors.text_secondary}; margin-top: 8px;")
+        req_layout.addWidget(labels_label)
+
+        self._labels_input = FluentInput("e.g., zone=us-east-1, env=production")
+        req_layout.addWidget(self._labels_input)
+
+        req_card.add_content(self._wrap_layout(req_layout))
+        self.add_content(req_card)
+
+        # Buttons
+        cancel_btn = self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
+        create_btn = self.add_button("Create Pool", ButtonVariant.ACCENT, self._on_create)
+
+    def _wrap_layout(self, layout) -> QWidget:
+        """Wrap layout in widget"""
+        widget = QWidget()
+        widget.setLayout(layout)
+        return widget
+
+    def _on_create(self):
+        """Handle pool creation"""
+        # Parse tags
+        tags = [t.strip() for t in self._tags_input.text().split(",") if t.strip()]
+
+        # Parse labels
+        labels = {}
+        for item in self._labels_input.text().split(","):
+            if "=" in item:
+                key, value = item.split("=", 1)
+                labels[key.strip()] = value.strip()
+
+        pool_config = {
+            "name": self._name_input.text(),
+            "description": self._desc_input.text(),
+            "min_workers": self._min_spin.value(),
+            "max_workers": self._max_spin.value(),
+            "auto_scaling": self._autoscale_check.isChecked(),
+            "tags": tags,
+            "labels": labels,
+        }
+        self.pool_created.emit(pool_config)
+        self.accept()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QUEUE CREATION DIALOG
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class QueueCreateDialog(FluentDialog):
+    """
+    Queue creation dialog.
+    نافذة إنشاء طابور المهام
+    """
+
+    queue_created = Signal(dict)
+
+    def __init__(self, parent=None):
+        super().__init__("Create Job Queue", parent, width=520)
+        self._setup_content()
+
+    def _setup_content(self):
+        """Setup queue creation form"""
+        colors = FluentDesignSystem().colors
+
+        # Queue name
+        name_card = FluentCard("Queue Information")
+        name_layout = QVBoxLayout()
+
+        name_label = QLabel("Queue Name:")
+        name_label.setStyleSheet(f"color: {colors.text_secondary};")
+        name_layout.addWidget(name_label)
+
+        self._name_input = FluentInput("Enter queue name (e.g., high-priority)")
+        name_layout.addWidget(self._name_input)
+
+        desc_label = QLabel("Description:")
+        desc_label.setStyleSheet(f"color: {colors.text_secondary}; margin-top: 8px;")
+        name_layout.addWidget(desc_label)
+
+        self._desc_input = FluentInput("Enter queue description")
+        name_layout.addWidget(self._desc_input)
+
+        name_card.add_content(self._wrap_layout(name_layout))
+        self.add_content(name_card)
+
+        # Priority settings
+        priority_card = FluentCard("Priority Settings")
+        priority_layout = QVBoxLayout()
+
+        # Base priority
+        base_layout = QHBoxLayout()
+        base_label = QLabel("Base Priority:")
+        base_label.setFixedWidth(120)
+        base_label.setStyleSheet(f"color: {colors.text_secondary};")
+        base_layout.addWidget(base_label)
+
+        self._priority_combo = QComboBox()
+        self._priority_combo.addItems(["Low", "Normal", "High", "Critical"])
+        self._priority_combo.setCurrentIndex(1)
+        self._priority_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {colors.fill_control};
+                color: {colors.text_primary};
+                border: 1px solid {colors.stroke_control};
+                border-radius: 6px;
+                padding: 8px 12px;
+            }}
+        """)
+        base_layout.addWidget(self._priority_combo)
+        base_layout.addStretch()
+        priority_layout.addLayout(base_layout)
+
+        # Weight
+        weight_layout = QHBoxLayout()
+        weight_label = QLabel("Weight:")
+        weight_label.setFixedWidth(120)
+        weight_label.setStyleSheet(f"color: {colors.text_secondary};")
+        weight_layout.addWidget(weight_label)
+
+        self._weight_spin = QSpinBox()
+        self._weight_spin.setRange(1, 100)
+        self._weight_spin.setValue(10)
+        self._weight_spin.setStyleSheet(f"""
+            QSpinBox {{
+                background-color: {colors.fill_control};
+                color: {colors.text_primary};
+                border: 1px solid {colors.stroke_control};
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+        weight_layout.addWidget(self._weight_spin)
+        weight_layout.addStretch()
+        priority_layout.addLayout(weight_layout)
+
+        priority_card.add_content(self._wrap_layout(priority_layout))
+        self.add_content(priority_card)
+
+        # Limits
+        limits_card = FluentCard("Queue Limits")
+        limits_layout = QVBoxLayout()
+
+        # Max jobs
+        max_jobs_layout = QHBoxLayout()
+        max_jobs_label = QLabel("Max Jobs:")
+        max_jobs_label.setFixedWidth(120)
+        max_jobs_label.setStyleSheet(f"color: {colors.text_secondary};")
+        max_jobs_layout.addWidget(max_jobs_label)
+
+        self._max_jobs_spin = QSpinBox()
+        self._max_jobs_spin.setRange(0, 100000)
+        self._max_jobs_spin.setValue(1000)
+        self._max_jobs_spin.setSpecialValueText("Unlimited")
+        self._max_jobs_spin.setStyleSheet(f"""
+            QSpinBox {{
+                background-color: {colors.fill_control};
+                color: {colors.text_primary};
+                border: 1px solid {colors.stroke_control};
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+        max_jobs_layout.addWidget(self._max_jobs_spin)
+        max_jobs_layout.addStretch()
+        limits_layout.addLayout(max_jobs_layout)
+
+        # Max concurrent
+        max_concurrent_layout = QHBoxLayout()
+        max_concurrent_label = QLabel("Max Concurrent:")
+        max_concurrent_label.setFixedWidth(120)
+        max_concurrent_label.setStyleSheet(f"color: {colors.text_secondary};")
+        max_concurrent_layout.addWidget(max_concurrent_label)
+
+        self._max_concurrent_spin = QSpinBox()
+        self._max_concurrent_spin.setRange(0, 10000)
+        self._max_concurrent_spin.setValue(100)
+        self._max_concurrent_spin.setSpecialValueText("Unlimited")
+        self._max_concurrent_spin.setStyleSheet(f"""
+            QSpinBox {{
+                background-color: {colors.fill_control};
+                color: {colors.text_primary};
+                border: 1px solid {colors.stroke_control};
+                border-radius: 6px;
+                padding: 8px;
+            }}
+        """)
+        max_concurrent_layout.addWidget(self._max_concurrent_spin)
+        max_concurrent_layout.addStretch()
+        limits_layout.addLayout(max_concurrent_layout)
+
+        limits_card.add_content(self._wrap_layout(limits_layout))
+        self.add_content(limits_card)
+
+        # Target pool
+        pool_card = FluentCard("Target Pool (Optional)")
+        pool_layout = QVBoxLayout()
+
+        pool_label = QLabel("Target Worker Pool:")
+        pool_label.setStyleSheet(f"color: {colors.text_secondary};")
+        pool_layout.addWidget(pool_label)
+
+        self._pool_input = FluentInput("Enter pool name (leave empty for any pool)")
+        pool_layout.addWidget(self._pool_input)
+
+        pool_card.add_content(self._wrap_layout(pool_layout))
+        self.add_content(pool_card)
+
+        # Buttons
+        cancel_btn = self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
+        create_btn = self.add_button("Create Queue", ButtonVariant.ACCENT, self._on_create)
+
+    def _wrap_layout(self, layout) -> QWidget:
+        """Wrap layout in widget"""
+        widget = QWidget()
+        widget.setLayout(layout)
+        return widget
+
+    def _on_create(self):
+        """Handle queue creation"""
+        queue_config = {
+            "name": self._name_input.text(),
+            "description": self._desc_input.text(),
+            "priority": self._priority_combo.currentText().lower(),
+            "weight": self._weight_spin.value(),
+            "max_jobs": self._max_jobs_spin.value() if self._max_jobs_spin.value() > 0 else None,
+            "max_concurrent": self._max_concurrent_spin.value() if self._max_concurrent_spin.value() > 0 else None,
+            "target_pool": self._pool_input.text() if self._pool_input.text() else None,
+        }
+        self.queue_created.emit(queue_config)
+        self.accept()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # EXPORTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -912,4 +1260,6 @@ __all__ = [
     "InputDialog",
     "JobSubmitDialog",
     "ConnectionProfile",
+    "PoolCreateDialog",
+    "QueueCreateDialog",
 ]

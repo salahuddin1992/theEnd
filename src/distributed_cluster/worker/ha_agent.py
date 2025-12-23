@@ -165,7 +165,7 @@ class HAWorkerAgent:
         # Setup signal handlers
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
-                asyncio.get_event_loop().add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._shutdown(s)))
+                asyncio.get_running_loop().add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._shutdown(s)))
             except NotImplementedError:
                 pass
 
@@ -267,8 +267,8 @@ class HAWorkerAgent:
             if resp.status_code == 200:
                 data = resp.json()
                 return data.get("is_leader", True)  # افتراضي True للتوافق
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to check leader status for {master.url}: {e}")
 
         # إذا فشل الفحص، نفترض أنه القائد (للتوافق مع non-HA setup)
         return True
@@ -283,8 +283,8 @@ class HAWorkerAgent:
             if resp.status_code == 200:
                 data = resp.json()
                 return data.get("current_leader")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get leader info from {master.url}: {e}")
         return None
 
     async def _add_leader_from_info(self, leader_info: dict) -> None:

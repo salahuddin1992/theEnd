@@ -260,7 +260,7 @@ class DockerRuntime(ContainerRuntime):
             return False
 
         try:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, self._client.images.pull, image)
             logger.info(f"Pulled image: {image}")
             return True
@@ -276,7 +276,7 @@ class DockerRuntime(ContainerRuntime):
         # Build container configuration
         container_config = self._build_docker_config(config)
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         container = await loop.run_in_executor(
             None,
             lambda: self._client.containers.create(
@@ -296,7 +296,7 @@ class DockerRuntime(ContainerRuntime):
 
         try:
             container = self._client.containers.get(container_id)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, container.start)
             logger.info(f"Started container: {container_id[:12]}")
             return True
@@ -311,7 +311,7 @@ class DockerRuntime(ContainerRuntime):
 
         try:
             container = self._client.containers.get(container_id)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, lambda: container.stop(timeout=timeout))
             logger.info(f"Stopped container: {container_id[:12]}")
             return True
@@ -326,7 +326,7 @@ class DockerRuntime(ContainerRuntime):
 
         try:
             container = self._client.containers.get(container_id)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, lambda: container.kill(signal=signal))
             logger.info(f"Killed container: {container_id[:12]}")
             return True
@@ -341,7 +341,7 @@ class DockerRuntime(ContainerRuntime):
 
         try:
             container = self._client.containers.get(container_id)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(None, lambda: container.remove(force=force))
             logger.info(f"Removed container: {container_id[:12]}")
             return True
@@ -396,7 +396,7 @@ class DockerRuntime(ContainerRuntime):
 
         try:
             container = self._client.containers.get(container_id)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             stats = await loop.run_in_executor(None, lambda: container.stats(stream=False))
 
             # Parse CPU
@@ -453,7 +453,7 @@ class DockerRuntime(ContainerRuntime):
 
         try:
             container = self._client.containers.get(container_id)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             logs = await loop.run_in_executor(
                 None,
                 lambda: container.logs(
@@ -474,14 +474,14 @@ class DockerRuntime(ContainerRuntime):
 
         try:
             container = self._client.containers.get(container_id)
+            loop = asyncio.get_running_loop()
 
             if timeout:
                 result = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(None, container.wait),
+                    loop.run_in_executor(None, container.wait),
                     timeout=timeout,
                 )
             else:
-                loop = asyncio.get_event_loop()
                 result = await loop.run_in_executor(None, container.wait)
 
             return result.get("StatusCode", -1)

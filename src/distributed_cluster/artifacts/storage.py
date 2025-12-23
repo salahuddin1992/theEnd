@@ -361,7 +361,7 @@ class S3Storage(ArtifactStorage):
             extra_args["Metadata"] = metadata
 
         # Upload
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         if isinstance(source, (str, Path)):
             source_path = Path(source)
@@ -413,7 +413,7 @@ class S3Storage(ArtifactStorage):
         dest_path = Path(destination)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(
             None,
             lambda: client.download_file(
@@ -431,7 +431,7 @@ class S3Storage(ArtifactStorage):
             client = self._get_client()
             key = self._get_key(uri)
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(
                 None,
                 lambda: client.delete_object(
@@ -449,7 +449,7 @@ class S3Storage(ArtifactStorage):
             client = self._get_client()
             key = self._get_key(uri)
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             await loop.run_in_executor(
                 None,
                 lambda: client.head_object(
@@ -467,7 +467,7 @@ class S3Storage(ArtifactStorage):
             client = self._get_client()
             key = self._get_key(uri)
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             response = await loop.run_in_executor(
                 None,
                 lambda: client.head_object(
@@ -501,7 +501,7 @@ class S3Storage(ArtifactStorage):
 
             client_method = "get_object" if method == "GET" else "put_object"
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             url = await loop.run_in_executor(
                 None,
                 lambda: client.generate_presigned_url(
