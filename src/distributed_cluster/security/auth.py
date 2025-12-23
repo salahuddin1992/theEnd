@@ -316,6 +316,7 @@ class AuthManager:
         self._enrollment_tokens: dict[str, str] = {}  # token_hash -> enrollment_id
         self._fingerprint_allowlist: Set[str] = set()
         self._revoked_tokens: Set[str] = set()
+        self._api_keys: dict[str, dict] = {}  # api_key_id -> key info
 
     def generate_token(self, payload: TokenPayload) -> str:
         """
@@ -419,27 +420,94 @@ class AuthManager:
         name: str,
         role: Role = Role.USER,
         expires_in_days: int = 365,
+        permissions: Optional[set[Permission]] = None,
     ) -> tuple[str, str]:
         """
         إنشاء API key.
+
+        Args:
+            name: اسم وصفي للـ API key
+            role: الدور المطلوب
+            expires_in_days: مدة الصلاحية بالأيام
+            permissions: أذونات مخصصة (اختياري)
 
         Returns:
             (api_key_id, api_key) - الـ api_key يُعطى للمستخدم مرة واحدة
         """
         api_key_id = f"ak_{secrets.token_hex(8)}"
-        secrets.token_urlsafe(32)
+        api_key_secret = secrets.token_urlsafe(32)
+
+        # Store API key info
+        self._api_keys[api_key_id] = {
+            "name": name,
+            "role": role,
+            "permissions": permissions,
+            "created_at": datetime.utcnow(),
+            "expires_at": datetime.utcnow() + timedelta(days=expires_in_days),
+        }
 
         payload = TokenPayload(
             subject=api_key_id,
             subject_type="api_key",
             role=role,
             api_key_id=api_key_id,
+            permissions=list(permissions) if permissions else None,
             expires_at=datetime.utcnow() + timedelta(days=expires_in_days),
+            metadata={"name": name},
         )
 
         # الـ API key هو token موقّع
         token = self.generate_token(payload)
-        return api_key_id, token
+
+        # Return both the ID and full key (ID + secret for user to store)
+        full_api_key = f"{api_key_id}.{api_key_secret}"
+        return full_api_key, token
+
+    def revoke_api_key(self, api_key_id: str) -> bool:
+        """
+        إلغاء API key.
+
+        Args:
+            api_key_id: معرف الـ API key
+
+        Returns:
+            True إذا تم الإلغاء بنجاح
+        """
+        # Extract key ID if full key provided
+        if "." in api_key_id:
+            api_key_id = api_key_id.split(".")[0]
+
+        if api_key_id in self._api_keys:
+            del self._api_keys[api_key_id]
+            self._revoked_tokens.add(api_key_id)
+            return True
+        return False
+
+    def get_api_key_info(self, api_key_id: str) -> Optional[dict]:
+        """
+        الحصول على معلومات API key.
+
+        Args:
+            api_key_id: معرف الـ API key
+
+        Returns:
+            معلومات الـ API key أو None
+        """
+        if "." in api_key_id:
+            api_key_id = api_key_id.split(".")[0]
+        return self._api_keys.get(api_key_id)
+
+    def list_api_keys(self) -> list[dict]:
+        """
+        قائمة جميع الـ API keys.
+
+        Returns:
+            قائمة معلومات الـ API keys
+        """
+        return [
+            {"id": key_id, **info}
+            for key_id, info in self._api_keys.items()
+        ]
 
     # ==================== Worker Enrollment ====================
 

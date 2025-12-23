@@ -61,6 +61,25 @@ from distributed_cluster.ai.llm.provider import (
     VLLMProvider,
     create_provider,
 )
+from distributed_cluster.ai.llm.cache import (
+    CacheConfig,
+    LLMCache,
+    create_cache,
+)
+from distributed_cluster.ai.llm.cost_tracker import (
+    CostTracker,
+    CostSummary,
+    BudgetConfig,
+    create_cost_tracker,
+)
+from distributed_cluster.ai.llm.vision import (
+    ImageInput,
+    VisionMessage,
+    EmbeddingProvider,
+    EmbeddingResult,
+    SemanticSearchIndex,
+    create_embedding_provider,
+)
 from distributed_cluster.ai.models.registry import ModelRegistry
 
 __all__ = [
@@ -93,6 +112,22 @@ __all__ = [
     "create_all_provider",
     # Multi-Provider Manager
     "MultiProviderManager",
+    # Cache
+    "CacheConfig",
+    "LLMCache",
+    "create_cache",
+    # Cost Tracking
+    "CostTracker",
+    "CostSummary",
+    "BudgetConfig",
+    "create_cost_tracker",
+    # Vision & Embeddings
+    "ImageInput",
+    "VisionMessage",
+    "EmbeddingProvider",
+    "EmbeddingResult",
+    "SemanticSearchIndex",
+    "create_embedding_provider",
     # Agents
     "Agent",
     "AgentTask",
