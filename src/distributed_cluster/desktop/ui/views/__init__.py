@@ -10,6 +10,9 @@ from .workers import FluentWorkersView
 from .settings import FluentSettingsView
 from .logs import FluentLogsView
 from .metrics import FluentMetricsView
+from .templates import FluentTemplatesView
+from .pools import FluentPoolsView
+from .queues import FluentQueuesView
 
 __all__ = [
     "FluentJobsView",
@@ -17,4 +20,7 @@ __all__ = [
     "FluentSettingsView",
     "FluentLogsView",
     "FluentMetricsView",
+    "FluentTemplatesView",
+    "FluentPoolsView",
+    "FluentQueuesView",
 ]
