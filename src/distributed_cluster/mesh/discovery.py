@@ -146,7 +146,7 @@ class PeerDiscovery:
             while self._running:
                 try:
                     # استخدام asyncio للقراءة
-                    loop = asyncio.get_event_loop()
+                    loop = asyncio.get_running_loop()
                     data, addr = await loop.sock_recvfrom(sock, 1024)
 
                     message = DiscoveryMessage.from_json(data.decode())

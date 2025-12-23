@@ -78,7 +78,7 @@ class WorkerAgent:
         # Setup signal handlers
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
-                asyncio.get_event_loop().add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._shutdown(s)))
+                asyncio.get_running_loop().add_signal_handler(sig, lambda s=sig: asyncio.create_task(self._shutdown(s)))
             except NotImplementedError:
                 # Windows doesn't support add_signal_handler
                 pass
@@ -335,8 +335,8 @@ class WorkerAgent:
                         "error_message": str(e),
                     },
                 )
-            except Exception:
-                pass
+            except Exception as report_error:
+                logger.debug(f"Failed to report job {job_id} error to master: {report_error}")
         finally:
             if job_id in self._job_tasks:
                 del self._job_tasks[job_id]

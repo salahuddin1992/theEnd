@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -159,7 +160,7 @@ class AgentExecutor:
         """انتظار نتيجة مهمة."""
         timeout = timeout or self.config.timeout_seconds
 
-        start_time = asyncio.get_event_loop().time()
+        start_time = time.monotonic()
 
         while True:
             if job_id in self._results:
@@ -170,7 +171,7 @@ class AgentExecutor:
                 if job.result:
                     return job.result
 
-            elapsed = asyncio.get_event_loop().time() - start_time
+            elapsed = time.monotonic() - start_time
             if elapsed > timeout:
                 raise TimeoutError(f"Job {job_id} timed out")
 

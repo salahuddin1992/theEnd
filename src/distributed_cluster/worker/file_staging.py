@@ -18,6 +18,7 @@ import os
 import shutil
 import tarfile
 import tempfile
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -125,7 +126,7 @@ class FileStager:
 
     async def _calculate_checksum_async(self, file_path: Path, algorithm: str = "sha256") -> str:
         """حساب checksum لملف بشكل async."""
-        return await asyncio.get_event_loop().run_in_executor(
+        return await asyncio.get_running_loop().run_in_executor(
             None, self._calculate_checksum, file_path, algorithm
         )
 
@@ -146,7 +147,7 @@ class FileStager:
         Returns:
             StagingResult مع قائمة الملفات المُجهَّزة
         """
-        start_time = asyncio.get_event_loop().time()
+        start_time = time.monotonic()
         job_dir = self._get_job_dir(job_id)
         job_dir.mkdir(parents=True, exist_ok=True)
 
@@ -165,7 +166,7 @@ class FileStager:
                     return StagingResult(
                         success=False,
                         error=f"Source file not found: {source_path}",
-                        duration_seconds=asyncio.get_event_loop().time() - start_time,
+                        duration_seconds=time.monotonic() - start_time,
                     )
 
                 # Check file size
@@ -174,7 +175,7 @@ class FileStager:
                     return StagingResult(
                         success=False,
                         error=f"File too large: {source_path} ({file_size} bytes, max {self.max_file_size})",
-                        duration_seconds=asyncio.get_event_loop().time() - start_time,
+                        duration_seconds=time.monotonic() - start_time,
                     )
 
                 # Target path
@@ -182,7 +183,7 @@ class FileStager:
                 target.parent.mkdir(parents=True, exist_ok=True)
 
                 # Copy file
-                await asyncio.get_event_loop().run_in_executor(
+                await asyncio.get_running_loop().run_in_executor(
                     None, shutil.copy2, source, target
                 )
 
@@ -196,7 +197,7 @@ class FileStager:
                         return StagingResult(
                             success=False,
                             error=f"Checksum mismatch for {target_name}",
-                            duration_seconds=asyncio.get_event_loop().time() - start_time,
+                            duration_seconds=time.monotonic() - start_time,
                         )
 
                 staged_files.append(StagedFile(
@@ -213,7 +214,7 @@ class FileStager:
                 success=True,
                 staged_files=staged_files,
                 total_size_bytes=total_size,
-                duration_seconds=asyncio.get_event_loop().time() - start_time,
+                duration_seconds=time.monotonic() - start_time,
             )
 
         except Exception as e:
@@ -221,7 +222,7 @@ class FileStager:
             return StagingResult(
                 success=False,
                 error=str(e),
-                duration_seconds=asyncio.get_event_loop().time() - start_time,
+                duration_seconds=time.monotonic() - start_time,
             )
 
     async def collect_outputs(
@@ -243,14 +244,14 @@ class FileStager:
         Returns:
             CollectionResult مع قائمة الملفات المُجمَّعة
         """
-        start_time = asyncio.get_event_loop().time()
+        start_time = time.monotonic()
         job_dir = self._get_job_dir(job_id)
 
         if not job_dir.exists():
             return CollectionResult(
                 success=False,
                 error=f"Job directory not found: {job_id}",
-                duration_seconds=asyncio.get_event_loop().time() - start_time,
+                duration_seconds=time.monotonic() - start_time,
             )
 
         collected_files: List[CollectedArtifact] = []
@@ -302,7 +303,7 @@ class FileStager:
                 archive_path = str(self.storage_base / archive_name)
 
                 # Create tar archive
-                await asyncio.get_event_loop().run_in_executor(
+                await asyncio.get_running_loop().run_in_executor(
                     None,
                     self._create_archive,
                     archive_path,
@@ -319,7 +320,7 @@ class FileStager:
                 archive_path=archive_path,
                 archive_size_bytes=archive_size,
                 total_size_bytes=total_size,
-                duration_seconds=asyncio.get_event_loop().time() - start_time,
+                duration_seconds=time.monotonic() - start_time,
             )
 
         except Exception as e:
@@ -327,7 +328,7 @@ class FileStager:
             return CollectionResult(
                 success=False,
                 error=str(e),
-                duration_seconds=asyncio.get_event_loop().time() - start_time,
+                duration_seconds=time.monotonic() - start_time,
             )
 
     def _create_archive(
@@ -350,7 +351,7 @@ class FileStager:
 
         try:
             if job_dir.exists():
-                await asyncio.get_event_loop().run_in_executor(
+                await asyncio.get_running_loop().run_in_executor(
                     None, shutil.rmtree, job_dir
                 )
                 logger.debug(f"Cleaned up job directory: {job_id}")

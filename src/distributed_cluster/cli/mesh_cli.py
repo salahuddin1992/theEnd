@@ -133,7 +133,7 @@ def start_node(
         )
 
         # معالجة الإشارات
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         stop_event = asyncio.Event()
 
         def signal_handler():
