@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Optional
 
 from distributed_cluster.models.job import Job, JobResult
+from distributed_cluster.worker.metrics import ProcessMemoryTracker, WorkerMetricsCollector
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ class ExecutionContext:
     start_time: float = 0.0
     process: Optional[subprocess.Popen] = None
     container_id: Optional[str] = None
+    memory_tracker: Optional[ProcessMemoryTracker] = None
 
 
 class JobExecutor:
@@ -55,11 +57,17 @@ class JobExecutor:
         docker_enabled: bool = True,
         sandbox_enabled: bool = True,
         docker_network: str = "bridge",
+        metrics_collector: Optional[WorkerMetricsCollector] = None,
+        track_memory: bool = True,
+        memory_sample_interval: float = 0.5,
     ):
         self.work_dir = Path(work_dir)
         self.docker_enabled = docker_enabled
         self.sandbox_enabled = sandbox_enabled
         self.docker_network = docker_network
+        self.metrics_collector = metrics_collector
+        self.track_memory = track_memory
+        self.memory_sample_interval = memory_sample_interval
 
         # Ensure work directory exists
         self.work_dir.mkdir(parents=True, exist_ok=True)
@@ -159,6 +167,20 @@ class JobExecutor:
                 popen_kwargs["stderr"] = stderr_f
                 ctx.process = subprocess.Popen(cmd, **popen_kwargs)
 
+                # Start memory tracking if enabled
+                peak_memory_mb = 0
+                if self.track_memory and ctx.process.pid:
+                    ctx.memory_tracker = ProcessMemoryTracker(
+                        pid=ctx.process.pid,
+                        sample_interval=self.memory_sample_interval,
+                        include_children=True,
+                    )
+                    await ctx.memory_tracker.start()
+
+                    # Also notify metrics collector if available
+                    if self.metrics_collector:
+                        self.metrics_collector.start_job_tracking(job.job_id, ctx.process.pid)
+
                 # Wait with timeout
                 try:
                     exit_code = await asyncio.wait_for(
@@ -169,13 +191,30 @@ class JobExecutor:
                     # Kill process - use platform-specific method
                     self._kill_process(ctx.process)
 
+                    # Stop memory tracking
+                    if ctx.memory_tracker:
+                        await ctx.memory_tracker.stop()
+                        peak_memory_mb = int(ctx.memory_tracker.peak_memory_mb)
+
+                    if self.metrics_collector:
+                        await self.metrics_collector.stop_job_tracking(job.job_id, -1)
+
                     return JobResult(
                         exit_code=-1,
                         stdout=self._read_file(stdout_file),
                         stderr=self._read_file(stderr_file),
                         execution_time_seconds=time.time() - ctx.start_time,
+                        peak_memory_mb=peak_memory_mb,
                         error_message=f"Timeout after {submission.timeout_seconds}s",
                     )
+
+            # Stop memory tracking and get peak
+            if ctx.memory_tracker:
+                await ctx.memory_tracker.stop()
+                peak_memory_mb = int(ctx.memory_tracker.peak_memory_mb)
+
+            if self.metrics_collector:
+                await self.metrics_collector.stop_job_tracking(job.job_id, exit_code)
 
             execution_time = time.time() - ctx.start_time
 
@@ -184,15 +223,27 @@ class JobExecutor:
                 stdout=self._read_file(stdout_file),
                 stderr=self._read_file(stderr_file),
                 execution_time_seconds=execution_time,
+                peak_memory_mb=peak_memory_mb,
             )
 
         except Exception as e:
             logger.error(f"Job {job.job_id} execution error: {e}")
+
+            # Stop memory tracking on error
+            peak_memory_mb = 0
+            if ctx.memory_tracker:
+                await ctx.memory_tracker.stop()
+                peak_memory_mb = int(ctx.memory_tracker.peak_memory_mb)
+
+            if self.metrics_collector:
+                await self.metrics_collector.stop_job_tracking(job.job_id, -1)
+
             return JobResult(
                 exit_code=-1,
                 stdout=self._read_file(stdout_file) if stdout_file.exists() else "",
                 stderr=self._read_file(stderr_file) if stderr_file.exists() else "",
                 execution_time_seconds=time.time() - ctx.start_time,
+                peak_memory_mb=peak_memory_mb,
                 error_message=str(e),
             )
 

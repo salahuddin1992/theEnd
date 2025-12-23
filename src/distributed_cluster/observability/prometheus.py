@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import time
+from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class PrometheusMetric:
+class PrometheusMetric(ABC):
     """Base class for Prometheus metrics."""
 
     def __init__(
@@ -43,9 +44,16 @@ class PrometheusMetric:
         pairs = [f'{k}="{v}"' for k, v in sorted(label_values.items())]
         return "{" + ",".join(pairs) + "}"
 
+    def _labels_key(self, labels: Optional[Dict[str, str]]) -> str:
+        """إنشاء مفتاح من التسميات."""
+        if not labels:
+            return ""
+        return "|".join(f"{k}={v}" for k, v in sorted(labels.items()))
+
+    @abstractmethod
     def format(self) -> str:
         """تنسيق الـ metric."""
-        raise NotImplementedError
+        pass
 
 
 class Counter(PrometheusMetric):
@@ -64,11 +72,6 @@ class Counter(PrometheusMetric):
         """زيادة العداد."""
         key = self._labels_key(labels)
         self._values[key] = self._values.get(key, 0) + value
-
-    def _labels_key(self, labels: Optional[Dict[str, str]]) -> str:
-        if not labels:
-            return ""
-        return "|".join(f"{k}={v}" for k, v in sorted(labels.items()))
 
     def format(self) -> str:
         """تنسيق للتصدير."""
@@ -116,11 +119,6 @@ class Gauge(PrometheusMetric):
         """نقصان."""
         key = self._labels_key(labels)
         self._values[key] = self._values.get(key, 0) - value
-
-    def _labels_key(self, labels: Optional[Dict[str, str]]) -> str:
-        if not labels:
-            return ""
-        return "|".join(f"{k}={v}" for k, v in sorted(labels.items()))
 
     def format(self) -> str:
         """تنسيق للتصدير."""
@@ -181,11 +179,6 @@ class Histogram(PrometheusMetric):
             if value <= bucket:
                 data["buckets"][bucket] += 1
 
-    def _labels_key(self, labels: Optional[Dict[str, str]]) -> str:
-        if not labels:
-            return ""
-        return "|".join(f"{k}={v}" for k, v in sorted(labels.items()))
-
     def format(self) -> str:
         """تنسيق للتصدير."""
         lines = [
@@ -243,11 +236,6 @@ class Summary(PrometheusMetric):
         if key not in self._data:
             self._data[key] = []
         self._data[key].append(value)
-
-    def _labels_key(self, labels: Optional[Dict[str, str]]) -> str:
-        if not labels:
-            return ""
-        return "|".join(f"{k}={v}" for k, v in sorted(labels.items()))
 
     def _calculate_quantile(self, values: List[float], q: float) -> float:
         """حساب الـ quantile."""

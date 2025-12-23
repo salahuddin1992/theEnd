@@ -17,15 +17,21 @@ Structured Logging - تسجيل منظّم
 
 from __future__ import annotations
 
+import asyncio
+import gzip
 import json
+import os
+import shutil
 import sys
 import threading
+import time
 import traceback
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import IntEnum
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
 
 
 class LogLevel(IntEnum):
@@ -326,3 +332,453 @@ def get_logger(name: str, level: LogLevel = LogLevel.INFO) -> StructuredLogger:
 
 # Default logger
 default_logger = get_logger("distributed_cluster")
+
+
+# =============================================================================
+# Log Rotation and Cleanup
+# =============================================================================
+
+
+class RotatingFileHandler:
+    """
+    معالج ملفات مع rotation.
+
+    يدعم:
+    - Rotation حسب الحجم
+    - Rotation حسب الوقت
+    - ضغط الملفات القديمة (اختياري)
+    - حذف الملفات القديمة
+
+    الاستخدام:
+        handler = RotatingFileHandler(
+            filename="app.log",
+            max_bytes=10_000_000,      # 10 MB
+            backup_count=5,
+            compress=True,
+        )
+
+        logger = StructuredLogger("app", output=handler)
+    """
+
+    def __init__(
+        self,
+        filename: Union[str, Path],
+        max_bytes: int = 10 * 1024 * 1024,  # 10 MB default
+        backup_count: int = 5,
+        compress: bool = True,
+        encoding: str = "utf-8",
+    ):
+        self.filename = Path(filename)
+        self.max_bytes = max_bytes
+        self.backup_count = backup_count
+        self.compress = compress
+        self.encoding = encoding
+
+        self._lock = threading.Lock()
+        self._file: Optional[Any] = None
+
+        # Ensure directory exists
+        self.filename.parent.mkdir(parents=True, exist_ok=True)
+
+        # Open the file
+        self._open()
+
+    def _open(self) -> None:
+        """فتح الملف."""
+        self._file = open(self.filename, "a", encoding=self.encoding)
+
+    def _close(self) -> None:
+        """إغلاق الملف."""
+        if self._file:
+            self._file.close()
+            self._file = None
+
+    def write(self, data: str) -> None:
+        """كتابة إلى الملف."""
+        with self._lock:
+            if self._should_rotate():
+                self._do_rotate()
+
+            if self._file:
+                self._file.write(data)
+
+    def flush(self) -> None:
+        """تفريغ buffer."""
+        with self._lock:
+            if self._file:
+                self._file.flush()
+
+    def _should_rotate(self) -> bool:
+        """هل يجب تدوير الملف؟"""
+        if not self.filename.exists():
+            return False
+
+        return self.filename.stat().st_size >= self.max_bytes
+
+    def _do_rotate(self) -> None:
+        """تنفيذ التدوير."""
+        self._close()
+
+        # Rotate existing backups
+        for i in range(self.backup_count - 1, 0, -1):
+            src = self._get_backup_name(i)
+            dst = self._get_backup_name(i + 1)
+
+            if src.exists():
+                # Delete oldest if at limit
+                if i + 1 > self.backup_count:
+                    src.unlink()
+                else:
+                    shutil.move(str(src), str(dst))
+
+        # Move current file to backup 1
+        if self.filename.exists():
+            backup_name = self._get_backup_name(1)
+            shutil.move(str(self.filename), str(backup_name))
+
+            # Compress if enabled
+            if self.compress:
+                self._compress_file(backup_name)
+
+        # Reopen for new writes
+        self._open()
+
+    def _get_backup_name(self, index: int) -> Path:
+        """الحصول على اسم ملف النسخة الاحتياطية."""
+        suffix = f".{index}"
+        if self.compress:
+            suffix += ".gz"
+        return self.filename.with_suffix(self.filename.suffix + suffix)
+
+    def _compress_file(self, filepath: Path) -> None:
+        """ضغط ملف."""
+        if not filepath.exists():
+            return
+
+        compressed_path = filepath.with_suffix(filepath.suffix + ".gz")
+
+        try:
+            with open(filepath, "rb") as f_in:
+                with gzip.open(compressed_path, "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
+            # Remove uncompressed file
+            filepath.unlink()
+        except Exception:
+            # If compression fails, keep the uncompressed file
+            pass
+
+    def close(self) -> None:
+        """إغلاق المعالج."""
+        with self._lock:
+            self._close()
+
+
+class TimedRotatingFileHandler(RotatingFileHandler):
+    """
+    معالج ملفات مع rotation زمني.
+
+    يدعم التدوير:
+    - كل ساعة ('H')
+    - يومياً ('D')
+    - أسبوعياً ('W')
+    - شهرياً ('M')
+
+    الاستخدام:
+        handler = TimedRotatingFileHandler(
+            filename="app.log",
+            when="D",              # Daily
+            backup_count=7,        # Keep 7 days
+            compress=True,
+        )
+    """
+
+    def __init__(
+        self,
+        filename: Union[str, Path],
+        when: str = "D",  # H=Hour, D=Day, W=Week, M=Month
+        backup_count: int = 7,
+        compress: bool = True,
+        encoding: str = "utf-8",
+    ):
+        self.when = when.upper()
+        self._next_rotation: Optional[datetime] = None
+
+        # Don't use size-based rotation
+        super().__init__(
+            filename=filename,
+            max_bytes=float("inf"),  # type: ignore
+            backup_count=backup_count,
+            compress=compress,
+            encoding=encoding,
+        )
+
+        self._calculate_next_rotation()
+
+    def _calculate_next_rotation(self) -> None:
+        """حساب وقت التدوير التالي."""
+        now = datetime.now()
+
+        if self.when == "H":
+            # Next hour
+            self._next_rotation = now.replace(
+                minute=0, second=0, microsecond=0
+            ) + timedelta(hours=1)
+
+        elif self.when == "D":
+            # Next day at midnight
+            self._next_rotation = now.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            ) + timedelta(days=1)
+
+        elif self.when == "W":
+            # Next Monday at midnight
+            days_until_monday = (7 - now.weekday()) % 7
+            if days_until_monday == 0:
+                days_until_monday = 7
+            self._next_rotation = now.replace(
+                hour=0, minute=0, second=0, microsecond=0
+            ) + timedelta(days=days_until_monday)
+
+        elif self.when == "M":
+            # First day of next month
+            if now.month == 12:
+                self._next_rotation = now.replace(
+                    year=now.year + 1, month=1, day=1,
+                    hour=0, minute=0, second=0, microsecond=0
+                )
+            else:
+                self._next_rotation = now.replace(
+                    month=now.month + 1, day=1,
+                    hour=0, minute=0, second=0, microsecond=0
+                )
+
+    def _should_rotate(self) -> bool:
+        """هل يجب تدوير الملف؟"""
+        if self._next_rotation is None:
+            return False
+
+        return datetime.now() >= self._next_rotation
+
+    def _do_rotate(self) -> None:
+        """تنفيذ التدوير."""
+        super()._do_rotate()
+        self._calculate_next_rotation()
+
+    def _get_backup_name(self, index: int) -> Path:
+        """الحصول على اسم ملف النسخة الاحتياطية مع التاريخ."""
+        now = datetime.now()
+        date_suffix = now.strftime("%Y%m%d")
+
+        if self.when == "H":
+            date_suffix = now.strftime("%Y%m%d_%H")
+
+        suffix = f".{date_suffix}.{index}"
+        if self.compress:
+            suffix += ".gz"
+        return self.filename.with_suffix(self.filename.suffix + suffix)
+
+
+class LogCleaner:
+    """
+    منظف ملفات اللوغ.
+
+    ينظف الملفات القديمة دورياً.
+
+    الاستخدام:
+        cleaner = LogCleaner(
+            log_dir="/var/log/app",
+            max_age_days=30,
+            patterns=["*.log", "*.log.*.gz"],
+        )
+        await cleaner.start()
+    """
+
+    def __init__(
+        self,
+        log_dir: Union[str, Path],
+        max_age_days: int = 30,
+        patterns: Optional[List[str]] = None,
+        check_interval: float = 3600.0,  # 1 hour
+        on_delete: Optional[Callable[[Path], None]] = None,
+    ):
+        self.log_dir = Path(log_dir)
+        self.max_age_days = max_age_days
+        self.patterns = patterns or ["*.log", "*.log.*", "*.log.*.gz"]
+        self.check_interval = check_interval
+        self.on_delete = on_delete
+
+        self._running = False
+        self._task: Optional[asyncio.Task] = None
+
+    async def start(self) -> None:
+        """بدء التنظيف الدوري."""
+        if self._running:
+            return
+
+        self._running = True
+        self._task = asyncio.create_task(self._cleanup_loop())
+
+    async def stop(self) -> None:
+        """إيقاف التنظيف."""
+        self._running = False
+
+        if self._task:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
+
+    async def _cleanup_loop(self) -> None:
+        """حلقة التنظيف الدوري."""
+        while self._running:
+            try:
+                await asyncio.get_event_loop().run_in_executor(
+                    None, self._do_cleanup
+                )
+            except Exception:
+                pass
+
+            await asyncio.sleep(self.check_interval)
+
+    def _do_cleanup(self) -> None:
+        """تنفيذ التنظيف."""
+        if not self.log_dir.exists():
+            return
+
+        cutoff_time = time.time() - (self.max_age_days * 24 * 3600)
+        deleted_count = 0
+        deleted_size = 0
+
+        for pattern in self.patterns:
+            for filepath in self.log_dir.glob(pattern):
+                if not filepath.is_file():
+                    continue
+
+                try:
+                    if filepath.stat().st_mtime < cutoff_time:
+                        file_size = filepath.stat().st_size
+                        filepath.unlink()
+                        deleted_count += 1
+                        deleted_size += file_size
+
+                        if self.on_delete:
+                            try:
+                                self.on_delete(filepath)
+                            except Exception:
+                                pass
+
+                except (OSError, PermissionError):
+                    pass
+
+        return deleted_count, deleted_size
+
+    def cleanup_now(self) -> tuple[int, int]:
+        """تنظيف فوري."""
+        return self._do_cleanup()
+
+    def get_log_stats(self) -> Dict[str, Any]:
+        """الحصول على إحصائيات اللوغ."""
+        if not self.log_dir.exists():
+            return {"total_files": 0, "total_size": 0}
+
+        total_files = 0
+        total_size = 0
+        oldest_file: Optional[datetime] = None
+        newest_file: Optional[datetime] = None
+
+        for pattern in self.patterns:
+            for filepath in self.log_dir.glob(pattern):
+                if not filepath.is_file():
+                    continue
+
+                try:
+                    stat = filepath.stat()
+                    total_files += 1
+                    total_size += stat.st_size
+
+                    mtime = datetime.fromtimestamp(stat.st_mtime)
+                    if oldest_file is None or mtime < oldest_file:
+                        oldest_file = mtime
+                    if newest_file is None or mtime > newest_file:
+                        newest_file = mtime
+
+                except (OSError, PermissionError):
+                    pass
+
+        return {
+            "total_files": total_files,
+            "total_size": total_size,
+            "total_size_mb": round(total_size / (1024 * 1024), 2),
+            "oldest_file": oldest_file.isoformat() if oldest_file else None,
+            "newest_file": newest_file.isoformat() if newest_file else None,
+        }
+
+
+def setup_logging(
+    log_dir: Union[str, Path] = "logs",
+    log_level: LogLevel = LogLevel.INFO,
+    rotation: str = "size",  # "size" or "time"
+    max_bytes: int = 10 * 1024 * 1024,  # 10 MB
+    when: str = "D",  # For time-based rotation
+    backup_count: int = 5,
+    compress: bool = True,
+    json_output: bool = True,
+    enable_cleanup: bool = True,
+    max_age_days: int = 30,
+) -> tuple[StructuredLogger, Optional[LogCleaner]]:
+    """
+    إعداد التسجيل مع rotation و cleanup.
+
+    الاستخدام:
+        logger, cleaner = setup_logging(
+            log_dir="logs",
+            rotation="time",
+            when="D",
+            backup_count=7,
+            max_age_days=30,
+        )
+
+        # Start cleanup
+        await cleaner.start()
+    """
+    log_path = Path(log_dir)
+    log_path.mkdir(parents=True, exist_ok=True)
+
+    log_file = log_path / "app.log"
+
+    # Create handler
+    if rotation == "time":
+        handler = TimedRotatingFileHandler(
+            filename=log_file,
+            when=when,
+            backup_count=backup_count,
+            compress=compress,
+        )
+    else:
+        handler = RotatingFileHandler(
+            filename=log_file,
+            max_bytes=max_bytes,
+            backup_count=backup_count,
+            compress=compress,
+        )
+
+    # Create logger
+    logger = StructuredLogger(
+        name="app",
+        level=log_level,
+        output=handler,
+        json_output=json_output,
+    )
+
+    # Create cleaner
+    cleaner = None
+    if enable_cleanup:
+        cleaner = LogCleaner(
+            log_dir=log_path,
+            max_age_days=max_age_days,
+        )
+
+    return logger, cleaner
