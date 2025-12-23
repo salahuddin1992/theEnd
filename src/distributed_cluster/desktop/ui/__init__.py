@@ -6,9 +6,12 @@ This module provides:
 - Fluent Design System (Mica, Acrylic, Reveal effects)
 - Modern animations and transitions
 - Custom window decorations
-- Advanced widgets
-- Complete dashboard view
+- Advanced widgets and data tables
+- Complete dashboard and view pages
 - Notification system
+- Windows 11 integration (tray, notifications, registry)
+- Splash screen with animations
+- Modern dialogs
 """
 
 from .fluent_design import (
@@ -82,9 +85,56 @@ from .dashboard import (
     ActivityItemData,
     SystemHealthCard,
 )
+from .data_table import (
+    FluentDataTable,
+    ColumnDefinition,
+    ColumnType,
+    CellRenderer,
+)
+from .splash import (
+    FluentSplashScreen,
+    SplashScreenManager,
+    AnimatedLogo,
+    SplashProgressRing,
+    LoadingOverlay,
+)
+from .dialogs import (
+    FluentDialog,
+    ConnectionDialog,
+    ConfirmationDialog,
+    ConfirmationType,
+    ProgressDialog,
+    InputDialog,
+    JobSubmitDialog,
+    ConnectionProfile,
+)
+from .windows_integration import (
+    WindowsIntegrationManager,
+    WindowsThemeDetector,
+    WindowsToastNotifications,
+    TaskbarProgress,
+    TaskbarProgressState,
+    FluentSystemTray,
+    WindowsRegistry,
+    WindowsCredentialManager,
+    WindowsJumpList,
+    Windows11Effects,
+    JumpListItem,
+    IS_WINDOWS,
+    APP_ID,
+    APP_NAME,
+)
+from .views import (
+    FluentJobsView,
+    FluentWorkersView,
+    FluentSettingsView,
+    FluentLogsView,
+    FluentMetricsView,
+)
 from .main_window import (
     FluentMainWindow,
     create_fluent_app,
+    run_app,
 )
 
 __all__ = [
@@ -125,6 +175,11 @@ __all__ = [
     "ButtonSize",
     "BadgeVariant",
     "SkeletonLoader",
+    # Data Table
+    "FluentDataTable",
+    "ColumnDefinition",
+    "ColumnType",
+    "CellRenderer",
     # Window
     "CustomTitleBar",
     "FramelessWindow",
@@ -152,7 +207,44 @@ __all__ = [
     "ActivityFeed",
     "ActivityItemData",
     "SystemHealthCard",
+    # Splash Screen
+    "FluentSplashScreen",
+    "SplashScreenManager",
+    "AnimatedLogo",
+    "SplashProgressRing",
+    "LoadingOverlay",
+    # Dialogs
+    "FluentDialog",
+    "ConnectionDialog",
+    "ConfirmationDialog",
+    "ConfirmationType",
+    "ProgressDialog",
+    "InputDialog",
+    "JobSubmitDialog",
+    "ConnectionProfile",
+    # Windows Integration
+    "WindowsIntegrationManager",
+    "WindowsThemeDetector",
+    "WindowsToastNotifications",
+    "TaskbarProgress",
+    "TaskbarProgressState",
+    "FluentSystemTray",
+    "WindowsRegistry",
+    "WindowsCredentialManager",
+    "WindowsJumpList",
+    "Windows11Effects",
+    "JumpListItem",
+    "IS_WINDOWS",
+    "APP_ID",
+    "APP_NAME",
+    # Views
+    "FluentJobsView",
+    "FluentWorkersView",
+    "FluentSettingsView",
+    "FluentLogsView",
+    "FluentMetricsView",
     # Main Window
     "FluentMainWindow",
     "create_fluent_app",
+    "run_app",
 ]

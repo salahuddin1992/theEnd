@@ -4,10 +4,17 @@ Advanced Fluent Main Window
 
 The main application window that combines all Fluent UI components
 into a cohesive Windows 11 style experience.
+
+Features:
+- Windows 11 Fluent Design
+- All view pages integrated
+- Windows integration (tray, notifications)
+- Splash screen on startup
 """
 
 from __future__ import annotations
 
+import sys
 import asyncio
 from typing import Optional, Dict
 
@@ -25,6 +32,18 @@ from .notifications import InAppNotificationManager, NotificationAction
 from .dashboard import FluentDashboard
 from .components import FluentButton, FluentCard, ButtonVariant, SkeletonLoader
 from .animations import FluentEasing, AnimationManager
+from .views import (
+    FluentJobsView,
+    FluentWorkersView,
+    FluentSettingsView,
+    FluentLogsView,
+    FluentMetricsView
+)
+from .dialogs import ConnectionDialog, ConfirmationDialog, ConfirmationType
+from .windows_integration import (
+    WindowsIntegrationManager,
+    IS_WINDOWS
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -58,10 +77,14 @@ class FluentMainWindow(FramelessWindow):
         self._current_page = "dashboard"
         self._views: Dict[str, QWidget] = {}
 
+        # Windows integration
+        self._windows = WindowsIntegrationManager(self) if IS_WINDOWS else None
+
         self._setup_main_ui()
         self._setup_shortcuts()
         self._setup_notifications()
         self._setup_refresh_timer()
+        self._setup_windows_integration()
 
         # Initial state
         self._show_loading_state()
@@ -141,9 +164,33 @@ class FluentMainWindow(FramelessWindow):
         self._views["dashboard"] = self._dashboard
         self._content_stack.addWidget(self._dashboard)
 
-        # Placeholder views for other pages
-        placeholders = ["jobs", "workers", "templates", "pools", "queues", "logs", "metrics", "settings"]
+        # Jobs View
+        self._jobs_view = FluentJobsView()
+        self._views["jobs"] = self._jobs_view
+        self._content_stack.addWidget(self._jobs_view)
 
+        # Workers View
+        self._workers_view = FluentWorkersView()
+        self._views["workers"] = self._workers_view
+        self._content_stack.addWidget(self._workers_view)
+
+        # Logs View
+        self._logs_view = FluentLogsView()
+        self._views["logs"] = self._logs_view
+        self._content_stack.addWidget(self._logs_view)
+
+        # Metrics View
+        self._metrics_view = FluentMetricsView()
+        self._views["metrics"] = self._metrics_view
+        self._content_stack.addWidget(self._metrics_view)
+
+        # Settings View
+        self._settings_view = FluentSettingsView()
+        self._views["settings"] = self._settings_view
+        self._content_stack.addWidget(self._settings_view)
+
+        # Placeholder views for remaining pages (to be implemented)
+        placeholders = ["templates", "pools", "queues"]
         for page_id in placeholders:
             view = self._create_placeholder_view(page_id.title())
             self._views[page_id] = view
@@ -262,6 +309,51 @@ class FluentMainWindow(FramelessWindow):
         self._refresh_timer.timeout.connect(self._auto_refresh)
         self._refresh_timer.start(5000)  # 5 seconds
 
+    def _setup_windows_integration(self):
+        """Setup Windows 11 integration"""
+        if not self._windows:
+            return
+
+        # Setup for this window
+        self._windows.setup_for_window(self)
+
+        # Connect tray signals
+        self._windows.tray.show_window.connect(self.show)
+        self._windows.tray.show_window.connect(self.raise_)
+        self._windows.tray.hide_window.connect(self.hide)
+        self._windows.tray.quit_requested.connect(self._on_quit_requested)
+        self._windows.tray.action_triggered.connect(self._on_tray_action)
+
+        # Theme change detection
+        self._windows.theme_changed.connect(self._on_theme_changed)
+
+    def _on_quit_requested(self):
+        """Handle quit from tray"""
+        dialog = ConfirmationDialog(
+            "Quit NebulaCompute",
+            "Are you sure you want to quit? Any running jobs will continue on the cluster.",
+            "Quit",
+            "Cancel",
+            ConfirmationType.QUESTION,
+            self
+        )
+        if dialog.exec():
+            QApplication.quit()
+
+    def _on_tray_action(self, action: str):
+        """Handle tray menu actions"""
+        if action == "submit_job":
+            self._navigate_to("jobs")
+        elif action == "refresh":
+            self._refresh()
+        elif action == "settings":
+            self._navigate_to("settings")
+
+    def _on_theme_changed(self, is_dark: bool):
+        """Handle Windows theme change"""
+        # Would switch app theme
+        pass
+
     def _show_loading_state(self):
         """Show initial loading state"""
         # Simulate loading data
@@ -350,10 +442,25 @@ class FluentMainWindow(FramelessWindow):
 
     def _show_connect_dialog(self):
         """Show server connection dialog"""
-        self._notifications.info(
-            "Connect to Server",
-            "Connection dialog would open here"
-        )
+        dialog = ConnectionDialog(self)
+        dialog.connection_requested.connect(self._handle_connection)
+        dialog.exec()
+
+    def _handle_connection(self, config: dict):
+        """Handle connection request from dialog"""
+        host = config.get("host", "localhost")
+        port = config.get("port", 8765)
+
+        # Simulate connection
+        self.set_connected(True, f"{host}:{port}")
+
+        # Show notification
+        if self._windows:
+            self._windows.show_notification(
+                "Connected",
+                f"Successfully connected to {host}:{port}",
+                "success"
+            )
 
     def set_connected(self, connected: bool, server_name: str = ""):
         """Update connection state"""
@@ -437,12 +544,18 @@ class FluentMainWindow(FramelessWindow):
 # نقطة الدخول
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def create_fluent_app():
+def create_fluent_app(show_splash: bool = True):
     """
     Create and configure the Fluent Design application.
     إنشاء وتكوين تطبيق Fluent Design
+
+    Args:
+        show_splash: Whether to show splash screen on startup
+
+    Returns:
+        Tuple of (QApplication, FluentMainWindow)
     """
-    import sys
+    from .splash import FluentSplashScreen, SplashScreenManager
 
     # Check for PySide6
     try:
@@ -461,7 +574,7 @@ def create_fluent_app():
 
     # Application metadata
     app.setApplicationName("NebulaCompute Desktop")
-    app.setApplicationVersion("0.1.0")
+    app.setApplicationVersion("1.0.0")
     app.setOrganizationName("NebulaCompute")
     app.setOrganizationDomain("nebulacompute.io")
 
@@ -471,18 +584,47 @@ def create_fluent_app():
 
     # Set default font
     font = QFont("Segoe UI Variable", 10)
-    font.setStyleHint(QFont.SansSerif)
+    font.setStyleHint(QFont.StyleHint.SansSerif)
     app.setFont(font)
 
-    # Create main window
-    window = FluentMainWindow()
-    window.resize(1400, 900)
-    window.show()
+    # Show splash screen
+    if show_splash:
+        splash_manager = SplashScreenManager()
+        splash = splash_manager.create()
+
+        # Add initialization steps
+        splash_manager.add_step("Loading design system...", None)
+        splash_manager.add_step("Initializing components...", None)
+        splash_manager.add_step("Loading views...", None)
+        splash_manager.add_step("Setting up Windows integration...", None)
+        splash_manager.add_step("Preparing dashboard...", None)
+
+        splash_manager.show()
+        splash_manager.run_steps()
+
+        # Create main window
+        window = FluentMainWindow()
+        window.resize(1400, 900)
+
+        # Finish splash and show window
+        splash_manager.finish(window)
+    else:
+        # Create main window directly
+        window = FluentMainWindow()
+        window.resize(1400, 900)
+        window.show()
 
     return app, window
 
 
-if __name__ == "__main__":
-    import sys
-    app, window = create_fluent_app()
+def run_app():
+    """
+    Run the NebulaCompute Desktop application.
+    تشغيل تطبيق NebulaCompute Desktop
+    """
+    app, window = create_fluent_app(show_splash=True)
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    run_app()
