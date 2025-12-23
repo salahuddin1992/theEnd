@@ -17,6 +17,10 @@ from distributed_cluster.observability.logging import (
     StructuredLogger,
     log_context,
     get_logger,
+    RotatingFileHandler,
+    TimedRotatingFileHandler,
+    LogCleaner,
+    setup_logging,
 )
 
 from distributed_cluster.observability.metrics import (
@@ -90,6 +94,10 @@ __all__ = [
     "StructuredLogger",
     "log_context",
     "get_logger",
+    "RotatingFileHandler",
+    "TimedRotatingFileHandler",
+    "LogCleaner",
+    "setup_logging",
     # Metrics
     "MetricsCollector",
     "MetricType",

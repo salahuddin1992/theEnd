@@ -12,6 +12,7 @@ import asyncio
 import json
 import logging
 import uuid
+from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -127,13 +128,15 @@ class AuditEvent:
         return cls(**data)
 
 
-class AuditBackend:
+class AuditBackend(ABC):
     """Base class for audit storage backends."""
 
+    @abstractmethod
     async def write(self, event: AuditEvent) -> None:
         """Write an audit event."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     async def query(
         self,
         start_time: Optional[datetime] = None,
@@ -147,8 +150,9 @@ class AuditBackend:
         offset: int = 0,
     ) -> List[AuditEvent]:
         """Query audit events."""
-        raise NotImplementedError
+        pass
 
+    @abstractmethod
     async def count(
         self,
         start_time: Optional[datetime] = None,
@@ -157,7 +161,7 @@ class AuditBackend:
         result: Optional[AuditResult] = None,
     ) -> int:
         """Count matching events."""
-        raise NotImplementedError
+        pass
 
 
 class MemoryAuditBackend(AuditBackend):
