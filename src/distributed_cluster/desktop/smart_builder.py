@@ -595,20 +595,36 @@ def check_updates_on_startup(current_version: str):
 
         # Hidden imports
         hidden_imports = [
+            # PySide6 / Qt
             "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets",
             "PySide6.QtCharts", "PySide6.QtNetwork", "PySide6.QtSvg",
-            "qasync", "asyncio", "httpx", "websockets",
+            # Async
+            "qasync", "asyncio",
+            # HTTP & Network
+            "httpx", "websockets",
+            # Project modules
             "distributed_cluster.desktop", "distributed_cluster.models",
-            "distributed_cluster.core", "json", "ssl", "certifi",
+            "distributed_cluster.core",
+            # Standard library
+            "json", "ssl", "certifi",
+            # Required for pkg_resources (fixes jaraco error)
+            "jaraco", "jaraco.text", "jaraco.functools", "jaraco.context",
+            "jaraco.classes", "jaraco.collections",
+            "pkg_resources", "pkg_resources.extern",
+            # More dependencies that may be needed
+            "importlib_metadata", "importlib_resources",
+            "packaging", "packaging.version", "packaging.specifiers",
+            "packaging.requirements", "packaging.markers",
+            "zipp", "more_itertools",
         ] + config.hidden_imports
 
         for imp in hidden_imports:
             options.append(f"--hidden-import={imp}")
 
-        # Excludes
+        # Excludes (removed setuptools - it's needed!)
         excludes = [
             "tkinter", "matplotlib", "numpy", "pandas", "scipy",
-            "PIL", "IPython", "jupyter", "pytest", "setuptools",
+            "PIL", "IPython", "jupyter", "pytest",
         ] + config.excludes
 
         for exc in excludes:
