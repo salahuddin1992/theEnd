@@ -33,6 +33,9 @@ from distributed_cluster.network.internet_p2p import (
     generate_connection_code,
     parse_connection_code,
 )
+from distributed_cluster.network.network_stack import (
+    NetworkStackManager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +45,7 @@ router = APIRouter(prefix="/api/peers", tags=["peers"])
 # Global managers (initialized by app startup)
 _peer_manager: Optional[PeerManager] = None
 _internet_manager: Optional[InternetP2PManager] = None
+_network_stack: Optional[NetworkStackManager] = None
 _websocket_clients: List[WebSocket] = []
 
 
@@ -145,6 +149,13 @@ def get_internet_manager() -> InternetP2PManager:
     return _internet_manager
 
 
+def get_network_stack() -> NetworkStackManager:
+    """الحصول على مكدس الشبكة."""
+    if _network_stack is None:
+        raise HTTPException(status_code=500, detail="Network stack not initialized")
+    return _network_stack
+
+
 async def broadcast_event(event: PeerEvent) -> None:
     """بث حدث لجميع العملاء."""
     for ws in list(_websocket_clients):
@@ -177,9 +188,10 @@ async def init_peer_manager(
     app_type: str = "worker",
     internet_port: int = 5960,
     auto_approve: bool = False,
+    network_stack_enabled: bool = True,
 ) -> tuple[PeerManager, InternetP2PManager]:
     """تهيئة مديري الاتصالات (المحلي والإنترنت)."""
-    global _peer_manager, _internet_manager
+    global _peer_manager, _internet_manager, _network_stack
 
     # === Local Peer Manager ===
     _peer_manager = PeerManager()
@@ -262,6 +274,14 @@ async def init_peer_manager(
         ))
     ))
 
+    # === Network Stack ===
+    if network_stack_enabled:
+        import socket
+        hostname = socket.gethostname()
+        _network_stack = NetworkStackManager(name=hostname, domain="nebula.local")
+        _network_stack.set_p2p_manager(_internet_manager)
+        await _network_stack.start()
+
     # Start both managers
     await _peer_manager.start()
     await _internet_manager.start()
@@ -271,7 +291,11 @@ async def init_peer_manager(
 
 async def shutdown_peer_manager() -> None:
     """إيقاف مديري الاتصالات."""
-    global _peer_manager, _internet_manager
+    global _peer_manager, _internet_manager, _network_stack
+
+    if _network_stack:
+        await _network_stack.stop()
+        _network_stack = None
 
     if _internet_manager:
         await _internet_manager.stop()
@@ -547,6 +571,90 @@ async def get_internet_my_info():
     return im.get_my_info()
 
 
+# === Network Stack Endpoints ===
+
+@router.get("/network/status")
+async def get_network_status():
+    """حالة مكدس الشبكة."""
+    ns = get_network_stack()
+    return ns.get_status()
+
+
+@router.get("/network/stats")
+async def get_network_stats():
+    """إحصائيات الشبكة الكاملة."""
+    ns = get_network_stack()
+    return ns.get_full_stats()
+
+
+@router.get("/network/dns/records")
+async def get_dns_records():
+    """سجلات DNS."""
+    ns = get_network_stack()
+    return ns.get_dns_records()
+
+
+@router.get("/network/dns/resolve/{name}")
+async def resolve_dns_name(name: str):
+    """البحث عن اسم في DNS."""
+    ns = get_network_stack()
+    result = ns.resolve_name(name)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"Name not found: {name}")
+    return result
+
+
+@router.get("/network/routing/table")
+async def get_routing_table():
+    """جدول التوجيه."""
+    ns = get_network_stack()
+    return ns.get_routing_table()
+
+
+@router.post("/network/routing/add")
+async def add_route(destination: str, gateway: str, metric: int = 100):
+    """إضافة مسار."""
+    ns = get_network_stack()
+    ns.add_route(destination, gateway, metric)
+    return {"status": "added", "destination": destination, "gateway": gateway}
+
+
+@router.get("/network/routing/lookup/{destination}")
+async def lookup_route(destination: str):
+    """البحث عن مسار."""
+    ns = get_network_stack()
+    route = ns.get_route(destination)
+    if not route:
+        raise HTTPException(status_code=404, detail=f"No route for: {destination}")
+    return route
+
+
+@router.get("/network/relay/sessions")
+async def get_relay_sessions():
+    """جلسات الترحيل."""
+    ns = get_network_stack()
+    return ns.get_relay_sessions()
+
+
+@router.get("/network/peers")
+async def get_network_peers():
+    """قائمة الأطراف المسجلين في الشبكة."""
+    ns = get_network_stack()
+    return ns.get_peers()
+
+
+@router.get("/network/identity")
+async def get_network_identity():
+    """هوية العقدة."""
+    ns = get_network_stack()
+    return {
+        "node_id": ns.node.identity.node_id,
+        "name": ns.node.identity.name,
+        "public_key": ns.node.identity.public_key,
+        "domain": ns.node.domain,
+    }
+
+
 # === WebSocket for Real-time Updates ===
 
 @router.websocket("/ws")
@@ -572,6 +680,16 @@ async def peer_websocket(websocket: WebSocket):
                 "my_info": _internet_manager.get_my_info(),
                 "connections": _internet_manager.get_all_connections(),
                 "pending_requests": _internet_manager.get_pending_requests(),
+            }
+
+        # Add network stack data if available
+        if _network_stack:
+            init_data["network_stack"] = {
+                "status": _network_stack.get_status(),
+                "stats": _network_stack.get_full_stats(),
+                "dns_records": _network_stack.get_dns_records(),
+                "routing_table": _network_stack.get_routing_table(),
+                "relay_sessions": _network_stack.get_relay_sessions(),
             }
 
         await websocket.send_json({
@@ -748,6 +866,7 @@ DASHBOARD_HTML = """
         <div class="tabs">
             <button class="tab active" onclick="showTab('local')">الشبكة المحلية</button>
             <button class="tab" onclick="showTab('internet')">الإنترنت P2P <span id="requestsBadge" class="badge" style="display:none">0</span></button>
+            <button class="tab" onclick="showTab('network')">مكدس الشبكة</button>
             <button class="tab" onclick="showTab('messages')">الرسائل</button>
         </div>
 
@@ -808,6 +927,51 @@ DASHBOARD_HTML = """
             </div>
         </div>
 
+        <!-- Network Stack Tab -->
+        <div id="networkTab" class="tab-content">
+            <div class="grid">
+                <div class="card highlight">
+                    <h2>هوية العقدة</h2>
+                    <div id="nodeIdentity">جاري التحميل...</div>
+                </div>
+
+                <div class="card">
+                    <h2>إحصائيات الشبكة</h2>
+                    <div id="networkStats">جاري التحميل...</div>
+                </div>
+
+                <div class="card">
+                    <h2>سجلات DNS (<span id="dnsRecordsCount">0</span>)</h2>
+                    <div id="dnsRecords" class="peer-list"></div>
+                    <div class="input-group" style="margin-top:15px;">
+                        <input type="text" id="dnsLookup" placeholder="بحث في DNS...">
+                        <button class="btn btn-connect" onclick="lookupDNS()">بحث</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>جدول التوجيه (<span id="routesCount">0</span>)</h2>
+                    <div id="routingTable" class="peer-list"></div>
+                    <div class="section-title">إضافة مسار</div>
+                    <div class="input-group">
+                        <input type="text" id="routeDest" placeholder="الوجهة (IP/CIDR)">
+                        <input type="text" id="routeGateway" placeholder="البوابة">
+                        <button class="btn btn-connect" onclick="addRoute()">إضافة</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>جلسات الترحيل (<span id="relaySessionsCount">0</span>)</h2>
+                    <div id="relaySessions" class="peer-list"></div>
+                </div>
+
+                <div class="card">
+                    <h2>الأطراف المسجلين (<span id="networkPeersCount">0</span>)</h2>
+                    <div id="networkPeers" class="peer-list"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Messages Tab -->
         <div id="messagesTab" class="tab-content">
             <div class="grid">
@@ -828,6 +992,7 @@ DASHBOARD_HTML = """
         let peers = {};
         let connected = {};
         let internetData = { code: '', connections: [], requests: [] };
+        let networkStack = { status: {}, stats: {}, dns_records: [], routing_table: [], relay_sessions: [], peers: [] };
 
         function showTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -856,6 +1021,10 @@ DASHBOARD_HTML = """
                         internetData.connections = event.data.internet.connections || [];
                         internetData.requests = event.data.internet.pending_requests || [];
                         updateInternetInfo(event.data.internet.my_info);
+                    }
+                    if (event.data.network_stack) {
+                        networkStack = event.data.network_stack;
+                        renderNetworkStack();
                     }
                     renderAll();
                     break;
@@ -989,6 +1158,141 @@ DASHBOARD_HTML = """
                     <button class="btn btn-connect" onclick="internetMessage('${c.peer_id}')">رسالة</button>
                 </div>
             `).join('') || '<p class="empty-state">لا يوجد اتصالات إنترنت نشطة</p>';
+        }
+
+        function renderNetworkStack() {
+            const status = networkStack.status || {};
+            const stats = networkStack.stats || {};
+            const dnsRecords = networkStack.dns_records || [];
+            const routes = networkStack.routing_table || [];
+            const sessions = networkStack.relay_sessions || [];
+
+            // Node Identity
+            document.getElementById('nodeIdentity').innerHTML = `
+                <div class="info-row"><span class="info-label">معرف العقدة:</span><span class="info-value">${status.node_id || 'غير معروف'}</span></div>
+                <div class="info-row"><span class="info-label">الاسم:</span><span class="info-value">${status.name || 'غير معروف'}</span></div>
+                <div class="info-row"><span class="info-label">النطاق:</span><span class="info-value">${status.domain || 'nebula.local'}</span></div>
+                <div class="info-row"><span class="info-label">IP العام:</span><span class="info-value">${status.public_ip || 'غير متاح'}</span></div>
+                <div class="info-row"><span class="info-label">IPs المحلية:</span><span class="info-value">${(status.local_ips || []).join(', ') || 'غير متاح'}</span></div>
+                <div class="info-row"><span class="info-label">الحالة:</span><span class="info-value" style="color:${status.running ? '#00ff88' : '#ff4444'}">${status.running ? 'يعمل' : 'متوقف'}</span></div>
+            `;
+
+            // Network Stats
+            const dnsStats = stats.dns || {};
+            const routerStats = stats.router || {};
+            const relayStats = stats.relay || {};
+            document.getElementById('networkStats').innerHTML = `
+                <div class="section-title">DNS</div>
+                <div class="info-row"><span class="info-label">السجلات:</span><span class="info-value">${dnsStats.total_records || 0}</span></div>
+                <div class="info-row"><span class="info-label">الاستعلامات:</span><span class="info-value">${dnsStats.total_queries || 0}</span></div>
+                <div class="info-row"><span class="info-label">نسبة الـ Cache:</span><span class="info-value">${(dnsStats.cache_hit_rate || 0).toFixed(1)}%</span></div>
+                <div class="section-title">الراوتر</div>
+                <div class="info-row"><span class="info-label">المسارات:</span><span class="info-value">${routerStats.routes || 0}</span></div>
+                <div class="info-row"><span class="info-label">تعيينات NAT:</span><span class="info-value">${routerStats.nat_mappings || 0}</span></div>
+                <div class="info-row"><span class="info-label">الراوترات المتصلة:</span><span class="info-value">${routerStats.connected_routers || 0}</span></div>
+                <div class="section-title">الترحيل</div>
+                <div class="info-row"><span class="info-label">الجلسات النشطة:</span><span class="info-value">${relayStats.active_sessions || 0}</span></div>
+                <div class="info-row"><span class="info-label">البيانات المنقولة:</span><span class="info-value">${relayStats.total_mb || 0} MB</span></div>
+            `;
+
+            // DNS Records
+            document.getElementById('dnsRecordsCount').textContent = dnsRecords.length;
+            document.getElementById('dnsRecords').innerHTML = dnsRecords.map(r => `
+                <div class="peer-item">
+                    <div class="peer-name">${r.name}</div>
+                    <div class="peer-info">النوع: ${r.type} | القيمة: ${r.value}</div>
+                    <div class="peer-info">TTL: ${r.ttl}s | الأولوية: ${r.priority}</div>
+                </div>
+            `).join('') || '<p class="empty-state">لا يوجد سجلات DNS</p>';
+
+            // Routing Table
+            document.getElementById('routesCount').textContent = routes.length;
+            document.getElementById('routingTable').innerHTML = routes.map(r => `
+                <div class="peer-item">
+                    <div class="peer-name">${r.destination}</div>
+                    <div class="peer-info">البوابة: ${r.gateway} | Metric: ${r.metric}</div>
+                </div>
+            `).join('') || '<p class="empty-state">لا يوجد مسارات</p>';
+
+            // Relay Sessions
+            document.getElementById('relaySessionsCount').textContent = sessions.length;
+            document.getElementById('relaySessions').innerHTML = sessions.map(s => `
+                <div class="peer-item">
+                    <div class="peer-name">جلسة: ${s.session_id}</div>
+                    <div class="peer-info">${s.peer_a} <-> ${s.peer_b}</div>
+                    <div class="peer-info">البيانات: ${(s.bytes_transferred / 1024).toFixed(1)} KB | المدة: ${s.duration?.toFixed(0) || 0}s</div>
+                </div>
+            `).join('') || '<p class="empty-state">لا يوجد جلسات ترحيل نشطة</p>';
+
+            // Network Peers (from DNS)
+            const networkPeers = networkStack.peers || [];
+            document.getElementById('networkPeersCount').textContent = networkPeers.length;
+            document.getElementById('networkPeers').innerHTML = networkPeers.map(p => `
+                <div class="peer-item">
+                    <div class="peer-name">${p.name || p.peer_id}</div>
+                    <div class="peer-info">IP: ${p.ip || 'غير معروف'} | المنفذ: ${p.port || 0}</div>
+                </div>
+            `).join('') || '<p class="empty-state">لا يوجد أطراف مسجلين</p>';
+        }
+
+        async function lookupDNS() {
+            const name = document.getElementById('dnsLookup').value.trim();
+            if (!name) return addMessage('أدخل اسم للبحث', 'warning');
+            try {
+                const res = await fetch(`/api/peers/network/dns/resolve/${encodeURIComponent(name)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    addMessage(`DNS: ${name} -> IP: ${data.ip || 'غير موجود'}, Port: ${data.port || '-'}`, 'success');
+                } else {
+                    addMessage(`DNS: ${name} غير موجود`, 'warning');
+                }
+            } catch (e) {
+                addMessage('خطأ في البحث', 'warning');
+            }
+        }
+
+        async function addRoute() {
+            const dest = document.getElementById('routeDest').value.trim();
+            const gateway = document.getElementById('routeGateway').value.trim();
+            if (!dest || !gateway) return addMessage('أدخل الوجهة والبوابة', 'warning');
+            try {
+                const res = await fetch(`/api/peers/network/routing/add?destination=${encodeURIComponent(dest)}&gateway=${encodeURIComponent(gateway)}`, {
+                    method: 'POST'
+                });
+                if (res.ok) {
+                    addMessage(`تم إضافة المسار: ${dest} -> ${gateway}`, 'success');
+                    loadNetworkStack();
+                } else {
+                    addMessage('فشل إضافة المسار', 'warning');
+                }
+            } catch (e) {
+                addMessage('خطأ في إضافة المسار', 'warning');
+            }
+        }
+
+        async function loadNetworkStack() {
+            try {
+                const [statsRes, dnsRes, routesRes, sessionsRes] = await Promise.all([
+                    fetch('/api/peers/network/stats'),
+                    fetch('/api/peers/network/dns/records'),
+                    fetch('/api/peers/network/routing/table'),
+                    fetch('/api/peers/network/relay/sessions'),
+                ]);
+                networkStack.stats = await statsRes.json();
+                networkStack.dns_records = await dnsRes.json();
+                networkStack.routing_table = await routesRes.json();
+                networkStack.relay_sessions = await sessionsRes.json();
+
+                const statusRes = await fetch('/api/peers/network/status');
+                networkStack.status = await statusRes.json();
+
+                const peersRes = await fetch('/api/peers/network/peers');
+                networkStack.peers = await peersRes.json();
+
+                renderNetworkStack();
+            } catch (e) {
+                console.error('Failed to load network stack', e);
+            }
         }
 
         function getStatusText(status) {
@@ -1162,6 +1466,9 @@ DASHBOARD_HTML = """
                 renderInternet();
             } catch (e) {}
         }, 5000);
+
+        // Load network stack data periodically
+        setInterval(loadNetworkStack, 10000);
 
         connect();
     </script>
