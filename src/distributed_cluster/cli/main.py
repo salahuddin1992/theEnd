@@ -50,6 +50,11 @@ from distributed_cluster.cli.ha_cli import app as ha_app
 
 app.add_typer(ha_app, name="ha")
 
+# Import and add Secrets CLI commands
+from distributed_cluster.cli.secrets_cli import app as secrets_cli_app
+
+app.add_typer(secrets_cli_app, name="secrets-manage")
+
 console = Console()
 
 # Default master URL

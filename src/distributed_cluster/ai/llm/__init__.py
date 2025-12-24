@@ -75,6 +75,18 @@ from distributed_cluster.ai.llm.cost_tracker import (
     DEFAULT_PRICING,
 )
 
+# Cost optimization
+from distributed_cluster.ai.llm.cost_optimizer import (
+    CostOptimizer,
+    OptimizationStrategy,
+    TaskComplexity,
+    ProviderMetrics,
+    ModelRecommendation,
+    SavingsOpportunity,
+    CostForecast,
+    create_cost_optimizer,
+)
+
 # Vision & Embeddings
 from distributed_cluster.ai.llm.vision import (
     ImageInput,
@@ -140,6 +152,15 @@ __all__ = [
     "UsageRecord",
     "create_cost_tracker",
     "DEFAULT_PRICING",
+    # Cost Optimization
+    "CostOptimizer",
+    "OptimizationStrategy",
+    "TaskComplexity",
+    "ProviderMetrics",
+    "ModelRecommendation",
+    "SavingsOpportunity",
+    "CostForecast",
+    "create_cost_optimizer",
     # Vision
     "ImageInput",
     "ImageSource",

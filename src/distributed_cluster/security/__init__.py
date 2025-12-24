@@ -48,6 +48,15 @@ from distributed_cluster.security.audit_backends import (
     create_audit_backend,
 )
 
+from distributed_cluster.security.vault_backends import (
+    VaultConfig,
+    VaultBackend,
+    HashiCorpVaultStore,
+    AWSSecretsManagerStore,
+    AzureKeyVaultStore,
+    create_vault_backend,
+)
+
 __all__ = [
     # Auth
     "AuthConfig",
@@ -80,4 +89,11 @@ __all__ = [
     "PostgreSQLAuditBackend",
     "CompositeAuditBackend",
     "create_audit_backend",
+    # Vault Backends
+    "VaultConfig",
+    "VaultBackend",
+    "HashiCorpVaultStore",
+    "AWSSecretsManagerStore",
+    "AzureKeyVaultStore",
+    "create_vault_backend",
 ]
