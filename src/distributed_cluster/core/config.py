@@ -149,6 +149,19 @@ class WorkerConfig:
     docker_default_network: str = "bridge"
     docker_pull_policy: str = "if-not-present"  # always, if-not-present, never
 
+    # === Execution Mode - وضع التنفيذ ===
+    # auto: تلقائي - Docker إذا متاح، وإلا مباشر
+    # docker: Docker فقط (يفشل إذا غير متاح)
+    # direct: مباشر على الحاسوب بدون Docker
+    execution_mode: str = "auto"
+
+    # === Docker Full Permissions - صلاحيات Docker الكاملة ===
+    docker_privileged: bool = False  # --privileged mode
+    docker_capabilities: list[str] = field(default_factory=list)  # capabilities إضافية
+    docker_allow_host_network: bool = False  # السماح بشبكة المضيف
+    docker_allow_host_pid: bool = False  # السماح بـ PID namespace المضيف
+    docker_allow_all_devices: bool = False  # السماح بكل الأجهزة
+
     # Security
     sandbox_enabled: bool = True
     allowed_commands: list[str] = field(default_factory=list)  # فارغ = كلها مسموحة
@@ -172,6 +185,13 @@ class WorkerConfig:
             "docker_enabled": self.docker_enabled,
             "sandbox_enabled": self.sandbox_enabled,
             "log_level": self.log_level,
+            # Execution mode and Docker permissions
+            "execution_mode": self.execution_mode,
+            "docker_privileged": self.docker_privileged,
+            "docker_capabilities": self.docker_capabilities,
+            "docker_allow_host_network": self.docker_allow_host_network,
+            "docker_allow_host_pid": self.docker_allow_host_pid,
+            "docker_allow_all_devices": self.docker_allow_all_devices,
         }
 
     @classmethod
@@ -193,6 +213,13 @@ class WorkerConfig:
             docker_enabled=data.get("docker_enabled", True),
             docker_default_network=data.get("docker_default_network", "bridge"),
             docker_pull_policy=data.get("docker_pull_policy", "if-not-present"),
+            # Execution mode and Docker permissions
+            execution_mode=data.get("execution_mode", "auto"),
+            docker_privileged=data.get("docker_privileged", False),
+            docker_capabilities=data.get("docker_capabilities", []),
+            docker_allow_host_network=data.get("docker_allow_host_network", False),
+            docker_allow_host_pid=data.get("docker_allow_host_pid", False),
+            docker_allow_all_devices=data.get("docker_allow_all_devices", False),
             sandbox_enabled=data.get("sandbox_enabled", True),
             allowed_commands=data.get("allowed_commands", []),
             blocked_commands=data.get("blocked_commands", []),
@@ -204,6 +231,7 @@ class WorkerConfig:
     def from_env(cls) -> WorkerConfig:
         """إنشاء من environment variables."""
         tags = os.getenv("DC_WORKER_TAGS", "")
+        capabilities = os.getenv("DC_DOCKER_CAPABILITIES", "")
         return cls(
             worker_name=os.getenv("DC_WORKER_NAME"),
             host=os.getenv("DC_WORKER_HOST", "0.0.0.0"),
@@ -214,6 +242,13 @@ class WorkerConfig:
             tags=tags.split(",") if tags else [],
             docker_enabled=os.getenv("DC_DOCKER_ENABLED", "true").lower() == "true",
             log_level=os.getenv("DC_LOG_LEVEL", "INFO"),
+            # Execution mode and Docker permissions from environment
+            execution_mode=os.getenv("DC_EXECUTION_MODE", "auto"),  # auto, docker, direct
+            docker_privileged=os.getenv("DC_DOCKER_PRIVILEGED", "false").lower() == "true",
+            docker_capabilities=capabilities.split(",") if capabilities else [],
+            docker_allow_host_network=os.getenv("DC_DOCKER_HOST_NETWORK", "false").lower() == "true",
+            docker_allow_host_pid=os.getenv("DC_DOCKER_HOST_PID", "false").lower() == "true",
+            docker_allow_all_devices=os.getenv("DC_DOCKER_ALL_DEVICES", "false").lower() == "true",
         )
 
 

@@ -49,6 +49,11 @@ class JobExecutor:
     يدعم التنفيذ:
     1. مباشر كـ subprocess
     2. داخل Docker container (sandbox)
+
+    Execution Mode:
+    - execution_mode="auto": تلقائي - يستخدم Docker إذا متاح، وإلا مباشر
+    - execution_mode="docker": يجب استخدام Docker فقط
+    - execution_mode="direct": تنفيذ مباشر على الحاسوب بدون Docker
     """
 
     def __init__(
@@ -60,6 +65,13 @@ class JobExecutor:
         metrics_collector: Optional[WorkerMetricsCollector] = None,
         track_memory: bool = True,
         memory_sample_interval: float = 0.5,
+        # خيارات جديدة للصلاحيات الكاملة
+        execution_mode: str = "auto",  # auto, docker, direct
+        docker_privileged: bool = False,  # صلاحيات كاملة للـ Docker
+        docker_capabilities: Optional[list] = None,  # capabilities إضافية
+        allow_host_network: bool = False,  # السماح بشبكة المضيف
+        allow_host_pid: bool = False,  # السماح بـ PID namespace المضيف
+        allow_all_devices: bool = False,  # السماح بكل الأجهزة
     ):
         self.work_dir = Path(work_dir)
         self.docker_enabled = docker_enabled
@@ -68,6 +80,14 @@ class JobExecutor:
         self.metrics_collector = metrics_collector
         self.track_memory = track_memory
         self.memory_sample_interval = memory_sample_interval
+
+        # إعدادات الصلاحيات الكاملة
+        self.execution_mode = execution_mode
+        self.docker_privileged = docker_privileged
+        self.docker_capabilities = docker_capabilities or []
+        self.allow_host_network = allow_host_network
+        self.allow_host_pid = allow_host_pid
+        self.allow_all_devices = allow_all_devices
 
         # Ensure work directory exists
         self.work_dir.mkdir(parents=True, exist_ok=True)
@@ -102,6 +122,7 @@ class JobExecutor:
         تنفيذ Job.
 
         يختار طريقة التنفيذ بناءً على:
+        - execution_mode: auto, docker, direct
         - هل الـ job يطلب Docker image؟
         - هل sandbox مفعّل؟
         """
@@ -112,13 +133,32 @@ class JobExecutor:
         self._active[job.job_id] = context
 
         try:
-            # اختيار طريقة التنفيذ
-            if job.submission.docker_image and self.docker_available:
-                return await self._execute_docker(context)
-            elif self.sandbox_enabled and self.docker_available:
-                return await self._execute_docker_sandbox(context)
-            else:
+            # اختيار طريقة التنفيذ بناءً على execution_mode
+            if self.execution_mode == "direct":
+                # تنفيذ مباشر على الحاسوب - بدون Docker
+                logger.info(f"Executing job {job.job_id} directly (no Docker)")
                 return await self._execute_process(context)
+
+            elif self.execution_mode == "docker":
+                # يجب استخدام Docker فقط
+                if not self.docker_available:
+                    return JobResult(
+                        exit_code=-1,
+                        error_message="Docker required but not available. Install Docker or change execution_mode to 'direct' or 'auto'",
+                    )
+                if job.submission.docker_image:
+                    return await self._execute_docker(context)
+                else:
+                    return await self._execute_docker_sandbox(context)
+
+            else:  # auto mode
+                # تلقائي - يستخدم Docker إذا متاح ومطلوب
+                if job.submission.docker_image and self.docker_available:
+                    return await self._execute_docker(context)
+                elif self.sandbox_enabled and self.docker_available:
+                    return await self._execute_docker_sandbox(context)
+                else:
+                    return await self._execute_process(context)
         finally:
             del self._active[job.job_id]
             # Cleanup
@@ -248,7 +288,7 @@ class JobExecutor:
             )
 
     async def _execute_docker(self, ctx: ExecutionContext) -> JobResult:
-        """تنفيذ داخل Docker container (image محدد)."""
+        """تنفيذ داخل Docker container (image محدد) مع صلاحيات كاملة."""
         job = ctx.job
         submission = job.submission
 
@@ -284,23 +324,49 @@ class JobExecutor:
                     }
                 ]
 
-            # Run container
-            container = self._docker_client.containers.run(
-                image=submission.docker_image,
-                command=command,
-                environment=submission.environment,
-                working_dir=submission.working_dir or "/workspace",
-                volumes={
+            # إعدادات الشبكة
+            network_mode = self.docker_network
+            if self.allow_host_network:
+                network_mode = "host"
+
+            # إعدادات الصلاحيات الكاملة
+            run_kwargs = {
+                "image": submission.docker_image,
+                "command": command,
+                "environment": submission.environment,
+                "working_dir": submission.working_dir or "/workspace",
+                "volumes": {
                     str(ctx.work_dir): {"bind": "/workspace", "mode": "rw"},
                 },
-                network=self.docker_network,
-                mem_limit=mem_limit,
-                cpu_period=cpu_period,
-                cpu_quota=cpu_quota if cpu_quota > 0 else None,
-                device_requests=device_requests,
-                remove=False,  # Keep for logs
-                detach=True,
-            )
+                "network_mode": network_mode,
+                "mem_limit": mem_limit,
+                "cpu_period": cpu_period,
+                "cpu_quota": cpu_quota if cpu_quota > 0 else None,
+                "device_requests": device_requests,
+                "remove": False,  # Keep for logs
+                "detach": True,
+            }
+
+            # صلاحيات Docker الكاملة (privileged mode)
+            if self.docker_privileged:
+                run_kwargs["privileged"] = True
+                logger.info(f"Running job {job.job_id} with privileged mode")
+
+            # إضافة capabilities
+            if self.docker_capabilities:
+                run_kwargs["cap_add"] = self.docker_capabilities
+                logger.info(f"Adding capabilities: {self.docker_capabilities}")
+
+            # السماح بـ PID namespace المضيف
+            if self.allow_host_pid:
+                run_kwargs["pid_mode"] = "host"
+
+            # السماح بكل الأجهزة
+            if self.allow_all_devices:
+                run_kwargs["devices"] = ["/dev:/dev:rwm"]
+
+            # Run container
+            container = self._docker_client.containers.run(**run_kwargs)
 
             ctx.container_id = container.id
 

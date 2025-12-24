@@ -1,6 +1,17 @@
 # Docker Compose for NebulaCompute
 # =================================
 # Development and testing deployment
+#
+# Execution Modes:
+# - DC_EXECUTION_MODE=auto   : تلقائي (Docker إذا متاح، وإلا مباشر)
+# - DC_EXECUTION_MODE=docker : Docker فقط
+# - DC_EXECUTION_MODE=direct : مباشر على الحاسوب بدون Docker
+#
+# Docker Full Permissions (set to true for full access):
+# - DC_DOCKER_PRIVILEGED=true     : صلاحيات كاملة
+# - DC_DOCKER_HOST_NETWORK=true   : شبكة المضيف
+# - DC_DOCKER_HOST_PID=true       : PID namespace المضيف
+# - DC_DOCKER_ALL_DEVICES=true    : كل الأجهزة
 
 services:
   # ===================
@@ -52,6 +63,9 @@ services:
     depends_on:
       master:
         condition: service_healthy
+    # === Full Permissions - صلاحيات كاملة ===
+    privileged: ${DC_DOCKER_PRIVILEGED:-true}
+    pid: ${DC_DOCKER_HOST_PID_MODE:-host}
     ports:
       - "8081:8081"
     volumes:
@@ -62,15 +76,29 @@ services:
       - artifacts:/data/artifacts:ro
       # Docker socket for container job execution
       - /var/run/docker.sock:/var/run/docker.sock
+      # Full device access for direct execution
+      - /dev:/dev:ro
     environment:
       - NEBULA_MASTER_URL=http://master:8080
       - NEBULA_WORKER_PORT=8081
       - NEBULA_WORKER_ID=worker-1
-      - NEBULA_WORKER_TAGS=cpu,docker
+      - NEBULA_WORKER_TAGS=cpu,docker,privileged
       - NEBULA_LOG_LEVEL=INFO
+      # Execution mode and permissions
+      - DC_EXECUTION_MODE=${DC_EXECUTION_MODE:-auto}
+      - DC_DOCKER_PRIVILEGED=${DC_DOCKER_PRIVILEGED:-true}
+      - DC_DOCKER_HOST_NETWORK=${DC_DOCKER_HOST_NETWORK:-false}
+      - DC_DOCKER_HOST_PID=${DC_DOCKER_HOST_PID:-true}
+      - DC_DOCKER_ALL_DEVICES=${DC_DOCKER_ALL_DEVICES:-true}
     networks:
       - nebula-net
     restart: unless-stopped
+    # Security capabilities
+    cap_add:
+      - ALL
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
 
   worker-2:
     build:
@@ -81,6 +109,9 @@ services:
     depends_on:
       master:
         condition: service_healthy
+    # === Full Permissions - صلاحيات كاملة ===
+    privileged: ${DC_DOCKER_PRIVILEGED:-true}
+    pid: ${DC_DOCKER_HOST_PID_MODE:-host}
     ports:
       - "8082:8081"
     volumes:
@@ -88,15 +119,29 @@ services:
       - worker2-logs:/data/logs
       - artifacts:/data/artifacts:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      # Full device access for direct execution
+      - /dev:/dev:ro
     environment:
       - NEBULA_MASTER_URL=http://master:8080
       - NEBULA_WORKER_PORT=8081
       - NEBULA_WORKER_ID=worker-2
-      - NEBULA_WORKER_TAGS=cpu,docker
+      - NEBULA_WORKER_TAGS=cpu,docker,privileged
       - NEBULA_LOG_LEVEL=INFO
+      # Execution mode and permissions
+      - DC_EXECUTION_MODE=${DC_EXECUTION_MODE:-auto}
+      - DC_DOCKER_PRIVILEGED=${DC_DOCKER_PRIVILEGED:-true}
+      - DC_DOCKER_HOST_NETWORK=${DC_DOCKER_HOST_NETWORK:-false}
+      - DC_DOCKER_HOST_PID=${DC_DOCKER_HOST_PID:-true}
+      - DC_DOCKER_ALL_DEVICES=${DC_DOCKER_ALL_DEVICES:-true}
     networks:
       - nebula-net
     restart: unless-stopped
+    # Security capabilities
+    cap_add:
+      - ALL
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
 
   # ===================
   # Optional Services
