@@ -33,6 +33,20 @@ from distributed_cluster.network.internet_p2p import (
     get_public_ip,
 )
 
+from distributed_cluster.network.network_stack import (
+    DNSRecordType,
+    DNSRecord,
+    NebulaNetworkRegistry,
+    SimpleDNSServer,
+    Route,
+    NetworkRouter,
+    RelaySession,
+    RelayServer,
+    NodeIdentity,
+    NetworkNode,
+    NetworkStackManager,
+)
+
 __all__ = [
     # Local Network
     "DeviceInfo",
@@ -56,4 +70,16 @@ __all__ = [
     "generate_connection_code",
     "parse_connection_code",
     "get_public_ip",
+    # Network Stack
+    "DNSRecordType",
+    "DNSRecord",
+    "NebulaNetworkRegistry",
+    "SimpleDNSServer",
+    "Route",
+    "NetworkRouter",
+    "RelaySession",
+    "RelayServer",
+    "NodeIdentity",
+    "NetworkNode",
+    "NetworkStackManager",
 ]
