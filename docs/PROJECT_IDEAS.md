@@ -494,6 +494,55 @@ Flexible GraphQL interface for querying and mutating cluster resources.
 
 ---
 
+### Distributed Cache System
+High-performance distributed caching for improved latency and throughput.
+
+**Location:** `src/distributed_cluster/cache/`
+
+**Features:**
+- Multi-level caching (L1 Memory, L2 Redis, L3 Distributed)
+- Multiple eviction strategies (LRU, LFU, TTL, Adaptive)
+- Consistent hashing for key distribution
+- Replication for fault tolerance
+- Automatic cache warming
+- Statistics and monitoring
+- Compression for large values
+- Async write-behind for performance
+
+---
+
+### Rate Limiting System
+Comprehensive rate limiting to protect services from overload.
+
+**Location:** `src/distributed_cluster/ratelimit/`
+
+**Features:**
+- Multiple algorithms (Token Bucket, Sliding Window, Fixed Window, Leaky Bucket)
+- Per-client, per-user, per-API-key rate limiting
+- Distributed rate limiting via Redis
+- Adaptive rate limiting based on latency
+- FastAPI middleware integration
+- Multi-tier rate limits (free, basic, premium)
+- Detailed statistics and monitoring
+
+---
+
+### Connection Pooling System
+Efficient connection management for databases, HTTP, and WebSockets.
+
+**Location:** `src/distributed_cluster/pool/`
+
+**Features:**
+- Generic connection pooling with automatic scaling
+- Database connection pool (PostgreSQL, SQLite)
+- HTTP connection pool with circuit breaker
+- WebSocket connection pool with auto-reconnection
+- Health checking and connection validation
+- Connection lifecycle management
+- Detailed statistics and monitoring
+
+---
+
 ## Implementation Priority
 
 ### Phase 1 (Core Improvements)
@@ -532,8 +581,11 @@ Flexible GraphQL interface for querying and mutating cluster resources.
 23. ~~SLA Monitoring~~ ✅ **Implemented**
 24. ~~Predictive Analytics~~ ✅ **Implemented**
 25. ~~GraphQL API~~ ✅ **Implemented**
-26. Federated Learning (Planned)
-27. Data Locality Scheduling (Planned)
+26. ~~Distributed Cache~~ ✅ **Implemented**
+27. ~~Rate Limiting~~ ✅ **Implemented**
+28. ~~Connection Pooling~~ ✅ **Implemented**
+29. Federated Learning (Planned)
+30. Data Locality Scheduling (Planned)
 
 ---
 
@@ -561,4 +613,4 @@ We welcome contributions to any of these features! Please see [CONTRIBUTING.md](
 
 ---
 
-*Last updated: December 2024*
+*Last updated: December 24, 2024*
