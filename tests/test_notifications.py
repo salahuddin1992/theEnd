@@ -425,3 +425,390 @@ class TestDiscordChannel:
         message = channel._build_payload(notification)
         assert "embeds" in message
         assert "Test Alert" in message["embeds"][0]["title"]
+
+
+# ============================================================================
+# Tests for New Notification Components
+# ============================================================================
+
+
+class TestNotificationQueue:
+    """اختبارات NotificationQueue"""
+
+    @pytest.mark.asyncio
+    async def test_queue_creation(self):
+        """اختبار إنشاء الطابور"""
+        from distributed_cluster.notifications.queue import NotificationQueue
+
+        queue = NotificationQueue(max_size=100)
+        assert queue.size == 0
+        assert queue.is_empty is True
+        assert queue.is_full is False
+
+    @pytest.mark.asyncio
+    async def test_queue_put_get(self):
+        """اختبار إضافة والحصول على الإشعارات"""
+        from distributed_cluster.notifications.queue import NotificationQueue
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        queue = NotificationQueue(max_size=100)
+
+        notification = ChannelNotification(
+            title="Test",
+            message="Test message",
+        )
+
+        await queue.put(notification)
+        assert queue.size == 1
+
+        result = await queue.get(timeout=1.0)
+        assert result is not None
+        assert result.title == "Test"
+        assert queue.size == 0
+
+    @pytest.mark.asyncio
+    async def test_queue_priority_ordering(self):
+        """اختبار ترتيب الأولوية"""
+        from distributed_cluster.notifications.queue import NotificationQueue
+        from distributed_cluster.notifications.channels import (
+            Notification as ChannelNotification,
+            NotificationPriority as ChPriority,
+        )
+
+        queue = NotificationQueue(max_size=100)
+
+        low = ChannelNotification(title="Low", message="", priority=ChPriority.LOW)
+        high = ChannelNotification(title="High", message="", priority=ChPriority.HIGH)
+        critical = ChannelNotification(title="Critical", message="", priority=ChPriority.CRITICAL)
+
+        # Add in wrong order
+        await queue.put(low)
+        await queue.put(high)
+        await queue.put(critical)
+
+        # Should get highest priority first
+        result1 = await queue.get(timeout=1.0)
+        result2 = await queue.get(timeout=1.0)
+        result3 = await queue.get(timeout=1.0)
+
+        assert result1.title == "Critical"
+        assert result2.title == "High"
+        assert result3.title == "Low"
+
+    @pytest.mark.asyncio
+    async def test_queue_batch_get(self):
+        """اختبار الحصول على دفعة"""
+        from distributed_cluster.notifications.queue import NotificationQueue
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        queue = NotificationQueue(max_size=100)
+
+        for i in range(5):
+            await queue.put(ChannelNotification(title=f"Test {i}", message=""))
+
+        batch = await queue.get_batch(3, timeout=1.0)
+        assert len(batch) == 3
+        assert queue.size == 2
+
+    @pytest.mark.asyncio
+    async def test_queue_stats(self):
+        """اختبار إحصائيات الطابور"""
+        from distributed_cluster.notifications.queue import NotificationQueue
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        queue = NotificationQueue(max_size=100)
+
+        await queue.put(ChannelNotification(title="Test", message=""))
+        await queue.get(timeout=1.0)
+
+        stats = queue.stats
+        assert stats["total_enqueued"] == 1
+        assert stats["total_dequeued"] == 1
+        assert stats["size"] == 0
+
+
+class TestNotificationHistory:
+    """اختبارات NotificationHistory"""
+
+    @pytest.mark.asyncio
+    async def test_history_creation(self, tmp_path):
+        """اختبار إنشاء السجل"""
+        from distributed_cluster.notifications.history import NotificationHistory
+
+        db_path = tmp_path / "test_history.db"
+        history = NotificationHistory(db_path=db_path)
+        await history.initialize()
+
+        count = await history.count()
+        assert count == 0
+
+        await history.close()
+
+    @pytest.mark.asyncio
+    async def test_history_add_and_get(self, tmp_path):
+        """اختبار إضافة والحصول على الإشعارات"""
+        from distributed_cluster.notifications.history import NotificationHistory
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        db_path = tmp_path / "test_history.db"
+        history = NotificationHistory(db_path=db_path)
+        await history.initialize()
+
+        notification = ChannelNotification(
+            title="Test",
+            message="Test message",
+        )
+
+        await history.add(notification)
+
+        result = await history.get(notification.notification_id)
+        assert result is not None
+        assert result.title == "Test"
+
+        await history.close()
+
+    @pytest.mark.asyncio
+    async def test_history_search(self, tmp_path):
+        """اختبار البحث في السجل"""
+        from distributed_cluster.notifications.history import NotificationHistory, HistoryQuery
+        from distributed_cluster.notifications.channels import (
+            Notification as ChannelNotification,
+            NotificationPriority as ChPriority,
+        )
+
+        db_path = tmp_path / "test_history.db"
+        history = NotificationHistory(db_path=db_path, enable_fts=False)
+        await history.initialize()
+
+        # Add notifications
+        await history.add(ChannelNotification(title="Normal", message="", priority=ChPriority.NORMAL))
+        await history.add(ChannelNotification(title="High", message="", priority=ChPriority.HIGH))
+        await history.add(ChannelNotification(title="Critical", message="", priority=ChPriority.CRITICAL))
+
+        # Search by priority
+        query = HistoryQuery(priority=ChPriority.HIGH)
+        results = await history.search(query)
+        assert len(results) == 1
+        assert results[0].title == "High"
+
+        await history.close()
+
+    @pytest.mark.asyncio
+    async def test_history_stats(self, tmp_path):
+        """اختبار إحصائيات السجل"""
+        from distributed_cluster.notifications.history import NotificationHistory
+        from distributed_cluster.notifications.channels import (
+            Notification as ChannelNotification,
+            NotificationPriority as ChPriority,
+        )
+
+        db_path = tmp_path / "test_history.db"
+        history = NotificationHistory(db_path=db_path)
+        await history.initialize()
+
+        await history.add(ChannelNotification(title="Test 1", message="", priority=ChPriority.LOW))
+        await history.add(ChannelNotification(title="Test 2", message="", priority=ChPriority.HIGH))
+
+        stats = await history.get_stats()
+        assert stats.total_count == 2
+        assert "low" in stats.by_priority
+        assert "high" in stats.by_priority
+
+        await history.close()
+
+
+class TestNotificationScheduler:
+    """اختبارات NotificationScheduler"""
+
+    @pytest.mark.asyncio
+    async def test_scheduler_creation(self):
+        """اختبار إنشاء المجدول"""
+        from distributed_cluster.notifications.scheduler import NotificationScheduler
+
+        scheduler = NotificationScheduler()
+        assert scheduler.stats["total_jobs"] == 0
+
+    @pytest.mark.asyncio
+    async def test_schedule_once(self):
+        """اختبار جدولة مرة واحدة"""
+        from datetime import datetime, timedelta
+        from distributed_cluster.notifications.scheduler import NotificationScheduler
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        scheduler = NotificationScheduler()
+
+        notification = ChannelNotification(title="Scheduled", message="Test")
+        run_at = datetime.utcnow() + timedelta(hours=1)
+
+        job = await scheduler.schedule_once(notification, run_at)
+
+        assert job.job_id is not None
+        assert job.next_run is not None
+        assert scheduler.stats["total_jobs"] == 1
+
+    @pytest.mark.asyncio
+    async def test_schedule_interval(self):
+        """اختبار جدولة متكررة"""
+        from distributed_cluster.notifications.scheduler import NotificationScheduler, JobStatus
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        scheduler = NotificationScheduler()
+
+        notification = ChannelNotification(title="Recurring", message="Test")
+
+        job = await scheduler.schedule_interval(
+            notification,
+            interval_seconds=3600,
+            max_runs=5,
+        )
+
+        assert job.schedule.interval_seconds == 3600
+        assert job.schedule.max_runs == 5
+        assert job.status == JobStatus.SCHEDULED
+
+    @pytest.mark.asyncio
+    async def test_cancel_job(self):
+        """اختبار إلغاء المهمة"""
+        from datetime import datetime, timedelta
+        from distributed_cluster.notifications.scheduler import NotificationScheduler, JobStatus
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        scheduler = NotificationScheduler()
+
+        notification = ChannelNotification(title="Test", message="")
+        run_at = datetime.utcnow() + timedelta(hours=1)
+
+        job = await scheduler.schedule_once(notification, run_at)
+        result = await scheduler.cancel(job.job_id)
+
+        assert result is True
+        cancelled_job = await scheduler.get_job(job.job_id)
+        assert cancelled_job.status == JobStatus.CANCELLED
+
+
+class TestTemplateEngine:
+    """اختبارات TemplateEngine"""
+
+    def test_engine_creation(self):
+        """اختبار إنشاء المحرك"""
+        from distributed_cluster.notifications.templates import TemplateEngine
+
+        engine = TemplateEngine()
+        templates = engine.list_templates()
+        assert len(templates) > 0
+        assert "plain_simple" in templates
+
+    def test_render_simple_template(self):
+        """اختبار تصيير قالب بسيط"""
+        from distributed_cluster.notifications.templates import TemplateEngine
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        engine = TemplateEngine()
+        notification = ChannelNotification(
+            title="Test Title",
+            message="Test message",
+        )
+
+        result = engine.render("plain_simple", notification)
+        assert "Test Title" in result
+        assert "Test message" in result
+
+    def test_render_with_variables(self):
+        """اختبار تصيير مع متغيرات"""
+        from distributed_cluster.notifications.templates import (
+            TemplateEngine,
+            StringTemplate,
+        )
+
+        engine = TemplateEngine()
+        engine.register(StringTemplate(
+            name="custom",
+            template="Hello {{name}}, your score is {{score}}!",
+        ))
+
+        result = engine.render("custom", name="User", score=100)
+        assert result == "Hello User, your score is 100!"
+
+    def test_render_html_template(self):
+        """اختبار تصيير قالب HTML"""
+        from distributed_cluster.notifications.templates import TemplateEngine
+        from distributed_cluster.notifications.channels import Notification as ChannelNotification
+
+        engine = TemplateEngine()
+        notification = ChannelNotification(
+            title="HTML Test",
+            message="Test message",
+        )
+
+        result = engine.render("email_modern", notification)
+        assert "<!DOCTYPE html>" in result
+        assert "HTML Test" in result
+
+    def test_template_filters(self):
+        """اختبار فلاتر القوالب"""
+        from distributed_cluster.notifications.templates import StringTemplate, TemplateContext
+
+        template = StringTemplate(
+            name="test",
+            template="{{name|upper}} - {{value|lower}}",
+        )
+
+        context = TemplateContext(variables={"name": "hello", "value": "WORLD"})
+        result = template.render(context)
+        assert result == "HELLO - world"
+
+
+class TestStringTemplate:
+    """اختبارات StringTemplate"""
+
+    def test_variable_substitution(self):
+        """اختبار استبدال المتغيرات"""
+        from distributed_cluster.notifications.templates import StringTemplate, TemplateContext
+
+        template = StringTemplate(
+            name="test",
+            template="Hello {{name}}!",
+        )
+        context = TemplateContext(variables={"name": "World"})
+        result = template.render(context)
+        assert result == "Hello World!"
+
+    def test_default_value(self):
+        """اختبار القيمة الافتراضية"""
+        from distributed_cluster.notifications.templates import StringTemplate, TemplateContext
+
+        template = StringTemplate(
+            name="test",
+            template="Hello {{name|Guest}}!",
+        )
+        context = TemplateContext(variables={})
+        result = template.render(context)
+        assert result == "Hello Guest!"
+
+    def test_conditional_block(self):
+        """اختبار الكتلة الشرطية"""
+        from distributed_cluster.notifications.templates import StringTemplate, TemplateContext
+
+        template = StringTemplate(
+            name="test",
+            template="{% if show_message %}Hello!{% endif %}",
+        )
+
+        ctx_true = TemplateContext(variables={"show_message": True})
+        ctx_false = TemplateContext(variables={"show_message": False})
+
+        assert template.render(ctx_true) == "Hello!"
+        assert template.render(ctx_false) == ""
+
+    def test_loop_block(self):
+        """اختبار كتلة الحلقة"""
+        from distributed_cluster.notifications.templates import StringTemplate, TemplateContext
+
+        template = StringTemplate(
+            name="test",
+            template="{% for item in items %}{{item}},{% endfor %}",
+        )
+
+        context = TemplateContext(variables={"items": ["a", "b", "c"]})
+        result = template.render(context)
+        assert result == "a,b,c,"
