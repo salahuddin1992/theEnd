@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from .monitor import SLADefinition, SLAEvaluation, SLAStatus
+from .monitor import SLADefinition, SLAEvaluation
 
 logger = logging.getLogger(__name__)
 

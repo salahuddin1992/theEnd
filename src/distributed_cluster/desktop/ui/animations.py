@@ -12,16 +12,14 @@ Provides:
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, List, Optional, Union
+from typing import List, Optional
 
 from PySide6.QtCore import (
     QObject, Signal, QPropertyAnimation, QParallelAnimationGroup,
     QSequentialAnimationGroup, QAbstractAnimation, QEasingCurve,
-    QPoint, QSize, QRect, Property, QTimer, QVariantAnimation,
-    QPointF, QSizeF, QRectF
+    QPoint, QSize, QTimer, QVariantAnimation
 )
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget, QGraphicsOpacityEffect

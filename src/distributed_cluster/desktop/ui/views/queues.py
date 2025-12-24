@@ -11,23 +11,20 @@ Job queue management with:
 
 from __future__ import annotations
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime, timedelta
 
-from PySide6.QtCore import Qt, Signal, QTimer, QMimeData
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QFrame, QGridLayout, QStackedWidget, QProgressBar,
-    QComboBox, QSpinBox, QCheckBox, QSplitter, QListWidget,
-    QListWidgetItem, QAbstractItemView
+    QFrame, QGridLayout, QProgressBar,
+    QComboBox
 )
-from PySide6.QtGui import QFont, QPainter, QColor, QPen, QDrag
 
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, FluentCard, FluentInput, ButtonVariant, FluentBadge, BadgeVariant
-from ..data_table import FluentDataTable, ColumnDefinition, ColumnType
+from ..components import FluentButton, ButtonVariant
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -10,11 +10,10 @@ and alerting capabilities.
 
 import asyncio
 import logging
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 try:
     import pynvml
@@ -588,7 +587,6 @@ class GPUMonitor:
     async def _process_alert(self, alert: GPUAlert) -> None:
         """Process a GPU alert."""
         # Check for duplicate alerts
-        duplicate_key = f"{alert.gpu_index}:{alert.metric_name}:{alert.severity.value}"
 
         # Only add if not a duplicate recent alert
         recent_cutoff = datetime.utcnow() - timedelta(minutes=5)

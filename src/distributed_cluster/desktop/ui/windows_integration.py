@@ -16,7 +16,6 @@ Comprehensive Windows 11 integration featuring:
 
 from __future__ import annotations
 
-import os
 import sys
 import json
 import ctypes
@@ -25,11 +24,11 @@ from typing import Optional, Callable, List, Dict, Any
 from enum import Enum
 from dataclasses import dataclass
 
-from PySide6.QtCore import Qt, QObject, Signal, QTimer, QSettings
+from PySide6.QtCore import QObject, Signal, QTimer, QSettings
 from PySide6.QtWidgets import (
-    QWidget, QSystemTrayIcon, QMenu, QApplication
+    QWidget, QSystemTrayIcon, QMenu
 )
-from PySide6.QtGui import QIcon, QPixmap, QImage, QAction
+from PySide6.QtGui import QIcon, QAction
 
 # Windows-specific imports (conditionally loaded)
 IS_WINDOWS = sys.platform == 'win32'

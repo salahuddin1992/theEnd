@@ -15,15 +15,13 @@ from datetime import datetime
 from typing import List, Dict, Any
 from enum import Enum
 
-from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QPlainTextEdit, QComboBox, QCheckBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPlainTextEdit, QComboBox, QCheckBox
 )
 
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, FluentCard, ButtonVariant
-from ..titlebar import FluentIcons
+from ..components import FluentButton, ButtonVariant
 
 
 class LogLevel(Enum):
@@ -182,7 +180,7 @@ class FluentLogsView(QWidget):
             "WARNING": colors.warning,
             "ERROR": colors.error,
         }
-        color = level_colors.get(level, colors.text_primary)
+        level_colors.get(level, colors.text_primary)
 
         # Format log line
         line = f"[{timestamp}] [{level:7}] [{source}] {message}"

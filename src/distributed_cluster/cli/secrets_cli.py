@@ -15,7 +15,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -30,8 +29,6 @@ from rich.tree import Tree
 from distributed_cluster.security.secrets import (
     SecretType,
     SecretsManager,
-    FileSecretStore,
-    MemorySecretStore,
     Encryptor,
     create_secrets_manager,
 )
@@ -224,7 +221,7 @@ def create_secret(
             if expires_in:
                 console.print(f"  Expires: {expires_days} days")
         else:
-            console.print(f"[red]Failed to create secret (may already exist)[/red]")
+            console.print("[red]Failed to create secret (may already exist)[/red]")
             raise typer.Exit(1)
 
     run_async(do_create())
@@ -631,7 +628,7 @@ def generate_secret(
             if success:
                 console.print(f"[green]Secret saved: {namespace}/{save_as}[/green]")
             else:
-                console.print(f"[red]Failed to save (may already exist)[/red]")
+                console.print("[red]Failed to save (may already exist)[/red]")
 
         run_async(do_save())
     else:

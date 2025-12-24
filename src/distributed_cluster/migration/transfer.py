@@ -11,14 +11,13 @@ during live migration.
 import asyncio
 import hashlib
 import logging
-import os
 import struct
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Tuple
+from typing import Any, AsyncIterator, Callable, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

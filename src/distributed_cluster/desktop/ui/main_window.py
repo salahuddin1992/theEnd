@@ -15,23 +15,21 @@ Features:
 from __future__ import annotations
 
 import sys
-import asyncio
-from typing import Optional, Dict
+from typing import Dict
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QIcon, QFont, QKeySequence, QShortcut
+from PySide6.QtGui import QFont, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget,
-    QSplitter, QFrame, QLabel, QApplication, QMessageBox
+    QSplitter, QFrame, QLabel, QApplication
 )
 
-from .fluent_design import FluentDesignSystem, MicaEffect
-from .titlebar import FramelessWindow, FluentIcons, CustomTitleBar
-from .sidebar import FluentSidebar, SidebarItem
-from .notifications import InAppNotificationManager, NotificationAction
+from .fluent_design import FluentDesignSystem
+from .titlebar import FramelessWindow, FluentIcons
+from .sidebar import FluentSidebar
+from .notifications import InAppNotificationManager
 from .dashboard import FluentDashboard
-from .components import FluentButton, FluentCard, ButtonVariant, SkeletonLoader
-from .animations import FluentEasing, AnimationManager
+from .components import SkeletonLoader
 from .views import (
     FluentJobsView,
     FluentWorkersView,
@@ -160,7 +158,7 @@ class FluentMainWindow(FramelessWindow):
 
     def _create_views(self):
         """Create all view pages"""
-        colors = FluentDesignSystem().colors
+        FluentDesignSystem().colors
 
         # Dashboard
         self._dashboard = FluentDashboard()
@@ -566,7 +564,7 @@ def create_fluent_app(show_splash: bool = True):
     Returns:
         Tuple of (QApplication, FluentMainWindow)
     """
-    from .splash import FluentSplashScreen, SplashScreenManager
+    from .splash import SplashScreenManager
 
     # Check for PySide6
     try:
@@ -601,7 +599,7 @@ def create_fluent_app(show_splash: bool = True):
     # Show splash screen
     if show_splash:
         splash_manager = SplashScreenManager()
-        splash = splash_manager.create()
+        splash_manager.create()
 
         # Add initialization steps
         splash_manager.add_step("Loading design system...", None)

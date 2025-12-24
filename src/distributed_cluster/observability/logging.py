@@ -20,7 +20,6 @@ from __future__ import annotations
 import asyncio
 import gzip
 import json
-import os
 import shutil
 import sys
 import threading

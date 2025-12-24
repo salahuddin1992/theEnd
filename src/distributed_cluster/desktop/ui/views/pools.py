@@ -11,21 +11,19 @@ Resource pool management with:
 
 from __future__ import annotations
 
-import math
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from dataclasses import dataclass
 from enum import Enum
 
-from PySide6.QtCore import Qt, Signal, QTimer, QRectF
+from PySide6.QtCore import Qt, Signal, QRectF
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QFrame, QGridLayout, QStackedWidget, QProgressBar,
-    QComboBox, QSpinBox, QCheckBox, QSplitter
+    QFrame, QSpinBox, QCheckBox
 )
-from PySide6.QtGui import QFont, QPainter, QColor, QPen, QBrush, QLinearGradient
+from PySide6.QtGui import QFont, QPainter, QColor, QPen
 
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, FluentCard, FluentInput, ButtonVariant, FluentBadge, BadgeVariant
+from ..components import FluentButton, FluentCard, ButtonVariant
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

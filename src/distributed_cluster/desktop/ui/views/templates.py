@@ -11,21 +11,19 @@ Job templates management with:
 
 from __future__ import annotations
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from dataclasses import dataclass
 from enum import Enum
 
-from PySide6.QtCore import Qt, Signal, QTimer, QPropertyAnimation, QEasingCurve
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QFrame, QGridLayout, QStackedWidget, QLineEdit, QTextEdit,
-    QComboBox, QSpinBox, QCheckBox, QSplitter
+    QFrame, QGridLayout, QTextEdit,
+    QComboBox, QSpinBox
 )
-from PySide6.QtGui import QFont, QPainter, QColor, QPen
 
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, FluentCard, FluentInput, ButtonVariant, FluentBadge, BadgeVariant
-from ..data_table import FluentDataTable, ColumnDefinition, ColumnType
+from ..components import FluentButton, FluentInput, ButtonVariant
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -677,8 +675,8 @@ class FluentTemplatesView(QWidget):
 
     def _filter_templates(self):
         """Filter templates based on search and category"""
-        search = self._search.text().lower()
-        category = self._category_filter.currentText()
+        self._search.text().lower()
+        self._category_filter.currentText()
 
         # Would filter the grid based on criteria
         pass

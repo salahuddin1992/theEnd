@@ -12,7 +12,7 @@ import hashlib
 import pickle
 import time
 from bisect import bisect_left
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, Tuple
 from datetime import datetime
 import logging

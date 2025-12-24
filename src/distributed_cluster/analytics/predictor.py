@@ -11,7 +11,7 @@ import asyncio
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -418,7 +418,7 @@ class JobPredictor:
 
         # Adjust based on features (simple scaling)
         input_size = features[0] if len(features) > 0 else 1.0
-        cpu_factor = features[1] if len(features) > 1 else 1.0
+        features[1] if len(features) > 1 else 1.0
 
         # Scale prediction based on input size
         if input_size > 0:

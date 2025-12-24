@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from .tracker import CostTracker, CostEntry, UsageMetrics
+from .tracker import CostTracker, UsageMetrics
 
 logger = logging.getLogger(__name__)
 

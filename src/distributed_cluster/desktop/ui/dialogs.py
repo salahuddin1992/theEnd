@@ -11,17 +11,17 @@ Modern Windows 11 style dialogs:
 
 from __future__ import annotations
 
-from typing import Optional, List, Callable, Any
+from typing import List, Callable
 from dataclasses import dataclass
 from enum import Enum
 
-from PySide6.QtCore import Qt, Signal, QTimer, QPropertyAnimation, QEasingCurve
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (
     QDialog, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QFrame, QLineEdit, QComboBox, QCheckBox, QSpinBox,
-    QGraphicsOpacityEffect, QApplication, QScrollArea
+    QGraphicsOpacityEffect, QScrollArea
 )
-from PySide6.QtGui import QFont, QKeyEvent
+from PySide6.QtGui import QKeyEvent
 
 from .fluent_design import FluentDesignSystem
 from .components import FluentButton, FluentInput, FluentCard, ButtonVariant
@@ -356,7 +356,7 @@ class ConnectionDialog(FluentDialog):
         test_btn = self.add_button("Test Connection", ButtonVariant.SUBTLE, self._test_connection)
         self._test_btn = test_btn
 
-        cancel_btn = self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
+        self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
         connect_btn = self.add_button("Connect", ButtonVariant.ACCENT, self._connect)
         self._connect_btn = connect_btn
 
@@ -400,7 +400,7 @@ class ConnectionDialog(FluentDialog):
         if self._is_testing:
             return
 
-        colors = FluentDesignSystem().colors
+        FluentDesignSystem().colors
 
         self._is_testing = True
         self._test_btn.setEnabled(False)
@@ -527,8 +527,8 @@ class ConfirmationDialog(FluentDialog):
         self.add_content(self._wrap_layout(content))
 
         # Buttons
-        cancel_btn = self.add_button(self._cancel_text, ButtonVariant.STANDARD, self._on_cancel)
-        confirm_btn = self.add_button(self._confirm_text, ButtonVariant.ACCENT, self._on_confirm)
+        self.add_button(self._cancel_text, ButtonVariant.STANDARD, self._on_cancel)
+        self.add_button(self._confirm_text, ButtonVariant.ACCENT, self._on_confirm)
 
     def _wrap_layout(self, layout) -> QWidget:
         """Wrap layout in widget"""
@@ -677,8 +677,8 @@ class InputDialog(FluentDialog):
         self.add_content(self._input)
 
         # Buttons
-        cancel_btn = self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
-        submit_btn = self.add_button("Submit", ButtonVariant.ACCENT, self._on_submit)
+        self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
+        self.add_button("Submit", ButtonVariant.ACCENT, self._on_submit)
 
     def _on_submit(self):
         """Handle submit"""
@@ -873,8 +873,8 @@ class JobSubmitDialog(FluentDialog):
         self.add_content(scroll)
 
         # Buttons
-        cancel_btn = self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
-        submit_btn = self.add_button("Submit Job", ButtonVariant.ACCENT, self._on_submit)
+        self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
+        self.add_button("Submit Job", ButtonVariant.ACCENT, self._on_submit)
 
     def _wrap_layout(self, layout) -> QWidget:
         """Wrap layout in widget"""
@@ -1025,8 +1025,8 @@ class PoolCreateDialog(FluentDialog):
         self.add_content(req_card)
 
         # Buttons
-        cancel_btn = self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
-        create_btn = self.add_button("Create Pool", ButtonVariant.ACCENT, self._on_create)
+        self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
+        self.add_button("Create Pool", ButtonVariant.ACCENT, self._on_create)
 
     def _wrap_layout(self, layout) -> QWidget:
         """Wrap layout in widget"""
@@ -1223,8 +1223,8 @@ class QueueCreateDialog(FluentDialog):
         self.add_content(pool_card)
 
         # Buttons
-        cancel_btn = self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
-        create_btn = self.add_button("Create Queue", ButtonVariant.ACCENT, self._on_create)
+        self.add_button("Cancel", ButtonVariant.STANDARD, self.reject)
+        self.add_button("Create Queue", ButtonVariant.ACCENT, self._on_create)
 
     def _wrap_layout(self, layout) -> QWidget:
         """Wrap layout in widget"""

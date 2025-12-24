@@ -7,7 +7,6 @@ Implements query and mutation resolvers.
 محللات GraphQL للاستعلامات والتعديلات.
 """
 
-import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import datetime

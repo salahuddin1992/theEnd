@@ -361,7 +361,7 @@ def submit_job(
         ))
 
     if result["success"]:
-        console.print(f"[green]✓ Job submitted successfully![/green]")
+        console.print("[green]✓ Job submitted successfully![/green]")
         console.print(f"[cyan]Job ID: {result['job_id']}[/cyan]")
         if result.get("response"):
             console.print(f"[dim]Response: {result['response']}[/dim]")

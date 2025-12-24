@@ -16,19 +16,18 @@ import platform
 from typing import Optional
 
 from PySide6.QtCore import (
-    Qt, Signal, QPoint, QSize, QEvent, QRect,
-    QPropertyAnimation, QEasingCurve
+    Qt, Signal, QPoint, QSize, QEvent, QRect
 )
 from PySide6.QtGui import (
-    QColor, QPainter, QIcon, QPixmap, QFont,
-    QMouseEvent, QHoverEvent, QPainterPath, QCursor
+    QColor, QPainter, QIcon, QFont,
+    QMouseEvent
 )
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
     QMainWindow, QApplication, QSizePolicy, QSpacerItem, QFrame
 )
 
-from .fluent_design import FluentColors, FluentDesignSystem
+from .fluent_design import FluentDesignSystem
 
 # Try Windows-specific imports
 try:
@@ -285,10 +284,10 @@ class CustomTitleBar(QWidget):
         layout.addWidget(controls_widget)
 
         # Style
-        self.setStyleSheet(f"""
-            #custom_titlebar {{
+        self.setStyleSheet("""
+            #custom_titlebar {
                 background-color: transparent;
-            }}
+            }
         """)
 
     def set_title(self, title: str):

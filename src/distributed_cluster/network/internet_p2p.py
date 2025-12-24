@@ -21,23 +21,18 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import hashlib
-import json
 import logging
-import os
 import secrets
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional
 
 from distributed_cluster.network.peer_discovery import (
     AppInfo,
     DeviceInfo,
     MessageType,
-    PeerInfo,
     PeerMessage,
     PeerStatus,
 )
@@ -693,7 +688,7 @@ class InternetP2PServer:
     def get_pending_requests(self) -> List[Dict]:
         """الحصول على طلبات الاتصال المعلقة."""
         # Clean expired
-        now = time.time()
+        time.time()
         expired = [
             req_id for req_id, req in self._pending_requests.items()
             if req.is_expired()

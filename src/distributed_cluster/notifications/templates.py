@@ -26,13 +26,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 from distributed_cluster.notifications.channels import (
     Notification,
-    NotificationCategory,
-    NotificationPriority,
 )
 
 logger = logging.getLogger(__name__)

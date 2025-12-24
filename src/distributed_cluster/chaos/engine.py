@@ -13,7 +13,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -360,7 +360,7 @@ class ChaosEngine:
         """Execute the experiment."""
         observations = []
         metrics = {}
-        start_time = time.monotonic()
+        time.monotonic()
 
         try:
             # Pre-experiment metrics
@@ -371,7 +371,7 @@ class ChaosEngine:
 
             # Inject fault
             if self._fault_injector:
-                fault_result = await self._fault_injector.inject(
+                await self._fault_injector.inject(
                     experiment.fault_type,
                     experiment.fault_config,
                     experiment.target_selector,

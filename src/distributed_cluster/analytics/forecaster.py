@@ -270,7 +270,7 @@ class ResourceForecaster:
             # Find predicted peak
             values = [v for _, v in forecast.predictions]
             predicted_peak = max(values)
-            predicted_avg = sum(values) / len(values)
+            sum(values) / len(values)
 
             # Calculate recommended capacity with safety margin
             recommended = predicted_peak * (1 + safety_margin)
@@ -288,7 +288,7 @@ class ResourceForecaster:
                 reason = f"Predicted to reach {predicted_peak/current_capacity*100:.0f}% of capacity"
             else:
                 urgency = "low"
-                reason = f"Capacity is sufficient for predicted usage"
+                reason = "Capacity is sufficient for predicted usage"
 
             recommendation = CapacityRecommendation(
                 recommendation_id=str(uuid.uuid4()),
@@ -390,9 +390,6 @@ class ResourceForecaster:
         values = np.array([v for _, v in history])
 
         # Simple exponential smoothing with trend
-        alpha = 0.3  # Level smoothing
-        beta = 0.1   # Trend smoothing
-        gamma = 0.1  # Seasonal smoothing
 
         n = len(values)
         level = values[0]

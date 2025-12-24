@@ -23,14 +23,9 @@ from pydantic import BaseModel
 from distributed_cluster.network.peer_discovery import (
     PeerManager,
     PeerInfo,
-    PeerMessage,
-    MessageType,
 )
 from distributed_cluster.network.internet_p2p import (
     InternetP2PManager,
-    ConnectionRequest,
-    SharedInfo,
-    generate_connection_code,
     parse_connection_code,
 )
 from distributed_cluster.network.network_stack import (
@@ -700,7 +695,7 @@ async def peer_websocket(websocket: WebSocket):
         # Keep connection alive
         while True:
             try:
-                data = await websocket.receive_text()
+                await websocket.receive_text()
                 # Handle commands from client if needed
             except WebSocketDisconnect:
                 break

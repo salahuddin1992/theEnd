@@ -11,7 +11,7 @@ multi-job migrations and dependency management.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
@@ -19,7 +19,6 @@ from .manager import (
     MigrationManager,
     MigrationMode,
     MigrationPriority,
-    MigrationRequest,
     MigrationState,
 )
 

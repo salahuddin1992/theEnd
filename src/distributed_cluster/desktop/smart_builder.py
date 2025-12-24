@@ -23,14 +23,12 @@ Usage:
     python smart_builder.py release --version 1.0.0  # Full release build
 """
 
-import hashlib
 import json
 import os
 import platform
 import shutil
 import subprocess
 import sys
-import tempfile
 import urllib.request
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -965,7 +963,7 @@ Categories=Development;Utility;
             print(f"   ✅ Created: {output}")
             return output
         else:
-            print(f"   ⚠️ AppImage creation failed")
+            print("   ⚠️ AppImage creation failed")
             return appdir
 
     def _create_deb_package(self, exe_path: Path, config: BuildConfig) -> Path:
@@ -1024,7 +1022,7 @@ Categories=Development;Utility;
             print(f"   ✅ Created: {output}")
             return output
         else:
-            print(f"   ⚠️ dpkg-deb not found or failed")
+            print("   ⚠️ dpkg-deb not found or failed")
             return pkg_dir
 
     def clean(self):
