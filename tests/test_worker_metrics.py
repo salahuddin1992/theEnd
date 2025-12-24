@@ -12,16 +12,14 @@ import sys
 import time
 
 import pytest
-import pytest_asyncio
 
 from distributed_cluster.worker.metrics import (
     ProcessMemoryTracker,
-    WorkerMetricsCollector,
     ProcessMetrics,
-    JobMetrics,
-    WorkerMetrics,
-    RetryHandler,
     RetryConfig,
+    RetryHandler,
+    WorkerMetrics,
+    WorkerMetricsCollector,
 )
 
 
@@ -161,7 +159,7 @@ class TestWorkerMetricsCollector:
 
         # Check counters updated
         await collector._collect_metrics()  # Force collection
-        metrics = collector.get_current_metrics()
+        collector.get_current_metrics()
 
         # Note: We can't assert exact counts without waiting for collection
         # Just verify the collector works without error
