@@ -549,8 +549,17 @@ Examples:
     )
     parser.add_argument("--clean", action="store_true", help="Clean build artifacts only")
     parser.add_argument("--installer", action="store_true", help="Create NSIS installer script")
-    parser.add_argument("--mode", choices=["full", "minimal"], default="full",
+    parser.add_argument("--mode", choices=["full", "minimal", "standard", "ultra"], default="full",
                         help="Build mode: full (all features) or minimal (basic)")
+    # CI/CD arguments (for GitHub Actions compatibility)
+    parser.add_argument("--type", choices=["debug", "release", "release-optimized", "profile"],
+                        default="release", help="Build type (for CI)")
+    parser.add_argument("--platform", choices=["windows", "linux", "macos"],
+                        default=None, help="Target platform (for CI)")
+    parser.add_argument("--arch", choices=["x64", "arm64", "universal"],
+                        default="x64", help="Target architecture (for CI)")
+    parser.add_argument("--version", type=str, default=None,
+                        help="Version string (for CI)")
     args = parser.parse_args()
 
     if args.clean:
