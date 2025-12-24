@@ -162,6 +162,26 @@ class WorkerConfig:
     docker_allow_host_pid: bool = False  # السماح بـ PID namespace المضيف
     docker_allow_all_devices: bool = False  # السماح بكل الأجهزة
 
+    # === Shell Configuration - إعدادات الـ Shell ===
+    # أنواع الـ Shell المدعومة:
+    # - cmd: Windows Command Prompt
+    # - powershell: Windows PowerShell 5.1
+    # - pwsh: PowerShell 7 (Cross-platform)
+    # - bash: Linux Bash
+    # - sh: POSIX shell
+    # - zsh: Z shell
+    # - wsl: Default WSL
+    # - ubuntu: Ubuntu via WSL
+    # - debian: Debian via WSL
+    # - kali: Kali Linux via WSL
+    # - git-bash: Git Bash (MINGW)
+    # - auto: تلقائي
+    default_shell: str = "auto"
+    shell_run_as_admin: bool = True  # تشغيل كمدير (Admin/Root)
+    shell_timeout: int = 3600  # مهلة الـ Shell بالثواني
+    shell_enable_wsl: bool = True  # تفعيل WSL
+    shell_wsl_default_user: str = "root"  # المستخدم الافتراضي في WSL (root للصلاحيات الكاملة)
+
     # Security
     sandbox_enabled: bool = True
     allowed_commands: list[str] = field(default_factory=list)  # فارغ = كلها مسموحة
@@ -192,6 +212,12 @@ class WorkerConfig:
             "docker_allow_host_network": self.docker_allow_host_network,
             "docker_allow_host_pid": self.docker_allow_host_pid,
             "docker_allow_all_devices": self.docker_allow_all_devices,
+            # Shell configuration
+            "default_shell": self.default_shell,
+            "shell_run_as_admin": self.shell_run_as_admin,
+            "shell_timeout": self.shell_timeout,
+            "shell_enable_wsl": self.shell_enable_wsl,
+            "shell_wsl_default_user": self.shell_wsl_default_user,
         }
 
     @classmethod
@@ -220,6 +246,12 @@ class WorkerConfig:
             docker_allow_host_network=data.get("docker_allow_host_network", False),
             docker_allow_host_pid=data.get("docker_allow_host_pid", False),
             docker_allow_all_devices=data.get("docker_allow_all_devices", False),
+            # Shell configuration
+            default_shell=data.get("default_shell", "auto"),
+            shell_run_as_admin=data.get("shell_run_as_admin", True),
+            shell_timeout=data.get("shell_timeout", 3600),
+            shell_enable_wsl=data.get("shell_enable_wsl", True),
+            shell_wsl_default_user=data.get("shell_wsl_default_user", "root"),
             sandbox_enabled=data.get("sandbox_enabled", True),
             allowed_commands=data.get("allowed_commands", []),
             blocked_commands=data.get("blocked_commands", []),
@@ -249,6 +281,12 @@ class WorkerConfig:
             docker_allow_host_network=os.getenv("DC_DOCKER_HOST_NETWORK", "false").lower() == "true",
             docker_allow_host_pid=os.getenv("DC_DOCKER_HOST_PID", "false").lower() == "true",
             docker_allow_all_devices=os.getenv("DC_DOCKER_ALL_DEVICES", "false").lower() == "true",
+            # Shell configuration from environment
+            default_shell=os.getenv("DC_DEFAULT_SHELL", "auto"),
+            shell_run_as_admin=os.getenv("DC_SHELL_RUN_AS_ADMIN", "true").lower() == "true",
+            shell_timeout=int(os.getenv("DC_SHELL_TIMEOUT", "3600")),
+            shell_enable_wsl=os.getenv("DC_SHELL_ENABLE_WSL", "true").lower() == "true",
+            shell_wsl_default_user=os.getenv("DC_SHELL_WSL_USER", "root"),
         )
 
 

@@ -12,6 +12,13 @@
 # - DC_DOCKER_HOST_NETWORK=true   : شبكة المضيف
 # - DC_DOCKER_HOST_PID=true       : PID namespace المضيف
 # - DC_DOCKER_ALL_DEVICES=true    : كل الأجهزة
+#
+# Shell Configuration (Full Admin Access):
+# - DC_DEFAULT_SHELL=auto         : الـ Shell الافتراضي
+#   Supported: cmd, powershell, pwsh, bash, sh, zsh, wsl, ubuntu, debian, kali, git-bash
+# - DC_SHELL_RUN_AS_ADMIN=true    : تشغيل كمدير (Admin/Root)
+# - DC_SHELL_ENABLE_WSL=true      : تفعيل WSL
+# - DC_SHELL_WSL_USER=root        : المستخدم في WSL
 
 services:
   # ===================
@@ -90,6 +97,11 @@ services:
       - DC_DOCKER_HOST_NETWORK=${DC_DOCKER_HOST_NETWORK:-false}
       - DC_DOCKER_HOST_PID=${DC_DOCKER_HOST_PID:-true}
       - DC_DOCKER_ALL_DEVICES=${DC_DOCKER_ALL_DEVICES:-true}
+      # Shell configuration - Full Admin Access
+      - DC_DEFAULT_SHELL=${DC_DEFAULT_SHELL:-auto}
+      - DC_SHELL_RUN_AS_ADMIN=${DC_SHELL_RUN_AS_ADMIN:-true}
+      - DC_SHELL_ENABLE_WSL=${DC_SHELL_ENABLE_WSL:-true}
+      - DC_SHELL_WSL_USER=${DC_SHELL_WSL_USER:-root}
     networks:
       - nebula-net
     restart: unless-stopped
@@ -133,6 +145,11 @@ services:
       - DC_DOCKER_HOST_NETWORK=${DC_DOCKER_HOST_NETWORK:-false}
       - DC_DOCKER_HOST_PID=${DC_DOCKER_HOST_PID:-true}
       - DC_DOCKER_ALL_DEVICES=${DC_DOCKER_ALL_DEVICES:-true}
+      # Shell configuration - Full Admin Access
+      - DC_DEFAULT_SHELL=${DC_DEFAULT_SHELL:-auto}
+      - DC_SHELL_RUN_AS_ADMIN=${DC_SHELL_RUN_AS_ADMIN:-true}
+      - DC_SHELL_ENABLE_WSL=${DC_SHELL_ENABLE_WSL:-true}
+      - DC_SHELL_WSL_USER=${DC_SHELL_WSL_USER:-root}
     networks:
       - nebula-net
     restart: unless-stopped
