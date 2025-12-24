@@ -238,6 +238,27 @@ def build_exe(mode="full"):
         "sniffio",
         "h11",
         "httpcore",
+
+        # Required for pkg_resources (fixes jaraco error)
+        "jaraco",
+        "jaraco.text",
+        "jaraco.functools",
+        "jaraco.context",
+        "jaraco.classes",
+        "jaraco.collections",
+        "pkg_resources",
+        "pkg_resources.extern",
+
+        # More dependencies
+        "importlib_metadata",
+        "importlib_resources",
+        "packaging",
+        "packaging.version",
+        "packaging.specifiers",
+        "packaging.requirements",
+        "packaging.markers",
+        "zipp",
+        "more_itertools",
     ]
 
     if mode == "full":
