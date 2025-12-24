@@ -26,8 +26,11 @@ from .views.dashboard import DashboardView
 from .views.jobs import JobsView
 from .views.logs import LogsView
 from .views.metrics import MetricsView
+from .views.plugin_manager import PluginManagerView
 from .views.pools import PoolsView
+from .views.powershell_console import PowerShellConsoleView
 from .views.queues import QueuesView
+from .views.script_editor import ScriptEditorView
 from .views.settings import SettingsView
 from .views.templates import TemplatesView
 from .views.workers import WorkersView
@@ -180,6 +183,18 @@ class MainWindow(QMainWindow):
         self.metrics_view = MetricsView()
         self.content_stack.addWidget(self.metrics_view)
 
+        # Script Editor (Developer Tools)
+        self.script_editor_view = ScriptEditorView()
+        self.content_stack.addWidget(self.script_editor_view)
+
+        # Plugin Manager (Developer Tools)
+        self.plugin_manager_view = PluginManagerView()
+        self.content_stack.addWidget(self.plugin_manager_view)
+
+        # PowerShell Console (Developer Tools)
+        self.terminal_view = PowerShellConsoleView()
+        self.content_stack.addWidget(self.terminal_view)
+
         # Map page names to stack indices
         self._page_indices = {
             "dashboard": 0,
@@ -191,6 +206,9 @@ class MainWindow(QMainWindow):
             "settings": 6,
             "logs": 7,
             "metrics": 8,
+            "scripts": 9,
+            "plugins": 10,
+            "terminal": 11,
         }
 
     def _setup_menu(self):
@@ -277,6 +295,24 @@ class MainWindow(QMainWindow):
         self.terminal_action.triggered.connect(self._toggle_terminal)
         view_menu.addAction(self.terminal_action)
 
+        # Developer menu
+        dev_menu = menubar.addMenu("&Developer")
+
+        script_editor_action = QAction("🐍 &Script Editor", self)
+        script_editor_action.setShortcut("Ctrl+Shift+S")
+        script_editor_action.triggered.connect(lambda: self._navigate_to("scripts"))
+        dev_menu.addAction(script_editor_action)
+
+        plugin_manager_action = QAction("🔌 &Plugin Manager", self)
+        plugin_manager_action.setShortcut("Ctrl+Shift+P")
+        plugin_manager_action.triggered.connect(lambda: self._navigate_to("plugins"))
+        dev_menu.addAction(plugin_manager_action)
+
+        terminal_console_action = QAction("💻 &Terminal Console", self)
+        terminal_console_action.setShortcut("Ctrl+Shift+T")
+        terminal_console_action.triggered.connect(lambda: self._navigate_to("terminal"))
+        dev_menu.addAction(terminal_console_action)
+
         # Actions menu
         actions_menu = menubar.addMenu("&Actions")
 
@@ -313,6 +349,11 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+6"), self, lambda: self._navigate_to("queues"))
         QShortcut(QKeySequence("Ctrl+7"), self, lambda: self._navigate_to("logs"))
         QShortcut(QKeySequence("Ctrl+8"), self, lambda: self._navigate_to("metrics"))
+
+        # Developer tools shortcuts
+        QShortcut(QKeySequence("Ctrl+Shift+S"), self, lambda: self._navigate_to("scripts"))
+        QShortcut(QKeySequence("Ctrl+Shift+P"), self, lambda: self._navigate_to("plugins"))
+        QShortcut(QKeySequence("Ctrl+Shift+T"), self, lambda: self._navigate_to("terminal"))
 
         # Terminal toggle
         QShortcut(QKeySequence("Ctrl+`"), self, self._toggle_terminal)
@@ -445,6 +486,10 @@ class MainWindow(QMainWindow):
         self.pools_view.set_api_client(self.api_client)
         self.queues_view.set_api_client(self.api_client)
         self.logs_view.set_api_client(self.api_client)
+        # Developer tools
+        self.script_editor_view.set_api_client(self.api_client)
+        self.plugin_manager_view.set_api_client(self.api_client)
+        self.terminal_view.set_api_client(self.api_client)
 
     def _on_connected(self):
         """Handle successful connection"""
@@ -714,7 +759,7 @@ class MainWindow(QMainWindow):
 <tr><td><b>Ctrl+E</b></td><td>Export data</td></tr>
 <tr><td><b>F5 / Ctrl+R</b></td><td>Refresh</td></tr>
 <tr><td><b>Ctrl+N</b></td><td>Submit new job</td></tr>
-<tr><td><b>Ctrl+`</b></td><td>Toggle terminal</td></tr>
+<tr><td><b>Ctrl+`</b></td><td>Toggle terminal panel</td></tr>
 <tr><td><b>Ctrl+1</b></td><td>Dashboard</td></tr>
 <tr><td><b>Ctrl+2</b></td><td>Jobs</td></tr>
 <tr><td><b>Ctrl+3</b></td><td>Workers</td></tr>
@@ -726,6 +771,12 @@ class MainWindow(QMainWindow):
 <tr><td><b>Ctrl+M</b></td><td>Metrics</td></tr>
 <tr><td><b>Ctrl+,</b></td><td>Settings</td></tr>
 </table>
+<h3>Developer Tools</h3>
+<table>
+<tr><td><b>Ctrl+Shift+S</b></td><td>Script Editor</td></tr>
+<tr><td><b>Ctrl+Shift+P</b></td><td>Plugin Manager</td></tr>
+<tr><td><b>Ctrl+Shift+T</b></td><td>Terminal Console</td></tr>
+</table>
         """
         QMessageBox.information(self, "Keyboard Shortcuts", shortcuts_text)
 
@@ -736,7 +787,7 @@ class MainWindow(QMainWindow):
             "About NebulaCompute Desktop",
             """
 <h2>NebulaCompute Desktop</h2>
-<p>Version 0.1.0</p>
+<p>Version 0.2.0</p>
 <p>A modern desktop interface for managing distributed computing clusters.</p>
 <p><b>Features:</b></p>
 <ul>
@@ -744,6 +795,12 @@ class MainWindow(QMainWindow):
 <li>Job submission and management</li>
 <li>Worker monitoring and control</li>
 <li>Resource visualization</li>
+</ul>
+<p><b>Developer Tools:</b></p>
+<ul>
+<li>🐍 Script Editor - Python scripting with sandbox</li>
+<li>🔌 Plugin Manager - Hot-reload plugin system</li>
+<li>💻 Terminal Console - PowerShell/Bash integration</li>
 </ul>
 <p>Built with PySide6 (Qt6)</p>
             """,
