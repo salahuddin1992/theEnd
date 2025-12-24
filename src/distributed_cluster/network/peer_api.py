@@ -3,6 +3,12 @@ Peer API - واجهة API لإدارة الاتصالات
 ======================================
 
 API endpoints للتحكم في اتصالات الأطراف من لوحة التحكم.
+
+Supports:
+- Local network peer discovery (UDP broadcast)
+- Internet P2P connections
+- Connection approval/rejection system
+- Full info sharing between peers
 """
 
 from __future__ import annotations
@@ -20,14 +26,22 @@ from distributed_cluster.network.peer_discovery import (
     PeerMessage,
     MessageType,
 )
+from distributed_cluster.network.internet_p2p import (
+    InternetP2PManager,
+    ConnectionRequest,
+    SharedInfo,
+    generate_connection_code,
+    parse_connection_code,
+)
 
 logger = logging.getLogger(__name__)
 
 # Router
 router = APIRouter(prefix="/api/peers", tags=["peers"])
 
-# Global peer manager (initialized by app startup)
+# Global managers (initialized by app startup)
 _peer_manager: Optional[PeerManager] = None
+_internet_manager: Optional[InternetP2PManager] = None
 _websocket_clients: List[WebSocket] = []
 
 
@@ -78,18 +92,57 @@ class BroadcastRequest(BaseModel):
 
 class PeerEvent(BaseModel):
     """حدث Peer."""
-    event_type: str  # discovered, connected, disconnected, message
+    event_type: str  # discovered, connected, disconnected, message, connection_request
     peer_id: str
     data: Optional[Dict] = None
+
+
+# === Internet P2P Models ===
+
+class InternetConnectRequest(BaseModel):
+    """طلب اتصال عبر الإنترنت."""
+    address: str
+    port: int = 5960
+
+
+class ConnectByCodeRequest(BaseModel):
+    """اتصال باستخدام كود."""
+    code: str
+
+
+class ConnectionRequestResponse(BaseModel):
+    """طلب اتصال وارد."""
+    request_id: str
+    requester_id: str
+    requester_hostname: str
+    requester_platform: str
+    requester_ip: str
+    message: str
+    created_at: float
+    expires_at: float
+    status: str
+
+
+class ApproveRejectRequest(BaseModel):
+    """موافقة/رفض طلب اتصال."""
+    request_id: str
+    reason: str = ""
 
 
 # === Helper Functions ===
 
 def get_peer_manager() -> PeerManager:
-    """الحصول على مدير الاتصالات."""
+    """الحصول على مدير الاتصالات المحلية."""
     if _peer_manager is None:
         raise HTTPException(status_code=500, detail="Peer manager not initialized")
     return _peer_manager
+
+
+def get_internet_manager() -> InternetP2PManager:
+    """الحصول على مدير الاتصالات عبر الإنترنت."""
+    if _internet_manager is None:
+        raise HTTPException(status_code=500, detail="Internet P2P manager not initialized")
+    return _internet_manager
 
 
 async def broadcast_event(event: PeerEvent) -> None:
@@ -122,10 +175,13 @@ async def init_peer_manager(
     app_name: str = "NebulaCompute",
     app_version: str = "1.0.0",
     app_type: str = "worker",
-) -> PeerManager:
-    """تهيئة مدير الاتصالات."""
-    global _peer_manager
+    internet_port: int = 5960,
+    auto_approve: bool = False,
+) -> tuple[PeerManager, InternetP2PManager]:
+    """تهيئة مديري الاتصالات (المحلي والإنترنت)."""
+    global _peer_manager, _internet_manager
 
+    # === Local Peer Manager ===
     _peer_manager = PeerManager()
     _peer_manager.discovery.set_app_info(
         app_name=app_name,
@@ -133,7 +189,7 @@ async def init_peer_manager(
         app_type=app_type,
     )
 
-    # Setup callbacks
+    # Setup local callbacks
     _peer_manager.on_peer_discovered(lambda p: asyncio.create_task(
         broadcast_event(PeerEvent(
             event_type="discovered",
@@ -166,13 +222,61 @@ async def init_peer_manager(
         ))
     ))
 
+    # === Internet P2P Manager ===
+    _internet_manager = InternetP2PManager(
+        my_id=_peer_manager.my_id,
+        port=internet_port,
+        auto_approve=auto_approve,
+    )
+
+    # Setup internet callbacks
+    _internet_manager.on_connection_request(lambda req: asyncio.create_task(
+        broadcast_event(PeerEvent(
+            event_type="connection_request",
+            peer_id=req.requester_id,
+            data=req.to_dict(),
+        ))
+    ))
+
+    _internet_manager.on_connected(lambda conn: asyncio.create_task(
+        broadcast_event(PeerEvent(
+            event_type="internet_connected",
+            peer_id=conn.peer_id,
+            data=conn.peer_info.to_dict() if conn.peer_info else {},
+        ))
+    ))
+
+    _internet_manager.on_disconnected(lambda peer_id: asyncio.create_task(
+        broadcast_event(PeerEvent(
+            event_type="internet_disconnected",
+            peer_id=peer_id,
+            data={},
+        ))
+    ))
+
+    _internet_manager.on_message(lambda m: asyncio.create_task(
+        broadcast_event(PeerEvent(
+            event_type="internet_message",
+            peer_id=m.sender_id,
+            data={"content": m.payload.get("content"), "metadata": m.payload.get("metadata")},
+        ))
+    ))
+
+    # Start both managers
     await _peer_manager.start()
-    return _peer_manager
+    await _internet_manager.start()
+
+    return _peer_manager, _internet_manager
 
 
 async def shutdown_peer_manager() -> None:
-    """إيقاف مدير الاتصالات."""
-    global _peer_manager
+    """إيقاف مديري الاتصالات."""
+    global _peer_manager, _internet_manager
+
+    if _internet_manager:
+        await _internet_manager.stop()
+        _internet_manager = None
+
     if _peer_manager:
         await _peer_manager.stop()
         _peer_manager = None
@@ -301,6 +405,148 @@ async def unblock_peer(peer_id: str):
     return {"status": "unblocked", "peer_id": peer_id}
 
 
+# === Internet P2P Endpoints ===
+
+@router.get("/internet/code")
+async def get_connection_code():
+    """الحصول على كود الاتصال للمشاركة."""
+    im = get_internet_manager()
+    code = im.get_connection_code()
+    info = im.get_my_info()
+
+    return {
+        "code": code,
+        "public_ip": info.get("public_ip", ""),
+        "port": im.port,
+        "peer_id": im.my_id,
+    }
+
+
+@router.post("/internet/connect")
+async def internet_connect(request: InternetConnectRequest):
+    """الاتصال بـ peer عبر الإنترنت."""
+    im = get_internet_manager()
+
+    success = await im.connect_to(request.address, request.port)
+    if not success:
+        raise HTTPException(status_code=400, detail="فشل الاتصال - قد يكون العنوان غير صحيح أو تم رفض الاتصال")
+
+    return {"status": "connected", "address": request.address, "port": request.port}
+
+
+@router.post("/internet/connect-by-code")
+async def internet_connect_by_code(request: ConnectByCodeRequest):
+    """الاتصال باستخدام كود."""
+    im = get_internet_manager()
+
+    # Parse code first
+    parsed = parse_connection_code(request.code)
+    if not parsed:
+        raise HTTPException(status_code=400, detail="كود الاتصال غير صحيح")
+
+    success = await im.connect_by_code(request.code)
+    if not success:
+        raise HTTPException(status_code=400, detail="فشل الاتصال - قد يكون الطرف الآخر غير متصل أو رفض الاتصال")
+
+    return {
+        "status": "connected",
+        "address": parsed["address"],
+        "port": parsed["port"],
+        "peer_id": parsed["peer_id"],
+    }
+
+
+@router.get("/internet/requests")
+async def get_pending_requests():
+    """الحصول على طلبات الاتصال المعلقة."""
+    im = get_internet_manager()
+    requests = im.get_pending_requests()
+
+    return [
+        {
+            "request_id": req["request_id"],
+            "requester_id": req["requester_id"],
+            "requester_hostname": req.get("requester_info", {}).get("device", {}).get("hostname", "Unknown"),
+            "requester_platform": req.get("requester_info", {}).get("device", {}).get("platform", "Unknown"),
+            "requester_ip": req.get("requester_info", {}).get("public_ip", ""),
+            "message": req.get("message", ""),
+            "created_at": req["created_at"],
+            "expires_at": req["expires_at"],
+            "status": req["status"],
+        }
+        for req in requests
+    ]
+
+
+@router.post("/internet/approve")
+async def approve_connection(request: ApproveRejectRequest):
+    """الموافقة على طلب اتصال."""
+    im = get_internet_manager()
+
+    success = await im.approve_request(request.request_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="طلب الاتصال غير موجود أو منتهي الصلاحية")
+
+    return {"status": "approved", "request_id": request.request_id}
+
+
+@router.post("/internet/reject")
+async def reject_connection(request: ApproveRejectRequest):
+    """رفض طلب اتصال."""
+    im = get_internet_manager()
+
+    success = await im.reject_request(request.request_id, request.reason)
+    if not success:
+        raise HTTPException(status_code=404, detail="طلب الاتصال غير موجود")
+
+    return {"status": "rejected", "request_id": request.request_id}
+
+
+@router.get("/internet/connections")
+async def get_internet_connections():
+    """الحصول على اتصالات الإنترنت النشطة."""
+    im = get_internet_manager()
+    connections = im.get_all_connections()
+
+    return connections
+
+
+@router.post("/internet/disconnect/{peer_id}")
+async def internet_disconnect(peer_id: str):
+    """قطع اتصال إنترنت."""
+    im = get_internet_manager()
+    await im.disconnect(peer_id)
+    return {"status": "disconnected", "peer_id": peer_id}
+
+
+@router.post("/internet/message/{peer_id}")
+async def internet_send_message(peer_id: str, request: MessageRequest):
+    """إرسال رسالة عبر الإنترنت."""
+    im = get_internet_manager()
+
+    success = await im.send_message(peer_id, request.content, request.metadata)
+    if not success:
+        raise HTTPException(status_code=400, detail="فشل إرسال الرسالة")
+
+    return {"status": "sent", "peer_id": peer_id}
+
+
+@router.post("/internet/broadcast")
+async def internet_broadcast(request: BroadcastRequest):
+    """بث رسالة لجميع المتصلين عبر الإنترنت."""
+    im = get_internet_manager()
+
+    sent = await im.broadcast(request.content, request.metadata)
+    return {"status": "sent", "count": sent}
+
+
+@router.get("/internet/info")
+async def get_internet_my_info():
+    """الحصول على معلوماتي الكاملة (للمشاركة)."""
+    im = get_internet_manager()
+    return im.get_my_info()
+
+
 # === WebSocket for Real-time Updates ===
 
 @router.websocket("/ws")
@@ -312,13 +558,25 @@ async def peer_websocket(websocket: WebSocket):
     try:
         # Send initial state
         pm = get_peer_manager()
+
+        init_data = {
+            "my_info": pm.get_my_info(),
+            "peers": pm.get_peers(),
+            "connected": pm.get_connected_peers(),
+        }
+
+        # Add internet P2P data if available
+        if _internet_manager:
+            init_data["internet"] = {
+                "connection_code": _internet_manager.get_connection_code(),
+                "my_info": _internet_manager.get_my_info(),
+                "connections": _internet_manager.get_all_connections(),
+                "pending_requests": _internet_manager.get_pending_requests(),
+            }
+
         await websocket.send_json({
             "event_type": "init",
-            "data": {
-                "my_info": pm.get_my_info(),
-                "peers": pm.get_peers(),
-                "connected": pm.get_connected_peers(),
-            },
+            "data": init_data,
         })
 
         # Keep connection alive
@@ -352,8 +610,23 @@ DASHBOARD_HTML = """
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 30px; color: #00d4ff; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; color: #00d4ff; }
+        .subtitle { text-align: center; margin-bottom: 30px; color: #888; font-size: 0.9em; }
+        .tabs { display: flex; justify-content: center; margin-bottom: 20px; gap: 10px; }
+        .tab {
+            padding: 10px 25px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab.active { background: #00d4ff; color: #000; }
+        .tab:hover { background: rgba(0,212,255,0.5); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
         .card {
             background: rgba(255,255,255,0.1);
@@ -363,8 +636,10 @@ DASHBOARD_HTML = """
             border: 1px solid rgba(255,255,255,0.2);
         }
         .card h2 { color: #00d4ff; margin-bottom: 15px; font-size: 1.2em; }
-        .my-info { background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,100,200,0.2)); }
-        .peer-list { max-height: 400px; overflow-y: auto; }
+        .card.highlight { background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,100,200,0.2)); }
+        .card.internet { background: linear-gradient(135deg, rgba(138,43,226,0.2), rgba(75,0,130,0.2)); border-color: rgba(138,43,226,0.5); }
+        .card.internet h2 { color: #da70d6; }
+        .peer-list { max-height: 350px; overflow-y: auto; }
         .peer-item {
             background: rgba(255,255,255,0.05);
             border-radius: 10px;
@@ -376,6 +651,8 @@ DASHBOARD_HTML = """
         .peer-item:hover { background: rgba(255,255,255,0.1); transform: translateX(-5px); }
         .peer-item.connected { border-color: #00ff88; }
         .peer-item.blocked { opacity: 0.5; border-color: #ff4444; }
+        .peer-item.pending { border-color: #ffd700; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         .peer-name { font-weight: bold; color: #fff; font-size: 1.1em; }
         .peer-info { color: #aaa; font-size: 0.9em; margin-top: 5px; }
         .peer-status {
@@ -389,6 +666,7 @@ DASHBOARD_HTML = """
         .status-connected { background: #00ff88; color: #000; }
         .status-disconnected { background: #666; }
         .status-blocked { background: #ff4444; }
+        .status-pending { background: #ffd700; color: #000; }
         .btn {
             padding: 8px 15px;
             border: none;
@@ -396,15 +674,49 @@ DASHBOARD_HTML = """
             cursor: pointer;
             margin: 5px 5px 5px 0;
             transition: all 0.3s;
+            font-size: 0.9em;
         }
         .btn-connect { background: #00d4ff; color: #000; }
         .btn-disconnect { background: #ff9800; color: #000; }
         .btn-block { background: #ff4444; color: #fff; }
         .btn-unblock { background: #00ff88; color: #000; }
+        .btn-approve { background: #00ff88; color: #000; }
+        .btn-reject { background: #ff4444; color: #fff; }
+        .btn-copy { background: #9370db; color: #fff; }
         .btn:hover { transform: scale(1.05); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .info-label { color: #888; }
         .info-value { color: #fff; font-weight: 500; }
+        .connection-code {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.5em;
+            letter-spacing: 2px;
+            color: #da70d6;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .connection-code:hover { background: rgba(218,112,214,0.2); }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1em;
+        }
+        .input-group input::placeholder { color: #888; }
         .messages {
             max-height: 200px;
             overflow-y: auto;
@@ -413,39 +725,100 @@ DASHBOARD_HTML = """
             padding: 10px;
             margin-top: 10px;
         }
-        .message { padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .message { padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9em; }
         .message-time { color: #666; font-size: 0.8em; }
-        #messageInput { width: 100%; padding: 10px; border-radius: 5px; border: none; margin-top: 10px; }
+        .badge {
+            display: inline-block;
+            background: #ff4444;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-right: 5px;
+        }
+        .section-title { color: #888; font-size: 0.9em; margin: 15px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .empty-state { color: #666; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>لوحة تحكم الاتصالات</h1>
+        <p class="subtitle">NebulaCompute - P2P Communication Dashboard</p>
 
-        <div class="grid">
-            <!-- معلوماتي -->
-            <div class="card my-info">
-                <h2>معلوماتي</h2>
-                <div id="myInfo">جاري التحميل...</div>
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('local')">الشبكة المحلية</button>
+            <button class="tab" onclick="showTab('internet')">الإنترنت P2P <span id="requestsBadge" class="badge" style="display:none">0</span></button>
+            <button class="tab" onclick="showTab('messages')">الرسائل</button>
+        </div>
+
+        <!-- Local Network Tab -->
+        <div id="localTab" class="tab-content active">
+            <div class="grid">
+                <div class="card highlight">
+                    <h2>معلوماتي</h2>
+                    <div id="myInfo">جاري التحميل...</div>
+                </div>
+
+                <div class="card">
+                    <h2>الأطراف المكتشفة (<span id="discoveredCount">0</span>)</h2>
+                    <div id="discoveredPeers" class="peer-list"></div>
+                </div>
+
+                <div class="card">
+                    <h2>الأطراف المتصلة (<span id="connectedCount">0</span>)</h2>
+                    <div id="connectedPeers" class="peer-list"></div>
+                </div>
             </div>
+        </div>
 
-            <!-- الأطراف المكتشفة -->
-            <div class="card">
-                <h2>الأطراف المكتشفة (<span id="discoveredCount">0</span>)</h2>
-                <div id="discoveredPeers" class="peer-list"></div>
+        <!-- Internet P2P Tab -->
+        <div id="internetTab" class="tab-content">
+            <div class="grid">
+                <div class="card internet">
+                    <h2>كود الاتصال الخاص بي</h2>
+                    <p style="color:#888;font-size:0.9em;">شارك هذا الكود مع الآخرين للاتصال بك عبر الإنترنت</p>
+                    <div id="myConnectionCode" class="connection-code" onclick="copyCode()">جاري التحميل...</div>
+                    <button class="btn btn-copy" onclick="copyCode()">نسخ الكود</button>
+                    <div id="publicIpInfo" style="margin-top:10px;color:#888;font-size:0.9em;"></div>
+                </div>
+
+                <div class="card internet">
+                    <h2>الاتصال بـ Peer</h2>
+                    <div class="input-group">
+                        <input type="text" id="connectCode" placeholder="أدخل كود الاتصال...">
+                        <button class="btn btn-connect" onclick="connectByCode()">اتصال</button>
+                    </div>
+                    <p style="color:#666;font-size:0.85em;margin-top:10px;">أو اتصل مباشرة:</p>
+                    <div class="input-group">
+                        <input type="text" id="connectIp" placeholder="عنوان IP">
+                        <input type="number" id="connectPort" placeholder="المنفذ" value="5960" style="width:100px;">
+                        <button class="btn btn-connect" onclick="connectDirect()">اتصال</button>
+                    </div>
+                </div>
+
+                <div class="card internet">
+                    <h2>طلبات الاتصال الواردة <span id="pendingCount" class="badge" style="display:none">0</span></h2>
+                    <div id="pendingRequests" class="peer-list"></div>
+                </div>
+
+                <div class="card internet">
+                    <h2>اتصالات الإنترنت النشطة (<span id="internetConnectedCount">0</span>)</h2>
+                    <div id="internetConnections" class="peer-list"></div>
+                </div>
             </div>
+        </div>
 
-            <!-- الأطراف المتصلة -->
-            <div class="card">
-                <h2>الأطراف المتصلة (<span id="connectedCount">0</span>)</h2>
-                <div id="connectedPeers" class="peer-list"></div>
-            </div>
-
-            <!-- الرسائل -->
-            <div class="card">
-                <h2>الرسائل</h2>
-                <div id="messages" class="messages"></div>
-                <input type="text" id="messageInput" placeholder="اكتب رسالة وضغط Enter للبث...">
+        <!-- Messages Tab -->
+        <div id="messagesTab" class="tab-content">
+            <div class="grid">
+                <div class="card" style="grid-column: span 2;">
+                    <h2>الرسائل</h2>
+                    <div id="messages" class="messages" style="max-height:400px;"></div>
+                    <div class="input-group">
+                        <input type="text" id="messageInput" placeholder="اكتب رسالة...">
+                        <button class="btn btn-connect" onclick="sendBroadcast()">بث للجميع</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -454,22 +827,22 @@ DASHBOARD_HTML = """
         let ws;
         let peers = {};
         let connected = {};
+        let internetData = { code: '', connections: [], requests: [] };
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
 
         function connect() {
             const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
             ws = new WebSocket(`${wsProtocol}//${location.host}/api/peers/ws`);
 
             ws.onopen = () => console.log('WebSocket connected');
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                handleEvent(data);
-            };
-
-            ws.onclose = () => {
-                console.log('WebSocket disconnected, reconnecting...');
-                setTimeout(connect, 2000);
-            };
+            ws.onmessage = (event) => handleEvent(JSON.parse(event.data));
+            ws.onclose = () => setTimeout(connect, 2000);
         }
 
         function handleEvent(event) {
@@ -478,7 +851,13 @@ DASHBOARD_HTML = """
                     updateMyInfo(event.data.my_info);
                     event.data.peers.forEach(p => peers[p.peer_id] = p);
                     event.data.connected.forEach(p => connected[p.peer_id] = p);
-                    renderPeers();
+                    if (event.data.internet) {
+                        internetData.code = event.data.internet.connection_code;
+                        internetData.connections = event.data.internet.connections || [];
+                        internetData.requests = event.data.internet.pending_requests || [];
+                        updateInternetInfo(event.data.internet.my_info);
+                    }
+                    renderAll();
                     break;
                 case 'discovered':
                     peers[event.peer_id] = event.data;
@@ -489,15 +868,29 @@ DASHBOARD_HTML = """
                     connected[event.peer_id] = event.data;
                     if (peers[event.peer_id]) peers[event.peer_id].status = 'connected';
                     renderPeers();
-                    addMessage(`تم الاتصال بـ: ${event.data.device?.hostname || event.peer_id}`);
+                    addMessage(`تم الاتصال: ${event.data.device?.hostname || event.peer_id}`);
                     break;
                 case 'disconnected':
                     delete connected[event.peer_id];
                     if (peers[event.peer_id]) peers[event.peer_id].status = 'disconnected';
                     renderPeers();
-                    addMessage(`تم قطع الاتصال مع: ${event.data.device?.hostname || event.peer_id}`);
+                    addMessage(`تم قطع الاتصال: ${event.peer_id}`);
+                    break;
+                case 'connection_request':
+                    internetData.requests.push(event.data);
+                    renderInternet();
+                    addMessage(`طلب اتصال جديد من: ${event.data.requester_id}`, 'warning');
+                    break;
+                case 'internet_connected':
+                    loadInternetConnections();
+                    addMessage(`اتصال إنترنت جديد: ${event.peer_id}`, 'success');
+                    break;
+                case 'internet_disconnected':
+                    loadInternetConnections();
+                    addMessage(`انقطع اتصال الإنترنت: ${event.peer_id}`);
                     break;
                 case 'message':
+                case 'internet_message':
                     addMessage(`${event.peer_id}: ${event.data.content}`);
                     break;
             }
@@ -506,12 +899,26 @@ DASHBOARD_HTML = """
         function updateMyInfo(info) {
             document.getElementById('myInfo').innerHTML = `
                 <div class="info-row"><span class="info-label">المعرف:</span><span class="info-value">${info.peer_id}</span></div>
-                <div class="info-row"><span class="info-label">الاسم:</span><span class="info-value">${info.device?.hostname || info.hostname}</span></div>
-                <div class="info-row"><span class="info-label">النظام:</span><span class="info-value">${info.device?.platform || info.platform}</span></div>
-                <div class="info-row"><span class="info-label">IP:</span><span class="info-value">${(info.device?.ip_addresses || info.ip_addresses || []).join(', ')}</span></div>
-                <div class="info-row"><span class="info-label">المعالج:</span><span class="info-value">${info.device?.cpu_count || info.cpu_count} أنوية</span></div>
-                <div class="info-row"><span class="info-label">الذاكرة:</span><span class="info-value">${info.device?.memory_gb || info.memory_gb} GB</span></div>
+                <div class="info-row"><span class="info-label">الاسم:</span><span class="info-value">${info.device?.hostname || 'غير معروف'}</span></div>
+                <div class="info-row"><span class="info-label">النظام:</span><span class="info-value">${info.device?.platform || ''}</span></div>
+                <div class="info-row"><span class="info-label">IP المحلي:</span><span class="info-value">${(info.device?.ip_addresses || []).join(', ') || 'غير معروف'}</span></div>
+                <div class="info-row"><span class="info-label">المعالج:</span><span class="info-value">${info.device?.cpu_count || 0} أنوية</span></div>
+                <div class="info-row"><span class="info-label">الذاكرة:</span><span class="info-value">${info.device?.memory_gb || 0} GB</span></div>
             `;
+        }
+
+        function updateInternetInfo(info) {
+            if (!info) return;
+            document.getElementById('myConnectionCode').textContent = internetData.code || 'غير متاح';
+            document.getElementById('publicIpInfo').innerHTML = `
+                <strong>IP العام:</strong> ${info.public_ip || 'غير معروف'} |
+                <strong>المنفذ:</strong> ${info.connection_port || 5960}
+            `;
+        }
+
+        function renderAll() {
+            renderPeers();
+            renderInternet();
         }
 
         function renderPeers() {
@@ -525,7 +932,6 @@ DASHBOARD_HTML = """
                 <div class="peer-item ${p.status}">
                     <div class="peer-name">${p.device?.hostname || 'Unknown'}</div>
                     <div class="peer-info">${p.device?.platform || ''} | ${p.address || p.device?.ip_addresses?.[0] || ''}</div>
-                    <div class="peer-info">${p.app?.app_name || ''} (${p.app?.app_type || ''})</div>
                     <span class="peer-status status-${p.status}">${getStatusText(p.status)}</span>
                     <div style="margin-top: 10px;">
                         ${p.status !== 'connected' && p.status !== 'blocked' ?
@@ -537,33 +943,161 @@ DASHBOARD_HTML = """
                             `<button class="btn btn-unblock" onclick="unblockPeer('${p.peer_id}')">إلغاء الحظر</button>`}
                     </div>
                 </div>
-            `).join('') || '<p style="color:#888">لا يوجد أطراف مكتشفة</p>';
+            `).join('') || '<p class="empty-state">لا يوجد أطراف مكتشفة على الشبكة المحلية</p>';
 
             document.getElementById('connectedPeers').innerHTML = connectedList.map(p => `
                 <div class="peer-item connected">
                     <div class="peer-name">${p.device?.hostname || 'Unknown'}</div>
                     <div class="peer-info">${p.device?.platform || ''} | ${p.address || ''}</div>
                     <div class="peer-info">Latency: ${(p.latency_ms || 0).toFixed(1)} ms</div>
-                    <button class="btn btn-disconnect" onclick="disconnectPeer('${p.peer_id}')">قطع الاتصال</button>
+                    <button class="btn btn-disconnect" onclick="disconnectPeer('${p.peer_id}')">قطع</button>
                 </div>
-            `).join('') || '<p style="color:#888">لا يوجد اتصالات نشطة</p>';
+            `).join('') || '<p class="empty-state">لا يوجد اتصالات محلية نشطة</p>';
+        }
+
+        function renderInternet() {
+            // Pending requests
+            const requests = internetData.requests.filter(r => r.status === 'pending');
+            document.getElementById('pendingCount').style.display = requests.length ? 'inline' : 'none';
+            document.getElementById('pendingCount').textContent = requests.length;
+            document.getElementById('requestsBadge').style.display = requests.length ? 'inline' : 'none';
+            document.getElementById('requestsBadge').textContent = requests.length;
+
+            document.getElementById('pendingRequests').innerHTML = requests.map(r => `
+                <div class="peer-item pending">
+                    <div class="peer-name">${r.requester_info?.device?.hostname || r.requester_id}</div>
+                    <div class="peer-info">${r.requester_info?.device?.platform || 'غير معروف'} | ${r.requester_info?.public_ip || ''}</div>
+                    <div class="peer-info">${r.message || 'طلب اتصال'}</div>
+                    <span class="peer-status status-pending">في الانتظار</span>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-approve" onclick="approveRequest('${r.request_id}')">موافقة</button>
+                        <button class="btn btn-reject" onclick="rejectRequest('${r.request_id}')">رفض</button>
+                    </div>
+                </div>
+            `).join('') || '<p class="empty-state">لا يوجد طلبات اتصال معلقة</p>';
+
+            // Internet connections
+            const connections = internetData.connections;
+            document.getElementById('internetConnectedCount').textContent = connections.length;
+
+            document.getElementById('internetConnections').innerHTML = connections.map(c => `
+                <div class="peer-item connected">
+                    <div class="peer-name">${c.info?.device?.hostname || c.peer_id}</div>
+                    <div class="peer-info">${c.info?.device?.platform || ''} | ${c.info?.public_ip || ''}</div>
+                    <div class="peer-info">اتجاه: ${c.direction === 'incoming' ? 'وارد' : 'صادر'} | Latency: ${(c.latency_ms || 0).toFixed(1)} ms</div>
+                    <button class="btn btn-disconnect" onclick="internetDisconnect('${c.peer_id}')">قطع</button>
+                    <button class="btn btn-connect" onclick="internetMessage('${c.peer_id}')">رسالة</button>
+                </div>
+            `).join('') || '<p class="empty-state">لا يوجد اتصالات إنترنت نشطة</p>';
         }
 
         function getStatusText(status) {
-            const texts = {
-                'discovered': 'مكتشف',
-                'connecting': 'جاري الاتصال',
-                'connected': 'متصل',
-                'disconnected': 'منفصل',
-                'blocked': 'محظور'
-            };
-            return texts[status] || status;
+            return {'discovered': 'مكتشف', 'connecting': 'جاري الاتصال', 'connected': 'متصل', 'disconnected': 'منفصل', 'blocked': 'محظور', 'pending': 'في الانتظار'}[status] || status;
         }
 
-        function addMessage(text) {
+        function addMessage(text, type = 'info') {
             const div = document.getElementById('messages');
             const time = new Date().toLocaleTimeString('ar-SA');
-            div.innerHTML = `<div class="message"><span class="message-time">${time}</span> ${text}</div>` + div.innerHTML;
+            const color = type === 'warning' ? '#ffd700' : type === 'success' ? '#00ff88' : '#fff';
+            div.innerHTML = `<div class="message" style="color:${color}"><span class="message-time">${time}</span> ${text}</div>` + div.innerHTML;
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(internetData.code).then(() => {
+                addMessage('تم نسخ كود الاتصال!', 'success');
+            });
+        }
+
+        async function connectByCode() {
+            const code = document.getElementById('connectCode').value.trim();
+            if (!code) return addMessage('أدخل كود الاتصال', 'warning');
+
+            try {
+                const res = await fetch('/api/peers/internet/connect-by-code', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({code})
+                });
+                if (res.ok) {
+                    addMessage('تم الاتصال بنجاح!', 'success');
+                    loadInternetConnections();
+                } else {
+                    const err = await res.json();
+                    addMessage(err.detail || 'فشل الاتصال', 'warning');
+                }
+            } catch (e) {
+                addMessage('خطأ في الاتصال', 'warning');
+            }
+        }
+
+        async function connectDirect() {
+            const ip = document.getElementById('connectIp').value.trim();
+            const port = parseInt(document.getElementById('connectPort').value) || 5960;
+            if (!ip) return addMessage('أدخل عنوان IP', 'warning');
+
+            try {
+                const res = await fetch('/api/peers/internet/connect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({address: ip, port})
+                });
+                if (res.ok) {
+                    addMessage('تم الاتصال بنجاح!', 'success');
+                    loadInternetConnections();
+                } else {
+                    const err = await res.json();
+                    addMessage(err.detail || 'فشل الاتصال', 'warning');
+                }
+            } catch (e) {
+                addMessage('خطأ في الاتصال', 'warning');
+            }
+        }
+
+        async function approveRequest(requestId) {
+            await fetch('/api/peers/internet/approve', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({request_id: requestId})
+            });
+            internetData.requests = internetData.requests.filter(r => r.request_id !== requestId);
+            renderInternet();
+            loadInternetConnections();
+            addMessage('تم قبول طلب الاتصال', 'success');
+        }
+
+        async function rejectRequest(requestId) {
+            await fetch('/api/peers/internet/reject', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({request_id: requestId, reason: 'تم الرفض من قبل المستخدم'})
+            });
+            internetData.requests = internetData.requests.filter(r => r.request_id !== requestId);
+            renderInternet();
+            addMessage('تم رفض طلب الاتصال');
+        }
+
+        async function loadInternetConnections() {
+            try {
+                const res = await fetch('/api/peers/internet/connections');
+                internetData.connections = await res.json();
+                renderInternet();
+            } catch (e) {}
+        }
+
+        async function internetDisconnect(peerId) {
+            await fetch(`/api/peers/internet/disconnect/${peerId}`, {method: 'POST'});
+            loadInternetConnections();
+        }
+
+        async function internetMessage(peerId) {
+            const content = prompt('اكتب رسالتك:');
+            if (!content) return;
+            await fetch(`/api/peers/internet/message/${peerId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({peer_id: peerId, content})
+            });
+            addMessage(`أنت -> ${peerId}: ${content}`);
         }
 
         async function connectPeer(peerId) {
@@ -594,17 +1128,40 @@ DASHBOARD_HTML = """
             renderPeers();
         }
 
-        document.getElementById('messageInput').addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter' && e.target.value.trim()) {
-                await fetch('/api/peers/broadcast', {
+        async function sendBroadcast() {
+            const content = document.getElementById('messageInput').value.trim();
+            if (!content) return;
+
+            // Broadcast to both local and internet
+            await Promise.all([
+                fetch('/api/peers/broadcast', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({content: e.target.value})
-                });
-                addMessage(`أنت: ${e.target.value}`);
-                e.target.value = '';
-            }
+                    body: JSON.stringify({content})
+                }),
+                fetch('/api/peers/internet/broadcast', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content})
+                })
+            ]);
+
+            addMessage(`أنت (بث): ${content}`);
+            document.getElementById('messageInput').value = '';
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendBroadcast();
         });
+
+        // Load pending requests periodically
+        setInterval(async () => {
+            try {
+                const res = await fetch('/api/peers/internet/requests');
+                internetData.requests = await res.json();
+                renderInternet();
+            } catch (e) {}
+        }, 5000);
 
         connect();
     </script>
