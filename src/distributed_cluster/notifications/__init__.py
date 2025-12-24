@@ -129,6 +129,20 @@ from .templates import (
 # Rate limiter from channels (already implemented)
 from .channels import RateLimiter
 
+# Chat Bots
+from .chatbot import (
+    BotCommand,
+    BotHandler,
+    BotResponse,
+    CommandParser,
+    CommandType,
+    DiscordBot,
+    InteractiveAction,
+    SlackBot,
+    create_discord_bot,
+    create_slack_bot,
+)
+
 
 # Exception classes
 class NotificationError(Exception):
@@ -239,6 +253,17 @@ __all__ = [
     "RateLimitError",
     "TemplateError",
     "ConfigurationError",
+    # Chat Bots
+    "BotCommand",
+    "BotHandler",
+    "BotResponse",
+    "CommandParser",
+    "CommandType",
+    "SlackBot",
+    "DiscordBot",
+    "InteractiveAction",
+    "create_slack_bot",
+    "create_discord_bot",
 ]
 
 
