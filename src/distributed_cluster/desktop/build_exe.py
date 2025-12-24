@@ -13,6 +13,7 @@ Requirements:
 This will create a standalone executable with everything included.
 """
 
+import os
 import shutil
 import subprocess
 import sys
@@ -33,17 +34,53 @@ def clean_build():
     """Clean previous build artifacts"""
     project_root = get_project_root()
 
+    def handle_remove_error(func, path, exc_info):
+        """Handle permission errors on Windows (for Python < 3.12)"""
+        import stat
+        if isinstance(exc_info[1], PermissionError):
+            try:
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+            except Exception as e:
+                print(f"⚠️ Cannot delete {path}: {e}")
+        else:
+            raise exc_info[1]
+
+    def handle_remove_exc(func, path, exc):
+        """Handle permission errors on Windows (for Python >= 3.12)"""
+        import stat
+        if isinstance(exc, PermissionError):
+            try:
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+            except Exception as e:
+                print(f"⚠️ Cannot delete {path}: {e}")
+        else:
+            raise exc
+
     dirs_to_clean = ["build", "dist"]
     for dir_name in dirs_to_clean:
         dir_path = project_root / dir_name
         if dir_path.exists():
             print(f"🧹 Cleaning {dir_path}...")
-            shutil.rmtree(dir_path)
+            try:
+                # Python 3.12+ uses onexc, older versions use onerror
+                if sys.version_info >= (3, 12):
+                    shutil.rmtree(dir_path, onexc=handle_remove_exc)
+                else:
+                    shutil.rmtree(dir_path, onerror=handle_remove_error)
+            except Exception as e:
+                print(f"⚠️ Could not fully clean {dir_path}: {e}")
+                print("   Tip: Close NebulaCompute.exe if it's running, then try again.")
+                # Continue anyway - PyInstaller will overwrite
 
     # Clean .spec file
     spec_file = project_root / "NebulaCompute.spec"
     if spec_file.exists():
-        spec_file.unlink()
+        try:
+            spec_file.unlink()
+        except PermissionError:
+            print(f"⚠️ Cannot delete {spec_file} - file may be in use")
 
 
 def create_icon_if_missing():
