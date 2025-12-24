@@ -41,6 +41,16 @@ except ImportError:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# VERSION
+# الإصدار
+# ═══════════════════════════════════════════════════════════════════════════════
+
+APP_VERSION = "0.1.0"
+APP_NAME = "NebulaCompute Desktop"
+APP_AUTHOR = "NebulaCompute Team"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # TYPES AND ENUMS
 # الأنواع والتعدادات
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -293,7 +303,7 @@ class UpdateManager(QObject):
         
         # State
         self._state = UpdateState.IDLE
-        self._current_version = VersionInfo.parse("1.0.0")
+        self._current_version = VersionInfo.parse(APP_VERSION)
         self._latest_update: Optional[UpdateInfo] = None
         self._downloaded_path: Optional[Path] = None
         
