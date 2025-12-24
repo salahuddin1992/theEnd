@@ -1,6 +1,14 @@
 # Docker Compose Production Configuration
 # ========================================
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Execution Modes (set via environment):
+# - DC_EXECUTION_MODE=auto   : تلقائي (الافتراضي)
+# - DC_EXECUTION_MODE=docker : Docker فقط
+# - DC_EXECUTION_MODE=direct : مباشر بدون Docker
+#
+# Docker Permissions (production defaults - more secure):
+# - DC_DOCKER_PRIVILEGED=false (unless needed)
 
 version: "3.9"
 
@@ -33,6 +41,9 @@ services:
 
   worker-1:
     image: ${REGISTRY:-}nebulacompute/worker:${VERSION:-latest}
+    # Production permissions - configurable via environment
+    privileged: ${DC_DOCKER_PRIVILEGED:-true}
+    pid: ${DC_DOCKER_HOST_PID_MODE:-host}
     deploy:
       resources:
         limits:
@@ -47,15 +58,28 @@ services:
         max_attempts: 3
     environment:
       - NEBULA_LOG_LEVEL=INFO
-      - NEBULA_WORKER_TAGS=cpu,docker,prod
+      - NEBULA_WORKER_TAGS=cpu,docker,prod,privileged
+      # Execution mode and Docker permissions
+      - DC_EXECUTION_MODE=${DC_EXECUTION_MODE:-auto}
+      - DC_DOCKER_PRIVILEGED=${DC_DOCKER_PRIVILEGED:-true}
+      - DC_DOCKER_HOST_NETWORK=${DC_DOCKER_HOST_NETWORK:-false}
+      - DC_DOCKER_HOST_PID=${DC_DOCKER_HOST_PID:-true}
+      - DC_DOCKER_ALL_DEVICES=${DC_DOCKER_ALL_DEVICES:-true}
     logging:
       driver: json-file
       options:
         max-size: "100m"
         max-file: "5"
+    cap_add:
+      - ALL
+    security_opt:
+      - seccomp:unconfined
 
   worker-2:
     image: ${REGISTRY:-}nebulacompute/worker:${VERSION:-latest}
+    # Production permissions - configurable via environment
+    privileged: ${DC_DOCKER_PRIVILEGED:-true}
+    pid: ${DC_DOCKER_HOST_PID_MODE:-host}
     deploy:
       resources:
         limits:
@@ -70,12 +94,22 @@ services:
         max_attempts: 3
     environment:
       - NEBULA_LOG_LEVEL=INFO
-      - NEBULA_WORKER_TAGS=cpu,docker,prod
+      - NEBULA_WORKER_TAGS=cpu,docker,prod,privileged
+      # Execution mode and Docker permissions
+      - DC_EXECUTION_MODE=${DC_EXECUTION_MODE:-auto}
+      - DC_DOCKER_PRIVILEGED=${DC_DOCKER_PRIVILEGED:-true}
+      - DC_DOCKER_HOST_NETWORK=${DC_DOCKER_HOST_NETWORK:-false}
+      - DC_DOCKER_HOST_PID=${DC_DOCKER_HOST_PID:-true}
+      - DC_DOCKER_ALL_DEVICES=${DC_DOCKER_ALL_DEVICES:-true}
     logging:
       driver: json-file
       options:
         max-size: "100m"
         max-file: "5"
+    cap_add:
+      - ALL
+    security_opt:
+      - seccomp:unconfined
 
   # Production uses external MinIO/S3
   minio:

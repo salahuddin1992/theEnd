@@ -1,6 +1,9 @@
 # Docker Compose Development Override
 # ====================================
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Full Permissions Development Mode:
+# All workers have full Docker/system access for development
 
 version: "3.9"
 
@@ -25,13 +28,35 @@ services:
       --reload-dir /app/src
 
   worker-1:
+    # Full permissions for development
+    privileged: true
+    pid: host
     volumes:
       - ./src:/app/src:ro
     environment:
       - NEBULA_LOG_LEVEL=DEBUG
+      # Full Docker permissions for development
+      - DC_EXECUTION_MODE=auto
+      - DC_DOCKER_PRIVILEGED=true
+      - DC_DOCKER_HOST_NETWORK=true
+      - DC_DOCKER_HOST_PID=true
+      - DC_DOCKER_ALL_DEVICES=true
+    cap_add:
+      - ALL
 
   worker-2:
+    # Full permissions for development
+    privileged: true
+    pid: host
     volumes:
       - ./src:/app/src:ro
     environment:
       - NEBULA_LOG_LEVEL=DEBUG
+      # Full Docker permissions for development
+      - DC_EXECUTION_MODE=auto
+      - DC_DOCKER_PRIVILEGED=true
+      - DC_DOCKER_HOST_NETWORK=true
+      - DC_DOCKER_HOST_PID=true
+      - DC_DOCKER_ALL_DEVICES=true
+    cap_add:
+      - ALL
