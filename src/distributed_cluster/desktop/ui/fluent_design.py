@@ -15,23 +15,18 @@ Implements:
 from __future__ import annotations
 
 import platform
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Tuple, Callable, List
-import math
+from typing import Optional, Tuple, Callable, List
 
 from PySide6.QtCore import (
-    Qt, QObject, Signal, Property, QPropertyAnimation,
-    QEasingCurve, QPoint, QRect, QTimer, QEvent
+    Qt, QObject, Signal, QPoint, QRect, QTimer, QEvent
 )
 from PySide6.QtGui import (
-    QColor, QPainter, QBrush, QPen, QLinearGradient,
-    QRadialGradient, QPainterPath, QFont, QFontDatabase,
-    QPalette, QPixmap, QImage, QTransform, QCursor
+    QColor, QPainter, QBrush, QPen, QRadialGradient, QPainterPath, QFont, QPixmap, QImage
 )
 from PySide6.QtWidgets import (
-    QWidget, QGraphicsDropShadowEffect, QGraphicsBlurEffect,
-    QApplication, QStyleOption, QStyle
+    QWidget, QGraphicsDropShadowEffect
 )
 
 # Try to import Windows-specific modules
@@ -242,7 +237,7 @@ class FluentSpacing:
     xs: int = 4
     s: int = 8
     m: int = 12
-    l: int = 16
+    large: int = 16
     xl: int = 20
     xxl: int = 24
     xxxl: int = 32
@@ -667,7 +662,7 @@ QPushButton {{
     color: {c.text_primary};
     border: 1px solid {c.stroke_control};
     border-radius: {r.medium}px;
-    padding: {s.s}px {s.l}px;
+    padding: {s.s}px {s.large}px;
     font-weight: 400;
     min-height: 32px;
 }}
@@ -752,7 +747,7 @@ QFrame#fluent_card {{
     background-color: {c.bg_card_default};
     border: 1px solid {c.stroke_surface};
     border-radius: {r.large}px;
-    padding: {s.l}px;
+    padding: {s.large}px;
 }}
 
 QFrame#fluent_card:hover {{
@@ -765,7 +760,7 @@ QFrame#fluent_card_elevated {{
     background-color: {c.bg_solid_secondary};
     border: 1px solid {c.stroke_surface};
     border-radius: {r.large}px;
-    padding: {s.l}px;
+    padding: {s.large}px;
 }}
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -866,7 +861,7 @@ QWidget#nav_item {{
     background-color: transparent;
     border: none;
     border-radius: {r.medium}px;
-    padding: {s.m}px {s.l}px;
+    padding: {s.m}px {s.large}px;
     text-align: left;
     min-height: 40px;
 }}
@@ -1123,7 +1118,7 @@ QMenu {{
 }}
 
 QMenu::item {{
-    padding: {s.s}px {s.xl}px {s.s}px {s.l}px;
+    padding: {s.s}px {s.xl}px {s.s}px {s.large}px;
     border-radius: {r.medium}px;
     min-height: 32px;
 }}
@@ -1178,14 +1173,14 @@ QGroupBox {{
     border: 1px solid {c.stroke_surface};
     border-radius: {r.large}px;
     margin-top: 24px;
-    padding: {s.l}px;
+    padding: {s.large}px;
     padding-top: {s.xl}px;
     font-weight: 600;
 }}
 
 QGroupBox::title {{
     subcontrol-origin: margin;
-    left: {s.l}px;
+    left: {s.large}px;
     top: 0;
     padding: 0 {s.s}px;
     color: {c.text_primary};
@@ -1289,7 +1284,7 @@ QFrame#toast {{
     background-color: {c.bg_solid_secondary};
     border: 1px solid {c.stroke_surface};
     border-radius: {r.large}px;
-    padding: {s.l}px;
+    padding: {s.large}px;
 }}
 
 QFrame#toast_success {{

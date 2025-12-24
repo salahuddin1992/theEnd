@@ -13,12 +13,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import sys
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import psutil
 
@@ -450,32 +447,32 @@ class WorkerMetricsCollector:
             return ""
 
         lines = [
-            f'# HELP worker_cpu_percent CPU usage percentage',
-            f'# TYPE worker_cpu_percent gauge',
+            '# HELP worker_cpu_percent CPU usage percentage',
+            '# TYPE worker_cpu_percent gauge',
             f'worker_cpu_percent{{worker="{self.worker_id}"}} {metrics.cpu_percent}',
-            f'',
-            f'# HELP worker_memory_used_mb Memory used in MB',
-            f'# TYPE worker_memory_used_mb gauge',
+            '',
+            '# HELP worker_memory_used_mb Memory used in MB',
+            '# TYPE worker_memory_used_mb gauge',
             f'worker_memory_used_mb{{worker="{self.worker_id}"}} {metrics.memory_used_mb:.2f}',
-            f'',
-            f'# HELP worker_memory_percent Memory usage percentage',
-            f'# TYPE worker_memory_percent gauge',
+            '',
+            '# HELP worker_memory_percent Memory usage percentage',
+            '# TYPE worker_memory_percent gauge',
             f'worker_memory_percent{{worker="{self.worker_id}"}} {metrics.memory_percent}',
-            f'',
-            f'# HELP worker_disk_percent Disk usage percentage',
-            f'# TYPE worker_disk_percent gauge',
+            '',
+            '# HELP worker_disk_percent Disk usage percentage',
+            '# TYPE worker_disk_percent gauge',
             f'worker_disk_percent{{worker="{self.worker_id}"}} {metrics.disk_percent}',
-            f'',
-            f'# HELP worker_jobs_completed_total Total completed jobs',
-            f'# TYPE worker_jobs_completed_total counter',
+            '',
+            '# HELP worker_jobs_completed_total Total completed jobs',
+            '# TYPE worker_jobs_completed_total counter',
             f'worker_jobs_completed_total{{worker="{self.worker_id}"}} {metrics.jobs_completed}',
-            f'',
-            f'# HELP worker_jobs_failed_total Total failed jobs',
-            f'# TYPE worker_jobs_failed_total counter',
+            '',
+            '# HELP worker_jobs_failed_total Total failed jobs',
+            '# TYPE worker_jobs_failed_total counter',
             f'worker_jobs_failed_total{{worker="{self.worker_id}"}} {metrics.jobs_failed}',
-            f'',
-            f'# HELP worker_jobs_active Current active jobs',
-            f'# TYPE worker_jobs_active gauge',
+            '',
+            '# HELP worker_jobs_active Current active jobs',
+            '# TYPE worker_jobs_active gauge',
             f'worker_jobs_active{{worker="{self.worker_id}"}} {metrics.jobs_active}',
         ]
 

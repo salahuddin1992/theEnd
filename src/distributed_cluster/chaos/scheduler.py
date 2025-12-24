@@ -14,9 +14,9 @@ import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from .engine import ChaosEngine, ChaosExperiment, ExperimentStatus
+from .engine import ChaosEngine, ExperimentStatus
 
 logger = logging.getLogger(__name__)
 

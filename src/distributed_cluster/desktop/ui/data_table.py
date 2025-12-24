@@ -15,30 +15,27 @@ Features:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any, Callable, Union
+from typing import List, Optional, Dict, Any, Callable
 import json
 
 from PySide6.QtCore import (
-    Qt, Signal, QTimer, QPoint, QSize, QModelIndex,
-    QAbstractTableModel, QSortFilterProxyModel, Property
+    Qt, Signal, QPoint, QSize, QModelIndex,
+    QAbstractTableModel, QSortFilterProxyModel
 )
 from PySide6.QtGui import (
-    QColor, QPainter, QFont, QIcon, QAction, QCursor,
-    QKeySequence
+    QColor, QPainter, QFont, QKeySequence
 )
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTableView, QHeaderView, QFrame, QLineEdit, QComboBox,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableView, QHeaderView, QFrame, QLineEdit, QComboBox,
     QMenu, QStyledItemDelegate, QStyle, QStyleOptionViewItem,
-    QCheckBox, QSpinBox, QAbstractItemView
+    QAbstractItemView
 )
 
-from .fluent_design import FluentDesignSystem, FluentColors
-from .components import FluentButton, FluentInput, FluentBadge, BadgeVariant, ButtonVariant
-from .animations import FluentEasing
+from .fluent_design import FluentDesignSystem
+from .components import FluentButton, ButtonVariant
 from .titlebar import FluentIcons
 
 
@@ -592,11 +589,11 @@ class FluentDataTable(QWidget):
         colors = FluentDesignSystem().colors
 
         footer = QFrame()
-        footer.setStyleSheet(f"""
-            QFrame {{
+        footer.setStyleSheet("""
+            QFrame {
                 background-color: transparent;
                 padding: 8px 0;
-            }}
+            }
         """)
 
         layout = QHBoxLayout(footer)

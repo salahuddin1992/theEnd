@@ -10,7 +10,7 @@ for resources and services.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, time
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 

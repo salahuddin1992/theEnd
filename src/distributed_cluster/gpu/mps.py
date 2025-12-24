@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +206,7 @@ class MPSManager:
                 env.update(self.config.to_env())
 
                 # Start MPS control daemon
-                process = await asyncio.create_subprocess_exec(
+                await asyncio.create_subprocess_exec(
                     "nvidia-cuda-mps-control",
                     "-d",
                     env=env,

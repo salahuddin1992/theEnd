@@ -16,16 +16,14 @@ from typing import Optional, List
 
 from PySide6.QtCore import (
     Qt, QTimer, QPropertyAnimation, QEasingCurve,
-    Property, QPoint, QSize, QRectF, Signal
+    QRectF, Signal
 )
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QGraphicsOpacityEffect, QApplication
 )
 from PySide6.QtGui import (
-    QPainter, QColor, QPen, QBrush, QFont, QFontMetrics,
-    QLinearGradient, QRadialGradient, QPainterPath,
-    QPixmap, QImage
+    QPainter, QColor, QPen, QFont, QLinearGradient, QRadialGradient, QPainterPath
 )
 
 from .fluent_design import FluentDesignSystem
@@ -532,10 +530,10 @@ class LoadingOverlay(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Background
-        self.setStyleSheet(f"""
-            LoadingOverlay {{
+        self.setStyleSheet("""
+            LoadingOverlay {
                 background-color: rgba(0, 0, 0, 0.5);
-            }}
+            }
         """)
 
         # Card

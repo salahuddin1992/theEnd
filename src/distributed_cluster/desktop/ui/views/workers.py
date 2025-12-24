@@ -11,25 +11,20 @@ Worker management interface with:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QGridLayout, QScrollArea, QSizePolicy
+    QGridLayout, QScrollArea
 )
 
 from ..fluent_design import FluentDesignSystem
 from ..components import (
-    FluentButton, FluentCard, FluentBadge, FluentProgressRing,
-    ButtonVariant, BadgeVariant
+    FluentButton, FluentCard, ButtonVariant
 )
 from ..dashboard import CircularProgressChart
 from ..titlebar import FluentIcons
-from ..animations import FluentEasing
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -343,7 +338,7 @@ class WorkerDetailsPanel(QFrame):
     def set_worker(self, data: Dict[str, Any]):
         """Set worker data"""
         self._worker_data = data
-        colors = FluentDesignSystem().colors
+        FluentDesignSystem().colors
 
         self._title.setText(f"Worker: {data.get('name', 'Unknown')}")
 

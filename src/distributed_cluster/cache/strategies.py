@@ -8,14 +8,11 @@ Provides multiple eviction strategies:
 - Adaptive (ML-based dynamic strategy)
 """
 
-import asyncio
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
-from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 from collections import defaultdict
-import heapq
 import logging
 
 logger = logging.getLogger(__name__)

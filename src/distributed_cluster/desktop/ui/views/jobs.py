@@ -14,23 +14,19 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QSplitter, QScrollArea, QDialog, QFormLayout,
-    QLineEdit, QTextEdit, QSpinBox, QComboBox, QDialogButtonBox,
-    QTabWidget, QPlainTextEdit
+    QSplitter, QScrollArea, QDialog, QTextEdit, QSpinBox, QComboBox, QTabWidget, QPlainTextEdit
 )
 
 from ..fluent_design import FluentDesignSystem
 from ..components import (
     FluentButton, FluentCard, FluentInput, FluentBadge,
-    FluentProgressRing, ButtonVariant, BadgeVariant
+    FluentProgressRing, ButtonVariant
 )
 from ..data_table import FluentDataTable, Column, ColumnType
 from ..titlebar import FluentIcons
-from ..animations import FluentEasing
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -215,12 +211,6 @@ class JobDetailsPanel(QFrame):
         status = job_data.get("status", "unknown").lower()
         self._status_badge.setText(status.title())
 
-        variant_map = {
-            "running": BadgeVariant.INFO,
-            "completed": BadgeVariant.SUCCESS,
-            "failed": BadgeVariant.ERROR,
-            "pending": BadgeVariant.WARNING,
-        }
         # Update badge style manually
         status_colors = {
             "running": colors.info,

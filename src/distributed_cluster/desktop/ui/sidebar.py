@@ -13,25 +13,21 @@ Features:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Optional, Callable, Dict
+from typing import List, Optional, Dict
 
 from PySide6.QtCore import (
-    Qt, Signal, QSize, QPropertyAnimation, QEasingCurve,
-    QPoint, QRect, QTimer, Property, QEvent, QParallelAnimationGroup
+    Qt, Signal, QPropertyAnimation, QRect, Property, QParallelAnimationGroup
 )
 from PySide6.QtGui import (
-    QColor, QPainter, QFont, QIcon, QPainterPath,
-    QLinearGradient, QRadialGradient, QCursor, QPen, QBrush
+    QColor, QPainter
 )
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QScrollArea, QFrame, QSpacerItem, QSizePolicy,
-    QGraphicsOpacityEffect
+    QScrollArea, QFrame
 )
 
-from .fluent_design import FluentDesignSystem, FluentColors, RevealEffect
-from .animations import FluentEasing, FadeAnimation, SlideAnimation
+from .fluent_design import FluentDesignSystem
+from .animations import FluentEasing
 from .titlebar import FluentIcons
 
 

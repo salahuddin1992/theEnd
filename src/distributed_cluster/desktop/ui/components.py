@@ -17,26 +17,22 @@ Includes:
 
 from __future__ import annotations
 
-import math
-from typing import Optional, List
 from enum import Enum
 
 from PySide6.QtCore import (
     Qt, Signal, QSize, QTimer, QPropertyAnimation,
-    QEasingCurve, Property, QRect, QPoint, QRectF
+    Property, QRect, QRectF
 )
 from PySide6.QtGui import (
-    QColor, QPainter, QFont, QPainterPath, QPen, QBrush,
-    QLinearGradient, QRadialGradient, QConicalGradient,
-    QPixmap, QImage, QFontMetrics
+    QColor, QPainter, QFont, QPainterPath, QPen, QLinearGradient, QPixmap, QFontMetrics
 )
 from PySide6.QtWidgets import (
     QWidget, QPushButton, QFrame, QLabel, QLineEdit,
-    QVBoxLayout, QHBoxLayout, QSizePolicy, QGraphicsDropShadowEffect,
-    QGraphicsOpacityEffect, QSlider, QAbstractButton
+    QVBoxLayout, QHBoxLayout, QGraphicsDropShadowEffect,
+    QSlider, QAbstractButton
 )
 
-from .fluent_design import FluentDesignSystem, FluentColors, RevealEffect
+from .fluent_design import FluentDesignSystem, RevealEffect
 from .animations import FluentEasing
 
 

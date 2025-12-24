@@ -11,16 +11,14 @@ Distributed Tracing - التتبع الموزع
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import secrets
 import time
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -162,11 +160,11 @@ class Span:
             ],
             "links": [
                 {
-                    "traceId": l.trace_id,
-                    "spanId": l.span_id,
-                    "attributes": l.attributes,
+                    "traceId": link.trace_id,
+                    "spanId": link.span_id,
+                    "attributes": link.attributes,
                 }
-                for l in self.links
+                for link in self.links
             ],
             "resource": {
                 "service.name": self.service_name,
@@ -518,12 +516,12 @@ def traced(
 
         if asyncio.iscoroutinefunction(func):
             async def async_wrapper(*args, **kwargs):
-                async with tracer.start_async_span(span_name, kind) as span:
+                async with tracer.start_async_span(span_name, kind):
                     return await func(*args, **kwargs)
             return async_wrapper
         else:
             def sync_wrapper(*args, **kwargs):
-                with tracer.start_span(span_name, kind) as span:
+                with tracer.start_span(span_name, kind):
                     return func(*args, **kwargs)
             return sync_wrapper
 

@@ -13,12 +13,11 @@ Provides intelligent GPU sharing capabilities including:
 
 import asyncio
 import logging
-import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import pynvml

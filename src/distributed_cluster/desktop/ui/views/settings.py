@@ -12,19 +12,18 @@ Application settings with:
 
 from __future__ import annotations
 
-from typing import Dict, Any
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
     QScrollArea, QStackedWidget, QListWidget, QListWidgetItem,
-    QLineEdit, QComboBox, QCheckBox, QSpinBox
+    QComboBox, QSpinBox
 )
 
-from ..fluent_design import FluentDesignSystem, FluentTheme
+from ..fluent_design import FluentDesignSystem
 from ..components import (
     FluentButton, FluentCard, FluentInput, FluentSwitch,
-    FluentSlider, ButtonVariant
+    ButtonVariant
 )
 from ..titlebar import FluentIcons
 
@@ -127,7 +126,7 @@ class ConnectionSettings(SettingsSection):
     def __init__(self, parent=None):
         super().__init__("Connection", parent)
 
-        colors = FluentDesignSystem().colors
+        FluentDesignSystem().colors
 
         # Server URL
         url_input = FluentInput("Server URL", "http://localhost:8765")

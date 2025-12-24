@@ -9,7 +9,7 @@ import asyncio
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 from datetime import datetime
 from contextlib import asynccontextmanager
 import logging
@@ -208,7 +208,7 @@ class ConnectionPool(Generic[T]):
 
         try:
             yield wrapper.connection.get_underlying()
-        except Exception as e:
+        except Exception:
             wrapper.errors += 1
             raise
         finally:

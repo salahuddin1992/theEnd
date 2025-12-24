@@ -5,16 +5,14 @@ Script Editor View - Python Scripting with Sandbox Execution
 
 import ast
 import io
-import sys
 import traceback
 from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime
-from typing import Any, Optional
+from typing import Optional
 
 from PySide6.QtCore import QThread, Signal, Qt
 from PySide6.QtGui import QFont, QColor, QTextCharFormat, QSyntaxHighlighter
 from PySide6.QtWidgets import (
-    QComboBox,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -580,14 +578,14 @@ class ScriptEditorView(QWidget):
         # Output console
         self.output_console = QPlainTextEdit()
         self.output_console.setReadOnly(True)
-        self.output_console.setStyleSheet(f"""
-            QPlainTextEdit {{
+        self.output_console.setStyleSheet("""
+            QPlainTextEdit {
                 background-color: #1a1a1a;
                 color: #00ff00;
                 border: none;
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 12px;
-            }}
+            }
         """)
         self.output_console.setPlaceholderText("Output will appear here...")
         self.output_tabs.addTab(self.output_console, "📤 Output")
@@ -595,14 +593,14 @@ class ScriptEditorView(QWidget):
         # Error console
         self.error_console = QPlainTextEdit()
         self.error_console.setReadOnly(True)
-        self.error_console.setStyleSheet(f"""
-            QPlainTextEdit {{
+        self.error_console.setStyleSheet("""
+            QPlainTextEdit {
                 background-color: #1a1a1a;
                 color: #ff6b6b;
                 border: none;
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 12px;
-            }}
+            }
         """)
         self.error_console.setPlaceholderText("Errors will appear here...")
         self.output_tabs.addTab(self.error_console, "⚠️ Errors")

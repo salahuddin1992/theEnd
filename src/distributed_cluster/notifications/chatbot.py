@@ -11,7 +11,6 @@ Chat Bot - بوت المحادثة التفاعلي
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import hmac
 import json
@@ -23,7 +22,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional
 
 try:
     import httpx
@@ -612,7 +611,6 @@ class DiscordBot(BotHandler):
 
         try:
             from nacl.signing import VerifyKey
-            from nacl.exceptions import BadSignatureError
 
             verify_key = VerifyKey(bytes.fromhex(self.public_key))
             message = timestamp.encode() + body

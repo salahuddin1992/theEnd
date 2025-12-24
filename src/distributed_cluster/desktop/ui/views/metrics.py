@@ -11,21 +11,19 @@ Real-time metrics dashboard with:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import random
 
-from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtCore import Signal, QTimer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QGridLayout, QScrollArea, QComboBox
+    QScrollArea, QComboBox
 )
 
 from ..fluent_design import FluentDesignSystem
 from ..components import FluentButton, FluentCard, ButtonVariant
 from ..dashboard import (
-    AnimatedStatCard, CircularProgressChart, LineChart,
-    SystemHealthCard
+    AnimatedStatCard, CircularProgressChart, LineChart
 )
 from ..titlebar import FluentIcons
 

@@ -405,12 +405,6 @@ class SLAEnforcer:
     ) -> None:
         """Execute notification action."""
         channels = rule.parameters.get("channels", sla.notification_channels)
-        message = (
-            f"SLA Alert: {sla.name}\n"
-            f"Status: {evaluation.status.value}\n"
-            f"Score: {evaluation.overall_score:.1%}\n"
-            f"Risk Level: {evaluation.risk_level:.1%}"
-        )
 
         if self.notification_manager:
             # await self.notification_manager.send(channels, message)
@@ -427,14 +421,8 @@ class SLAEnforcer:
     ) -> None:
         """Execute escalation action."""
         escalation_level = rule.parameters.get("level", 1)
-        escalation_contacts = rule.parameters.get("contacts", [])
+        rule.parameters.get("contacts", [])
 
-        message = (
-            f"ESCALATION (Level {escalation_level}): SLA Violation\n"
-            f"SLA: {sla.name}\n"
-            f"Status: {evaluation.status.value}\n"
-            f"Immediate action required."
-        )
 
         # Would send escalation notifications
         self._stats["escalations"] += 1

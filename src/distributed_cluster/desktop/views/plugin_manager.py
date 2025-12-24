@@ -5,18 +5,14 @@ Plugin Manager View - Plugin Management with Hot-Reload Support
 
 import importlib
 import importlib.util
-import os
 import sys
-import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QFileSystemWatcher, QThread, Signal, Qt, QTimer
 from PySide6.QtWidgets import (
-    QComboBox,
     QFrame,
-    QGridLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -32,7 +28,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QFileDialog,
-    QProgressBar,
     QCheckBox,
 )
 

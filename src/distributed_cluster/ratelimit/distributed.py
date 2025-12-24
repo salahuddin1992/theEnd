@@ -4,11 +4,9 @@ Distributed Rate Limiting for NebulaCompute.
 Provides rate limiting across multiple nodes using Redis.
 """
 
-import asyncio
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
-from datetime import datetime
+from typing import Any, Dict, List, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -303,7 +301,7 @@ class RedisRateLimiter(DistributedRateLimiter):
             redis_key = self._make_key(key)
 
             if self.algorithm == "sliding_window":
-                now = time.time()
+                time.time()
                 count = await self._redis.zcard(redis_key)
                 ttl = await self._redis.ttl(redis_key)
 

@@ -15,27 +15,23 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Callable, Dict
+from typing import List, Callable, Dict
 import uuid
 
 from PySide6.QtCore import (
-    Qt, Signal, QTimer, QPropertyAnimation, QEasingCurve,
-    Property, QPoint, QRect, QSequentialAnimationGroup,
-    QParallelAnimationGroup, QSize
+    Qt, Signal, QTimer, QPropertyAnimation, QPoint
 )
 from PySide6.QtGui import (
-    QColor, QPainter, QFont, QPainterPath, QIcon,
-    QCursor
+    QColor
 )
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QFrame, QScrollArea, QGraphicsDropShadowEffect,
-    QGraphicsOpacityEffect, QSpacerItem, QSizePolicy,
-    QApplication
+    QFrame, QGraphicsDropShadowEffect,
+    QGraphicsOpacityEffect, QApplication
 )
 
-from .fluent_design import FluentDesignSystem, FluentColors
-from .animations import FluentEasing, FadeAnimation, SlideAnimation
+from .fluent_design import FluentDesignSystem
+from .animations import FluentEasing
 from .titlebar import FluentIcons
 
 

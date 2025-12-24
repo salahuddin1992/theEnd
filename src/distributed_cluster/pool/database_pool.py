@@ -7,10 +7,8 @@ Provides efficient database connection pooling for:
 - Generic async databases
 """
 
-import asyncio
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 from contextlib import asynccontextmanager
 import logging
 
@@ -212,7 +210,7 @@ class DatabasePool:
             async with self.acquire() as conn:
                 return await conn.execute(query, *args, **kwargs)
 
-        except Exception as e:
+        except Exception:
             self._error_count += 1
             raise
 

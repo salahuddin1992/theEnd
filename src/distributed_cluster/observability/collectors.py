@@ -16,8 +16,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import sys
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
@@ -604,7 +602,7 @@ class PrometheusSystemCollector:
         disk = self._last_metrics.get("disk", {})
         for path, disk_metrics in disk.items():
             if disk_metrics:
-                safe_path = path.replace("/", "_").strip("_") or "root"
+                path.replace("/", "_").strip("_") or "root"
                 lines.extend([
                     f"# HELP {p}_disk_bytes Disk space in bytes",
                     f"# TYPE {p}_disk_bytes gauge",

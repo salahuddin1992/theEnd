@@ -18,10 +18,10 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Set
 
-from fastapi import HTTPException, Request, Security
+from fastapi import HTTPException, Request
 from fastapi.security import APIKeyHeader
 
 logger = logging.getLogger(__name__)
@@ -192,10 +192,10 @@ class CommandValidator:
         # Check blocked patterns
         for pattern in self._compiled_blocked:
             if pattern.search(command):
-                return False, f"Command matches blocked pattern"
+                return False, "Command matches blocked pattern"
 
         # Check shell operators
-        if not self.policy.allow_background and "&" in command and not "&&" in command:
+        if not self.policy.allow_background and "&" in command and "&&" not in command:
             return False, "Background execution not allowed"
 
         if not self.policy.allow_pipes and "|" in command:

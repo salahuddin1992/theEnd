@@ -12,7 +12,6 @@ AI Cost Optimizer - مُحسِّن تكاليف الذكاء الاصطناعي
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import statistics
@@ -20,13 +19,12 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from distributed_cluster.ai.llm.cost_tracker import (
     CostTracker,
     ModelPricing,
     DEFAULT_PRICING,
-    CostSummary,
 )
 
 logger = logging.getLogger(__name__)
@@ -460,8 +458,8 @@ class CostOptimizer:
         complexity: TaskComplexity,
     ) -> str:
         """بناء سبب التوصية."""
-        model = candidate["model"]
-        provider = candidate["provider"]
+        candidate["model"]
+        candidate["provider"]
         cost = candidate["cost"]
         quality = candidate["quality"]
 

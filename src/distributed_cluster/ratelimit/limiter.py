@@ -5,11 +5,17 @@ Provides flexible rate limiting with multiple algorithms,
 configurable limits, and detailed statistics.
 """
 
+from __future__ import annotations
+
 import asyncio
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .algorithms import TokenBucket
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
 import logging
 

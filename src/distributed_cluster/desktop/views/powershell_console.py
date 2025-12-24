@@ -3,16 +3,12 @@ PowerShell Console View - Integrated PowerShell Terminal
 وحدة تحكم PowerShell المدمجة
 """
 
-import os
 import platform
 import subprocess
-import sys
-from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtCore import QProcess, QThread, Signal, Qt, QTimer
-from PySide6.QtGui import QFont, QTextCursor, QColor, QTextCharFormat
+from PySide6.QtCore import QProcess, Signal, Qt
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
@@ -25,11 +21,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSplitter,
     QTabWidget,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
-    QMessageBox,
-    QFileDialog,
 )
 
 from ..api.client import APIClient
@@ -253,7 +246,7 @@ class PowerShellConsoleView(QWidget):
         layout.addSpacing(16)
 
         dir_label = QLabel("📁")
-        dir_label.setStyleSheet(f"font-size: 14px;")
+        dir_label.setStyleSheet("font-size: 14px;")
         layout.addWidget(dir_label)
 
         self.cwd_label = QLabel(str(Path.home()))
@@ -407,15 +400,15 @@ class PowerShellConsoleView(QWidget):
 
         # Input field
         input_field = QLineEdit()
-        input_field.setStyleSheet(f"""
-            QLineEdit {{
+        input_field.setStyleSheet("""
+            QLineEdit {
                 background-color: transparent;
                 color: #00ff00;
                 border: none;
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 13px;
                 padding: 8px;
-            }}
+            }
         """)
         input_field.setPlaceholderText("Enter command...")
         input_field.returnPressed.connect(lambda: self._execute_command(input_field, output))
@@ -435,7 +428,6 @@ class PowerShellConsoleView(QWidget):
     def eventFilter(self, obj, event):
         """Handle key events for history navigation"""
         from PySide6.QtCore import QEvent
-        from PySide6.QtGui import QKeyEvent
 
         if event.type() == QEvent.KeyPress:
             key = event.key()

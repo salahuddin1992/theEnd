@@ -7,7 +7,6 @@ HTTP and WebSocket server for GraphQL API.
 خادم GraphQL للواجهة.
 """
 
-import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
@@ -229,9 +228,9 @@ class GraphQLExecutor:
         """Execute a query operation."""
         result = {}
 
-        for field in operation["fields"]:
-            field_name = field["name"]
-            args = self._resolve_variables(field["args"], variables)
+        for gql_field in operation["fields"]:
+            field_name = gql_field["name"]
+            args = self._resolve_variables(gql_field["args"], variables)
 
             info = ResolverInfo(
                 field_name=field_name,
@@ -255,9 +254,9 @@ class GraphQLExecutor:
         """Execute a mutation operation."""
         result = {}
 
-        for field in operation["fields"]:
-            field_name = field["name"]
-            args = self._resolve_variables(field["args"], variables)
+        for gql_field in operation["fields"]:
+            field_name = gql_field["name"]
+            args = self._resolve_variables(gql_field["args"], variables)
 
             info = ResolverInfo(
                 field_name=field_name,

@@ -25,12 +25,11 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 import heapq
 
 from distributed_cluster.notifications.channels import (
     Notification,
-    NotificationPriority,
 )
 
 logger = logging.getLogger(__name__)

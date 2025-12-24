@@ -11,15 +11,13 @@ Vision & Embeddings - دعم الصور والتضمينات
 from __future__ import annotations
 
 import base64
-import hashlib
 import logging
 import mimetypes
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-from urllib.parse import urlparse
+from typing import Any, Dict, List, Optional
 
 import httpx
 
