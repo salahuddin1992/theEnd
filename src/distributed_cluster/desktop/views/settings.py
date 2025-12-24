@@ -133,6 +133,63 @@ class SettingsView(QScrollArea):
 
         layout.addWidget(ui_group)
 
+        # Windows Settings (only on Windows)
+        import sys
+        if sys.platform == "win32":
+            windows_group = QGroupBox("Windows Integration")
+            windows_layout = QFormLayout(windows_group)
+            windows_layout.setSpacing(12)
+
+            # Launch at startup
+            self.startup_check = QCheckBox("Launch at Windows startup")
+            self.startup_check.setChecked(self._settings.get("launch_at_startup", False))
+            windows_layout.addRow("", self.startup_check)
+
+            # Minimize to tray
+            self.minimize_tray_check = QCheckBox("Minimize to system tray instead of closing")
+            self.minimize_tray_check.setChecked(self._settings.get("minimize_to_tray", True))
+            windows_layout.addRow("", self.minimize_tray_check)
+
+            # Show tray notifications
+            self.tray_notifications_check = QCheckBox("Show notifications in system tray")
+            self.tray_notifications_check.setChecked(self._settings.get("tray_notifications", True))
+            windows_layout.addRow("", self.tray_notifications_check)
+
+            layout.addWidget(windows_group)
+
+        # Updates Settings
+        updates_group = QGroupBox("Updates")
+        updates_layout = QFormLayout(updates_group)
+        updates_layout.setSpacing(12)
+
+        # Auto-check for updates
+        self.auto_update_check = QCheckBox("Automatically check for updates")
+        self.auto_update_check.setChecked(self._settings.get("auto_check_updates", True))
+        updates_layout.addRow("", self.auto_update_check)
+
+        # Update channel
+        self.update_channel_combo = QComboBox()
+        self.update_channel_combo.addItems(["Stable", "Beta", "Nightly"])
+        self.update_channel_combo.setCurrentText(self._settings.get("update_channel", "Stable"))
+        updates_layout.addRow("Update Channel:", self.update_channel_combo)
+
+        # Check now button
+        check_updates_layout = QHBoxLayout()
+        check_updates_layout.addStretch()
+        self.check_updates_btn = QPushButton("Check for Updates")
+        self.check_updates_btn.setObjectName("secondary_button")
+        self.check_updates_btn.clicked.connect(self._check_for_updates)
+        check_updates_layout.addWidget(self.check_updates_btn)
+        updates_layout.addRow("", check_updates_layout)
+
+        # Current version
+        from ..main import APP_VERSION
+        version_label = QLabel(f"Current version: {APP_VERSION}")
+        version_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 12px;")
+        updates_layout.addRow("", version_label)
+
+        layout.addWidget(updates_group)
+
         # Data settings
         data_group = QGroupBox("Data & Storage")
         data_layout = QFormLayout(data_group)
@@ -280,8 +337,26 @@ class SettingsView(QScrollArea):
             self._apply_settings_to_ui()
             QMessageBox.information(self, "Settings Reset", "Settings have been reset to defaults.")
 
+    def _check_for_updates(self):
+        """Check for application updates"""
+        self.check_updates_btn.setEnabled(False)
+        self.check_updates_btn.setText("Checking...")
+
+        # Emit signal to main window to check updates
+        # This will be connected to UpdateManager
+        self.settings_changed.emit({"action": "check_updates"})
+
+        # Re-enable button after a short delay
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(2000, lambda: (
+            self.check_updates_btn.setEnabled(True),
+            self.check_updates_btn.setText("Check for Updates")
+        ))
+
     def _save_settings(self):
         """Save current settings"""
+        import sys
+
         self._settings = {
             "server_url": self.server_url_input.text(),
             "token": self.token_input.text(),
@@ -294,15 +369,39 @@ class SettingsView(QScrollArea):
             "timeout": self.timeout_spin.value(),
             "ws_reconnect": self.ws_reconnect_check.isChecked(),
             "debug": self.debug_check.isChecked(),
+            "auto_check_updates": self.auto_update_check.isChecked(),
+            "update_channel": self.update_channel_combo.currentText(),
         }
+
+        # Add Windows-specific settings
+        if sys.platform == "win32":
+            self._settings["launch_at_startup"] = self.startup_check.isChecked()
+            self._settings["minimize_to_tray"] = self.minimize_tray_check.isChecked()
+            self._settings["tray_notifications"] = self.tray_notifications_check.isChecked()
+
+            # Apply startup setting
+            self._apply_startup_setting()
 
         self._persist_settings()
         self.settings_changed.emit(self._settings)
         QMessageBox.information(self, "Settings Saved", "Settings have been saved successfully.")
 
+    def _apply_startup_setting(self):
+        """Apply Windows startup setting"""
+        try:
+            from ..ui.windows_integration import WindowsRegistry
+            import sys
+
+            # set_startup(enabled, app_path) - True to enable, False to disable
+            app_path = sys.executable
+            WindowsRegistry.set_startup(self.startup_check.isChecked(), app_path)
+        except Exception as e:
+            print(f"Failed to update startup setting: {e}")
+
     def _get_default_settings(self) -> dict:
         """Get default settings"""
-        return {
+        import sys
+        defaults = {
             "server_url": "http://localhost:8765",
             "token": "",
             "theme": "Dark",
@@ -314,7 +413,17 @@ class SettingsView(QScrollArea):
             "timeout": 30,
             "ws_reconnect": True,
             "debug": False,
+            "auto_check_updates": True,
+            "update_channel": "Stable",
         }
+        # Add Windows-specific defaults
+        if sys.platform == "win32":
+            defaults.update({
+                "launch_at_startup": False,
+                "minimize_to_tray": True,
+                "tray_notifications": True,
+            })
+        return defaults
 
     def _load_settings(self) -> dict:
         """Load settings from file"""
