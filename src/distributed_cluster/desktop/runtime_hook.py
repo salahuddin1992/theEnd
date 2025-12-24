@@ -11,6 +11,34 @@ import sys
 from pathlib import Path
 
 
+def fix_pkg_resources():
+    """
+    Fix pkg_resources/jaraco import issues in frozen environment.
+    إصلاح مشاكل استيراد pkg_resources/jaraco في التطبيق المجمّع
+    """
+    # Disable pkg_resources if it causes issues
+    # This prevents the jaraco import error
+    if getattr(sys, 'frozen', False):
+        # Create a dummy jaraco module to prevent import errors
+        import types
+
+        # Check if jaraco is already available
+        try:
+            import jaraco
+        except ImportError:
+            # Create dummy jaraco module
+            jaraco = types.ModuleType('jaraco')
+            jaraco.text = types.ModuleType('jaraco.text')
+            jaraco.functools = types.ModuleType('jaraco.functools')
+            jaraco.context = types.ModuleType('jaraco.context')
+
+            # Add to sys.modules
+            sys.modules['jaraco'] = jaraco
+            sys.modules['jaraco.text'] = jaraco.text
+            sys.modules['jaraco.functools'] = jaraco.functools
+            sys.modules['jaraco.context'] = jaraco.context
+
+
 def setup_environment():
     """Setup environment for frozen application"""
     # Set Qt plugin path for frozen app
@@ -47,5 +75,6 @@ def setup_environment():
                 si.wShowWindow = subprocess.SW_HIDE
 
 
-# Run setup immediately when hook is loaded
+# Run fixes immediately when hook is loaded
+fix_pkg_resources()  # Must run first to fix jaraco imports
 setup_environment()
