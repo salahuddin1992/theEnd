@@ -81,6 +81,13 @@ from distributed_cluster.ai.llm.vision import (
     create_embedding_provider,
 )
 from distributed_cluster.ai.models.registry import ModelRegistry
+from distributed_cluster.ai.model_cache import (
+    ModelCache,
+    ModelCacheConfig,
+    ModelInfo as CacheModelInfo,
+    ModelLoader,
+    CacheStats,
+)
 
 __all__ = [
     # Base Classes
@@ -139,4 +146,10 @@ __all__ = [
     "InferenceRouter",
     # Models
     "ModelRegistry",
+    # Model Cache
+    "ModelCache",
+    "ModelCacheConfig",
+    "CacheModelInfo",
+    "ModelLoader",
+    "CacheStats",
 ]
