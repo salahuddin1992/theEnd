@@ -361,6 +361,11 @@ def build_exe(mode="full"):
         "PySide6",
         "httpx",
         "websockets",
+        # Required for pkg_resources compatibility
+        "jaraco",
+        "jaraco.text",
+        "jaraco.functools",
+        "jaraco.context",
     ]
 
     # Note: We don't collect all of distributed_cluster even in full mode
@@ -397,6 +402,8 @@ def build_exe(mode="full"):
         "docker",
         # pynvml not needed for desktop GUI
         "pynvml",
+        # pkg_resources causes jaraco issues - exclude if not needed
+        "pkg_resources",
     ]
 
     for mod in exclude_modules:
