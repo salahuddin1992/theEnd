@@ -135,6 +135,9 @@ def build_exe(mode="full"):
     print(f"🖥️  Platform: {sys.platform}")
     print("=" * 60 + "\n")
 
+    # Runtime hook for frozen environment setup
+    runtime_hook = desktop_path / "runtime_hook.py"
+
     # Base options
     options = [
         "pyinstaller",
@@ -144,6 +147,11 @@ def build_exe(mode="full"):
         "--clean",         # Clean PyInstaller cache
         "--noconfirm",     # Don't ask for confirmation
     ]
+
+    # Add runtime hook if exists
+    if runtime_hook.exists():
+        options.append(f"--runtime-hook={runtime_hook}")
+        print("   ✓ Runtime hook added")
 
     # Add icon
     if icon_path.exists():
@@ -203,11 +211,71 @@ def build_exe(mode="full"):
         "distributed_cluster.desktop",
         "distributed_cluster.desktop.main",
         "distributed_cluster.desktop.main_window",
+        "distributed_cluster.desktop.app_entry",
+
+        # Desktop API
         "distributed_cluster.desktop.api",
         "distributed_cluster.desktop.api.client",
+
+        # Desktop Views (ALL views must be explicitly listed)
         "distributed_cluster.desktop.views",
+        "distributed_cluster.desktop.views.dashboard",
+        "distributed_cluster.desktop.views.jobs",
+        "distributed_cluster.desktop.views.workers",
+        "distributed_cluster.desktop.views.templates",
+        "distributed_cluster.desktop.views.pools",
+        "distributed_cluster.desktop.views.queues",
+        "distributed_cluster.desktop.views.settings",
+        "distributed_cluster.desktop.views.logs",
+        "distributed_cluster.desktop.views.metrics",
+        "distributed_cluster.desktop.views.script_editor",
+        "distributed_cluster.desktop.views.plugin_manager",
+        "distributed_cluster.desktop.views.powershell_console",
+
+        # Desktop Widgets (ALL widgets must be explicitly listed)
         "distributed_cluster.desktop.widgets",
+        "distributed_cluster.desktop.widgets.sidebar",
+        "distributed_cluster.desktop.widgets.terminal",
+        "distributed_cluster.desktop.widgets.notifications",
+        "distributed_cluster.desktop.widgets.system_tray",
+        "distributed_cluster.desktop.widgets.connection_dialog",
+        "distributed_cluster.desktop.widgets.login_dialog",
+        "distributed_cluster.desktop.widgets.charts",
+        "distributed_cluster.desktop.widgets.stat_card",
+        "distributed_cluster.desktop.widgets.data_table",
+
+        # Desktop Resources (styles, themes, icons)
         "distributed_cluster.desktop.resources",
+        "distributed_cluster.desktop.resources.styles",
+        "distributed_cluster.desktop.resources.themes",
+        "distributed_cluster.desktop.resources.icon",
+
+        # Desktop UI components
+        "distributed_cluster.desktop.ui",
+        "distributed_cluster.desktop.ui.main_window",
+        "distributed_cluster.desktop.ui.sidebar",
+        "distributed_cluster.desktop.ui.dashboard",
+        "distributed_cluster.desktop.ui.dialogs",
+        "distributed_cluster.desktop.ui.components",
+        "distributed_cluster.desktop.ui.titlebar",
+        "distributed_cluster.desktop.ui.splash",
+        "distributed_cluster.desktop.ui.notifications",
+        "distributed_cluster.desktop.ui.fluent_design",
+        "distributed_cluster.desktop.ui.animations",
+        "distributed_cluster.desktop.ui.data_table",
+        "distributed_cluster.desktop.ui.windows_integration",
+        "distributed_cluster.desktop.ui.views",
+        "distributed_cluster.desktop.ui.views.jobs",
+        "distributed_cluster.desktop.ui.views.logs",
+
+        # Windows-specific modules (for Windows 11 integration)
+        "ctypes",
+        "ctypes.wintypes",
+        "winreg",
+        "subprocess",
+        "platform",
+
+        # Core models
         "distributed_cluster.models",
         "distributed_cluster.models.job",
         "distributed_cluster.models.worker",

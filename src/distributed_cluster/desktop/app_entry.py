@@ -6,8 +6,53 @@ This file uses absolute imports to work with PyInstaller.
 """
 
 import asyncio
+import os
 import sys
+from pathlib import Path
 from typing import Optional
+
+
+def get_resource_path(relative_path: str) -> Path:
+    """
+    Get the correct path for resources whether running as script or frozen exe.
+    الحصول على المسار الصحيح للموارد سواء كان التطبيق يعمل كسكريبت أو ملف مجمّع
+    """
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # Running as PyInstaller bundle
+        base_path = Path(sys._MEIPASS)
+    else:
+        # Running as normal script
+        base_path = Path(__file__).parent
+    return base_path / relative_path
+
+
+def setup_frozen_environment():
+    """
+    Configure environment for frozen (PyInstaller) execution.
+    تهيئة البيئة للتطبيق المجمّع
+    """
+    if getattr(sys, 'frozen', False):
+        # Set working directory to executable location
+        exe_dir = Path(sys.executable).parent
+        os.chdir(exe_dir)
+
+        # Add the frozen base path to sys.path
+        if hasattr(sys, '_MEIPASS'):
+            meipass = Path(sys._MEIPASS)
+            if str(meipass) not in sys.path:
+                sys.path.insert(0, str(meipass))
+
+        # Suppress Qt plugin debug messages
+        os.environ.setdefault('QT_LOGGING_RULES', '*.debug=false')
+
+        # Set high DPI environment variables for Windows
+        if sys.platform == 'win32':
+            os.environ.setdefault('QT_AUTO_SCREEN_SCALE_FACTOR', '1')
+            os.environ.setdefault('QT_ENABLE_HIGHDPI_SCALING', '1')
+
+
+# Setup frozen environment before any Qt imports
+setup_frozen_environment()
 
 # Check for PySide6 availability
 try:
