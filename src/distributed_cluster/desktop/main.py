@@ -66,6 +66,43 @@ class UpdateState(Enum):
     ERROR = auto()
 
 
+class UpdateError(Exception):
+    """Base exception for update errors."""
+    pass
+
+
+class UpdateAPIError(UpdateError):
+    """Error communicating with update API."""
+    def __init__(self, status_code: int, message: str = ""):
+        self.status_code = status_code
+        super().__init__(f"API error (status {status_code}): {message}" if message else f"API returned status {status_code}")
+
+
+class UpdateDownloadError(UpdateError):
+    """Error downloading update."""
+    def __init__(self, status_code: int = 0, message: str = ""):
+        self.status_code = status_code
+        super().__init__(f"Download failed (status {status_code}): {message}" if status_code else message)
+
+
+class UpdateVerificationError(UpdateError):
+    """Error verifying update checksum."""
+    def __init__(self, expected: str = "", actual: str = ""):
+        self.expected = expected
+        self.actual = actual
+        msg = "Checksum verification failed"
+        if expected and actual:
+            msg += f": expected {expected[:16]}..., got {actual[:16]}..."
+        super().__init__(msg)
+
+
+class UpdateInstallError(UpdateError):
+    """Error installing update."""
+    def __init__(self, message: str = "Installation failed", details: str = ""):
+        self.details = details
+        super().__init__(f"{message}: {details}" if details else message)
+
+
 @dataclass
 class VersionInfo:
     """Parsed version information"""
@@ -342,7 +379,7 @@ class UpdateManager(QObject):
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
                     if response.status != 200:
-                        raise Exception(f"API returned {response.status}")
+                        raise UpdateAPIError(response.status)
                     
                     releases = await response.json()
             
@@ -442,7 +479,7 @@ class UpdateManager(QObject):
             async with aiohttp.ClientSession() as session:
                 async with session.get(asset.url) as response:
                     if response.status != 200:
-                        raise Exception(f"Download failed: {response.status}")
+                        raise UpdateDownloadError(response.status)
                     
                     with open(download_path, "wb") as f:
                         async for chunk in response.content.iter_chunked(8192):
@@ -453,7 +490,7 @@ class UpdateManager(QObject):
             # Verify checksum if available
             if asset.checksum:
                 if not self._verify_checksum(download_path, asset.checksum, asset.checksum_type):
-                    raise Exception("Checksum verification failed")
+                    raise UpdateVerificationError(expected=asset.checksum)
             
             self._downloaded_path = download_path
             self._set_state(UpdateState.DOWNLOADED)
@@ -517,7 +554,7 @@ class UpdateManager(QObject):
             else:
                 # Restore backup on failure
                 await self._restore_backup(backup_path)
-                raise Exception("Installation failed")
+                raise UpdateInstallError()
                 
         except Exception as e:
             self._logger.error(f"Installation failed: {e}")

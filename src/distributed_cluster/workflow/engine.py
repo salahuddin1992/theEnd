@@ -15,7 +15,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from croniter import croniter
+try:
+    from croniter import croniter
+    CRONITER_AVAILABLE = True
+except ImportError:
+    croniter = None
+    CRONITER_AVAILABLE = False
 
 from distributed_cluster.models.job import Job
 from distributed_cluster.models.resources import ResourceRequirements
@@ -603,6 +608,13 @@ class WorkflowScheduler:
                             continue
 
                         if not trigger.cron_expression:
+                            continue
+
+                        if not CRONITER_AVAILABLE:
+                            logger.warning(
+                                f"croniter not installed, cannot schedule workflow {workflow.workflow_id}. "
+                                "Install with: pip install croniter"
+                            )
                             continue
 
                         # Calculate next run time

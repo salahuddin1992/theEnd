@@ -51,7 +51,7 @@ from distributed_cluster.observability.prometheus import (
     PrometheusMetric,
     Counter,
     Gauge,
-    PrometheusHistogram,
+    Histogram as PrometheusHistogram,
     Summary,
     PrometheusRegistry,
     NebulaMetrics,
