@@ -8,19 +8,16 @@ Tests for distributed tracing functionality.
 import asyncio
 
 import pytest
-import pytest_asyncio
 
 from distributed_cluster.observability.tracing import (
+    ConsoleSpanExporter,
     Span,
-    SpanEvent,
     SpanKind,
-    SpanLink,
     SpanStatus,
     Tracer,
-    ConsoleSpanExporter,
-    traced,
     get_tracer,
     set_tracer,
+    traced,
 )
 
 

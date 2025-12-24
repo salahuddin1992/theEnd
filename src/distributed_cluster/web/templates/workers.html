@@ -145,7 +145,9 @@
                 <span class="text-sm font-medium" id="totalActiveJobs">{{ total_active_jobs|default(0) }}</span>
             </div>
             <div class="h-2 bg-white/10 rounded-full overflow-hidden">
-                <div class="h-full bg-purple-500 rounded-full transition-all" style="width: {{ (total_active_jobs|default(0) / max(total_job_capacity|default(1), 1) * 100)|round }}%"></div>
+                {% set capacity = total_job_capacity|default(1) %}
+                {% set safe_capacity = capacity if capacity > 0 else 1 %}
+                <div class="h-full bg-purple-500 rounded-full transition-all" style="width: {{ (total_active_jobs|default(0) / safe_capacity * 100)|round }}%"></div>
             </div>
             <div class="text-xs text-text-tertiary mt-1">سعة {{ total_job_capacity|default(0) }} مهمة</div>
         </div>

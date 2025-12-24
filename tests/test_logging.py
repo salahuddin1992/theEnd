@@ -9,24 +9,21 @@ import asyncio
 import gzip
 import json
 import os
-import tempfile
 import time
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
-import pytest_asyncio
 
 from distributed_cluster.observability.logging import (
-    LogLevel,
-    LogContext,
-    StructuredLogger,
-    RotatingFileHandler,
-    TimedRotatingFileHandler,
     LogCleaner,
-    setup_logging,
-    log_context,
+    LogContext,
+    LogLevel,
+    RotatingFileHandler,
+    StructuredLogger,
+    TimedRotatingFileHandler,
     get_current_context,
+    log_context,
+    setup_logging,
 )
 
 

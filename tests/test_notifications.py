@@ -448,8 +448,8 @@ class TestNotificationQueue:
     @pytest.mark.asyncio
     async def test_queue_put_get(self):
         """اختبار إضافة والحصول على الإشعارات"""
-        from distributed_cluster.notifications.queue import NotificationQueue
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.queue import NotificationQueue
 
         queue = NotificationQueue(max_size=100)
 
@@ -469,11 +469,13 @@ class TestNotificationQueue:
     @pytest.mark.asyncio
     async def test_queue_priority_ordering(self):
         """اختبار ترتيب الأولوية"""
-        from distributed_cluster.notifications.queue import NotificationQueue
         from distributed_cluster.notifications.channels import (
             Notification as ChannelNotification,
+        )
+        from distributed_cluster.notifications.channels import (
             NotificationPriority as ChPriority,
         )
+        from distributed_cluster.notifications.queue import NotificationQueue
 
         queue = NotificationQueue(max_size=100)
 
@@ -498,8 +500,8 @@ class TestNotificationQueue:
     @pytest.mark.asyncio
     async def test_queue_batch_get(self):
         """اختبار الحصول على دفعة"""
-        from distributed_cluster.notifications.queue import NotificationQueue
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.queue import NotificationQueue
 
         queue = NotificationQueue(max_size=100)
 
@@ -513,8 +515,8 @@ class TestNotificationQueue:
     @pytest.mark.asyncio
     async def test_queue_stats(self):
         """اختبار إحصائيات الطابور"""
-        from distributed_cluster.notifications.queue import NotificationQueue
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.queue import NotificationQueue
 
         queue = NotificationQueue(max_size=100)
 
@@ -547,8 +549,8 @@ class TestNotificationHistory:
     @pytest.mark.asyncio
     async def test_history_add_and_get(self, tmp_path):
         """اختبار إضافة والحصول على الإشعارات"""
-        from distributed_cluster.notifications.history import NotificationHistory
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.history import NotificationHistory
 
         db_path = tmp_path / "test_history.db"
         history = NotificationHistory(db_path=db_path)
@@ -570,11 +572,13 @@ class TestNotificationHistory:
     @pytest.mark.asyncio
     async def test_history_search(self, tmp_path):
         """اختبار البحث في السجل"""
-        from distributed_cluster.notifications.history import NotificationHistory, HistoryQuery
         from distributed_cluster.notifications.channels import (
             Notification as ChannelNotification,
+        )
+        from distributed_cluster.notifications.channels import (
             NotificationPriority as ChPriority,
         )
+        from distributed_cluster.notifications.history import HistoryQuery, NotificationHistory
 
         db_path = tmp_path / "test_history.db"
         history = NotificationHistory(db_path=db_path, enable_fts=False)
@@ -596,11 +600,13 @@ class TestNotificationHistory:
     @pytest.mark.asyncio
     async def test_history_stats(self, tmp_path):
         """اختبار إحصائيات السجل"""
-        from distributed_cluster.notifications.history import NotificationHistory
         from distributed_cluster.notifications.channels import (
             Notification as ChannelNotification,
+        )
+        from distributed_cluster.notifications.channels import (
             NotificationPriority as ChPriority,
         )
+        from distributed_cluster.notifications.history import NotificationHistory
 
         db_path = tmp_path / "test_history.db"
         history = NotificationHistory(db_path=db_path)
@@ -632,8 +638,9 @@ class TestNotificationScheduler:
     async def test_schedule_once(self):
         """اختبار جدولة مرة واحدة"""
         from datetime import datetime, timedelta
-        from distributed_cluster.notifications.scheduler import NotificationScheduler
+
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.scheduler import NotificationScheduler
 
         scheduler = NotificationScheduler()
 
@@ -649,8 +656,8 @@ class TestNotificationScheduler:
     @pytest.mark.asyncio
     async def test_schedule_interval(self):
         """اختبار جدولة متكررة"""
-        from distributed_cluster.notifications.scheduler import NotificationScheduler, JobStatus
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.scheduler import JobStatus, NotificationScheduler
 
         scheduler = NotificationScheduler()
 
@@ -670,8 +677,9 @@ class TestNotificationScheduler:
     async def test_cancel_job(self):
         """اختبار إلغاء المهمة"""
         from datetime import datetime, timedelta
-        from distributed_cluster.notifications.scheduler import NotificationScheduler, JobStatus
+
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.scheduler import JobStatus, NotificationScheduler
 
         scheduler = NotificationScheduler()
 
@@ -700,8 +708,8 @@ class TestTemplateEngine:
 
     def test_render_simple_template(self):
         """اختبار تصيير قالب بسيط"""
-        from distributed_cluster.notifications.templates import TemplateEngine
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.templates import TemplateEngine
 
         engine = TemplateEngine()
         notification = ChannelNotification(
@@ -716,8 +724,8 @@ class TestTemplateEngine:
     def test_render_with_variables(self):
         """اختبار تصيير مع متغيرات"""
         from distributed_cluster.notifications.templates import (
-            TemplateEngine,
             StringTemplate,
+            TemplateEngine,
         )
 
         engine = TemplateEngine()
@@ -731,8 +739,8 @@ class TestTemplateEngine:
 
     def test_render_html_template(self):
         """اختبار تصيير قالب HTML"""
-        from distributed_cluster.notifications.templates import TemplateEngine
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
+        from distributed_cluster.notifications.templates import TemplateEngine
 
         engine = TemplateEngine()
         notification = ChannelNotification(
