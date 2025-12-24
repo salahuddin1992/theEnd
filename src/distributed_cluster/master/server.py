@@ -25,6 +25,15 @@ from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
 from distributed_cluster.models.worker import WorkerRegistration
 from distributed_cluster.scheduler.scheduler import Scheduler, SchedulerLoop, SchedulingPolicy
 
+# Auto-scaling imports
+from distributed_cluster.autoscaling import (
+    AutoScalingConfig,
+    AutoScalingManager,
+    MetricsCollector,
+    LocalProvider,
+    PolicyTemplates,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,6 +105,37 @@ class JobCompleteRequest(BaseModel):
     error_message: Optional[str] = None
 
 
+class AutoScalingConfigRequest(BaseModel):
+    """إعدادات التوسع التلقائي / Auto-scaling configuration"""
+    enabled: bool = True
+    min_workers: int = 1
+    max_workers: int = 100
+    policy_type: str = "queue-based"  # queue-based, resource-based, aggressive, conservative
+    cooldown_up_seconds: float = 60.0
+    cooldown_down_seconds: float = 300.0
+    evaluation_interval_seconds: float = 30.0
+    # Provider settings
+    provider_type: str = "local"  # local, aws, gcp, azure
+    # AWS settings
+    aws_region: Optional[str] = None
+    aws_instance_type: Optional[str] = None
+    # GCP settings
+    gcp_project: Optional[str] = None
+    gcp_zone: Optional[str] = None
+    gcp_machine_type: Optional[str] = None
+    # Azure settings
+    azure_subscription: Optional[str] = None
+    azure_resource_group: Optional[str] = None
+    azure_location: Optional[str] = None
+    azure_vm_size: Optional[str] = None
+
+
+class ScaleRequest(BaseModel):
+    """طلب توسع يدوي / Manual scaling request"""
+    target_count: Optional[int] = None
+    scale_by: Optional[int] = None
+
+
 # ==================== Master Server ====================
 
 
@@ -126,6 +166,11 @@ class MasterServer:
         # Background tasks
         self._scheduler_loop: Optional[SchedulerLoop] = None
         self._health_check_task: Optional[asyncio.Task] = None
+
+        # Auto-scaling components
+        self._autoscaling_manager: Optional[AutoScalingManager] = None
+        self._metrics_collector: Optional[MetricsCollector] = None
+        self._autoscaling_enabled: bool = False
 
         # FastAPI app
         self.app = self._create_app()
@@ -365,6 +410,146 @@ class MasterServer:
             events = self.state.get_recent_events(limit)
             return {"events": [e.to_dict() for e in events]}
 
+        # ==================== Auto-Scaling ====================
+
+        @app.get("/autoscaling/status")
+        async def get_autoscaling_status():
+            """
+            الحصول على حالة التوسع التلقائي
+            Get auto-scaling status
+            """
+            if not self._autoscaling_manager:
+                return {
+                    "enabled": False,
+                    "status": "not_initialized",
+                    "message": "Auto-scaling is not configured",
+                }
+            return self._autoscaling_manager.get_status()
+
+        @app.get("/autoscaling/metrics")
+        async def get_autoscaling_metrics():
+            """
+            الحصول على مقاييس التوسع التلقائي
+            Get auto-scaling metrics
+            """
+            if not self._metrics_collector:
+                return {"error": "Metrics collector not initialized"}
+
+            latest = self._metrics_collector.get_latest()
+            if not latest:
+                return {"error": "No metrics collected yet"}
+
+            return {
+                "latest": latest.to_dict(),
+                "collector_status": self._metrics_collector.get_status(),
+            }
+
+        @app.get("/autoscaling/events")
+        async def get_autoscaling_events(
+            limit: int = Query(50, ge=1, le=500),
+            event_type: Optional[str] = Query(None, description="Filter by event type"),
+        ):
+            """
+            الحصول على سجل أحداث التوسع التلقائي
+            Get auto-scaling event log
+            """
+            if not self._autoscaling_manager:
+                return {"events": []}
+            return {"events": self._autoscaling_manager.get_events(limit, event_type)}
+
+        @app.post("/autoscaling/enable")
+        async def enable_autoscaling(config: AutoScalingConfigRequest):
+            """
+            تفعيل التوسع التلقائي
+            Enable auto-scaling
+            """
+            try:
+                await self._setup_autoscaling(config)
+                return {
+                    "status": "enabled",
+                    "config": {
+                        "policy_type": config.policy_type,
+                        "provider_type": config.provider_type,
+                        "min_workers": config.min_workers,
+                        "max_workers": config.max_workers,
+                    }
+                }
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
+
+        @app.post("/autoscaling/disable")
+        async def disable_autoscaling():
+            """
+            إيقاف التوسع التلقائي
+            Disable auto-scaling
+            """
+            if self._autoscaling_manager:
+                await self._autoscaling_manager.stop()
+                self._autoscaling_enabled = False
+            return {"status": "disabled"}
+
+        @app.post("/autoscaling/pause")
+        async def pause_autoscaling():
+            """
+            إيقاف مؤقت للتوسع التلقائي
+            Pause auto-scaling
+            """
+            if not self._autoscaling_manager:
+                raise HTTPException(status_code=400, detail="Auto-scaling not enabled")
+            self._autoscaling_manager.pause()
+            return {"status": "paused"}
+
+        @app.post("/autoscaling/resume")
+        async def resume_autoscaling():
+            """
+            استئناف التوسع التلقائي
+            Resume auto-scaling
+            """
+            if not self._autoscaling_manager:
+                raise HTTPException(status_code=400, detail="Auto-scaling not enabled")
+            self._autoscaling_manager.resume()
+            return {"status": "resumed"}
+
+        @app.post("/autoscaling/scale")
+        async def manual_scale(req: ScaleRequest):
+            """
+            توسع يدوي
+            Manual scaling
+            """
+            if not self._autoscaling_manager:
+                raise HTTPException(status_code=400, detail="Auto-scaling not enabled")
+
+            if req.target_count is not None:
+                event = await self._autoscaling_manager.scale_to(req.target_count)
+            elif req.scale_by is not None:
+                if req.scale_by > 0:
+                    event = await self._autoscaling_manager.scale_up_by(req.scale_by)
+                else:
+                    event = await self._autoscaling_manager.scale_down_by(abs(req.scale_by))
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Either target_count or scale_by must be specified"
+                )
+
+            return {"status": "scaling", "event": event.to_dict()}
+
+        @app.put("/autoscaling/limits")
+        async def update_autoscaling_limits(min_workers: int, max_workers: int):
+            """
+            تحديث حدود العمال
+            Update worker limits
+            """
+            if not self._autoscaling_manager:
+                raise HTTPException(status_code=400, detail="Auto-scaling not enabled")
+
+            self._autoscaling_manager.set_limits(min_workers, max_workers)
+            return {
+                "status": "updated",
+                "min_workers": min_workers,
+                "max_workers": max_workers,
+            }
+
         # ==================== WebSocket ====================
 
         @app.websocket("/ws")
@@ -438,6 +623,115 @@ class MasterServer:
                 await ws.close()
             except Exception:
                 pass
+
+        # إيقاف التوسع التلقائي
+        if self._autoscaling_manager:
+            await self._autoscaling_manager.stop()
+        if self._metrics_collector:
+            await self._metrics_collector.stop()
+
+    async def _setup_autoscaling(self, config: AutoScalingConfigRequest) -> None:
+        """
+        إعداد وتفعيل التوسع التلقائي
+        Setup and enable auto-scaling
+        """
+        from distributed_cluster.autoscaling import (
+            AWSProvider,
+            AzureProvider,
+            GCPProvider,
+            QueueBasedPolicy,
+            ResourceBasedPolicy,
+        )
+
+        # إيقاف المكونات الموجودة إذا كانت تعمل
+        if self._autoscaling_manager:
+            await self._autoscaling_manager.stop()
+        if self._metrics_collector:
+            await self._metrics_collector.stop()
+
+        # إنشاء جامع المقاييس
+        self._metrics_collector = MetricsCollector(
+            cluster_state=self.state,
+            collection_interval_seconds=10.0,
+        )
+
+        # إنشاء السياسة بناءً على النوع
+        if config.policy_type == "queue-based":
+            policy = QueueBasedPolicy(
+                min_workers=config.min_workers,
+                max_workers=config.max_workers,
+            )
+        elif config.policy_type == "resource-based":
+            policy = ResourceBasedPolicy(
+                min_workers=config.min_workers,
+                max_workers=config.max_workers,
+            )
+        elif config.policy_type == "aggressive":
+            policy = PolicyTemplates.aggressive()
+            policy.min_workers = config.min_workers
+            policy.max_workers = config.max_workers
+        elif config.policy_type == "conservative":
+            policy = PolicyTemplates.conservative()
+            policy.min_workers = config.min_workers
+            policy.max_workers = config.max_workers
+        else:
+            policy = QueueBasedPolicy(
+                min_workers=config.min_workers,
+                max_workers=config.max_workers,
+            )
+
+        # إنشاء المزود بناءً على النوع
+        if config.provider_type == "aws" and config.aws_region:
+            provider = AWSProvider(
+                region=config.aws_region,
+                instance_type=config.aws_instance_type or "t3.large",
+            )
+        elif config.provider_type == "gcp" and config.gcp_project:
+            provider = GCPProvider(
+                project=config.gcp_project,
+                zone=config.gcp_zone or "us-central1-a",
+                machine_type=config.gcp_machine_type or "n1-standard-4",
+            )
+        elif config.provider_type == "azure" and config.azure_subscription:
+            provider = AzureProvider(
+                subscription_id=config.azure_subscription,
+                resource_group=config.azure_resource_group or "distributed-cluster",
+                location=config.azure_location or "eastus",
+                vm_size=config.azure_vm_size or "Standard_D4s_v3",
+            )
+        else:
+            # المزود المحلي للاختبار
+            provider = LocalProvider(cluster_state=self.state)
+
+        # إنشاء الإعدادات
+        as_config = AutoScalingConfig(
+            enabled=config.enabled,
+            min_workers=config.min_workers,
+            max_workers=config.max_workers,
+            cooldown_up_seconds=config.cooldown_up_seconds,
+            cooldown_down_seconds=config.cooldown_down_seconds,
+            evaluation_interval_seconds=config.evaluation_interval_seconds,
+        )
+
+        # إنشاء مدير التوسع التلقائي
+        self._autoscaling_manager = AutoScalingManager(
+            metrics_collector=self._metrics_collector,
+            policy=policy,
+            provider=provider,
+            cluster_state=self.state,
+            config=as_config,
+        )
+
+        # بدء المكونات
+        await self._metrics_collector.start()
+        await self._autoscaling_manager.start()
+        self._autoscaling_enabled = True
+
+        logger.info(
+            f"Auto-scaling enabled: policy={config.policy_type}, "
+            f"provider={config.provider_type}, "
+            f"workers={config.min_workers}-{config.max_workers}"
+        )
 
     async def _health_check_loop(self) -> None:
         """حلقة فحص صحة workers."""
