@@ -1,0 +1,319 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+        default: '1.0.0'
+
+env:
+  PYTHON_VERSION: '3.11'
+  APP_NAME: 'NebulaCompute'
+
+jobs:
+  # ==================================================
+  # Build for Windows
+  # ==================================================
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller nuitka pyside6 qasync httpx websockets
+          pip install -e .
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build with PyInstaller
+        run: |
+          cd src/distributed_cluster/desktop
+          python smart_builder.py build --compiler pyinstaller --optimize max --version ${{ steps.version.outputs.version }}
+
+      - name: Create NSIS Installer
+        run: |
+          cd src/distributed_cluster/desktop
+          python smart_builder.py build --installer nsis --version ${{ steps.version.outputs.version }}
+
+      - name: Sign executable (if certificate available)
+        if: env.CODE_SIGN_CERT != ''
+        env:
+          CODE_SIGN_CERT: ${{ secrets.CODE_SIGN_CERT }}
+          CODE_SIGN_PASS: ${{ secrets.CODE_SIGN_PASS }}
+        run: |
+          echo "Signing executable..."
+          # signtool sign /f cert.pfx /p $env:CODE_SIGN_PASS /t http://timestamp.digicert.com dist/${{ env.APP_NAME }}.exe
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            dist/*.exe
+            dist/build_info.json
+
+  # ==================================================
+  # Build for Linux
+  # ==================================================
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxkbcommon0 \
+            libxcb-xinerama0 \
+            libxcb-cursor0 \
+            libegl1 \
+            libgl1 \
+            fuse \
+            libfuse2
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller nuitka pyside6 qasync httpx websockets
+          pip install -e .
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build executable
+        run: |
+          cd src/distributed_cluster/desktop
+          python smart_builder.py build --compiler pyinstaller --optimize max --version ${{ steps.version.outputs.version }}
+
+      - name: Create AppImage
+        run: |
+          cd src/distributed_cluster/desktop
+          python smart_builder.py build --installer appimage --version ${{ steps.version.outputs.version }}
+
+      - name: Create DEB package
+        run: |
+          cd src/distributed_cluster/desktop
+          python smart_builder.py build --installer deb --version ${{ steps.version.outputs.version }}
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/${{ env.APP_NAME }}
+            dist/build_info.json
+
+  # ==================================================
+  # Build for macOS
+  # ==================================================
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller nuitka pyside6 qasync httpx websockets
+          pip install -e .
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build executable
+        run: |
+          cd src/distributed_cluster/desktop
+          python smart_builder.py build --compiler pyinstaller --optimize max --version ${{ steps.version.outputs.version }}
+
+      - name: Create DMG
+        run: |
+          # Create DMG
+          mkdir -p dist/dmg
+          cp -r "dist/${{ env.APP_NAME }}" "dist/dmg/"
+
+          # Create symlink to Applications
+          ln -s /Applications "dist/dmg/Applications"
+
+          # Create DMG file
+          hdiutil create -volname "${{ env.APP_NAME }}" \
+            -srcfolder "dist/dmg" \
+            -ov -format UDZO \
+            "dist/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg"
+
+      - name: Sign DMG (if certificate available)
+        if: env.APPLE_CERT != ''
+        env:
+          APPLE_CERT: ${{ secrets.APPLE_CERT }}
+        run: |
+          echo "Signing DMG..."
+          # codesign --force --deep --sign "Developer ID Application" "dist/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg"
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            dist/*.dmg
+            dist/${{ env.APP_NAME }}
+            dist/build_info.json
+
+  # ==================================================
+  # Create Release
+  # ==================================================
+  create-release:
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's New in v${{ steps.version.outputs.version }}" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> CHANGELOG.md || true
+          echo "" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Downloads" >> CHANGELOG.md
+          echo "- **Windows**: \`${{ env.APP_NAME }}-Setup-${{ steps.version.outputs.version }}.exe\`" >> CHANGELOG.md
+          echo "- **Linux**: \`${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.AppImage\` or \`.deb\`" >> CHANGELOG.md
+          echo "- **macOS**: \`${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg\`" >> CHANGELOG.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ env.APP_NAME }} v${{ steps.version.outputs.version }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/windows-build/*.exe
+            artifacts/linux-build/*.AppImage
+            artifacts/linux-build/*.deb
+            artifacts/macos-build/*.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update latest release info
+        run: |
+          # Create release info JSON for auto-updater
+          cat > release-info.json << EOF
+          {
+            "version": "${{ steps.version.outputs.version }}",
+            "release_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "downloads": {
+              "windows": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/${{ env.APP_NAME }}-Setup-${{ steps.version.outputs.version }}.exe",
+              "linux": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.AppImage",
+              "macos": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg"
+            }
+          }
+          EOF
+          cat release-info.json
+
+  # ==================================================
+  # Nuitka Build (Optional - for maximum performance)
+  # ==================================================
+  build-nuitka:
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.use_nuitka == 'true'
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Nuitka and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install nuitka pyside6 qasync httpx websockets ordered-set zstandard
+          pip install -e .
+
+      - name: Install C compiler (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential patchelf ccache
+
+      - name: Build with Nuitka
+        run: |
+          cd src/distributed_cluster/desktop
+          python smart_builder.py build --compiler nuitka --optimize extreme
+
+      - name: Upload Nuitka artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuitka-${{ runner.os }}
+          path: dist/
