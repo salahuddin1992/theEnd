@@ -99,6 +99,32 @@ class Sidebar(QFrame):
             self._buttons[page_id] = btn
             layout.addWidget(btn)
 
+        # Developer section label
+        dev_label = QLabel("  DEVELOPER")
+        dev_label.setStyleSheet(
+            f"""
+            color: {COLORS['text_muted']};
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            padding: 16px 16px 8px 16px;
+        """
+        )
+        layout.addWidget(dev_label)
+
+        # Developer tools
+        dev_items = [
+            ("scripts", "Script Editor", "🐍"),
+            ("plugins", "Plugins", "🔌"),
+            ("terminal", "Terminal", "💻"),
+        ]
+
+        for page_id, text, icon in dev_items:
+            btn = SidebarButton(text, icon)
+            btn.clicked.connect(lambda checked, pid=page_id: self._on_button_clicked(pid))
+            self._buttons[page_id] = btn
+            layout.addWidget(btn)
+
         layout.addStretch()
 
         # Settings section label
