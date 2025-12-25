@@ -21,12 +21,34 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Tuple
 
-from distributed_cluster.core import (
-    AIProvider,
-    AuthenticationError,
-    CircuitBreakerOpenError,
-    logger,
-)
+import logging
+
+# Setup logger
+logger = logging.getLogger(__name__)
+
+
+# Custom Exceptions
+class AuthenticationError(Exception):
+        """Raised when authentication fails."""
+        pass
+
+
+class CircuitBreakerOpenError(Exception):
+        """Raised when circuit breaker is open."""
+        pass
+
+
+# AI Provider Enum
+class AIProvider(Enum):
+        """Supported AI providers."""
+        OLLAMA = auto()
+        OPENAI = auto()
+        CLAUDE = auto()
+        GEMINI = auto()
+        GROQ = auto()
+        MISTRAL = auto()
+        CUSTOM = auto()
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
