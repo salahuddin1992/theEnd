@@ -579,7 +579,8 @@ class PubSubManager:
                             return False
             return True
         except Exception:
-            return True
+            # On filter evaluation error, reject the message for safety
+            return False
 
     def _cleanup_expired_messages(self):
         """Remove expired messages from topics."""
