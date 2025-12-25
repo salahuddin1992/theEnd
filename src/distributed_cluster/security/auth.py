@@ -451,9 +451,8 @@ class AuthManager:
             subject_type="api_key",
             role=role,
             api_key_id=api_key_id,
-            permissions=list(permissions) if permissions else None,
+            permissions=set(permissions) if permissions else set(),
             expires_at=datetime.utcnow() + timedelta(days=expires_in_days),
-            metadata={"name": name},
         )
 
         # الـ API key هو token موقّع
