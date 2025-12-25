@@ -239,7 +239,8 @@ class SandboxExecutor(QThread):
                     if node.module and node.module.split('.')[0] in self.BLOCKED_MODULES:
                         return True
             return False
-        except:
+        except (SyntaxError, ValueError):
+            # SyntaxError for invalid Python code, ValueError for null bytes
             return True
 
 
