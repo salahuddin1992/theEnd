@@ -93,6 +93,21 @@ from distributed_cluster.core.performance.rate_limiter import (
     create_rate_limit_middleware,
 )
 
+# Benchmarking
+from distributed_cluster.core.performance.benchmarking import (
+    Benchmarker,
+    BenchmarkReport,
+    BenchmarkUnit,
+    TimingResult,
+    MemoryResult,
+    PerformanceMonitor,
+    timed,
+    profile_memory,
+    quick_benchmark,
+    quick_async_benchmark,
+    compare_functions,
+)
+
 __all__ = [
     # Async I/O
     "AsyncFileReader",
@@ -152,4 +167,16 @@ __all__ = [
     "get_rate_limiter",
     "rate_limit",
     "create_rate_limit_middleware",
+    # Benchmarking
+    "Benchmarker",
+    "BenchmarkReport",
+    "BenchmarkUnit",
+    "TimingResult",
+    "MemoryResult",
+    "PerformanceMonitor",
+    "timed",
+    "profile_memory",
+    "quick_benchmark",
+    "quick_async_benchmark",
+    "compare_functions",
 ]
