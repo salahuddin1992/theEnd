@@ -115,10 +115,25 @@ class TestAuthManager:
         assert token is not None or approved  # At least one must be truthy
 
     def test_api_key_management(self, auth_manager):
-        """Test API key listing (create_api_key has internal bug with metadata)."""
+        """Test API key creation and listing."""
+        # Create API key without permissions
+        api_key, token = auth_manager.create_api_key("test-key")
+        assert api_key is not None
+        assert token is not None
+        assert api_key.startswith("ak_")
+
+        # Create API key with permissions
+        api_key2, token2 = auth_manager.create_api_key(
+            "test-key-2",
+            permissions={Permission.JOB_SUBMIT, Permission.JOB_READ}
+        )
+        assert api_key2 is not None
+        assert token2 is not None
+
         # List keys should work
         keys = auth_manager.list_api_keys()
         assert isinstance(keys, list)
+        assert len(keys) == 2
 
 
 class TestAuditLogging:
