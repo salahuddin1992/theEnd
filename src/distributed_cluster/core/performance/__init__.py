@@ -52,6 +52,47 @@ from distributed_cluster.core.performance.caching import (
     memoize,
 )
 
+# Circuit Breaker
+from distributed_cluster.core.performance.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerConfig,
+    CircuitBreakerError,
+    CircuitBreakerRegistry,
+    CircuitBreakerStats,
+    CircuitOpenError,
+    CircuitState,
+    Bulkhead,
+    Retry,
+    RetryConfig,
+    ResiliencePolicy,
+    circuit_breaker,
+    bulkhead,
+    retry,
+    get_circuit_breaker,
+)
+
+# Rate Limiter
+from distributed_cluster.core.performance.rate_limiter import (
+    RateLimiter,
+    RateLimitConfig,
+    RateLimitResult,
+    RateLimitExceeded,
+    RateLimitAlgorithm,
+    TokenBucketLimiter,
+    SlidingWindowLimiter,
+    FixedWindowLimiter,
+    LeakyBucketLimiter,
+    TieredRateLimiter,
+    TierConfig,
+    AdaptiveRateLimiter,
+    RateLimiterManager,
+    RedisRateLimiter,
+    create_rate_limiter,
+    get_rate_limiter,
+    rate_limit,
+    create_rate_limit_middleware,
+)
+
 __all__ = [
     # Async I/O
     "AsyncFileReader",
@@ -76,4 +117,39 @@ __all__ = [
     "async_lru_cache",
     "timed_cache",
     "memoize",
+    # Circuit Breaker
+    "CircuitBreaker",
+    "CircuitBreakerConfig",
+    "CircuitBreakerError",
+    "CircuitBreakerRegistry",
+    "CircuitBreakerStats",
+    "CircuitOpenError",
+    "CircuitState",
+    "Bulkhead",
+    "Retry",
+    "RetryConfig",
+    "ResiliencePolicy",
+    "circuit_breaker",
+    "bulkhead",
+    "retry",
+    "get_circuit_breaker",
+    # Rate Limiter
+    "RateLimiter",
+    "RateLimitConfig",
+    "RateLimitResult",
+    "RateLimitExceeded",
+    "RateLimitAlgorithm",
+    "TokenBucketLimiter",
+    "SlidingWindowLimiter",
+    "FixedWindowLimiter",
+    "LeakyBucketLimiter",
+    "TieredRateLimiter",
+    "TierConfig",
+    "AdaptiveRateLimiter",
+    "RateLimiterManager",
+    "RedisRateLimiter",
+    "create_rate_limiter",
+    "get_rate_limiter",
+    "rate_limit",
+    "create_rate_limit_middleware",
 ]
