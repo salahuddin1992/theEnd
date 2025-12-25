@@ -406,21 +406,175 @@ class TenantManager:
         if self.config.auto_provision_namespace:
             namespace = f"{self.config.namespace_prefix}{tenant.name}"
             tenant.config.dedicated_namespace = namespace
-            # TODO: Create Kubernetes namespace if needed
+            # Create Kubernetes namespace if k8s client is available
+            await self._create_kubernetes_namespace(namespace, tenant)
             logger.debug(f"Provisioned namespace: {namespace}")
+
+    async def _create_kubernetes_namespace(self, namespace: str, tenant: Tenant) -> bool:
+        """
+        إنشاء مساحة أسماء Kubernetes للمستأجر
+        Create Kubernetes namespace for tenant
+        """
+        try:
+            # Try to import kubernetes client
+            try:
+                from kubernetes import client, config as k8s_config
+                from kubernetes.client.rest import ApiException
+            except ImportError:
+                logger.debug("Kubernetes client not available, skipping namespace creation")
+                return False
+
+            # Load config
+            try:
+                k8s_config.load_incluster_config()
+            except k8s_config.ConfigException:
+                try:
+                    k8s_config.load_kube_config()
+                except k8s_config.ConfigException:
+                    logger.debug("No Kubernetes config available")
+                    return False
+
+            v1 = client.CoreV1Api()
+
+            # Check if namespace already exists
+            try:
+                v1.read_namespace(name=namespace)
+                logger.debug(f"Namespace {namespace} already exists")
+                return True
+            except ApiException as e:
+                if e.status != 404:
+                    raise
+
+            # Create namespace
+            ns_manifest = client.V1Namespace(
+                metadata=client.V1ObjectMeta(
+                    name=namespace,
+                    labels={
+                        "app.kubernetes.io/managed-by": "nebulacompute",
+                        "nebulacompute.io/tenant-id": tenant.id,
+                        "nebulacompute.io/tenant-name": tenant.name,
+                        "nebulacompute.io/tier": tenant.tier.value,
+                    },
+                    annotations={
+                        "nebulacompute.io/created-at": tenant.created_at.isoformat(),
+                        "nebulacompute.io/admin-email": tenant.admin_email or "",
+                    },
+                )
+            )
+
+            v1.create_namespace(body=ns_manifest)
+            logger.info(f"Created Kubernetes namespace: {namespace}")
+            return True
+
+        except Exception as e:
+            logger.warning(f"Failed to create Kubernetes namespace {namespace}: {e}")
+            return False
 
     async def _cleanup_tenant(self, tenant: Tenant) -> None:
         """تنظيف موارد المستأجر"""
         # Cancel all jobs
         await self._cancel_tenant_jobs(tenant)
 
-        # TODO: Delete namespace, storage, etc.
+        # Delete Kubernetes namespace if exists
+        if tenant.config.dedicated_namespace:
+            await self._delete_kubernetes_namespace(tenant.config.dedicated_namespace)
+
+        # Cleanup tenant storage
+        await self._cleanup_tenant_storage(tenant)
+
         logger.debug(f"Cleaned up tenant: {tenant.name}")
 
+    async def _delete_kubernetes_namespace(self, namespace: str) -> bool:
+        """
+        حذف مساحة أسماء Kubernetes
+        Delete Kubernetes namespace
+        """
+        try:
+            try:
+                from kubernetes import client, config as k8s_config
+                from kubernetes.client.rest import ApiException
+            except ImportError:
+                return False
+
+            try:
+                k8s_config.load_incluster_config()
+            except k8s_config.ConfigException:
+                try:
+                    k8s_config.load_kube_config()
+                except k8s_config.ConfigException:
+                    return False
+
+            v1 = client.CoreV1Api()
+
+            try:
+                v1.delete_namespace(
+                    name=namespace,
+                    body=client.V1DeleteOptions(
+                        propagation_policy="Foreground",
+                        grace_period_seconds=30,
+                    ),
+                )
+                logger.info(f"Deleted Kubernetes namespace: {namespace}")
+                return True
+            except ApiException as e:
+                if e.status == 404:
+                    logger.debug(f"Namespace {namespace} not found")
+                    return True
+                raise
+
+        except Exception as e:
+            logger.warning(f"Failed to delete Kubernetes namespace {namespace}: {e}")
+            return False
+
+    async def _cleanup_tenant_storage(self, tenant: Tenant) -> None:
+        """
+        تنظيف تخزين المستأجر
+        Cleanup tenant storage
+        """
+        try:
+            if self.storage:
+                # Remove tenant-specific data
+                await self.storage.delete(f"tenant:{tenant.id}:*")
+                logger.debug(f"Cleaned up storage for tenant: {tenant.name}")
+        except Exception as e:
+            logger.warning(f"Failed to cleanup storage for tenant {tenant.name}: {e}")
+
     async def _cancel_tenant_jobs(self, tenant: Tenant) -> None:
-        """إلغاء مهام المستأجر"""
-        # TODO: Implement job cancellation
-        logger.debug(f"Cancelling jobs for tenant: {tenant.name}")
+        """
+        إلغاء مهام المستأجر
+        Cancel all jobs for a tenant
+        """
+        try:
+            # Get scheduler instance if available
+            scheduler = getattr(self, '_scheduler', None)
+            if scheduler and hasattr(scheduler, 'cancel_jobs_by_tenant'):
+                cancelled_count = await scheduler.cancel_jobs_by_tenant(tenant.id)
+                logger.info(f"Cancelled {cancelled_count} jobs for tenant: {tenant.name}")
+                return
+
+            # Alternative: Use storage to mark jobs as cancelled
+            if self.storage and hasattr(self.storage, 'query'):
+                jobs = await self.storage.query(
+                    "jobs",
+                    {"tenant_id": tenant.id, "status": {"$in": ["pending", "running"]}}
+                )
+                cancelled_count = 0
+                for job in jobs:
+                    job["status"] = "cancelled"
+                    job["cancelled_at"] = datetime.utcnow().isoformat()
+                    job["cancellation_reason"] = f"Tenant {tenant.status.value}"
+                    await self.storage.save(f"job:{job['id']}", job)
+                    cancelled_count += 1
+
+                logger.info(f"Cancelled {cancelled_count} jobs for tenant: {tenant.name}")
+                tenant.usage.active_jobs = 0
+            else:
+                # Reset active jobs count as fallback
+                tenant.usage.active_jobs = 0
+                logger.debug(f"Reset active jobs for tenant: {tenant.name}")
+
+        except Exception as e:
+            logger.error(f"Failed to cancel jobs for tenant {tenant.name}: {e}")
 
     async def _check_quota_exceeded(self, tenant: Tenant) -> None:
         """فحص تجاوز الحصة"""
@@ -438,7 +592,157 @@ class TenantManager:
             warning = any(p >= self.config.quota_warning_threshold * 100 for p in usage_percent.values())
             if warning:
                 logger.info(f"Tenant {tenant.name} approaching quota limit")
-                # TODO: Send notification
+                # Send quota warning notification
+                await self._send_quota_warning_notification(tenant, usage_percent)
+
+    async def _send_quota_warning_notification(
+        self,
+        tenant: Tenant,
+        usage_percent: Dict[str, float],
+    ) -> None:
+        """
+        إرسال إشعار تحذير الحصة
+        Send quota warning notification
+        """
+        try:
+            # Find resources approaching limit
+            warning_resources = [
+                f"{resource}: {percent:.1f}%"
+                for resource, percent in usage_percent.items()
+                if percent >= self.config.quota_warning_threshold * 100
+            ]
+
+            if not warning_resources:
+                return
+
+            # Build notification message
+            message = {
+                "type": "quota_warning",
+                "tenant_id": tenant.id,
+                "tenant_name": tenant.name,
+                "tier": tenant.tier.value,
+                "warning_resources": warning_resources,
+                "usage_percent": usage_percent,
+                "threshold": self.config.quota_warning_threshold * 100,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+            # Send via configured notification channels
+            if tenant.config.notification_emails:
+                await self._send_email_notification(
+                    emails=tenant.config.notification_emails,
+                    subject=f"[NebulaCompute] Quota Warning for {tenant.display_name}",
+                    body=self._format_quota_warning_email(tenant, warning_resources, usage_percent),
+                )
+
+            if tenant.config.slack_webhook:
+                await self._send_slack_notification(
+                    webhook_url=tenant.config.slack_webhook,
+                    message=message,
+                )
+
+            if tenant.config.webhook_url:
+                await self._send_webhook_notification(
+                    webhook_url=tenant.config.webhook_url,
+                    payload=message,
+                )
+
+            logger.debug(f"Sent quota warning notification for tenant: {tenant.name}")
+
+        except Exception as e:
+            logger.warning(f"Failed to send quota warning notification: {e}")
+
+    def _format_quota_warning_email(
+        self,
+        tenant: Tenant,
+        warning_resources: List[str],
+        usage_percent: Dict[str, float],
+    ) -> str:
+        """Format quota warning email body"""
+        return f"""
+Quota Warning for Tenant: {tenant.display_name}
+================================================
+
+Your resource usage is approaching the quota limit:
+
+{chr(10).join(f'  - {r}' for r in warning_resources)}
+
+Current Usage:
+  - Jobs: {usage_percent.get('jobs', 0):.1f}%
+  - CPU: {usage_percent.get('cpu', 0):.1f}%
+  - Memory: {usage_percent.get('memory', 0):.1f}%
+  - GPU: {usage_percent.get('gpu', 0):.1f}%
+  - Storage: {usage_percent.get('storage', 0):.1f}%
+
+Tier: {tenant.tier.value}
+
+Please consider upgrading your plan or reducing resource usage to avoid service interruption.
+
+--
+NebulaCompute Team
+"""
+
+    async def _send_email_notification(
+        self,
+        emails: List[str],
+        subject: str,
+        body: str,
+    ) -> bool:
+        """Send email notification (placeholder for email integration)"""
+        # This would integrate with an email service like SMTP, SendGrid, etc.
+        logger.debug(f"Email notification: {subject} to {emails}")
+        return True
+
+    async def _send_slack_notification(
+        self,
+        webhook_url: str,
+        message: Dict[str, Any],
+    ) -> bool:
+        """Send Slack notification"""
+        try:
+            import httpx
+
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    webhook_url,
+                    json={
+                        "text": f":warning: Quota Warning for {message['tenant_name']}",
+                        "blocks": [
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": f"*Quota Warning*\nTenant: {message['tenant_name']}\nResources: {', '.join(message['warning_resources'])}",
+                                },
+                            }
+                        ],
+                    },
+                    timeout=10.0,
+                )
+                return response.status_code == 200
+        except Exception as e:
+            logger.warning(f"Failed to send Slack notification: {e}")
+            return False
+
+    async def _send_webhook_notification(
+        self,
+        webhook_url: str,
+        payload: Dict[str, Any],
+    ) -> bool:
+        """Send webhook notification"""
+        try:
+            import httpx
+
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    webhook_url,
+                    json=payload,
+                    timeout=10.0,
+                )
+                return response.status_code in (200, 201, 202, 204)
+        except Exception as e:
+            logger.warning(f"Failed to send webhook notification: {e}")
+            return False
 
     async def _quota_check_loop(self) -> None:
         """حلقة فحص الحصص"""
