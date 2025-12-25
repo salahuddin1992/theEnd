@@ -455,7 +455,8 @@ class CheckpointManager:
             if checkpoint.metadata.get("compressed"):
                 temp_dir = tempfile.mkdtemp()
                 with tarfile.open(checkpoint_path, "r:gz") as tar:
-                    tar.extractall(temp_dir)
+                    # nosec B202 - extracting from internally created checkpoint files
+                    tar.extractall(temp_dir, filter="data")
                 restore_path = temp_dir
             else:
                 restore_path = str(checkpoint_path)
@@ -676,7 +677,8 @@ class CheckpointManager:
         if source_path.suffix == ".gz" or source_path.suffixes == [".tar", ".gz"]:
             checkpoint_path.mkdir(parents=True, exist_ok=True)
             with tarfile.open(source_path, "r:gz") as tar:
-                tar.extractall(checkpoint_path)
+                # nosec B202 - extracting from admin-imported checkpoint files
+                tar.extractall(checkpoint_path, filter="data")
         else:
             shutil.copy2(source_path, checkpoint_path)
 

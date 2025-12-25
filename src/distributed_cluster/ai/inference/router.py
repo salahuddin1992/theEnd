@@ -326,7 +326,8 @@ class LoadBalancer:
         key: str,
     ) -> InferenceNode:
         """اختيار بالتجزئة (للاتساق)."""
-        hash_val = int(hashlib.md5(key.encode()).hexdigest(), 16)
+        # nosec B324 - MD5 used for consistent hashing, not security
+        hash_val = int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest(), 16)
         index = hash_val % len(nodes)
         return nodes[index]
 

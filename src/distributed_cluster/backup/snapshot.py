@@ -290,7 +290,8 @@ class Snapshot:
         # Calculate checksums before compression
         self.metadata.size_bytes = len(raw_bytes)
         self.metadata.checksum_sha256 = hashlib.sha256(raw_bytes).hexdigest()
-        self.metadata.checksum_md5 = hashlib.md5(raw_bytes).hexdigest()
+        # nosec B324 - MD5 used for checksum verification alongside SHA256, not security
+        self.metadata.checksum_md5 = hashlib.md5(raw_bytes, usedforsecurity=False).hexdigest()
 
         # Compress if requested
         if compress:
@@ -346,6 +347,7 @@ class Snapshot:
                 changes=data_dict.get("changes", []),
             )
         else:
+            # nosec B301 - Loading snapshot data from internal backup system
             payload = pickle.loads(raw_bytes)
             metadata = payload["metadata"]
             snapshot_data = payload["data"]

@@ -504,6 +504,7 @@ del "%~f0"
 
                 # Replace with new
                 shutil.copy2(update_file, self.app_path)
+                # nosec B103 - executable needs 755 permissions
                 os.chmod(self.app_path, 0o755)
 
                 if restart:
@@ -920,6 +921,7 @@ HERE=${{SELF%/*}}
 export PATH="${{HERE}}/usr/bin:${{PATH}}"
 exec "${{HERE}}/usr/bin/{config.name}" "$@"
 ''')
+        # nosec B103 - AppRun script needs 755 permissions
         os.chmod(apprun, 0o755)
 
         # Desktop file
@@ -948,7 +950,9 @@ Categories=Development;Utility;
             print("   📥 Downloading appimagetool...")
             url = "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
             try:
+                # nosec B310 - downloading from trusted GitHub releases
                 urllib.request.urlretrieve(url, appimagetool)
+                # nosec B103 - appimagetool needs 755 permissions
                 os.chmod(appimagetool, 0o755)
             except Exception as e:
                 print(f"   ⚠️ Could not download appimagetool: {e}")
@@ -999,6 +1003,7 @@ Description: {config.description}
 
         # Copy executable
         shutil.copy2(exe_path, pkg_dir / "usr" / "bin" / pkg_name)
+        # nosec B103 - executable needs 755 permissions
         os.chmod(pkg_dir / "usr" / "bin" / pkg_name, 0o755)
 
         # Desktop file

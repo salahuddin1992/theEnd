@@ -369,7 +369,8 @@ class LLMCache:
         if self.config.hash_algorithm == "sha256":
             return hashlib.sha256(content.encode()).hexdigest()
         elif self.config.hash_algorithm == "md5":
-            return hashlib.md5(content.encode()).hexdigest()
+            # nosec B324 - MD5 used for cache key generation, not security
+            return hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
         else:
             return hashlib.sha256(content.encode()).hexdigest()
 

@@ -504,6 +504,7 @@ class ShellExecutor:
         try:
             # Make executable on Unix
             if not IS_WINDOWS:
+                # nosec B103 - script needs 755 permissions to execute
                 os.chmod(script_path, 0o755)
 
             # Execute script

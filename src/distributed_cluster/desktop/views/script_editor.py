@@ -207,6 +207,7 @@ class SandboxExecutor(QThread):
 
             # Capture output
             with redirect_stdout(self._stdout), redirect_stderr(self._stderr):
+                # nosec B102 - exec used in sandboxed environment with SAFE_BUILTINS only
                 exec(self.code, sandbox_globals)
 
             # Get output

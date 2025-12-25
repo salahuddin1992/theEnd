@@ -41,6 +41,7 @@ class MPSConfig:
     """
 
     gpu_index: int
+    # nosec B108 - NVIDIA MPS requires specific temp directories
     pipe_directory: str = "/tmp/nvidia-mps"
     log_directory: str = "/tmp/nvidia-mps-log"
     default_active_thread_percentage: int = 100
@@ -177,6 +178,7 @@ class MPSManager:
         for directory in [self.config.pipe_directory, self.config.log_directory]:
             path = Path(directory)
             path.mkdir(parents=True, exist_ok=True)
+            # nosec B103 - MPS directories need 755 permissions
             os.chmod(directory, 0o755)
 
     async def start_daemon(self) -> bool:
