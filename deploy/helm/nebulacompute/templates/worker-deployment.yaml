@@ -1,0 +1,131 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nebulacompute.fullname" . }}-worker
+  labels:
+    {{- include "nebulacompute.worker.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.worker.autoscaling.enabled }}
+  replicas: {{ .Values.worker.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nebulacompute.worker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "nebulacompute.worker.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "nebulacompute.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "nebulacompute.worker.image" . }}
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy | default .Values.image.pullPolicy }}
+          command:
+            - dc-worker
+            - start
+            - --master={{ include "nebulacompute.master.url" . }}
+          ports:
+            - name: http
+              containerPort: 8766
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: LOG_LEVEL
+              value: {{ .Values.worker.config.logLevel | quote }}
+            - name: MAX_CONCURRENT_JOBS
+              value: {{ .Values.worker.config.maxConcurrentJobs | quote }}
+            - name: DOCKER_ENABLED
+              value: {{ .Values.worker.config.dockerEnabled | quote }}
+            - name: GPU_ENABLED
+              value: {{ .Values.worker.gpu.enabled | quote }}
+            {{- if .Values.security.auth.enabled }}
+            - name: WORKER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nebulacompute.fullname" . }}-secrets
+                  key: worker-token
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "nebulacompute.fullname" . }}-config
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+            {{- if .Values.worker.gpu.enabled }}
+            limits:
+              {{- if eq .Values.worker.gpu.type "nvidia" }}
+              nvidia.com/gpu: {{ .Values.worker.gpu.count }}
+              {{- else if eq .Values.worker.gpu.type "amd" }}
+              amd.com/gpu: {{ .Values.worker.gpu.count }}
+              {{- end }}
+            {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            {{- if .Values.worker.config.dockerEnabled }}
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            {{- end }}
+      volumes:
+        - name: data
+          emptyDir: {}
+        {{- if .Values.worker.config.dockerEnabled }}
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        {{- end }}
+      {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

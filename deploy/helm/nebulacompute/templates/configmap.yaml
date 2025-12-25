@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nebulacompute.fullname" . }}-config
+  labels:
+    {{- include "nebulacompute.labels" . | nindent 4 }}
+data:
+  # Storage configuration
+  STORAGE_BACKEND: {{ .Values.storage.backend | quote }}
+  {{- if eq .Values.storage.backend "sqlite" }}
+  SQLITE_PATH: {{ .Values.storage.sqlite.path | quote }}
+  {{- else if eq .Values.storage.backend "postgresql" }}
+  POSTGRES_HOST: {{ .Values.storage.postgresql.host | quote }}
+  POSTGRES_PORT: {{ .Values.storage.postgresql.port | quote }}
+  POSTGRES_DATABASE: {{ .Values.storage.postgresql.database | quote }}
+  POSTGRES_SSL_MODE: {{ .Values.storage.postgresql.sslMode | quote }}
+  {{- else if eq .Values.storage.backend "redis" }}
+  REDIS_HOST: {{ .Values.storage.redis.host | quote }}
+  REDIS_PORT: {{ .Values.storage.redis.port | quote }}
+  REDIS_DB: {{ .Values.storage.redis.db | quote }}
+  {{- end }}
+
+  # Monitoring configuration
+  METRICS_ENABLED: {{ .Values.monitoring.prometheus.enabled | quote }}
+
+  # Logging configuration
+  LOG_LEVEL: {{ .Values.logging.level | quote }}
+  LOG_FORMAT: {{ .Values.logging.format | quote }}
+
+  # Multi-tenancy configuration
+  MULTI_TENANCY_ENABLED: {{ .Values.multiTenancy.enabled | quote }}
+  {{- if .Values.multiTenancy.enabled }}
+  TENANT_ISOLATION: {{ .Values.multiTenancy.isolation | quote }}
+  DEFAULT_MAX_JOBS: {{ .Values.multiTenancy.defaultQuotas.maxJobs | quote }}
+  DEFAULT_MAX_WORKERS: {{ .Values.multiTenancy.defaultQuotas.maxWorkers | quote }}
+  DEFAULT_MAX_CPU: {{ .Values.multiTenancy.defaultQuotas.maxCPU | quote }}
+  DEFAULT_MAX_MEMORY: {{ .Values.multiTenancy.defaultQuotas.maxMemory | quote }}
+  {{- end }}
+
+  # Security configuration
+  AUTH_ENABLED: {{ .Values.security.auth.enabled | quote }}
+  AUTH_TYPE: {{ .Values.security.auth.type | quote }}
+  JWT_EXPIRATION: {{ .Values.security.auth.jwtExpiration | quote }}
+  RBAC_ENABLED: {{ .Values.security.rbac.enabled | quote }}
+  DEFAULT_ROLE: {{ .Values.security.rbac.defaultRole | quote }}
+
+  # Backup configuration
+  BACKUP_ENABLED: {{ .Values.backup.enabled | quote }}
+  {{- if .Values.backup.enabled }}
+  BACKUP_SCHEDULE: {{ .Values.backup.schedule | quote }}
+  BACKUP_STORAGE_TYPE: {{ .Values.backup.storage.type | quote }}
+  BACKUP_BUCKET: {{ .Values.backup.storage.bucket | quote }}
+  BACKUP_PREFIX: {{ .Values.backup.storage.prefix | quote }}
+  BACKUP_RETENTION_DAILY: {{ .Values.backup.retention.daily | quote }}
+  BACKUP_RETENTION_WEEKLY: {{ .Values.backup.retention.weekly | quote }}
+  BACKUP_RETENTION_MONTHLY: {{ .Values.backup.retention.monthly | quote }}
+  {{- end }}
+
+  # Cluster configuration
+  config.yaml: |
+    cluster:
+      name: {{ include "nebulacompute.fullname" . }}
+      namespace: {{ .Release.Namespace }}
+
+    master:
+      port: {{ .Values.master.service.port }}
+      maxJobs: {{ .Values.master.config.maxJobs }}
+      jobTimeout: {{ .Values.master.config.jobTimeout }}
+      heartbeatInterval: {{ .Values.master.config.heartbeatInterval }}
+      cleanupInterval: {{ .Values.master.config.cleanupInterval }}
+      {{- if .Values.master.ha.enabled }}
+      ha:
+        enabled: true
+        replicas: {{ .Values.master.ha.replicaCount }}
+      {{- end }}
+
+    worker:
+      maxConcurrentJobs: {{ .Values.worker.config.maxConcurrentJobs }}
+      heartbeatInterval: {{ .Values.worker.config.heartbeatInterval }}
+      dockerEnabled: {{ .Values.worker.config.dockerEnabled }}
+      gpuEnabled: {{ .Values.worker.gpu.enabled }}
+
+    storage:
+      backend: {{ .Values.storage.backend }}
+      {{- if eq .Values.storage.backend "sqlite" }}
+      sqlite:
+        path: {{ .Values.storage.sqlite.path }}
+      {{- end }}
+
+    security:
+      auth:
+        enabled: {{ .Values.security.auth.enabled }}
+        type: {{ .Values.security.auth.type }}
+      rbac:
+        enabled: {{ .Values.security.rbac.enabled }}
+        defaultRole: {{ .Values.security.rbac.defaultRole }}
+
+    monitoring:
+      prometheus:
+        enabled: {{ .Values.monitoring.prometheus.enabled }}
+      logging:
+        level: {{ .Values.logging.level }}
+        format: {{ .Values.logging.format }}
