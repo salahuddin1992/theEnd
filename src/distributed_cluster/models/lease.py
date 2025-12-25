@@ -27,7 +27,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional
 
@@ -70,7 +70,7 @@ class Lease:
     state: LeaseState = LeaseState.ACTIVE
 
     # Timing
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: Optional[datetime] = None
     last_renewed_at: Optional[datetime] = None
     released_at: Optional[datetime] = None
@@ -99,7 +99,7 @@ class Lease:
             duration_seconds: مدة الـ lease بالثواني
             idempotency_key: مفتاح لمنع التكرار
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         lease_id = cls._generate_lease_id(job_id, worker_id, now)
 
         return cls(
@@ -124,7 +124,7 @@ class Lease:
         """هل الـ lease فعّال؟"""
         if self.state != LeaseState.ACTIVE:
             return False
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and datetime.now(timezone.utc) > self.expires_at:
             return False
         return True
 
@@ -133,7 +133,7 @@ class Lease:
         """هل انتهت صلاحيته؟"""
         if self.state == LeaseState.EXPIRED:
             return True
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and datetime.now(timezone.utc) > self.expires_at:
             return True
         return False
 
@@ -142,7 +142,7 @@ class Lease:
         """الوقت المتبقي بالثواني."""
         if not self.expires_at:
             return float("inf")
-        remaining = (self.expires_at - datetime.utcnow()).total_seconds()
+        remaining = (self.expires_at - datetime.now(timezone.utc)).total_seconds()
         return max(0, remaining)
 
     @property
@@ -165,7 +165,7 @@ class Lease:
         if not self.is_active:
             return False
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if extension_seconds is None:
             # استخدم نفس المدة الأصلية
@@ -185,7 +185,7 @@ class Lease:
             reason: سبب التحرير
         """
         self.state = LeaseState.RELEASED
-        self.released_at = datetime.utcnow()
+        self.released_at = datetime.now(timezone.utc)
 
     def expire(self) -> None:
         """تعليم الـ lease كمنتهي الصلاحية."""
@@ -202,7 +202,7 @@ class Lease:
         - إعادة جدولة manual
         """
         self.state = LeaseState.REVOKED
-        self.released_at = datetime.utcnow()
+        self.released_at = datetime.now(timezone.utc)
 
     def validate_ownership(self, worker_id: str) -> bool:
         """
@@ -383,7 +383,7 @@ class LeaseManager:
 
         # Release
         lease.release(reason)
-        self._completed_leases[lease_id] = datetime.utcnow()
+        self._completed_leases[lease_id] = datetime.now(timezone.utc)
 
         # Cleanup mappings
         if lease.job_id in self._job_to_lease:
@@ -401,7 +401,7 @@ class LeaseManager:
         يُستدعى دورياً من Scheduler.
         """
         expired = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         for lease in list(self._leases.values()):
             if lease.state == LeaseState.ACTIVE and lease.expires_at:
@@ -449,7 +449,7 @@ class LeaseManager:
         Returns:
             عدد الـ leases المحذوفة
         """
-        cutoff = datetime.utcnow() - timedelta(hours=max_age_hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
         removed = 0
 
         for lease_id in list(self._leases.keys()):
