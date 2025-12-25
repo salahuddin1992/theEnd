@@ -493,15 +493,16 @@ class ConcurrencyLimiter:
         self._lock = asyncio.Lock()
 
     async def acquire(self) -> bool:
-        """Acquire a slot. Returns True if acquired."""
-        acquired = self._semaphore.locked() is False
-
-        if acquired:
-            await self._semaphore.acquire()
+        """Acquire a slot. Returns True if acquired, False if no slots available."""
+        try:
+            # Try to acquire without blocking using a zero timeout
+            await asyncio.wait_for(self._semaphore.acquire(), timeout=0)
             async with self._lock:
                 self._current += 1
-
-        return acquired
+            return True
+        except asyncio.TimeoutError:
+            # No slots available
+            return False
 
     async def release(self) -> None:
         """Release a slot."""
