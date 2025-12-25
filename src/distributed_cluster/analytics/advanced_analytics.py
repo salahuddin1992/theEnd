@@ -483,10 +483,6 @@ class WorkloadClassifier:
         if variance > 0.5:
             return WorkloadCategory.BURSTY
 
-        # Check for steady pattern
-        if variance < 0.1:
-            return WorkloadCategory.STEADY
-
         # Classify by dominant resource
         if gpu_ratio > 0.4:
             return WorkloadCategory.GPU_INTENSIVE
@@ -496,6 +492,10 @@ class WorkloadClassifier:
             return WorkloadCategory.MEMORY_INTENSIVE
         elif io_ratio > 0.4:
             return WorkloadCategory.IO_INTENSIVE
+
+                # Check for steady pattern (low variance without dominant resource)
+        elif variance < 0.1:
+                        return WorkloadCategory.STEADY
         else:
             return WorkloadCategory.BALANCED
 
