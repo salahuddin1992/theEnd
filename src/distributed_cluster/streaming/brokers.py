@@ -459,7 +459,7 @@ class RedisBroker(MessageBroker):
             import redis
 
             host = self.config.bootstrap_servers[0].split(":")[0] if self.config.bootstrap_servers else "localhost"
-            port = int(self.config.bootstrap_servers[0].split(":")[1]) if ":" in self.config.bootstrap_servers[0] else 6379
+            port = int(self.config.bootstrap_servers[0].split(":")[1]) if self.config.bootstrap_servers and ":" in self.config.bootstrap_servers[0] else 6379
 
             self._redis = redis.Redis(
                 host=host,
