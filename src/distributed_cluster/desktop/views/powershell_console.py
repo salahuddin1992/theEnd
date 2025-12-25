@@ -115,7 +115,7 @@ class ShellProcess(QProcess):
                 text=True
             )
             return result.returncode == 0
-        except:
+        except (OSError, subprocess.SubprocessError):
             return False
 
     def execute_command(self, command: str):
