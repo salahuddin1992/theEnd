@@ -1,0 +1,144 @@
+{{- if .Values.operator.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "nebulacompute.fullname" . }}-operator
+  labels:
+    {{- include "nebulacompute.operator.labels" . | nindent 4 }}
+rules:
+  # Core API resources
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/status
+      - pods/log
+      - services
+      - endpoints
+      - persistentvolumeclaims
+      - events
+      - configmaps
+      - secrets
+      - namespaces
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Apps API resources
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Batch API resources
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Autoscaling
+  - apiGroups: ["autoscaling"]
+    resources:
+      - horizontalpodautoscalers
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Networking
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+      - networkpolicies
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # RBAC
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # NebulaCompute CRDs
+  - apiGroups: ["nebulacompute.io"]
+    resources:
+      - clusters
+      - clusters/status
+      - clusters/finalizers
+      - workers
+      - workers/status
+      - jobs
+      - jobs/status
+      - tenants
+      - tenants/status
+      - backups
+      - backups/status
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Coordination for leader election
+  - apiGroups: ["coordination.k8s.io"]
+    resources:
+      - leases
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Admission webhooks
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources:
+      - validatingwebhookconfigurations
+      - mutatingwebhookconfigurations
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "nebulacompute.fullname" . }}-operator
+  labels:
+    {{- include "nebulacompute.operator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "nebulacompute.fullname" . }}-operator
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "nebulacompute.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "nebulacompute.fullname" . }}-leader-election
+  labels:
+    {{- include "nebulacompute.operator.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources:
+      - configmaps
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources:
+      - leases
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources:
+      - events
+    verbs: ["create", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "nebulacompute.fullname" . }}-leader-election
+  labels:
+    {{- include "nebulacompute.operator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "nebulacompute.fullname" . }}-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "nebulacompute.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

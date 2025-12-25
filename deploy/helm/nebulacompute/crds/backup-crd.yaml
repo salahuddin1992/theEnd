@@ -1,0 +1,273 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: backups.nebulacompute.io
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  labels:
+    app.kubernetes.io/name: nebulacompute
+    app.kubernetes.io/component: crd
+spec:
+  group: nebulacompute.io
+  names:
+    kind: Backup
+    listKind: BackupList
+    plural: backups
+    singular: backup
+    shortNames:
+      - ncb
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Status
+          type: string
+          jsonPath: .status.phase
+        - name: Type
+          type: string
+          jsonPath: .spec.type
+        - name: Size
+          type: string
+          jsonPath: .status.size
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          required:
+            - spec
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              required:
+                - clusterRef
+              properties:
+                clusterRef:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  description: "Reference to the cluster to backup"
+                type:
+                  type: string
+                  enum: ["full", "incremental", "snapshot"]
+                  default: "full"
+                  description: "Backup type"
+                schedule:
+                  type: string
+                  description: "Cron schedule for recurring backups"
+                storage:
+                  type: object
+                  required:
+                    - type
+                  properties:
+                    type:
+                      type: string
+                      enum: ["s3", "gcs", "azure", "local"]
+                    bucket:
+                      type: string
+                    prefix:
+                      type: string
+                      default: "backups"
+                    region:
+                      type: string
+                    endpoint:
+                      type: string
+                      description: "Custom S3 endpoint (for MinIO)"
+                    credentialsSecret:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        accessKeyKey:
+                          type: string
+                          default: "access-key"
+                        secretKeyKey:
+                          type: string
+                          default: "secret-key"
+                  description: "Backup storage configuration"
+                retention:
+                  type: object
+                  properties:
+                    keepLast:
+                      type: integer
+                      minimum: 1
+                      default: 10
+                    keepDaily:
+                      type: integer
+                      default: 7
+                    keepWeekly:
+                      type: integer
+                      default: 4
+                    keepMonthly:
+                      type: integer
+                      default: 3
+                    keepYearly:
+                      type: integer
+                      default: 1
+                  description: "Retention policy"
+                includes:
+                  type: array
+                  items:
+                    type: string
+                  description: "Resources to include in backup"
+                excludes:
+                  type: array
+                  items:
+                    type: string
+                  description: "Resources to exclude from backup"
+                compression:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: true
+                    algorithm:
+                      type: string
+                      enum: ["gzip", "lz4", "zstd"]
+                      default: "gzip"
+                    level:
+                      type: integer
+                      minimum: 1
+                      maximum: 9
+                      default: 6
+                  description: "Compression settings"
+                encryption:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: false
+                    keySecret:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        key:
+                          type: string
+                          default: "encryption-key"
+                  description: "Encryption settings"
+                hooks:
+                  type: object
+                  properties:
+                    preBackup:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          command:
+                            type: array
+                            items:
+                              type: string
+                          timeout:
+                            type: integer
+                            default: 300
+                    postBackup:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          command:
+                            type: array
+                            items:
+                              type: string
+                          timeout:
+                            type: integer
+                            default: 300
+                  description: "Backup hooks"
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum: ["Pending", "Running", "Completed", "Failed", "Deleting"]
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string
+                backupId:
+                  type: string
+                  description: "Unique backup identifier"
+                startedAt:
+                  type: string
+                  format: date-time
+                completedAt:
+                  type: string
+                  format: date-time
+                duration:
+                  type: string
+                  description: "Backup duration"
+                size:
+                  type: string
+                  description: "Backup size"
+                sizeBytes:
+                  type: integer
+                  format: int64
+                location:
+                  type: string
+                  description: "Backup storage location"
+                items:
+                  type: object
+                  properties:
+                    jobs:
+                      type: integer
+                    workers:
+                      type: integer
+                    events:
+                      type: integer
+                    configs:
+                      type: integer
+                  description: "Backed up item counts"
+                checksum:
+                  type: string
+                  description: "Backup checksum"
+                errors:
+                  type: array
+                  items:
+                    type: string
+                  description: "Backup errors"
+                warnings:
+                  type: array
+                  items:
+                    type: string
+                  description: "Backup warnings"
+                lastScheduledBackup:
+                  type: string
+                  format: date-time
+                nextScheduledBackup:
+                  type: string
+                  format: date-time
+                observedGeneration:
+                  type: integer
+                  format: int64

@@ -1,0 +1,419 @@
+# NebulaCompute Helm Chart Values
+# نظام الحوسبة الموزعة - إعدادات Helm
+
+# =============================================================================
+# Global Settings | الإعدادات العامة
+# =============================================================================
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# =============================================================================
+# Common Settings | الإعدادات المشتركة
+# =============================================================================
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: nebulacompute/nebulacompute
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+
+# =============================================================================
+# Master Configuration | إعدادات الـ Master
+# =============================================================================
+master:
+  enabled: true
+  replicaCount: 1
+
+  # High Availability
+  ha:
+    enabled: false
+    replicaCount: 3
+
+  image:
+    repository: ""  # Uses global image if empty
+    tag: ""
+    pullPolicy: ""
+
+  service:
+    type: ClusterIP
+    port: 8765
+    annotations: {}
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: nebulacompute.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Master specific configuration
+  config:
+    logLevel: INFO
+    maxJobs: 10000
+    jobTimeout: 3600
+    heartbeatInterval: 30
+    cleanupInterval: 300
+
+  # Persistence for state
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+    annotations: {}
+
+  # Metrics
+  metrics:
+    enabled: true
+    port: 9090
+    serviceMonitor:
+      enabled: false
+      interval: 30s
+      labels: {}
+
+# =============================================================================
+# Worker Configuration | إعدادات الـ Worker
+# =============================================================================
+worker:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Worker specific configuration
+  config:
+    logLevel: INFO
+    maxConcurrentJobs: 4
+    heartbeatInterval: 10
+    dockerEnabled: true
+    gpuEnabled: false
+
+  # GPU Support
+  gpu:
+    enabled: false
+    count: 1
+    type: nvidia  # nvidia, amd
+
+  # Autoscaling
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+    customMetrics: []
+
+  # Pod Disruption Budget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+# =============================================================================
+# Web Dashboard Configuration | إعدادات لوحة التحكم
+# =============================================================================
+web:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    hosts:
+      - host: dashboard.nebulacompute.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# =============================================================================
+# Operator Configuration | إعدادات الـ Operator
+# =============================================================================
+operator:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: nebulacompute/operator
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Leader election for HA
+  leaderElection:
+    enabled: true
+
+  # Webhook configuration
+  webhook:
+    enabled: true
+    port: 9443
+    certManager:
+      enabled: true
+      issuerRef:
+        name: selfsigned-issuer
+        kind: Issuer
+
+  # RBAC
+  rbac:
+    create: true
+
+# =============================================================================
+# Security Configuration | إعدادات الأمان
+# =============================================================================
+security:
+  # Authentication
+  auth:
+    enabled: true
+    type: jwt  # jwt, oauth2, ldap
+    jwtSecret: ""  # Will be auto-generated if empty
+    jwtExpiration: 24h
+
+  # RBAC
+  rbac:
+    enabled: true
+    defaultRole: viewer
+
+  # Network Policies
+  networkPolicy:
+    enabled: false
+    ingress: []
+    egress: []
+
+  # Pod Security Standards
+  podSecurityStandards:
+    enforce: restricted
+    audit: restricted
+    warn: restricted
+
+  # TLS/SSL
+  tls:
+    enabled: false
+    certManager:
+      enabled: false
+      issuerRef: {}
+    existingSecret: ""
+
+# =============================================================================
+# Storage Configuration | إعدادات التخزين
+# =============================================================================
+storage:
+  # State storage backend
+  backend: sqlite  # sqlite, postgresql, redis
+
+  # SQLite (embedded)
+  sqlite:
+    path: /data/cluster.db
+
+  # PostgreSQL
+  postgresql:
+    host: ""
+    port: 5432
+    database: nebulacompute
+    username: nebulacompute
+    password: ""
+    existingSecret: ""
+    sslMode: prefer
+
+  # Redis (for caching and HA)
+  redis:
+    host: ""
+    port: 6379
+    password: ""
+    existingSecret: ""
+    db: 0
+
+# =============================================================================
+# Monitoring Configuration | إعدادات المراقبة
+# =============================================================================
+monitoring:
+  # Prometheus
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+      namespace: ""
+      labels: {}
+      interval: 30s
+      scrapeTimeout: 10s
+
+  # Grafana Dashboards
+  grafana:
+    enabled: false
+    dashboards:
+      enabled: true
+      labels:
+        grafana_dashboard: "1"
+
+  # Alerting
+  alerting:
+    enabled: false
+    rules: []
+
+# =============================================================================
+# Logging Configuration | إعدادات السجلات
+# =============================================================================
+logging:
+  level: INFO
+  format: json  # json, text
+
+  # Elasticsearch/OpenSearch
+  elasticsearch:
+    enabled: false
+    host: ""
+    port: 9200
+    index: nebulacompute
+
+  # Loki
+  loki:
+    enabled: false
+    url: ""
+
+# =============================================================================
+# Multi-tenancy Configuration | إعدادات تعدد المستأجرين
+# =============================================================================
+multiTenancy:
+  enabled: false
+
+  # Isolation level
+  isolation: namespace  # namespace, cluster
+
+  # Default quotas per tenant
+  defaultQuotas:
+    maxJobs: 100
+    maxWorkers: 10
+    maxCPU: "100"
+    maxMemory: "200Gi"
+    maxGPU: 4
+    maxStorage: "500Gi"
+
+# =============================================================================
+# Backup Configuration | إعدادات النسخ الاحتياطي
+# =============================================================================
+backup:
+  enabled: false
+
+  # Schedule (cron format)
+  schedule: "0 2 * * *"  # Daily at 2 AM
+
+  # Retention
+  retention:
+    daily: 7
+    weekly: 4
+    monthly: 3
+
+  # Storage backend
+  storage:
+    type: s3  # s3, gcs, azure, local
+    bucket: ""
+    prefix: nebulacompute-backups
+    credentials:
+      existingSecret: ""
+
+# =============================================================================
+# Redis Subchart Configuration
+# =============================================================================
+redis:
+  enabled: false
+  architecture: standalone
+  auth:
+    enabled: true
+    password: ""
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# =============================================================================
+# PostgreSQL Subchart Configuration
+# =============================================================================
+postgresql:
+  enabled: false
+  auth:
+    postgresPassword: ""
+    username: nebulacompute
+    password: ""
+    database: nebulacompute
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi

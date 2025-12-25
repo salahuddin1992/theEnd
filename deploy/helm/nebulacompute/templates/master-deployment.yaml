@@ -1,0 +1,133 @@
+{{- if .Values.master.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nebulacompute.fullname" . }}-master
+  labels:
+    {{- include "nebulacompute.master.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.master.ha.enabled }}
+  replicas: {{ .Values.master.replicaCount }}
+  {{- else }}
+  replicas: {{ .Values.master.ha.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "nebulacompute.master.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "nebulacompute.master.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "nebulacompute.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: master
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "nebulacompute.master.image" . }}
+          imagePullPolicy: {{ .Values.master.image.pullPolicy | default .Values.image.pullPolicy }}
+          command:
+            - dc-master
+            - start
+            - --host=0.0.0.0
+            - --port={{ .Values.master.service.port }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.master.service.port }}
+              protocol: TCP
+            {{- if .Values.master.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.master.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LOG_LEVEL
+              value: {{ .Values.master.config.logLevel | quote }}
+            - name: MAX_JOBS
+              value: {{ .Values.master.config.maxJobs | quote }}
+            - name: JOB_TIMEOUT
+              value: {{ .Values.master.config.jobTimeout | quote }}
+            {{- if .Values.security.auth.enabled }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nebulacompute.fullname" . }}-secrets
+                  key: jwt-secret
+            {{- end }}
+            {{- if .Values.master.ha.enabled }}
+            - name: HA_ENABLED
+              value: "true"
+            - name: HA_REPLICAS
+              value: {{ .Values.master.ha.replicaCount | quote }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "nebulacompute.fullname" . }}-config
+          resources:
+            {{- toYaml .Values.master.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /etc/nebulacompute
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "nebulacompute.fullname" . }}-config
+        {{- if .Values.master.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "nebulacompute.fullname" . }}-master-data
+        {{- else }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.master.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.master.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.master.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
