@@ -47,6 +47,43 @@ from distributed_cluster.network.network_stack import (
     NetworkStackManager,
 )
 
+# Load Balancer
+from distributed_cluster.network.load_balancer import (
+    LoadBalancer,
+    LoadBalancerAlgorithm,
+    LoadBalancerPool,
+    LoadBalancerStrategy,
+    Backend,
+    BackendStatus,
+    LoadBalancerStats,
+    RoundRobinStrategy,
+    WeightedRoundRobinStrategy,
+    LeastConnectionsStrategy,
+    IPHashStrategy,
+    LeastResponseTimeStrategy,
+    RandomStrategy,
+    ConsistentHashStrategy,
+    load_balancer_pool,
+    get_load_balancer,
+    create_load_balancer,
+)
+
+# Service Discovery
+from distributed_cluster.network.service_discovery import (
+    ServiceRegistry,
+    ServiceInstance,
+    ServiceDefinition,
+    ServiceStatus,
+    ServiceDiscoveryBackend,
+    InMemoryBackend,
+    ConsulBackend,
+    EtcdBackend,
+    get_registry,
+    set_registry,
+    register_service,
+    discover_services,
+)
+
 __all__ = [
     # Local Network
     "DeviceInfo",
@@ -82,4 +119,35 @@ __all__ = [
     "NodeIdentity",
     "NetworkNode",
     "NetworkStackManager",
+    # Load Balancer
+    "LoadBalancer",
+    "LoadBalancerAlgorithm",
+    "LoadBalancerPool",
+    "LoadBalancerStrategy",
+    "Backend",
+    "BackendStatus",
+    "LoadBalancerStats",
+    "RoundRobinStrategy",
+    "WeightedRoundRobinStrategy",
+    "LeastConnectionsStrategy",
+    "IPHashStrategy",
+    "LeastResponseTimeStrategy",
+    "RandomStrategy",
+    "ConsistentHashStrategy",
+    "load_balancer_pool",
+    "get_load_balancer",
+    "create_load_balancer",
+    # Service Discovery
+    "ServiceRegistry",
+    "ServiceInstance",
+    "ServiceDefinition",
+    "ServiceStatus",
+    "ServiceDiscoveryBackend",
+    "InMemoryBackend",
+    "ConsulBackend",
+    "EtcdBackend",
+    "get_registry",
+    "set_registry",
+    "register_service",
+    "discover_services",
 ]
