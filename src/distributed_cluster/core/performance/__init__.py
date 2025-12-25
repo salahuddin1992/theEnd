@@ -108,6 +108,41 @@ from distributed_cluster.core.performance.benchmarking import (
     compare_functions,
 )
 
+# Unified Resilience Module
+from distributed_cluster.core.performance.resilience import (
+    # Health states and events
+    HealthState,
+    ResilienceEvent,
+    ResilienceEventData,
+    ResilienceEventListener,
+    LoggingEventListener,
+    # Enhanced Circuit Breaker
+    EnhancedCircuitState,
+    EnhancedCircuitBreakerConfig,
+    EnhancedCircuitBreakerStats,
+    EnhancedCircuitBreakerError,
+    EnhancedCircuitOpenError,
+    EnhancedCircuitBreaker,
+    # Rate Limiters
+    SlidingWindowCounterConfig,
+    SlidingWindowCounterResult,
+    SlidingWindowCounterLimiter,
+    TokenBucketConfig,
+    TokenBucketRateLimiter,
+    RateLimitStrategy,
+    UnifiedRateLimitConfig,
+    UnifiedRateLimiter,
+    # Health Monitoring
+    HealthCheckResult,
+    HealthMonitor,
+    # Resilience Manager
+    ResilienceConfig,
+    ResilienceManager,
+    # Factory and Decorators
+    get_resilience_manager,
+    resilient,
+)
+
 __all__ = [
     # Async I/O
     "AsyncFileReader",
@@ -179,4 +214,30 @@ __all__ = [
     "quick_benchmark",
     "quick_async_benchmark",
     "compare_functions",
+    # Unified Resilience Module
+    "HealthState",
+    "ResilienceEvent",
+    "ResilienceEventData",
+    "ResilienceEventListener",
+    "LoggingEventListener",
+    "EnhancedCircuitState",
+    "EnhancedCircuitBreakerConfig",
+    "EnhancedCircuitBreakerStats",
+    "EnhancedCircuitBreakerError",
+    "EnhancedCircuitOpenError",
+    "EnhancedCircuitBreaker",
+    "SlidingWindowCounterConfig",
+    "SlidingWindowCounterResult",
+    "SlidingWindowCounterLimiter",
+    "TokenBucketConfig",
+    "TokenBucketRateLimiter",
+    "RateLimitStrategy",
+    "UnifiedRateLimitConfig",
+    "UnifiedRateLimiter",
+    "HealthCheckResult",
+    "HealthMonitor",
+    "ResilienceConfig",
+    "ResilienceManager",
+    "get_resilience_manager",
+    "resilient",
 ]
