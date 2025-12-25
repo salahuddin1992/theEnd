@@ -481,6 +481,7 @@ class FaultInjector:
         config: Dict[str, Any],
     ) -> None:
         """Fill disk space."""
+        # nosec B108 - chaos testing requires predictable temp path
         path = config.get("path", "/tmp/chaos-fill")
         size_mb = config.get("size_mb", 100)
 
@@ -544,6 +545,7 @@ class FaultInjector:
 
         elif fault_type == FaultType.DISK_FILL:
             # Remove fill file
+            # nosec B108 - chaos testing requires predictable temp path
             path = config.get("path", "/tmp/chaos-fill")
             if os.path.exists(path):
                 os.remove(path)

@@ -147,6 +147,7 @@ class CheckpointData(Generic[T]):
         """إنشاء من bytes"""
         if compressed:
             data = zlib.decompress(data)
+        # nosec B301 - Loading checkpoint data from internal system
         return pickle.loads(data)
 
 

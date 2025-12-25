@@ -244,10 +244,12 @@ class HuggingFaceLoader(ModelLoader):
         device = self._get_device(spec)
 
         # Load tokenizer
+        # nosec B615 - model_id is user-specified, revision pinning is optional via spec
         tokenizer = AutoTokenizer.from_pretrained(
             model_id,
             cache_dir=self.config.cache_dir,
             trust_remote_code=self.config.trust_remote_code,
+            revision=spec.revision if spec and hasattr(spec, 'revision') else None,
         )
 
         # Load model
@@ -266,6 +268,10 @@ class HuggingFaceLoader(ModelLoader):
         if spec and spec.quantization:
             model_kwargs.update(self._get_quantization_config(spec.quantization))
 
+        if spec and hasattr(spec, 'revision') and spec.revision:
+            model_kwargs["revision"] = spec.revision
+
+        # nosec B615 - model_id is user-specified, revision pinning is optional via spec
         model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
 
         # Get memory usage
@@ -340,17 +346,21 @@ class HuggingFaceLoader(ModelLoader):
         device = self._get_device(spec)
         dtype = self._get_dtype(spec)
 
+        # nosec B615 - model_id is user-specified, revision pinning is optional via spec
         tokenizer = AutoTokenizer.from_pretrained(
             model_id,
             cache_dir=self.config.cache_dir,
             trust_remote_code=self.config.trust_remote_code,
+            revision=spec.revision if spec and hasattr(spec, 'revision') else None,
         )
 
+        # nosec B615 - model_id is user-specified, revision pinning is optional via spec
         model = AutoModel.from_pretrained(
             model_id,
             cache_dir=self.config.cache_dir,
             trust_remote_code=self.config.trust_remote_code,
             torch_dtype=dtype,
+            revision=spec.revision if spec and hasattr(spec, 'revision') else None,
         )
 
         memory_mb = self._estimate_memory(model)

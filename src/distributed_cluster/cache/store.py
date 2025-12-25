@@ -518,6 +518,7 @@ class CacheStore:
 
         try:
             with open(path, "rb") as f:
+                # nosec B301 - Loading from local file created by this system
                 data = pickle.load(f)
 
             count = 0

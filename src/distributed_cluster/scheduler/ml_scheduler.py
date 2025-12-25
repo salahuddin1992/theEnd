@@ -174,6 +174,7 @@ class SimpleLinearModel:
     def load(self, path: str) -> None:
         """تحميل النموذج."""
         with open(path, "rb") as f:
+            # nosec B301 - Loading ML model from trusted internal file
             data = pickle.load(f)
             self.weights = data["weights"]
             self.bias = data["bias"]

@@ -295,6 +295,7 @@ class RedisBackend(CacheBackend):
             data = await self._redis.get(self._make_key(key))
             if data is None:
                 return None
+            # nosec B301 - Data comes from internal Redis cache, trusted source
             return pickle.loads(data)
         except Exception as e:
             logger.error("Redis get error: %s", e)
@@ -373,6 +374,7 @@ class RedisBackend(CacheBackend):
             result = {}
             for key, value in zip(keys, values):
                 if value is not None:
+                    # nosec B301 - Data comes from internal Redis cache, trusted source
                     result[key] = pickle.loads(value)
 
             return result

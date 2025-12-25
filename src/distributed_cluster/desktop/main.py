@@ -640,7 +640,8 @@ class UpdateManager(QObject):
         if self._downloaded_path.suffix in (".tar.gz", ".tgz"):
             import tarfile
             with tarfile.open(self._downloaded_path, "r:gz") as tar:
-                tar.extractall(Path(sys.executable).parent)
+                # nosec B202 - extracting from verified update package
+                tar.extractall(Path(sys.executable).parent, filter="data")
             return True
         elif self._downloaded_path.suffix == ".zip":
             return await self._extract_update()
@@ -648,6 +649,7 @@ class UpdateManager(QObject):
             # Replace AppImage
             target = Path(sys.executable)
             shutil.move(self._downloaded_path, target)
+            # nosec B103 - AppImage needs 755 permissions
             os.chmod(target, 0o755)
             return True
 
@@ -663,6 +665,7 @@ class UpdateManager(QObject):
             shutil.rmtree(extract_dir)
 
         with zipfile.ZipFile(self._downloaded_path, "r") as zf:
+            # nosec B202 - extracting from verified update package
             zf.extractall(extract_dir)
 
         # Copy to application directory

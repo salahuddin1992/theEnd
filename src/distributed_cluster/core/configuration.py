@@ -32,7 +32,8 @@ def _get_default_temp_dir() -> str:
         # On Windows, use %TEMP%/nebula or %LOCALAPPDATA%/nebula
         base = os.environ.get("LOCALAPPDATA", tempfile.gettempdir())
         return str(Path(base) / "nebula")
-    return "/tmp/nebula"
+    # nosec B108 - using system temp directory for job files
+    return str(Path(tempfile.gettempdir()) / "nebula")
 
 
 class ConfigError(Exception):
@@ -50,6 +51,7 @@ class ConfigError(Exception):
 class ServerConfig:
     """إعدادات السيرفر."""
 
+    # nosec B104 - 0.0.0.0 is intentional for distributed system binding
     host: str = "0.0.0.0"
     port: int = 8080
     workers: int = 4

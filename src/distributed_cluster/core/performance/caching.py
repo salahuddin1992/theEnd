@@ -247,7 +247,8 @@ def _make_key(*args: Any, **kwargs: Any) -> str:
         sort_keys=True,
         default=str,
     )
-    return hashlib.md5(key_data.encode()).hexdigest()
+    # nosec B324 - MD5 used for cache key generation, not security
+    return hashlib.md5(key_data.encode(), usedforsecurity=False).hexdigest()
 
 
 def memoize(

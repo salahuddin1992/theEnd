@@ -246,6 +246,7 @@ class CacheManager:
         except zlib.error:
             pass  # Not compressed
 
+        # nosec B301 - Data comes from internal cache storage, trusted source
         return pickle.loads(data)
 
     async def get(

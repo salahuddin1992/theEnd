@@ -662,6 +662,7 @@ def inject_secrets(
             env.update(env_vars)
 
             console.print(f"[dim]Executing with {len(env_vars)} secret(s)...[/dim]")
+            # nosec B602 - shell=True required for user-provided shell commands
             result = subprocess.run(command, shell=True, env=env)
             raise typer.Exit(result.returncode)
         else:

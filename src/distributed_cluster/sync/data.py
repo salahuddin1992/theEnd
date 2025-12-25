@@ -49,13 +49,15 @@ class DataChunk:
 
     def __post_init__(self):
         if not self.checksum:
-            self.checksum = hashlib.md5(self.data).hexdigest()
+            # nosec B324 - MD5 used for data integrity check, not security
+            self.checksum = hashlib.md5(self.data, usedforsecurity=False).hexdigest()
         if not self.size_bytes:
             self.size_bytes = len(self.data)
 
     def verify(self) -> bool:
         """التحقق من صحة القطعة."""
-        return hashlib.md5(self.data).hexdigest() == self.checksum
+        # nosec B324 - MD5 used for data integrity check, not security
+        return hashlib.md5(self.data, usedforsecurity=False).hexdigest() == self.checksum
 
     def compress(self) -> DataChunk:
         """ضغط القطعة."""

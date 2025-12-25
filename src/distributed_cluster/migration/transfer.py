@@ -302,7 +302,8 @@ class StateTransfer:
                         offset=chunk_id * self.chunk_size,
                         size=len(data),
                         data=data,
-                        checksum=hashlib.md5(data).hexdigest(),
+                        # nosec B324 - MD5 used for data integrity check, not security
+                        checksum=hashlib.md5(data, usedforsecurity=False).hexdigest(),
                         is_last=len(data) < self.chunk_size,
                     )
 
@@ -439,7 +440,8 @@ class StateTransfer:
 
                     # Verify checksum
                     if self.verify_checksums:
-                        calculated = hashlib.md5(chunk.data).hexdigest()
+                        # nosec B324 - MD5 used for data integrity check, not security
+                        calculated = hashlib.md5(chunk.data, usedforsecurity=False).hexdigest()
                         if calculated != chunk.checksum:
                             raise RuntimeError(
                                 f"Checksum mismatch for chunk {chunk.chunk_id}"

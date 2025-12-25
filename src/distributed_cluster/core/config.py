@@ -18,7 +18,7 @@ from typing import Optional
 class MasterConfig:
     """إعدادات الـ Master / Control Plane."""
 
-    # Network
+    # Network - nosec B104: 0.0.0.0 is intentional for distributed system binding
     host: str = "0.0.0.0"
     port: int = 8765
     api_prefix: str = "/api/v1"

@@ -654,6 +654,7 @@ class CalculatorTool(Tool):
             # Sanitize expression
             expression = expression.replace("^", "**")
 
+            # nosec B307 - eval used with restricted builtins and safe_dict whitelist
             result = eval(expression, {"__builtins__": {}}, safe_dict)
 
             return ToolResult(

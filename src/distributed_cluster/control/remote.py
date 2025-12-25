@@ -295,6 +295,7 @@ class RemoteController:
                     text=True,
                 )
             else:
+                # nosec B602 - shell mode is configurable and controlled by admin
                 result = subprocess.run(
                     command,
                     shell=shell,

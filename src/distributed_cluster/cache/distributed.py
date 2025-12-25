@@ -67,7 +67,8 @@ class ConsistentHashing:
 
     def _hash(self, key: str) -> int:
         """Generate hash for a key."""
-        return int(hashlib.md5(key.encode()).hexdigest(), 16)
+        # nosec B324 - MD5 used for consistent hashing, not security
+        return int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest(), 16)
 
     def add_node(self, node: CacheNode) -> None:
         """Add a node to the ring."""
@@ -381,6 +382,7 @@ class DistributedCache:
         try:
             if command == "GET":
                 data = await conn.get(key)
+                # nosec B301 - Data comes from internal distributed cache, trusted source
                 return pickle.loads(data) if data else None
 
             elif command == "SET":

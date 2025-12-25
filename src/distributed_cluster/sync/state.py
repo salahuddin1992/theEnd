@@ -53,7 +53,8 @@ class StateDelta:
     def _compute_checksum(self) -> str:
         """حساب checksum."""
         data = f"{self.key}:{json.dumps(self.value, sort_keys=True)}:{self.version}"
-        return hashlib.md5(data.encode()).hexdigest()[:8]
+        # nosec B324 - MD5 used for checksum, not security
+        return hashlib.md5(data.encode(), usedforsecurity=False).hexdigest()[:8]
 
     def to_dict(self) -> Dict[str, Any]:
         """تحويل إلى dictionary."""
