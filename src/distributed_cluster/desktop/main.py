@@ -757,3 +757,22 @@ class UpdateManager(QObject):
 
 # Global update manager
 update_manager = UpdateManager()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN ENTRY POINT
+# نقطة الدخول الرئيسية
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def main():
+    """
+    Main entry point for the desktop application.
+    نقطة الدخول الرئيسية لتطبيق سطح المكتب
+    """
+    # Import here to avoid circular imports
+    from distributed_cluster.desktop.app_entry import cli_main
+    cli_main()
+
+
+if __name__ == "__main__":
+    main()
