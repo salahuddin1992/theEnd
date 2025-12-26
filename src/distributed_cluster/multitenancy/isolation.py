@@ -191,8 +191,9 @@ class TenantIsolator:
         # Check image restrictions
         if policy.level in (IsolationLevel.DEDICATED, IsolationLevel.NAMESPACE):
             image = job_spec.get("image", "")
-            # TODO: Add image registry validation
-            pass
+            # Validate image registry
+            if not self._validate_image_registry(tenant_id, image, policy):
+                errors.append(f"Image '{image}' not allowed by tenant isolation policy")
 
         # Check network access
         if policy.network_isolated and not policy.allow_egress:
@@ -202,10 +203,137 @@ class TenantIsolator:
         # Check resource requests against dedicated nodes
         if policy.level == IsolationLevel.DEDICATED:
             resources = job_spec.get("resources", {})
-            # TODO: Validate against dedicated node capacity
-            pass
+            # Validate against dedicated node capacity
+            capacity_valid, capacity_error = self._validate_dedicated_node_capacity(
+                tenant_id, resources, policy
+            )
+            if not capacity_valid:
+                errors.append(capacity_error)
 
         return len(errors) == 0, errors
+
+    def _validate_image_registry(
+        self,
+        tenant_id: str,
+        image: str,
+        policy: IsolationPolicy,
+    ) -> bool:
+        """
+        التحقق من صحة سجل الصور
+        Validate image registry against tenant policy
+
+        Args:
+            tenant_id: Tenant identifier
+            image: Container image name
+            policy: Tenant isolation policy
+
+        Returns:
+            True if image is allowed
+        """
+        if not image:
+            return False
+
+        # Default allowed registries
+        default_allowed = [
+            "docker.io",
+            "gcr.io",
+            "ghcr.io",
+            "quay.io",
+            "registry.k8s.io",
+        ]
+
+        # Get allowed registries from policy metadata
+        allowed_registries = policy.metadata.get("allowed_registries", default_allowed) if hasattr(policy, 'metadata') else default_allowed
+
+        # Parse image to extract registry
+        registry = self._extract_registry(image)
+
+        # Check if registry is allowed
+        if registry in allowed_registries:
+            return True
+
+        # Check for private registry patterns
+        if policy.level == IsolationLevel.DEDICATED:
+            # Dedicated tenants can use private registries
+            private_registry_pattern = f"{tenant_id}.registry"
+            if registry.startswith(private_registry_pattern):
+                return True
+
+        return False
+
+    def _extract_registry(self, image: str) -> str:
+        """Extract registry from image name"""
+        # Handle images like "nginx" (docker.io), "gcr.io/project/image"
+        if "/" not in image:
+            return "docker.io"
+
+        parts = image.split("/")
+        first_part = parts[0]
+
+        # Check if first part looks like a registry (contains . or :)
+        if "." in first_part or ":" in first_part:
+            return first_part.split(":")[0]
+
+        # Otherwise it's docker.io with a namespace
+        return "docker.io"
+
+    def _validate_dedicated_node_capacity(
+        self,
+        tenant_id: str,
+        resources: Dict[str, Any],
+        policy: IsolationPolicy,
+    ) -> tuple[bool, str]:
+        """
+        التحقق من سعة العقد المخصصة
+        Validate resources against dedicated node capacity
+
+        Args:
+            tenant_id: Tenant identifier
+            resources: Requested resources
+            policy: Tenant isolation policy
+
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        if not policy.dedicated_nodes:
+            return True, ""
+
+        # Get requested resources
+        requested_cpu = resources.get("cpu", 0)
+        requested_memory = resources.get("memory_mb", 0)
+        requested_gpu = resources.get("gpu", 0)
+
+        # Get dedicated node capacity from policy metadata
+        node_capacity = getattr(policy, 'metadata', {}).get("node_capacity", {}) if hasattr(policy, 'metadata') else {}
+
+        if not node_capacity:
+            # If no capacity info, assume sufficient capacity
+            return True, ""
+
+        total_cpu = node_capacity.get("total_cpu", float("inf"))
+        total_memory = node_capacity.get("total_memory_mb", float("inf"))
+        total_gpu = node_capacity.get("total_gpu", float("inf"))
+        used_cpu = node_capacity.get("used_cpu", 0)
+        used_memory = node_capacity.get("used_memory_mb", 0)
+        used_gpu = node_capacity.get("used_gpu", 0)
+
+        available_cpu = total_cpu - used_cpu
+        available_memory = total_memory - used_memory
+        available_gpu = total_gpu - used_gpu
+
+        # Check CPU
+        if requested_cpu > available_cpu:
+            return False, f"Insufficient CPU: requested {requested_cpu}, available {available_cpu}"
+
+        # Check Memory
+        if requested_memory > available_memory:
+            return False, f"Insufficient memory: requested {requested_memory}MB, available {available_memory}MB"
+
+        # Check GPU
+        if requested_gpu > available_gpu:
+            return False, f"Insufficient GPU: requested {requested_gpu}, available {available_gpu}"
+
+        return True, ""
 
     def apply_isolation_to_job(
         self,

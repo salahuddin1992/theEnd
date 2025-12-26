@@ -500,7 +500,7 @@ class WorkloadClassifier:
         if variance > 0.5:
             return WorkloadCategory.BURSTY
 
-        # Classify by dominant resource ratio
+        # Classify by dominant resource
         if gpu_ratio > 0.4:
             return WorkloadCategory.GPU_INTENSIVE
         elif cpu_ratio > 0.4:
@@ -510,11 +510,11 @@ class WorkloadClassifier:
         elif io_ratio > 0.4:
             return WorkloadCategory.IO_INTENSIVE
 
-        # Check for steady pattern (low variance, balanced resources)
-        if variance < 0.1:
-            return WorkloadCategory.STEADY
-
-        return WorkloadCategory.BALANCED
+                # Check for steady pattern (low variance without dominant resource)
+        elif variance < 0.1:
+                        return WorkloadCategory.STEADY
+        else:
+            return WorkloadCategory.BALANCED
 
     async def get_profile(self, job_type: str) -> Optional[WorkloadProfile]:
         """Get workload profile for a job type."""

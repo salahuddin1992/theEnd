@@ -6,7 +6,7 @@ Tests for job lease management and idempotency.
 """
 
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -28,8 +28,8 @@ class TestLeaseBasic:
             job_id="job-1",
             worker_id="worker-1",
             state=LeaseState.ACTIVE,
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(minutes=5),
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         )
 
         assert lease.lease_id == "lease-1"
@@ -43,8 +43,8 @@ class TestLeaseBasic:
             job_id="job-1",
             worker_id="worker-1",
             state=LeaseState.ACTIVE,
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(minutes=5),
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
         )
         assert not active_lease.is_expired
 
@@ -54,8 +54,8 @@ class TestLeaseBasic:
             job_id="job-2",
             worker_id="worker-1",
             state=LeaseState.ACTIVE,
-            created_at=datetime.utcnow() - timedelta(minutes=10),
-            expires_at=datetime.utcnow() - timedelta(minutes=5),
+            created_at=datetime.now(timezone.utc) - timedelta(minutes=10),
+            expires_at=datetime.now(timezone.utc) - timedelta(minutes=5),
         )
         assert expired_lease.is_expired
 
@@ -81,7 +81,7 @@ class TestLeaseManager:
         assert lease.job_id == "job-1"
         assert lease.worker_id == "worker-1"
         assert lease.state == LeaseState.ACTIVE
-        assert lease.expires_at > datetime.utcnow()
+        assert lease.expires_at > datetime.now(timezone.utc)
 
     def test_create_duplicate_lease_fails(self, lease_manager: LeaseManager):
         """Test that creating duplicate lease for same job fails."""
