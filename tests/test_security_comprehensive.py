@@ -525,7 +525,7 @@ class TestPasswordValidator:
     def test_weak_password_rejected(self):
         """Test weak password rejection."""
         from distributed_cluster.security.account import (
-            PasswordValidator, PasswordPolicy
+            PasswordValidator, PasswordPolicy, PasswordStrength
         )
 
         policy = PasswordPolicy(min_length=12, min_strength=PasswordStrength.STRONG)
@@ -634,9 +634,11 @@ class TestAccountSecurityManager:
 
     def test_change_password(self):
         """Test password change."""
-        from distributed_cluster.security.account import AccountSecurityManager
+        from distributed_cluster.security.account import AccountSecurityManager, PasswordPolicy
 
-        manager = AccountSecurityManager()
+        # Use policy with no minimum password age to allow immediate change
+        policy = PasswordPolicy(min_password_age_hours=0)
+        manager = AccountSecurityManager(policy=policy)
         old_password = "Str0ng!Pass#2024"
         new_password = "New$ecure!Pass99"
 
@@ -648,7 +650,7 @@ class TestAccountSecurityManager:
             new_password,
         )
 
-        assert success
+        assert success, f"Password change failed: {error}"
 
         # Old password should not work
         success, _, _ = manager.verify_password("user-123", old_password)
@@ -676,10 +678,12 @@ class TestAccountSecurityManager:
         manager.change_password("user-123", password1, password2)
 
         # Try to reuse password1
-        success, error, _ = manager.change_password("user-123", password2, password1)
+        success, error, validation = manager.change_password("user-123", password2, password1)
 
         assert not success
-        assert "used recently" in error.lower()
+        # Check that password history error is in validation errors
+        assert validation is not None
+        assert any("used recently" in e.lower() for e in validation.errors)
 
 
 # ====================== mTLS Tests ======================

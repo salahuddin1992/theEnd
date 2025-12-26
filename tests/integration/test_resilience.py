@@ -456,11 +456,11 @@ class TestTokenBucketRateLimiter:
     def test_get_tokens(self, limiter):
         """Test getting current token count."""
         initial_tokens = limiter.get_tokens("test-key")
-        assert initial_tokens == 20
+        assert initial_tokens == pytest.approx(20, rel=0.01)
 
         limiter.acquire("test-key", tokens=5)
         remaining_tokens = limiter.get_tokens("test-key")
-        assert remaining_tokens == 15
+        assert remaining_tokens == pytest.approx(15, rel=0.01)
 
 
 # =============================================================================

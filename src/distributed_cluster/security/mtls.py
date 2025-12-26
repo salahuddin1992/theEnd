@@ -639,8 +639,8 @@ class CertificateAuthority:
                 serial_number=str(certificate.serial_number),
                 subject={"CN": common_name, "O": self.organization},
                 issuer={"CN": self._ca_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value},
-                not_before=certificate.not_valid_before_utc.replace(tzinfo=None),
-                not_after=certificate.not_valid_after_utc.replace(tzinfo=None),
+                not_before=certificate.not_valid_before,
+                not_after=certificate.not_valid_after,
                 fingerprint_sha256=certificate.fingerprint(hashes.SHA256()).hex(),
                 cert_type=cert_type,
                 node_id=node_id,
@@ -683,9 +683,9 @@ class CertificateAuthority:
 
             # Check validity period
             now = datetime.utcnow()
-            if now < cert.not_valid_before_utc.replace(tzinfo=None):
+            if now < cert.not_valid_before:
                 return False, "Certificate not yet valid", None
-            if now > cert.not_valid_after_utc.replace(tzinfo=None):
+            if now > cert.not_valid_after:
                 return False, "Certificate expired", None
 
             # Verify signature
@@ -710,8 +710,8 @@ class CertificateAuthority:
                 serial_number=str(cert.serial_number),
                 subject={"CN": cn},
                 issuer={"CN": self._ca_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value},
-                not_before=cert.not_valid_before_utc.replace(tzinfo=None),
-                not_after=cert.not_valid_after_utc.replace(tzinfo=None),
+                not_before=cert.not_valid_before,
+                not_after=cert.not_valid_after,
                 fingerprint_sha256=cert.fingerprint(hashes.SHA256()).hex(),
                 cert_type=CertificateType.CLIENT,  # Will be determined later
             )
