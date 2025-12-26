@@ -6,7 +6,7 @@ API Client for communicating with NebulaCompute Master Server
 import asyncio
 import json
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 import httpx
 import websockets
@@ -50,7 +50,7 @@ class APIClient(QObject):
         self.ws_url = base_url.replace("http", "ws") + "/ws"
         self.token = token
         self._client: Optional[httpx.AsyncClient] = None
-        self._ws: Optional[websockets.WebSocketClientProtocol] = None
+        self._ws: Optional[Any] = None  # websockets connection
         self._ws_task: Optional[asyncio.Task] = None
         self._running = False
 
