@@ -17,7 +17,23 @@ import os
 import shutil
 import subprocess
 import sys
+import io
+
+# Fix Unicode encoding issues on Windows
+if sys.platform == 'win32':
+        try:
+                    # Try to set UTF-8 encoding for stdout/stderr
+                    if hasattr(sys.stdout, 'reconfigure'):
+                                    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+                                    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+                    else:
+                                    # Python < 3.7 fallback
+                                    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+                                    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+        except Exception:
+                    pass  # Ignore if reconfiguration fails
 from pathlib import Path
+
 
 
 def get_project_root():
@@ -62,7 +78,7 @@ def clean_build():
     for dir_name in dirs_to_clean:
         dir_path = project_root / dir_name
         if dir_path.exists():
-            print(f"🧹 Cleaning {dir_path}...")
+            safe_print(f"[CLEAN] Cleaning {dir_path}...")
             try:
                 # Python 3.12+ uses onexc, older versions use onerror
                 if sys.version_info >= (3, 12):
