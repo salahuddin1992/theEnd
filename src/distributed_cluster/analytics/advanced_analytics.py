@@ -469,7 +469,24 @@ class WorkloadClassifier:
         variance: float,
     ) -> WorkloadCategory:
         """Determine workload category based on resource usage."""
-        # Normalize values
+        # Check absolute thresholds first for high-intensity workloads
+        # GPU-intensive: GPU usage above 70%
+        if gpu > 70:
+            return WorkloadCategory.GPU_INTENSIVE
+
+        # CPU-intensive: CPU usage above 70% and low GPU
+        if cpu > 70 and gpu < 20:
+            return WorkloadCategory.CPU_INTENSIVE
+
+        # Memory-intensive: memory usage above 70% and moderate CPU
+        if memory > 70 and cpu < 50:
+            return WorkloadCategory.MEMORY_INTENSIVE
+
+        # IO-intensive: high IO with moderate CPU/memory
+        if io > 50 and cpu < 50:
+            return WorkloadCategory.IO_INTENSIVE
+
+        # Normalize values for ratio-based classification
         total = cpu + memory + gpu + io
         if total == 0:
             return WorkloadCategory.BALANCED
@@ -479,7 +496,7 @@ class WorkloadClassifier:
         gpu_ratio = gpu / total
         io_ratio = io / total
 
-        # Check for bursty pattern
+        # Check for bursty pattern (high variance)
         if variance > 0.5:
             return WorkloadCategory.BURSTY
 
