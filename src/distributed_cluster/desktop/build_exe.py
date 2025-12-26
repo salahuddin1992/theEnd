@@ -78,7 +78,7 @@ def clean_build():
     for dir_name in dirs_to_clean:
         dir_path = project_root / dir_name
         if dir_path.exists():
-            safe_print(f"[CLEAN] Cleaning {dir_path}...")
+            print(f"[CLEAN] Cleaning {dir_path}...")
             try:
                 # Python 3.12+ uses onexc, older versions use onerror
                 if sys.version_info >= (3, 12):
