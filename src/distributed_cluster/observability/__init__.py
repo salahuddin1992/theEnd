@@ -166,6 +166,35 @@ from distributed_cluster.observability.unified_manager import (
     shutdown_observability,
 )
 
+# Cluster Monitoring
+from distributed_cluster.observability.cluster_monitoring import (
+    # Log Levels
+    LogLevel as ClusterLogLevel,
+    # Metric Types
+    MetricType as ClusterMetricType,
+    # Prometheus Metrics
+    PrometheusCounter as ClusterCounter,
+    PrometheusGauge as ClusterGauge,
+    PrometheusHistogram as ClusterHistogram,
+    PrometheusSummary as ClusterSummary,
+    # Logging
+    LogRecord as ClusterLogRecord,
+    LogHandler,
+    ConsoleLogHandler,
+    FileLogHandler,
+    CentralizedLogger,
+    # Metrics Registry
+    ClusterMetricsRegistry,
+    # Main Monitor
+    ClusterMonitor,
+    get_cluster_monitor,
+    setup_cluster_monitoring,
+    shutdown_cluster_monitoring,
+    # FastAPI Integration
+    create_monitoring_routes,
+    create_monitoring_middleware,
+)
+
 __all__ = [
     # Logging
     "LogContext",
@@ -298,4 +327,23 @@ __all__ = [
     "get_observability_manager",
     "setup_observability",
     "shutdown_observability",
+    # Cluster Monitoring
+    "ClusterLogLevel",
+    "ClusterMetricType",
+    "ClusterCounter",
+    "ClusterGauge",
+    "ClusterHistogram",
+    "ClusterSummary",
+    "ClusterLogRecord",
+    "LogHandler",
+    "ConsoleLogHandler",
+    "FileLogHandler",
+    "CentralizedLogger",
+    "ClusterMetricsRegistry",
+    "ClusterMonitor",
+    "get_cluster_monitor",
+    "setup_cluster_monitoring",
+    "shutdown_cluster_monitoring",
+    "create_monitoring_routes",
+    "create_monitoring_middleware",
 ]
