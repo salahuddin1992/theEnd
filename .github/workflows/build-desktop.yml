@@ -491,12 +491,12 @@ jobs:
             MATRIX_INCLUDE+='{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}'
             FIRST="false"
 
-            # Add ARM64 for full builds
-            BUILD_MODE_VAL="${{ env.BUILD_MODE }}"
-            if [[ "$BUILD_MODE_VAL" == "full" ]] || [[ "$BUILD_MODE_VAL" == "ultra" ]]; then
-              MATRIX_INCLUDE+=','
-              MATRIX_INCLUDE+='{"os":"ubuntu-latest","platform":"linux","arch":"arm64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}'
-            fi
+            # NOTE: ARM64 Linux builds are disabled because:
+            # 1. PyInstaller does not support cross-compilation
+            # 2. ubuntu-latest runners are x86_64 only
+            # 3. GitHub-hosted ARM64 runners require specific runner labels
+            # To enable ARM64 builds, use self-hosted ARM64 runners or GitHub's ARM runners
+            # Example: runner: "ubuntu-24.04-arm" (if available in your plan)
           fi
 
           # macOS configurations
