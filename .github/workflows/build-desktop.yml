@@ -478,40 +478,15 @@ jobs:
           BUILD_LINUX="${BUILD_LINUX:-true}"
           BUILD_MACOS="${BUILD_MACOS:-true}"
 
-          # Windows configurations
-          if [[ "$BUILD_WINDOWS" == "true" ]]; then
-            if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
-            MATRIX_INCLUDE+='{"os":"windows-latest","platform":"windows","arch":"x64","runner":"windows-latest","icon":"🪟","artifact_ext":".exe","installer_ext":".msi"}'
-            FIRST="false"
-          fi
-
-          # Linux configurations
-          if [[ "$BUILD_LINUX" == "true" ]]; then
-            if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
-            MATRIX_INCLUDE+='{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}'
-            FIRST="false"
-
-            # NOTE: ARM64 Linux builds are disabled because:
-            # 1. PyInstaller does not support cross-compilation
-            # 2. ubuntu-latest runners are x86_64 only
-            # 3. GitHub-hosted ARM64 runners require specific runner labels
-            # To enable ARM64 builds, use self-hosted ARM64 runners or GitHub's ARM runners
-            # Example: runner: "ubuntu-24.04-arm" (if available in your plan)
-          fi
-
-          # macOS configurations
-          if [[ "$BUILD_MACOS" == "true" ]]; then
-            if [[ "$FIRST" != "true" ]]; then MATRIX_INCLUDE+=","; fi
-            MATRIX_INCLUDE+='{"os":"macos-latest","platform":"macos","arch":"universal","runner":"macos-latest","icon":"🍎","artifact_ext":".app","installer_ext":".dmg"}'
-            FIRST="false"
-          fi
+          # Windows configurations only
+          MATRIX_INCLUDE+='{"os":"windows-latest","platform":"windows","arch":"x64","runner":"windows-latest","icon":"🪟","artifact_ext":".exe","installer_ext":".msi"}'
 
           MATRIX_INCLUDE+="]"
 
-          # Fallback: if matrix is empty, add at least Linux x64
+          # Fallback: if matrix is empty, add Windows x64
           if [[ "$MATRIX_INCLUDE" == "[]" ]]; then
-            echo "⚠️ No platforms selected, using default Linux x64"
-            MATRIX_INCLUDE='[{"os":"ubuntu-latest","platform":"linux","arch":"x64","runner":"ubuntu-latest","icon":"🐧","artifact_ext":"","installer_ext":".deb"}]'
+            echo "⚠️ No platforms selected, using default Windows x64"
+            MATRIX_INCLUDE='[{"os":"windows-latest","platform":"windows","arch":"x64","runner":"windows-latest","icon":"🪟","artifact_ext":".exe","installer_ext":".msi"}]'
           fi
 
           # Validate JSON before setting output
@@ -910,59 +885,6 @@ jobs:
             build-${{ matrix.platform }}-${{ matrix.arch }}-${{ env.CACHE_VERSION }}-
             build-${{ matrix.platform }}-${{ matrix.arch }}-
 
-      # ─── Linux System Dependencies ───
-      - name: 🔧 Install Linux System Dependencies
-        if: matrix.platform == 'linux'
-        run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "🔧 INSTALLING LINUX SYSTEM DEPENDENCIES"
-          echo "═══════════════════════════════════════════════════════════"
-          
-          sudo apt-get update
-          sudo apt-get install -y \
-            libxcb-xinerama0 \
-            libxcb-cursor0 \
-            libxkbcommon-x11-0 \
-            libxcb-icccm4 \
-            libxcb-image0 \
-            libxcb-keysyms1 \
-            libxcb-render-util0 \
-            libxcb-xkb1 \
-            libxcb-shape0 \
-            libegl1 \
-            libgl1-mesa-glx \
-            libglib2.0-0 \
-            libfontconfig1 \
-            libfreetype6 \
-            libxrender1 \
-            libxi6 \
-            libsm6 \
-            libice6 \
-            libdbus-1-3 \
-            fuse \
-            libfuse2 \
-            patchelf \
-            upx-ucl \
-            rpm \
-            fakeroot \
-            dpkg-dev
-          
-          # For AppImage
-          sudo wget -O /usr/local/bin/appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          sudo chmod +x /usr/local/bin/appimagetool
-
-      # ─── macOS System Dependencies ───
-      - name: 🔧 Install macOS System Dependencies
-        if: matrix.platform == 'macos'
-        run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "🔧 INSTALLING MACOS SYSTEM DEPENDENCIES"
-          echo "═══════════════════════════════════════════════════════════"
-          
-          brew update || true
-          brew install create-dmg || true
-
       # ─── Python Dependencies ───
       - name: 📦 Install Python Dependencies
         shell: bash
@@ -970,40 +892,38 @@ jobs:
           echo "═══════════════════════════════════════════════════════════"
           echo "📦 INSTALLING PYTHON DEPENDENCIES"
           echo "═══════════════════════════════════════════════════════════"
-          
+
           python -m pip install --upgrade pip setuptools wheel
-          
+
           # Core dependencies
           pip install PySide6 qasync pyinstaller nuitka httpx websockets aiohttp
-          
+
           # Build tools
           pip install pyinstaller-hooks-contrib
-          
-          # Platform-specific
-          if [[ "${{ matrix.platform }}" == "windows" ]]; then
-            pip install pywin32 pywin32-ctypes pefile
-          fi
-          
+
+          # Windows-specific
+          pip install pywin32 pywin32-ctypes pefile
+
           # Install project
           pip install -e . || pip install . || true
-          
+
           echo "📋 Installed packages:"
           pip list
 
       # ─── Build Info Injection ───
       - name: 📝 Inject Build Information
-        shell: bash
+        shell: pwsh
         run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "📝 INJECTING BUILD INFORMATION"
-          echo "═══════════════════════════════════════════════════════════"
-          
-          BUILD_INFO_FILE="${{ env.DESKTOP_SRC }}/_build_info.py"
-          
-          cat > "$BUILD_INFO_FILE" << EOF
+          Write-Host "═══════════════════════════════════════════════════════════"
+          Write-Host "📝 INJECTING BUILD INFORMATION"
+          Write-Host "═══════════════════════════════════════════════════════════"
+
+          $BUILD_INFO_FILE = "${{ env.DESKTOP_SRC }}/_build_info.py"
+
+          $content = @"
           # Auto-generated build information
           # DO NOT EDIT MANUALLY
-          
+
           __version__ = "${{ env.VERSION }}"
           __build_number__ = ${{ github.run_number }}
           __build_id__ = "${{ github.run_id }}"
@@ -1011,152 +931,116 @@ jobs:
           __build_timestamp__ = "${{ needs.initialize.outputs.build_timestamp }}"
           __commit_sha__ = "${{ github.sha }}"
           __commit_sha_short__ = "${{ needs.initialize.outputs.commit_sha_short }}"
-          __branch__ = "${GITHUB_REF#refs/heads/}"
+          __branch__ = "${{ github.ref_name }}"
           __platform__ = "${{ matrix.platform }}"
           __arch__ = "${{ matrix.arch }}"
           __build_mode__ = "${{ env.BUILD_MODE }}"
           __build_type__ = "${{ env.BUILD_TYPE }}"
           __is_release__ = ${{ needs.initialize.outputs.is_release == 'true' && 'True' || 'False' }}
           __is_nightly__ = ${{ needs.initialize.outputs.is_nightly == 'true' && 'True' || 'False' }}
-          EOF
-          
-          echo "📋 Build info:"
-          cat "$BUILD_INFO_FILE"
+          "@
+
+          $content | Out-File -FilePath $BUILD_INFO_FILE -Encoding utf8
+
+          Write-Host "📋 Build info:"
+          Get-Content $BUILD_INFO_FILE
 
       # ─── Build Executable ───
       - name: 🔨 Build Desktop Executable
-        shell: bash
+        shell: pwsh
         run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "${{ matrix.icon }} BUILDING ${{ matrix.platform }} EXECUTABLE"
-          echo "═══════════════════════════════════════════════════════════"
-          echo "📋 Configuration:"
-          echo "  Platform: ${{ matrix.platform }}"
-          echo "  Architecture: ${{ matrix.arch }}"
-          echo "  Build Mode: ${{ env.BUILD_MODE }}"
-          echo "  Build Type: ${{ env.BUILD_TYPE }}"
-          echo "  Version: ${{ env.VERSION }}"
-          echo "═══════════════════════════════════════════════════════════"
-          
+          Write-Host "═══════════════════════════════════════════════════════════"
+          Write-Host "🪟 BUILDING WINDOWS EXECUTABLE"
+          Write-Host "═══════════════════════════════════════════════════════════"
+          Write-Host "📋 Configuration:"
+          Write-Host "  Platform: ${{ matrix.platform }}"
+          Write-Host "  Architecture: ${{ matrix.arch }}"
+          Write-Host "  Build Mode: ${{ env.BUILD_MODE }}"
+          Write-Host "  Build Type: ${{ env.BUILD_TYPE }}"
+          Write-Host "  Version: ${{ env.VERSION }}"
+          Write-Host "═══════════════════════════════════════════════════════════"
+
           # Create output directories
-          mkdir -p ${{ env.BUILD_OUTPUT }}
-          mkdir -p ${{ env.ARTIFACTS_DIR }}
-          mkdir -p ${{ env.INSTALLERS_DIR }}
-          
+          New-Item -ItemType Directory -Force -Path "${{ env.BUILD_OUTPUT }}" | Out-Null
+          New-Item -ItemType Directory -Force -Path "${{ env.ARTIFACTS_DIR }}" | Out-Null
+          New-Item -ItemType Directory -Force -Path "${{ env.INSTALLERS_DIR }}" | Out-Null
+
           # Check if build script exists
-          BUILD_SCRIPT="${{ env.DESKTOP_SRC }}/build_exe.py"
-          
-          if [ -f "$BUILD_SCRIPT" ]; then
-            python "$BUILD_SCRIPT" \
-              --mode ${{ env.BUILD_MODE }} \
-              --type ${{ env.BUILD_TYPE }} \
-              --platform ${{ matrix.platform }} \
-              --arch ${{ matrix.arch }} \
+          $BUILD_SCRIPT = "${{ env.DESKTOP_SRC }}/build_exe.py"
+
+          if (Test-Path $BUILD_SCRIPT) {
+            python $BUILD_SCRIPT `
+              --mode ${{ env.BUILD_MODE }} `
+              --type ${{ env.BUILD_TYPE }} `
+              --platform ${{ matrix.platform }} `
+              --arch ${{ matrix.arch }} `
               --version ${{ env.VERSION }}
-          else
-            echo "⚠️ Build script not found, using PyInstaller directly"
-            
+          } else {
+            Write-Host "⚠️ Build script not found, using PyInstaller directly"
+
             # Find main entry point
-            ENTRY_POINT=""
-            for path in "${{ env.DESKTOP_SRC }}/main.py" "${{ env.DESKTOP_SRC }}/__main__.py" "${{ env.DESKTOP_SRC }}/app.py"; do
-              if [ -f "$path" ]; then
-                ENTRY_POINT="$path"
+            $ENTRY_POINT = $null
+            foreach ($path in @("${{ env.DESKTOP_SRC }}/app_entry.py", "${{ env.DESKTOP_SRC }}/main.py", "${{ env.DESKTOP_SRC }}/__main__.py")) {
+              if (Test-Path $path) {
+                $ENTRY_POINT = $path
                 break
-              fi
-            done
-            
-            if [ -z "$ENTRY_POINT" ]; then
-              echo "❌ No entry point found!"
+              }
+            }
+
+            if (-not $ENTRY_POINT) {
+              Write-Host "❌ No entry point found!"
               exit 1
-            fi
-            
-            echo "📋 Using entry point: $ENTRY_POINT"
-            
-            # PyInstaller options
-            PYINSTALLER_OPTS=(
-              --onefile
-              --clean
-              --noconfirm
-              --name "${{ env.APP_NAME }}"
-              --distpath "${{ env.BUILD_OUTPUT }}"
-              --workpath "build/pyinstaller"
-              --specpath "build/specs"
-            )
-            
-            # Platform-specific options
-            if [[ "${{ matrix.platform }}" == "windows" ]]; then
-              PYINSTALLER_OPTS+=(--windowed)
-              if [ -f "assets/icon.ico" ]; then
-                PYINSTALLER_OPTS+=(--icon "assets/icon.ico")
-              fi
-            elif [[ "${{ matrix.platform }}" == "macos" ]]; then
-              PYINSTALLER_OPTS+=(--windowed)
-              if [ -f "assets/icon.icns" ]; then
-                PYINSTALLER_OPTS+=(--icon "assets/icon.icns")
-              fi
-              PYINSTALLER_OPTS+=(--osx-bundle-identifier "${{ env.APP_ID }}")
-            fi
-            
-            # Build type options
-            if [[ "${{ env.BUILD_TYPE }}" == "debug" ]]; then
-              PYINSTALLER_OPTS+=(--debug all)
-            elif [[ "${{ env.BUILD_TYPE }}" == "release-optimized" ]]; then
-              PYINSTALLER_OPTS+=(
-                --strip
-                --noupx
-              )
-            fi
-            
-            # Run PyInstaller
-            pyinstaller "${PYINSTALLER_OPTS[@]}" "$ENTRY_POINT"
-          fi
+            }
+
+            Write-Host "📋 Using entry point: $ENTRY_POINT"
+
+            # Run PyInstaller for Windows
+            $ICON_PATH = "assets/icon.ico"
+            if (Test-Path $ICON_PATH) {
+              pyinstaller --onefile --clean --noconfirm --windowed `
+                --name "${{ env.APP_NAME }}" `
+                --distpath "${{ env.BUILD_OUTPUT }}" `
+                --workpath "build/pyinstaller" `
+                --specpath "build/specs" `
+                --icon $ICON_PATH `
+                $ENTRY_POINT
+            } else {
+              pyinstaller --onefile --clean --noconfirm --windowed `
+                --name "${{ env.APP_NAME }}" `
+                --distpath "${{ env.BUILD_OUTPUT }}" `
+                --workpath "build/pyinstaller" `
+                --specpath "build/specs" `
+                $ENTRY_POINT
+            }
+          }
 
       # ─── Post-Build Processing ───
       - name: 🔧 Post-Build Processing
-        shell: bash
+        shell: pwsh
         run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "🔧 POST-BUILD PROCESSING"
-          echo "═══════════════════════════════════════════════════════════"
-          
-          cd ${{ env.BUILD_OUTPUT }}
-          
-          # Find the built executable
-          if [[ "${{ matrix.platform }}" == "windows" ]]; then
-            EXECUTABLE="${{ env.APP_NAME }}.exe"
-          else
-            EXECUTABLE="${{ env.APP_NAME }}"
-          fi
-          
-          if [ -f "$EXECUTABLE" ]; then
-            echo "✅ Found executable: $EXECUTABLE"
-            
-            # Strip debug symbols on Linux
-            if [[ "${{ matrix.platform }}" == "linux" ]] && [[ "${{ env.BUILD_TYPE }}" != "debug" ]]; then
-              echo "📦 Stripping debug symbols..."
-              strip "$EXECUTABLE" 2>/dev/null || true
-            fi
-            
-            # Make executable on Unix
-            if [[ "${{ matrix.platform }}" != "windows" ]]; then
-              chmod +x "$EXECUTABLE"
-            fi
-            
+          Write-Host "═══════════════════════════════════════════════════════════"
+          Write-Host "🔧 POST-BUILD PROCESSING"
+          Write-Host "═══════════════════════════════════════════════════════════"
+
+          Set-Location ${{ env.BUILD_OUTPUT }}
+
+          $EXECUTABLE = "${{ env.APP_NAME }}.exe"
+
+          if (Test-Path $EXECUTABLE) {
+            Write-Host "✅ Found executable: $EXECUTABLE"
+
             # Rename with version and platform
-            NEW_NAME="${{ env.APP_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.artifact_ext }}"
-            mv "$EXECUTABLE" "$NEW_NAME"
-            
-            echo "📋 Final executable: $NEW_NAME"
-            ls -lh "$NEW_NAME"
-            
-            # File type info
-            file "$NEW_NAME" || true
-          else
-            echo "❌ Executable not found!"
-            echo "📋 Directory contents:"
-            ls -la
+            $NEW_NAME = "${{ env.APP_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.artifact_ext }}"
+            Move-Item $EXECUTABLE $NEW_NAME
+
+            Write-Host "📋 Final executable: $NEW_NAME"
+            Get-Item $NEW_NAME | Format-List Name, Length
+          } else {
+            Write-Host "❌ Executable not found!"
+            Write-Host "📋 Directory contents:"
+            Get-ChildItem
             exit 1
-          fi
+          }
 
       # ─── Create Installers (Windows) ───
       - name: 📦 Create Windows Installer (MSI)
@@ -1210,150 +1094,6 @@ jobs:
           
           Write-Host "📋 MSI creation skipped (WiX configuration needed)"
 
-      # ─── Create Installers (Linux) ───
-      - name: 📦 Create Linux Packages (DEB/RPM/AppImage)
-        if: matrix.platform == 'linux' && env.CREATE_INSTALLERS == 'true'
-        run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "📦 CREATING LINUX PACKAGES"
-          echo "═══════════════════════════════════════════════════════════"
-          
-          VERSION="${{ needs.initialize.outputs.version_short }}"
-          EXECUTABLE="${{ env.BUILD_OUTPUT }}/${{ env.APP_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.arch }}"
-          
-          # ─── Create DEB Package ───
-          echo "📦 Creating DEB package..."
-          DEB_DIR="build/deb"
-          mkdir -p "$DEB_DIR/DEBIAN"
-          mkdir -p "$DEB_DIR/usr/bin"
-          mkdir -p "$DEB_DIR/usr/share/applications"
-          mkdir -p "$DEB_DIR/usr/share/icons/hicolor/256x256/apps"
-          
-          # Control file
-          cat > "$DEB_DIR/DEBIAN/control" << EOF
-          Package: $(echo "${{ env.APP_NAME }}" | tr '[:upper:]' '[:lower:]')
-          Version: $VERSION
-          Section: utils
-          Priority: optional
-          Architecture: $([ "${{ matrix.arch }}" == "x64" ] && echo "amd64" || echo "${{ matrix.arch }}")
-          Maintainer: ${{ env.APP_AUTHOR }}
-          Description: ${{ env.APP_NAME }} Desktop Application
-           Enterprise-grade distributed computing desktop client.
-          Homepage: ${{ env.APP_WEBSITE }}
-          EOF
-          
-          cp "$EXECUTABLE" "$DEB_DIR/usr/bin/${{ env.APP_NAME }}"
-          chmod 755 "$DEB_DIR/usr/bin/${{ env.APP_NAME }}"
-          
-          # Desktop file
-          cat > "$DEB_DIR/usr/share/applications/${{ env.APP_NAME }}.desktop" << EOF
-          [Desktop Entry]
-          Name=${{ env.APP_NAME }}
-          Comment=Enterprise Distributed Computing Client
-          Exec=/usr/bin/${{ env.APP_NAME }}
-          Icon=${{ env.APP_NAME }}
-          Type=Application
-          Categories=Utility;Development;
-          Terminal=false
-          EOF
-          
-          fakeroot dpkg-deb --build "$DEB_DIR" "${{ env.INSTALLERS_DIR }}/${{ env.APP_NAME }}-$VERSION-${{ matrix.arch }}.deb"
-          
-          # ─── Create AppImage ───
-          echo "📦 Creating AppImage..."
-          APPIMAGE_DIR="build/appimage/${{ env.APP_NAME }}.AppDir"
-          mkdir -p "$APPIMAGE_DIR/usr/bin"
-          mkdir -p "$APPIMAGE_DIR/usr/share/applications"
-          mkdir -p "$APPIMAGE_DIR/usr/share/icons"
-          
-          cp "$EXECUTABLE" "$APPIMAGE_DIR/usr/bin/${{ env.APP_NAME }}"
-          chmod +x "$APPIMAGE_DIR/usr/bin/${{ env.APP_NAME }}"
-          
-          cat > "$APPIMAGE_DIR/AppRun" << 'EOF'
-          #!/bin/bash
-          SELF=$(readlink -f "$0")
-          HERE=${SELF%/*}
-          export PATH="${HERE}/usr/bin:${PATH}"
-          exec "${HERE}/usr/bin/${{ env.APP_NAME }}" "$@"
-          EOF
-          chmod +x "$APPIMAGE_DIR/AppRun"
-          
-          cp "$DEB_DIR/usr/share/applications/${{ env.APP_NAME }}.desktop" "$APPIMAGE_DIR/"
-          
-          # Create AppImage (if tool available)
-          if command -v appimagetool &> /dev/null; then
-            ARCH=x86_64 appimagetool "$APPIMAGE_DIR" "${{ env.INSTALLERS_DIR }}/${{ env.APP_NAME }}-$VERSION-${{ matrix.arch }}.AppImage" || true
-          fi
-          
-          echo "📋 Created packages:"
-          ls -lh ${{ env.INSTALLERS_DIR }}/
-
-      # ─── Create Installers (macOS) ───
-      - name: 📦 Create macOS DMG
-        if: matrix.platform == 'macos' && env.CREATE_INSTALLERS == 'true'
-        run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "📦 CREATING MACOS DMG"
-          echo "═══════════════════════════════════════════════════════════"
-          
-          VERSION="${{ needs.initialize.outputs.version_short }}"
-          EXECUTABLE="${{ env.BUILD_OUTPUT }}/${{ env.APP_NAME }}-${{ env.VERSION }}-${{ matrix.platform }}-${{ matrix.arch }}"
-          
-          # Create app bundle structure
-          APP_BUNDLE="${{ env.BUILD_OUTPUT }}/${{ env.APP_NAME }}.app"
-          mkdir -p "$APP_BUNDLE/Contents/MacOS"
-          mkdir -p "$APP_BUNDLE/Contents/Resources"
-          
-          cp "$EXECUTABLE" "$APP_BUNDLE/Contents/MacOS/${{ env.APP_NAME }}"
-          chmod +x "$APP_BUNDLE/Contents/MacOS/${{ env.APP_NAME }}"
-          
-          # Info.plist
-          cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>CFBundleExecutable</key>
-            <string>${{ env.APP_NAME }}</string>
-            <key>CFBundleIdentifier</key>
-            <string>${{ env.APP_ID }}</string>
-            <key>CFBundleName</key>
-            <string>${{ env.APP_NAME }}</string>
-            <key>CFBundleVersion</key>
-            <string>${VERSION}</string>
-            <key>CFBundleShortVersionString</key>
-            <string>${VERSION}</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>LSMinimumSystemVersion</key>
-            <string>10.15</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-          </dict>
-          </plist>
-          EOF
-          
-          # Create DMG
-          if command -v create-dmg &> /dev/null; then
-            create-dmg \
-              --volname "${{ env.APP_NAME }} $VERSION" \
-              --window-pos 200 120 \
-              --window-size 600 400 \
-              --icon-size 100 \
-              --app-drop-link 450 185 \
-              "${{ env.INSTALLERS_DIR }}/${{ env.APP_NAME }}-$VERSION-${{ matrix.arch }}.dmg" \
-              "$APP_BUNDLE" || true
-          else
-            # Fallback to hdiutil
-            hdiutil create -volname "${{ env.APP_NAME }}" \
-              -srcfolder "$APP_BUNDLE" \
-              -ov -format UDZO \
-              "${{ env.INSTALLERS_DIR }}/${{ env.APP_NAME }}-$VERSION-${{ matrix.arch }}.dmg" || true
-          fi
-          
-          echo "📋 Created packages:"
-          ls -lh ${{ env.INSTALLERS_DIR }}/
-
       # ─── Code Signing (Windows) ───
       - name: 🔐 Sign Windows Executable
         if: matrix.platform == 'windows' && env.ENABLE_SIGNING == 'true' && needs.initialize.outputs.is_release == 'true'
@@ -1373,26 +1113,6 @@ jobs:
         env:
           WINDOWS_SIGNING_CERT: ${{ secrets.WINDOWS_SIGNING_CERT }}
           WINDOWS_SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
-
-      # ─── Code Signing & Notarization (macOS) ───
-      - name: 🔐 Sign and Notarize macOS App
-        if: matrix.platform == 'macos' && env.ENABLE_SIGNING == 'true' && needs.initialize.outputs.is_release == 'true'
-        run: |
-          echo "═══════════════════════════════════════════════════════════"
-          echo "🔐 SIGNING AND NOTARIZING MACOS APP"
-          echo "═══════════════════════════════════════════════════════════"
-          
-          # Check for signing credentials
-          if [ -z "$APPLE_DEVELOPER_ID" ]; then
-            echo "⚠️ No Apple Developer credentials configured, skipping"
-            exit 0
-          fi
-          
-          echo "📋 Code signing and notarization would be performed here"
-        env:
-          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
-          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       # ─── Generate Build Report ───
       - name: 📊 Generate Build Report
