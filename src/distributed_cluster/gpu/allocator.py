@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .sharing import GPUSlice, GPUSharingManager, SharingMode
-from .monitor import GPUMonitor, GPUMetrics, GPUHealthStatus
+from .monitor import GPUHealthStatus, GPUMetrics, GPUMonitor
+from .sharing import GPUSharingManager, GPUSlice, SharingMode
 
 logger = logging.getLogger(__name__)
 

@@ -26,9 +26,10 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, time as dtime, timedelta
+from datetime import datetime
+from datetime import time as dtime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
     from distributed_cluster.autoscaling.metrics import MetricsCollector, ResourceMetrics
@@ -256,7 +257,10 @@ class QueueBasedPolicy(ScalingPolicy):
                     return ScalingDecision(
                         direction=ScalingDirection.UP,
                         count=min(target - current_workers, self.scale_up_increment * 2),
-                        reason=f"Queue depth ({queue_depth}) >= threshold ({self.scale_up_threshold}) for {self.evaluation_periods} periods",
+                        reason=(
+                            f"Queue depth ({queue_depth}) >= threshold ({self.scale_up_threshold}) "
+                            f"for {self.evaluation_periods} periods"
+                        ),
                         confidence=0.8,
                         policy_name=self.name,
                         target_worker_count=target,
@@ -277,7 +281,10 @@ class QueueBasedPolicy(ScalingPolicy):
                         return ScalingDecision(
                             direction=ScalingDirection.DOWN,
                             count=min(current_workers - target, self.scale_down_increment),
-                            reason=f"Queue depth ({queue_depth}) <= threshold ({self.scale_down_threshold}) for {self.evaluation_periods} periods",
+                            reason=(
+                                f"Queue depth ({queue_depth}) <= threshold ({self.scale_down_threshold}) "
+                                f"for {self.evaluation_periods} periods"
+                            ),
                             confidence=0.7,
                             policy_name=self.name,
                             target_worker_count=target,
@@ -424,7 +431,10 @@ class ResourceBasedPolicy(ScalingPolicy):
                 return ScalingDecision(
                     direction=ScalingDirection.DOWN,
                     count=self.scale_down_increment,
-                    reason=f"Low utilization: CPU={metrics.cpu_utilization_avg:.1f}%, Memory={metrics.memory_utilization_avg:.1f}%",
+                    reason=(
+                        f"Low utilization: CPU={metrics.cpu_utilization_avg:.1f}%, "
+                        f"Memory={metrics.memory_utilization_avg:.1f}%"
+                    ),
                     confidence=0.7,
                     policy_name=self.name,
                     priority=0,
@@ -752,7 +762,10 @@ class CostAwarePolicy(ScalingPolicy):
                     return ScalingDecision(
                         direction=ScalingDirection.UP,
                         count=adjusted_count,
-                        reason=f"Scale up limited by budget (${new_cost:.2f}/hr would exceed ${self.max_hourly_budget:.2f}/hr)",
+                        reason=(
+                            f"Scale up limited by budget (${new_cost:.2f}/hr would exceed "
+                            f"${self.max_hourly_budget:.2f}/hr)"
+                        ),
                         confidence=base_decision.confidence * 0.8,
                         policy_name=self.name,
                         priority=base_decision.priority,

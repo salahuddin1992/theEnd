@@ -25,38 +25,27 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from distributed_cluster.federated.aggregator import Aggregator, create_aggregator
+from distributed_cluster.federated.aggregator import create_aggregator
 from distributed_cluster.federated.client import (
     ClientManager,
     FederatedClient,
-    LocalModel,
 )
 from distributed_cluster.federated.compression import (
-    Compressor,
     create_compressor,
 )
 from distributed_cluster.federated.models import (
     AggregationStrategy,
-    ClientInfo,
-    ClientStatus,
-    ClientUpdate,
-    CompressionConfig,
     FederatedConfig,
     FederatedMetrics,
     ModelWeights,
-    PrivacyConfig,
-    RoundConfig,
     RoundResult,
     RoundStatus,
     SelectionStrategy,
 )
 from distributed_cluster.federated.privacy import (
-    PrivacyMechanismBase,
     create_privacy_mechanism,
 )
 from distributed_cluster.federated.selection import (
-    ClientSelector,
-    SelectionResult,
     create_selector,
 )
 from distributed_cluster.federated.server import FederatedServer

@@ -7,18 +7,15 @@ and cross-node cache synchronization.
 """
 
 import asyncio
-import time
-import threading
-import logging
-import hashlib
 import bisect
+import hashlib
+import logging
+import threading
+import time
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Set, Tuple
 from enum import Enum
-from collections import deque, defaultdict
-import random
-import json
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -435,7 +432,7 @@ class PartitionManager:
 
         with self._lock:
             # Calculate target partitions per node
-            partitions_per_node = self.num_partitions // len(available_nodes)
+            self.num_partitions // len(available_nodes)
 
             # Simple round-robin assignment with replication
             for i, partition in self.partitions.items():

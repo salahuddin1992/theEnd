@@ -2,14 +2,13 @@
 Event types and base classes for the streaming system.
 """
 
+import hashlib
 import json
 import uuid
-import hashlib
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, TypeVar, Generic
+from typing import Any, Dict, Optional
 
 
 class EventType(Enum):
@@ -128,7 +127,10 @@ class Event:
     @property
     def checksum(self) -> str:
         """Calculate a checksum for the event."""
-        content = f"{self.event_id}:{self.event_type.name}:{self.timestamp.isoformat()}:{json.dumps(self.payload, sort_keys=True)}"
+        content = (
+            f"{self.event_id}:{self.event_type.name}:{self.timestamp.isoformat()}:"
+            f"{json.dumps(self.payload, sort_keys=True)}"
+        )
         return hashlib.sha256(content.encode()).hexdigest()[:16]
 
     def to_dict(self) -> Dict[str, Any]:
@@ -152,11 +154,27 @@ class Event:
         """Create event from dictionary."""
         return cls(
             event_id=data.get("event_id", str(uuid.uuid4())),
-            event_type=EventType[data["event_type"]] if isinstance(data.get("event_type"), str) else data.get("event_type", EventType.CUSTOM),
-            priority=EventPriority[data["priority"]] if isinstance(data.get("priority"), str) else data.get("priority", EventPriority.NORMAL),
-            timestamp=datetime.fromisoformat(data["timestamp"]) if isinstance(data.get("timestamp"), str) else data.get("timestamp", datetime.utcnow()),
+            event_type=(
+                EventType[data["event_type"]]
+                if isinstance(data.get("event_type"), str)
+                else data.get("event_type", EventType.CUSTOM)
+            ),
+            priority=(
+                EventPriority[data["priority"]]
+                if isinstance(data.get("priority"), str)
+                else data.get("priority", EventPriority.NORMAL)
+            ),
+            timestamp=(
+                datetime.fromisoformat(data["timestamp"])
+                if isinstance(data.get("timestamp"), str)
+                else data.get("timestamp", datetime.utcnow())
+            ),
             payload=data.get("payload", {}),
-            metadata=EventMetadata.from_dict(data["metadata"]) if isinstance(data.get("metadata"), dict) else data.get("metadata", EventMetadata(source="unknown")),
+            metadata=(
+                EventMetadata.from_dict(data["metadata"])
+                if isinstance(data.get("metadata"), dict)
+                else data.get("metadata", EventMetadata(source="unknown"))
+            ),
             version=data.get("version", "1.0"),
         )
 

@@ -9,17 +9,17 @@ License: MIT
 """
 
 from distributed_cluster.desktop.views.dashboard import DashboardView
-from distributed_cluster.desktop.views.jobs import JobsView, JobDetailPanel, SubmitJobDialog
+from distributed_cluster.desktop.views.jobs import JobDetailPanel, JobsView, SubmitJobDialog
 from distributed_cluster.desktop.views.logs import LogsView
-from distributed_cluster.desktop.views.metrics import MetricsView, MetricCard, MetricsTable
-from distributed_cluster.desktop.views.plugin_manager import PluginManagerView, PluginLoader, PluginCard
+from distributed_cluster.desktop.views.metrics import MetricCard, MetricsTable, MetricsView
+from distributed_cluster.desktop.views.plugin_manager import PluginCard, PluginLoader, PluginManagerView
 from distributed_cluster.desktop.views.pools import PoolsView
 from distributed_cluster.desktop.views.powershell_console import PowerShellConsoleView, ShellProcess
 from distributed_cluster.desktop.views.queues import QueuesView
-from distributed_cluster.desktop.views.script_editor import ScriptEditorView, PythonHighlighter, SandboxExecutor
+from distributed_cluster.desktop.views.script_editor import PythonHighlighter, SandboxExecutor, ScriptEditorView
 from distributed_cluster.desktop.views.settings import SettingsView
-from distributed_cluster.desktop.views.templates import TemplatesView, TemplateDetailPanel, CreateTemplateDialog
-from distributed_cluster.desktop.views.workers import WorkersView, WorkerDetailPanel
+from distributed_cluster.desktop.views.templates import CreateTemplateDialog, TemplateDetailPanel, TemplatesView
+from distributed_cluster.desktop.views.workers import WorkerDetailPanel, WorkersView
 
 __all__ = [
     # Dashboard

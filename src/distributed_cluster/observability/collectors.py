@@ -640,11 +640,13 @@ class PrometheusSystemCollector:
         # GPU metrics
         gpus = self._last_metrics.get("gpu", [])
         for gpu in gpus:
+            total_bytes = gpu.memory_total_mb * 1024 * 1024
+            used_bytes = gpu.memory_used_mb * 1024 * 1024
             lines.extend([
                 f"# HELP {p}_gpu_memory_bytes GPU memory in bytes",
                 f"# TYPE {p}_gpu_memory_bytes gauge",
-                f"{p}_gpu_memory_bytes{{gpu=\"{gpu.index}\",name=\"{gpu.name}\",type=\"total\"}} {gpu.memory_total_mb * 1024 * 1024}",
-                f"{p}_gpu_memory_bytes{{gpu=\"{gpu.index}\",name=\"{gpu.name}\",type=\"used\"}} {gpu.memory_used_mb * 1024 * 1024}",
+                f"{p}_gpu_memory_bytes{{gpu=\"{gpu.index}\",name=\"{gpu.name}\",type=\"total\"}} {total_bytes}",
+                f"{p}_gpu_memory_bytes{{gpu=\"{gpu.index}\",name=\"{gpu.name}\",type=\"used\"}} {used_bytes}",
                 "",
                 f"# HELP {p}_gpu_utilization GPU utilization percentage",
                 f"# TYPE {p}_gpu_utilization gauge",

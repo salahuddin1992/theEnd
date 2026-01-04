@@ -13,12 +13,11 @@ Privacy mechanisms for federated learning.
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import secrets
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 

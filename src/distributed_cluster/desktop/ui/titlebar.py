@@ -15,16 +15,19 @@ from __future__ import annotations
 import platform
 from typing import Optional
 
-from PySide6.QtCore import (
-    Qt, Signal, QPoint, QSize, QEvent, QRect
-)
-from PySide6.QtGui import (
-    QColor, QPainter, QIcon, QFont,
-    QMouseEvent
-)
+from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QFont, QIcon, QMouseEvent, QPainter
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
-    QMainWindow, QApplication, QSizePolicy, QSpacerItem, QFrame
+    QApplication,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QVBoxLayout,
+    QWidget,
 )
 
 from .fluent_design import FluentDesignSystem
@@ -32,8 +35,8 @@ from .fluent_design import FluentDesignSystem
 # Try Windows-specific imports
 try:
     if platform.system() == "Windows":
-        import ctypes
-        from ctypes import wintypes
+        import ctypes  # noqa: F401
+        from ctypes import wintypes  # noqa: F401
         HAS_WIN32 = True
     else:
         HAS_WIN32 = False

@@ -8,14 +8,13 @@ Core model definitions and metadata.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum, auto
+from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -390,8 +389,8 @@ class Model:
             return outputs[0].tolist()
 
         elif framework == ModelFramework.XGBOOST:
-            import xgboost as xgb
             import numpy as np
+            import xgboost as xgb
             if isinstance(inputs, list):
                 inputs = np.array(inputs)
             dmatrix = xgb.DMatrix(inputs)

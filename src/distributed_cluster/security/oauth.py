@@ -10,11 +10,10 @@ import logging
 import secrets
 import threading
 import time
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
@@ -144,7 +143,7 @@ class JWTHandler:
         header_b64, payload_b64, signature_b64 = parts
 
         try:
-            header = json.loads(self._base64url_decode(header_b64))
+            json.loads(self._base64url_decode(header_b64))
             payload = json.loads(self._base64url_decode(payload_b64))
         except (json.JSONDecodeError, ValueError) as e:
             raise OAuth2Error("invalid_token", f"Failed to decode token: {e}")

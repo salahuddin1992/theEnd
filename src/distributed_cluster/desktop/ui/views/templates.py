@@ -11,20 +11,26 @@ Job templates management with:
 
 from __future__ import annotations
 
-from typing import Optional, List
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QFrame, QGridLayout, QTextEdit,
-    QComboBox, QSpinBox
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QScrollArea,
+    QSpinBox,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
+from ..components import ButtonVariant, FluentButton, FluentInput
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, FluentInput, ButtonVariant
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DATA MODELS

@@ -4,17 +4,15 @@ Event consumers for receiving events from the streaming system.
 
 import asyncio
 import logging
-import time
 import threading
+import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Set, Union
-from concurrent.futures import ThreadPoolExecutor
-from queue import Queue, Empty
-import uuid
 
-from .events import Event, EventType, EventPriority
+from .events import Event
 
 logger = logging.getLogger(__name__)
 

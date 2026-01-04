@@ -4,12 +4,9 @@ Sidecar proxy configuration for Istio/Envoy integration.
 
 import json
 import logging
-import os
 import threading
 import time
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -171,7 +168,7 @@ class EnvoyConfig:
             },
             "static_resources": {
                 "clusters": [self._generate_cluster(c) for c in self._clusters],
-                "listeners": [self._generate_listener(l) for l in self._listeners],
+                "listeners": [self._generate_listener(lst) for lst in self._listeners],
             },
             "dynamic_resources": {
                 "cds_config": {"ads": {}, "resource_api_version": "V3"},

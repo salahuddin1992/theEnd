@@ -24,12 +24,11 @@ import os
 import re
 import secrets
 import threading
-import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -387,7 +386,10 @@ class PasswordValidator:
         if self.policy.forbid_repeated_chars:
             for i in range(len(password) - self.policy.forbid_repeated_chars + 1):
                 if len(set(password[i:i + self.policy.forbid_repeated_chars])) == 1:
-                    errors.append(f"Password cannot have {self.policy.forbid_repeated_chars}+ consecutive identical characters")
+                    errors.append(
+                        f"Password cannot have {self.policy.forbid_repeated_chars}+ "
+                        f"consecutive identical characters"
+                    )
                     break
 
         # Password history check
@@ -586,7 +588,11 @@ class AccountSecurityManager:
         if not force and account.password_changed_at:
             min_age = timedelta(hours=self.policy.min_password_age_hours)
             if datetime.utcnow() - account.password_changed_at < min_age:
-                return False, f"Cannot change password within {self.policy.min_password_age_hours} hours of last change", None
+                error_msg = (
+                    f"Cannot change password within {self.policy.min_password_age_hours} "
+                    f"hours of last change"
+                )
+                return False, error_msg, None
 
         # Validate new password
         validation = self.validator.validate(
@@ -681,7 +687,11 @@ class AccountSecurityManager:
                 account.lockout_count += 1
 
                 self.store.save(account)
-                return False, f"Account locked due to too many failed attempts. Try again in {lockout_minutes} minutes", None
+                error_msg = (
+                    f"Account locked due to too many failed attempts. "
+                    f"Try again in {lockout_minutes} minutes"
+                )
+                return False, error_msg, None
 
             self.store.save(account)
             remaining = self.max_failed_attempts - account.failed_login_count

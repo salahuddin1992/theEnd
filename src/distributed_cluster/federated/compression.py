@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 
@@ -192,7 +192,7 @@ class QuantizationCompressor(Compressor):
 
             # Compute scale and zero point
             scale = (w_max - w_min) / (self.num_levels - 1)
-            zero_point = -w_min / scale if scale != 0 else 0
+            -w_min / scale if scale != 0 else 0
 
             # Quantize
             if scale != 0:

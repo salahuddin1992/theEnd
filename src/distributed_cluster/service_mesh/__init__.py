@@ -8,52 +8,52 @@ This module provides comprehensive service mesh capabilities including:
 - Service discovery and load balancing
 """
 
+from .circuitbreaker import (
+    Bulkhead,
+    CircuitBreaker,
+    CircuitBreakerConfig,
+    CircuitBreakerRegistry,
+    CircuitState,
+    RateLimiter,
+)
 from .discovery import (
-    ServiceRegistry,
-    ServiceInstance,
-    ServiceDiscovery,
     ConsulDiscovery,
-    KubernetesDiscovery,
     EtcdDiscovery,
+    KubernetesDiscovery,
+    ServiceDiscovery,
+    ServiceInstance,
+    ServiceRegistry,
+)
+from .loadbalancer import (
+    ConsistentHashBalancer,
+    HealthAwareBalancer,
+    LeastConnectionsBalancer,
+    LoadBalancer,
+    RoundRobinBalancer,
+    WeightedBalancer,
+)
+from .resilience import (
+    FallbackPolicy,
+    Resilience,
+    ResiliencePolicy,
+    RetryPolicy,
+    TimeoutPolicy,
 )
 from .routing import (
-    Router,
+    CanaryRouting,
+    HeaderBasedRouting,
     Route,
+    Router,
     RouteRule,
     TrafficPolicy,
     WeightedRouting,
-    HeaderBasedRouting,
-    CanaryRouting,
-)
-from .loadbalancer import (
-    LoadBalancer,
-    RoundRobinBalancer,
-    LeastConnectionsBalancer,
-    WeightedBalancer,
-    ConsistentHashBalancer,
-    HealthAwareBalancer,
-)
-from .circuitbreaker import (
-    CircuitBreaker,
-    CircuitState,
-    CircuitBreakerConfig,
-    CircuitBreakerRegistry,
-    Bulkhead,
-    RateLimiter,
 )
 from .sidecar import (
-    SidecarProxy,
     EnvoyConfig,
     IstioConfig,
     ProxyConfig,
+    SidecarProxy,
     TrafficInterceptor,
-)
-from .resilience import (
-    RetryPolicy,
-    TimeoutPolicy,
-    FallbackPolicy,
-    ResiliencePolicy,
-    Resilience,
 )
 
 __all__ = [

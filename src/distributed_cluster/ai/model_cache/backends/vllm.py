@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Optional
 
 from distributed_cluster.ai.model_cache.loader import (
@@ -95,7 +95,7 @@ class VLLMLoader(ModelLoader):
     async def initialize(self) -> None:
         """تهيئة المحمل"""
         try:
-            import vllm
+            import vllm  # noqa: F401
             self._vllm_available = True
 
             self._initialized = True
@@ -462,7 +462,7 @@ class VLLMLoader(ModelLoader):
                 cmd.append("--trust-remote-code")
 
             # Start server in background
-            process = subprocess.Popen(
+            subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

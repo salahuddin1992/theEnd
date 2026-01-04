@@ -23,26 +23,26 @@ Author: Distributed Cluster Team
 License: MIT
 """
 
-from distributed_cluster.dashboard.metrics import (
-    MetricsCollector,
-    MetricPoint,
-    MetricSeries,
-    MetricType,
-)
-from distributed_cluster.dashboard.health import (
-    HealthChecker,
-    ComponentHealth,
-    HealthStatus,
-)
 from distributed_cluster.dashboard.alerts import (
-    AlertManager,
     Alert,
+    AlertManager,
     AlertRule,
     AlertSeverity,
 )
+from distributed_cluster.dashboard.health import (
+    ComponentHealth,
+    HealthChecker,
+    HealthStatus,
+)
+from distributed_cluster.dashboard.metrics import (
+    MetricPoint,
+    MetricsCollector,
+    MetricSeries,
+    MetricType,
+)
 from distributed_cluster.dashboard.server import (
-    DashboardServer,
     DashboardConfig,
+    DashboardServer,
 )
 
 __all__ = [

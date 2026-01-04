@@ -15,14 +15,13 @@ License: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Optional
 
 from distributed_cluster.webhooks.webhook import (
-    WebhookProvider,
+    EventType,
     WebhookConfig,
     WebhookEvent,
-    EventType,
+    WebhookProvider,
 )
 
 
@@ -225,7 +224,10 @@ class SlackWebhook(WebhookProvider):
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": f"Source: *{event.source}* | Event ID: `{event.event_id[:8]}` | <!date^{timestamp}^{{date_short_pretty}} at {{time}}|{event.timestamp.isoformat()}>",
+                        "text": (
+                            f"Source: *{event.source}* | Event ID: `{event.event_id[:8]}` | "
+                            f"<!date^{timestamp}^{{date_short_pretty}} at {{time}}|{event.timestamp.isoformat()}>"
+                        ),
                     },
                 ],
             })

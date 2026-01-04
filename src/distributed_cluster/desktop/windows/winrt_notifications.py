@@ -20,12 +20,10 @@ License: MIT
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Any, Callable, Optional
 from uuid import uuid4
 
@@ -33,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 # Check for Windows
 import platform
+
 IS_WINDOWS = platform.system() == "Windows"
 
 
@@ -168,8 +167,8 @@ class WinRTNotificationManager:
         try:
             # Try to import WinRT
             from winsdk.windows.ui.notifications import (
+                ToastNotification,  # noqa: F401
                 ToastNotificationManager,
-                ToastNotification,
             )
 
             # Create notifier
@@ -254,8 +253,8 @@ class WinRTNotificationManager:
             return self._send_fallback_notification(notification)
 
         try:
-            from winsdk.windows.ui.notifications import ToastNotification
             from winsdk.windows.data.xml.dom import XmlDocument
+            from winsdk.windows.ui.notifications import ToastNotification
 
             # Build XML
             xml_content = self._build_notification_xml(notification)

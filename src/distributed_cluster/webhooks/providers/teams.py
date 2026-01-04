@@ -15,14 +15,13 @@ License: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Optional
 
 from distributed_cluster.webhooks.webhook import (
-    WebhookProvider,
+    EventType,
     WebhookConfig,
     WebhookEvent,
-    EventType,
+    WebhookProvider,
 )
 
 
@@ -205,7 +204,10 @@ class TeamsWebhook(WebhookProvider):
             "type": "TextBlock",
             "size": "Small",
             "isSubtle": True,
-            "text": f"Source: {event.source} | Event ID: {event.event_id[:8]} | {event.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            "text": (
+                f"Source: {event.source} | Event ID: {event.event_id[:8]} | "
+                f"{event.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            ),
             "wrap": True,
         })
 

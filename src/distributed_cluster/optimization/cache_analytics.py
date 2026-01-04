@@ -6,19 +6,15 @@ hit rate analysis, access pattern insights, cost optimization metrics,
 and anomaly detection for cache behavior.
 """
 
-import asyncio
-import time
-import threading
-import statistics
 import logging
-import math
+import statistics
+import threading
+import time
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
 from enum import Enum
-from collections import deque, defaultdict
-import hashlib
-import json
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 

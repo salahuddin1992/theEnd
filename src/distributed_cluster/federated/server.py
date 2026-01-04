@@ -22,11 +22,11 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 
-from distributed_cluster.federated.aggregator import Aggregator, create_aggregator
+from distributed_cluster.federated.aggregator import create_aggregator
 from distributed_cluster.federated.models import (
     AggregationStrategy,
     ClientInfo,
@@ -35,8 +35,6 @@ from distributed_cluster.federated.models import (
     FederatedConfig,
     FederatedMetrics,
     ModelWeights,
-    PrivacyConfig,
-    PrivacyMechanism,
     RoundConfig,
     RoundResult,
     RoundStatus,

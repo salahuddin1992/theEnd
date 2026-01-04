@@ -69,9 +69,9 @@ License: MIT
 """
 
 from distributed_cluster.autoscaling.metrics import (
-    MetricType,
     MetricsCollector,
     MetricsSample,
+    MetricType,
     ResourceMetrics,
 )
 from distributed_cluster.autoscaling.policies import (

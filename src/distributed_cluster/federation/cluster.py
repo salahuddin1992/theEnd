@@ -15,14 +15,12 @@ License: MIT
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
-from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -399,7 +397,7 @@ class FederatedCluster:
 
             return response.json()
 
-        except Exception as e:
+        except Exception:
             self._error_count += 1
             raise
 

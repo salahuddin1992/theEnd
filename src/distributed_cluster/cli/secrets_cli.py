@@ -27,9 +27,9 @@ from rich.table import Table
 from rich.tree import Tree
 
 from distributed_cluster.security.secrets import (
-    SecretType,
-    SecretsManager,
     Encryptor,
+    SecretsManager,
+    SecretType,
     create_secrets_manager,
 )
 

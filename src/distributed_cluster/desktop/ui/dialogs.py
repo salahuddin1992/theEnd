@@ -11,22 +11,30 @@ Modern Windows 11 style dialogs:
 
 from __future__ import annotations
 
-from typing import List, Callable
 from dataclasses import dataclass
 from enum import Enum
+from typing import Callable, List
 
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtWidgets import (
-    QDialog, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QFrame, QLineEdit, QComboBox, QCheckBox, QSpinBox,
-    QGraphicsOpacityEffect, QScrollArea
-)
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QKeyEvent
+from PySide6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFrame,
+    QGraphicsOpacityEffect,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QScrollArea,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 
+from .components import ButtonVariant, FluentButton, FluentCard, FluentInput
 from .fluent_design import FluentDesignSystem
-from .components import FluentButton, FluentInput, FluentCard, ButtonVariant
 from .splash import SplashProgressRing
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BASE DIALOG

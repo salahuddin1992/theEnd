@@ -742,7 +742,11 @@ class NotificationHistory:
             timestamp=datetime.fromisoformat(row["timestamp"]),
             sent_at=datetime.fromisoformat(row["sent_at"]) if row["sent_at"] else None,
             delivered_at=datetime.fromisoformat(row["delivered_at"]) if row["delivered_at"] else None,
-            delivery_status=DeliveryStatus(row["delivery_status"]) if row["delivery_status"] else DeliveryStatus.PENDING,
+            delivery_status=(
+                DeliveryStatus(row["delivery_status"])
+                if row["delivery_status"]
+                else DeliveryStatus.PENDING
+            ),
             error=row["error"],
             retry_count=row["retry_count"] or 0,
             tags=json.loads(row["tags"]) if row["tags"] else [],

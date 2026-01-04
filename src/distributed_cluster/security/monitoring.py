@@ -16,7 +16,6 @@ Features:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import statistics
 import threading
@@ -26,7 +25,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -235,7 +234,7 @@ class BruteForceDetector(ThreatDetector):
                     alert_id=f"bf_{actor_key}_{int(now)}",
                     threat_type=ThreatType.BRUTE_FORCE,
                     threat_level=ThreatLevel.HIGH,
-                    title=f"Brute Force Attack Detected",
+                    title="Brute Force Attack Detected",
                     description=f"{recent_failures} failed login attempts from {actor_key} "
                                f"in {self.config.auth_failure_window_seconds} seconds",
                     source_events=[event.event_id],

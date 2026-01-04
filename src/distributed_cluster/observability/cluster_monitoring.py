@@ -38,8 +38,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
-import logging
-import os
+import json
 import sys
 import threading
 import time
@@ -47,13 +46,10 @@ import uuid
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum, IntEnum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, TypeVar, Union
-
-import json
-
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 # =============================================================================
 # Log Levels
@@ -135,7 +131,7 @@ class PrometheusCounter:
         """Convert labels dict to hashable key."""
         if not labels:
             return ()
-        return tuple(labels.get(l, "") for l in self.labels)
+        return tuple(labels.get(lbl, "") for lbl in self.labels)
 
     def collect(self) -> str:
         """Collect metrics in Prometheus format."""
@@ -200,7 +196,7 @@ class PrometheusGauge:
         """Convert labels dict to hashable key."""
         if not labels:
             return ()
-        return tuple(labels.get(l, "") for l in self.labels)
+        return tuple(labels.get(lbl, "") for lbl in self.labels)
 
     def collect(self) -> str:
         """Collect metrics in Prometheus format."""
@@ -274,7 +270,7 @@ class PrometheusHistogram:
         """Convert labels dict to hashable key."""
         if not labels:
             return ()
-        return tuple(labels.get(l, "") for l in self.labels)
+        return tuple(labels.get(lbl, "") for lbl in self.labels)
 
     def collect(self) -> str:
         """Collect metrics in Prometheus format."""
@@ -351,7 +347,7 @@ class PrometheusSummary:
         """Convert labels dict to hashable key."""
         if not labels:
             return ()
-        return tuple(labels.get(l, "") for l in self.labels)
+        return tuple(labels.get(lbl, "") for lbl in self.labels)
 
     def _calculate_quantile(self, values: List[float], q: float) -> float:
         """Calculate quantile value."""
@@ -1178,7 +1174,7 @@ class ClusterMonitor:
         self._lock = threading.Lock()
 
         self.logger.info(
-            f"Cluster monitor initialized",
+            "Cluster monitor initialized",
             service=service_name,
             namespace=namespace,
         )
@@ -1674,7 +1670,7 @@ class ClusterMonitor:
         )
 
         self.logger.debug(
-            f"Scheduler cycle completed",
+            "Scheduler cycle completed",
             scheduler_id=scheduler_id,
             duration=duration_seconds,
             tasks_scheduled=tasks_scheduled,
@@ -1816,7 +1812,7 @@ class ClusterMonitor:
                     if hasattr(result, "status_code"):
                         status_code = result.status_code
                     return result
-                except Exception as e:
+                except Exception:
                     status_code = 500
                     raise
                 finally:
@@ -1833,7 +1829,7 @@ class ClusterMonitor:
                     if hasattr(result, "status_code"):
                         status_code = result.status_code
                     return result
-                except Exception as e:
+                except Exception:
                     status_code = 500
                     raise
                 finally:

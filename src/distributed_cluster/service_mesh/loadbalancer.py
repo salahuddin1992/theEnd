@@ -11,10 +11,9 @@ from abc import ABC, abstractmethod
 from bisect import bisect_left, insort
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from .discovery import ServiceInstance, ServiceStatus
+from .discovery import ServiceInstance
 
 logger = logging.getLogger(__name__)
 

@@ -26,7 +26,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -455,7 +455,6 @@ class Benchmarker:
         Returns:
             Dictionary with read/write timing results
         """
-        import tempfile
 
         data = os.urandom(int(data_size_mb * 1024 * 1024))
 

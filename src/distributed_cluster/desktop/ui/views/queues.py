@@ -11,21 +11,26 @@ Job queue management with:
 
 from __future__ import annotations
 
-from typing import Optional, List, Dict
 from dataclasses import dataclass
-from enum import Enum
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Dict, List, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QFrame, QGridLayout, QProgressBar,
-    QComboBox
+    QComboBox,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QProgressBar,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
 )
 
+from ..components import ButtonVariant, FluentButton
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, ButtonVariant
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DATA MODELS
@@ -641,9 +646,18 @@ class FluentQueuesView(QWidget):
                 avg_wait_time=5,
                 priority=10,
                 jobs=[
-                    QueuedJob("job-101", "Critical Model Training", "admin", 5, now - timedelta(minutes=3), 120, {"cpu": 8, "gpu": 2}, 1),
-                    QueuedJob("job-102", "Urgent Data Processing", "user1", 4, now - timedelta(minutes=8), 45, {"cpu": 16}, 2),
-                    QueuedJob("job-103", "Priority Inference", "user2", 4, now - timedelta(minutes=12), 30, {"cpu": 4, "gpu": 1}, 3),
+                    QueuedJob(
+                        "job-101", "Critical Model Training", "admin", 5,
+                        now - timedelta(minutes=3), 120, {"cpu": 8, "gpu": 2}, 1
+                    ),
+                    QueuedJob(
+                        "job-102", "Urgent Data Processing", "user1", 4,
+                        now - timedelta(minutes=8), 45, {"cpu": 16}, 2
+                    ),
+                    QueuedJob(
+                        "job-103", "Priority Inference", "user2", 4,
+                        now - timedelta(minutes=12), 30, {"cpu": 4, "gpu": 1}, 3
+                    ),
                 ]
             ),
             JobQueue(
@@ -659,10 +673,22 @@ class FluentQueuesView(QWidget):
                 avg_wait_time=15,
                 priority=5,
                 jobs=[
-                    QueuedJob("job-201", "Batch Processing A", "user3", 3, now - timedelta(minutes=20), 60, {"cpu": 8}, 1),
-                    QueuedJob("job-202", "Batch Processing B", "user4", 3, now - timedelta(minutes=18), 60, {"cpu": 8}, 2),
-                    QueuedJob("job-203", "Analysis Job", "user1", 2, now - timedelta(minutes=15), 90, {"cpu": 4}, 3),
-                    QueuedJob("job-204", "Report Generation", "user2", 2, now - timedelta(minutes=10), 15, {"cpu": 2}, 4),
+                    QueuedJob(
+                        "job-201", "Batch Processing A", "user3", 3,
+                        now - timedelta(minutes=20), 60, {"cpu": 8}, 1
+                    ),
+                    QueuedJob(
+                        "job-202", "Batch Processing B", "user4", 3,
+                        now - timedelta(minutes=18), 60, {"cpu": 8}, 2
+                    ),
+                    QueuedJob(
+                        "job-203", "Analysis Job", "user1", 2,
+                        now - timedelta(minutes=15), 90, {"cpu": 4}, 3
+                    ),
+                    QueuedJob(
+                        "job-204", "Report Generation", "user2", 2,
+                        now - timedelta(minutes=10), 15, {"cpu": 2}, 4
+                    ),
                 ]
             ),
             JobQueue(
@@ -678,8 +704,14 @@ class FluentQueuesView(QWidget):
                 avg_wait_time=45,
                 priority=7,
                 jobs=[
-                    QueuedJob("job-301", "Deep Learning Model", "mlteam", 3, now - timedelta(minutes=45), 240, {"gpu": 4}, 1),
-                    QueuedJob("job-302", "GAN Training", "researcher", 3, now - timedelta(minutes=30), 180, {"gpu": 2}, 2),
+                    QueuedJob(
+                        "job-301", "Deep Learning Model", "mlteam", 3,
+                        now - timedelta(minutes=45), 240, {"gpu": 4}, 1
+                    ),
+                    QueuedJob(
+                        "job-302", "GAN Training", "researcher", 3,
+                        now - timedelta(minutes=30), 180, {"gpu": 2}, 2
+                    ),
                 ]
             ),
             JobQueue(

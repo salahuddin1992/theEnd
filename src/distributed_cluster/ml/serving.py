@@ -11,16 +11,15 @@ import asyncio
 import logging
 import time
 import uuid
-from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from queue import Queue
 from threading import Lock
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from .models import Model, ModelConfig, PredictionResult
+from .models import Model
 
 logger = logging.getLogger(__name__)
 

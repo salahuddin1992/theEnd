@@ -16,19 +16,18 @@ Strategies:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 
 from distributed_cluster.models.worker import WorkerInfo
 
+from .scorer import NetworkTopology
 from .tracker import DataBlock, DataLocation, DataLocationTracker, ReplicaState
-from .scorer import NetworkTopology, LocalityLevel
 
 logger = logging.getLogger(__name__)
 

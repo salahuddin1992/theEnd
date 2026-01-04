@@ -7,17 +7,15 @@ Model versioning, tracking, and lifecycle management.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
-import os
 import shutil
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from .models import Model, ModelConfig, ModelFramework, ModelMetadata, ModelState, ModelVersion
 

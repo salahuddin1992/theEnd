@@ -10,13 +10,17 @@ from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime
 from typing import Optional
 
-from PySide6.QtCore import QThread, Signal, Qt
-from PySide6.QtGui import QFont, QColor, QTextCharFormat, QSyntaxHighlighter
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QColor, QFont, QSyntaxHighlighter, QTextCharFormat
 from PySide6.QtWidgets import (
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QSplitter,
@@ -24,10 +28,6 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QMessageBox,
-    QFileDialog,
-    QListWidget,
-    QListWidgetItem,
 )
 
 from ..api.client import APIClient
@@ -532,7 +532,17 @@ class ScriptEditorView(QWidget):
                 selection-background-color: {COLORS['primary']};
             }}
         """)
-        self.code_editor.setPlaceholderText("# Write your Python script here...\n# Available APIs:\n#   - cluster: Cluster operations\n#   - jobs: Job management\n#   - workers: Worker control\n#   - log(msg): Print to console\n\nprint('Hello, NebulaCompute!')")
+        placeholder_text = (
+            "# Write your Python script here...\n"
+            "# Available APIs:\n"
+            "#   - cluster: Cluster operations\n"
+            "#   - jobs: Job management\n"
+            "#   - workers: Worker control\n"
+            "#   - log(msg): Print to console\n"
+            "\n"
+            "print('Hello, NebulaCompute!')"
+        )
+        self.code_editor.setPlaceholderText(placeholder_text)
         self.code_editor.setTabStopDistance(40)
         self.code_editor.cursorPositionChanged.connect(self._update_position_label)
 

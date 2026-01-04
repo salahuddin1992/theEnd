@@ -243,7 +243,11 @@ class TenantIsolator:
         ]
 
         # Get allowed registries from policy metadata
-        allowed_registries = policy.metadata.get("allowed_registries", default_allowed) if hasattr(policy, 'metadata') else default_allowed
+        allowed_registries = (
+            policy.metadata.get("allowed_registries", default_allowed)
+            if hasattr(policy, 'metadata')
+            else default_allowed
+        )
 
         # Parse image to extract registry
         registry = self._extract_registry(image)

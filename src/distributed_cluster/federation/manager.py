@@ -18,14 +18,18 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Any, Optional
 
 from distributed_cluster.federation.cluster import (
-    FederatedCluster,
     ClusterInfo,
-    ClusterStatus,
     ClusterRole,
+    ClusterStatus,
+    FederatedCluster,
+)
+from distributed_cluster.federation.discovery import (
+    ClusterDiscovery,
+    DiscoveryConfig,
+    DiscoveryMethod,
 )
 from distributed_cluster.federation.router import (
     JobRouter,
@@ -36,11 +40,6 @@ from distributed_cluster.federation.sync import (
     StateSync,
     SyncConfig,
     SyncResult,
-)
-from distributed_cluster.federation.discovery import (
-    ClusterDiscovery,
-    DiscoveryConfig,
-    DiscoveryMethod,
 )
 
 logger = logging.getLogger(__name__)

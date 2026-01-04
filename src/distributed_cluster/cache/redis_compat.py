@@ -15,12 +15,9 @@ License: MIT
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import time
-from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from distributed_cluster.cache.store import CacheStore
 

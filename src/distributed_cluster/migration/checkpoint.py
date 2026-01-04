@@ -199,8 +199,8 @@ class CheckpointManager:
         Returns:
             Created Checkpoint object
         """
-        import uuid
         import time
+        import uuid
 
         checkpoint_id = str(uuid.uuid4())
         checkpoint_path = self.checkpoint_dir / checkpoint_id

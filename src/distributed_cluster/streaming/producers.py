@@ -4,16 +4,15 @@ Event producers for publishing events to the streaming system.
 
 import asyncio
 import logging
+import threading
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union
 from concurrent.futures import ThreadPoolExecutor
-import threading
-from queue import Queue, Empty
+from dataclasses import dataclass
+from queue import Queue
+from typing import Any, Callable, Dict, List, Optional
 
-from .events import Event, EventType, EventPriority, EventMetadata
+from .events import Event, EventMetadata, EventPriority, EventType
 
 logger = logging.getLogger(__name__)
 
@@ -324,7 +323,7 @@ class AsyncEventProducer(EventProducer):
             except asyncio.CancelledError:
                 pass
 
-    def close(self) -> None:
+    def close_sync(self) -> None:
         """Synchronous close."""
         self._started = False
 

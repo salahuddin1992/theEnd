@@ -16,7 +16,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -228,7 +227,7 @@ class GatewayResponse:
         return response
 
     @classmethod
-    def error(cls, status_code: int, message: str) -> GatewayResponse:
+    def create_error(cls, status_code: int, message: str) -> "GatewayResponse":
         """Create an error response."""
         response = cls(status_code=status_code, error=message)
         response.set_json({"error": message, "status": status_code})
@@ -236,31 +235,31 @@ class GatewayResponse:
 
     @classmethod
     def not_found(cls, message: str = "Not Found") -> GatewayResponse:
-        return cls.error(404, message)
+        return cls.create_error(404, message)
 
     @classmethod
     def bad_request(cls, message: str = "Bad Request") -> GatewayResponse:
-        return cls.error(400, message)
+        return cls.create_error(400, message)
 
     @classmethod
     def unauthorized(cls, message: str = "Unauthorized") -> GatewayResponse:
-        return cls.error(401, message)
+        return cls.create_error(401, message)
 
     @classmethod
     def forbidden(cls, message: str = "Forbidden") -> GatewayResponse:
-        return cls.error(403, message)
+        return cls.create_error(403, message)
 
     @classmethod
     def internal_error(cls, message: str = "Internal Server Error") -> GatewayResponse:
-        return cls.error(500, message)
+        return cls.create_error(500, message)
 
     @classmethod
     def service_unavailable(cls, message: str = "Service Unavailable") -> GatewayResponse:
-        return cls.error(503, message)
+        return cls.create_error(503, message)
 
     @classmethod
     def gateway_timeout(cls, message: str = "Gateway Timeout") -> GatewayResponse:
-        return cls.error(504, message)
+        return cls.create_error(504, message)
 
 
 class RequestHandler:

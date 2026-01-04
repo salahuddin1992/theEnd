@@ -18,14 +18,13 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 from distributed_cluster.models.job import Job
 from distributed_cluster.models.worker import WorkerInfo
 
-from .tracker import DataBlock, DataLocation, DataLocationTracker
+from .tracker import DataBlock, DataLocationTracker
 
 logger = logging.getLogger(__name__)
 

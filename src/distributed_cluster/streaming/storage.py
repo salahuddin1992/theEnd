@@ -3,21 +3,19 @@ Event storage and replay functionality for persistent event streams.
 """
 
 import asyncio
+import gzip
 import json
 import logging
-import os
-import sqlite3
+import shutil
 import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Iterator, List, Optional, Tuple, Union
-import gzip
-import shutil
+from typing import Callable, Dict, Iterator, List, Optional, Tuple
 
-from .events import Event, EventType, EventPriority
+from .events import Event, EventPriority, EventType
 
 logger = logging.getLogger(__name__)
 
@@ -473,7 +471,7 @@ class PostgresEventStore(EventStore):
     def _init_pool(self):
         """Initialize connection pool."""
         try:
-            import psycopg2
+            import psycopg2  # noqa: F401
             from psycopg2 import pool
 
             self._pool = pool.ThreadedConnectionPool(

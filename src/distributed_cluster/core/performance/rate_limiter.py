@@ -14,13 +14,11 @@ Advanced Rate Limiter - محدد المعدل المتقدم
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import threading
 import time
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
 from typing import (
@@ -28,12 +26,8 @@ from typing import (
     Callable,
     Deque,
     Dict,
-    Generic,
-    List,
     Optional,
-    Tuple,
     TypeVar,
-    Union,
 )
 
 
@@ -911,7 +905,7 @@ class RedisRateLimiter(RateLimiter):
                     current=self.config.burst_size,
                 )
 
-        except Exception as e:
+        except Exception:
             # Fallback: allow if Redis fails
             return RateLimitResult(
                 allowed=True,

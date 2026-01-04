@@ -272,7 +272,7 @@ class ClusterOperator:
     async def _start_metrics_server(self) -> None:
         """بدء خادم المقاييس"""
         async def handle_metrics(reader, writer):
-            request = await reader.read(1024)
+            await reader.read(1024)
 
             # Generate Prometheus metrics
             metrics = self._generate_metrics()
@@ -306,7 +306,7 @@ class ClusterOperator:
             '# TYPE operator_info gauge'
         )
         lines.append(
-            f'operator_info{{version="1.0.0"}} 1'
+            'operator_info{version="1.0.0"} 1'
         )
 
         # Uptime

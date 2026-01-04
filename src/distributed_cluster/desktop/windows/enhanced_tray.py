@@ -22,27 +22,24 @@ License: MIT
 
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from PySide6.QtCore import QObject, QTimer, Signal, Qt, QPoint
+from PySide6.QtCore import QObject, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (
-    QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
     QMenu,
+    QProgressBar,
     QPushButton,
     QSystemTrayIcon,
     QVBoxLayout,
     QWidget,
     QWidgetAction,
-    QGraphicsDropShadowEffect,
-    QProgressBar,
 )
 
 

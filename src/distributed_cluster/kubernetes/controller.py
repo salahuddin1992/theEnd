@@ -17,8 +17,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -27,9 +27,6 @@ from distributed_cluster.kubernetes.crds import (
     API_VERSION,
     ClusterCRD,
     ClusterPhase,
-    ClusterStatus,
-    WorkerCRD,
-    WorkerPhase,
 )
 
 logger = logging.getLogger(__name__)
@@ -152,10 +149,10 @@ class ClusterController:
     async def start(self) -> bool:
         """بدء المتحكم"""
         try:
-            from kubernetes import client, config
+            from kubernetes import config
             from kubernetes.client import (
-                CoreV1Api,
                 AppsV1Api,
+                CoreV1Api,
                 CustomObjectsApi,
             )
 

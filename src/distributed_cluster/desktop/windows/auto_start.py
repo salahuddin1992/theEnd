@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 # Check for Windows
 import platform
+
 IS_WINDOWS = platform.system() == "Windows"
 
 
@@ -454,8 +455,8 @@ $Shortcut.Save()
         """تثبيت كخدمة Windows"""
         try:
             # This requires pywin32 and running as admin
-            import win32serviceutil
-            import win32service
+            import win32service  # noqa: F401
+            import win32serviceutil  # noqa: F401
 
             # Service installation requires a proper service class
             # This is a placeholder for the actual implementation

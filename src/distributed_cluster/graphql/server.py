@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from .resolvers import MutationResolver, QueryResolver, ResolverContext, ResolverInfo
 from .schema import create_schema, generate_sdl
-from .resolvers import QueryResolver, MutationResolver, ResolverContext, ResolverInfo
 from .subscriptions import SubscriptionManager, WebSocketHandler
 
 logger = logging.getLogger(__name__)

@@ -25,18 +25,18 @@ except ImportError:
 # Re-export everything from pynvml
 if NVML_AVAILABLE:
     from pynvml import (
-        nvmlInit,
-        nvmlShutdown,
+        NVML_TEMPERATURE_GPU,
+        nvmlDeviceGetComputeRunningProcesses,
         nvmlDeviceGetCount,
         nvmlDeviceGetHandleByIndex,
-        nvmlDeviceGetName,
-        nvmlDeviceGetUUID,
         nvmlDeviceGetMemoryInfo,
-        nvmlDeviceGetUtilizationRates,
-        nvmlDeviceGetTemperature,
+        nvmlDeviceGetName,
         nvmlDeviceGetPowerUsage,
-        nvmlDeviceGetComputeRunningProcesses,
-        NVML_TEMPERATURE_GPU,
+        nvmlDeviceGetTemperature,
+        nvmlDeviceGetUtilizationRates,
+        nvmlDeviceGetUUID,
+        nvmlInit,
+        nvmlShutdown,
     )
 
 __all__ = [

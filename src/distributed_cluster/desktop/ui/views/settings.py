@@ -12,21 +12,24 @@ Application settings with:
 
 from __future__ import annotations
 
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QScrollArea, QStackedWidget, QListWidget, QListWidgetItem,
-    QComboBox, QSpinBox
+    QComboBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QScrollArea,
+    QSpinBox,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
 )
 
+from ..components import ButtonVariant, FluentButton, FluentCard, FluentInput, FluentSwitch
 from ..fluent_design import FluentDesignSystem
-from ..components import (
-    FluentButton, FluentCard, FluentInput, FluentSwitch,
-    ButtonVariant
-)
 from ..titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SETTINGS SECTION

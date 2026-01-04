@@ -7,18 +7,15 @@ and system resource utilization.
 """
 
 import asyncio
-import time
-import math
-import statistics
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Tuple, Set
-from enum import Enum
-from collections import deque, defaultdict
-import threading
 import logging
-import hashlib
-import json
+import statistics
+import threading
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -787,9 +784,18 @@ class CacheOptimizer:
                 'burstiness_score': characteristics.burstiness_score,
             },
             'performance_metrics': {
-                'avg_hit_rate': statistics.mean([m.hit_rate for m in recent_metrics]) if recent_metrics else 0,
-                'avg_latency_ms': statistics.mean([m.avg_latency_ms for m in recent_metrics]) if recent_metrics else 0,
-                'avg_throughput_ops': statistics.mean([m.throughput_ops for m in recent_metrics]) if recent_metrics else 0,
+                'avg_hit_rate': (
+                    statistics.mean([m.hit_rate for m in recent_metrics])
+                    if recent_metrics else 0
+                ),
+                'avg_latency_ms': (
+                    statistics.mean([m.avg_latency_ms for m in recent_metrics])
+                    if recent_metrics else 0
+                ),
+                'avg_throughput_ops': (
+                    statistics.mean([m.throughput_ops for m in recent_metrics])
+                    if recent_metrics else 0
+                ),
             },
             'recommendations': [
                 {

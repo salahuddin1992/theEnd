@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Optional
 
-from PySide6.QtCore import QProcess, Signal, Qt
+from PySide6.QtCore import QProcess, Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,

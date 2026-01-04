@@ -12,13 +12,10 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from distributed_cluster.reporting.reports import Report
 
@@ -149,7 +146,7 @@ class ExcelExporter(ReportExporter):
         """تصدير لـ Excel"""
         try:
             import openpyxl
-            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+            from openpyxl.styles import Font, PatternFill  # noqa: F401
             from openpyxl.utils import get_column_letter
         except ImportError:
             logger.warning("openpyxl not available, falling back to CSV")
@@ -181,7 +178,11 @@ class ExcelExporter(ReportExporter):
         row += 1
 
         ws.cell(row=row, column=1, value="Period:")
-        ws.cell(row=row, column=2, value=f"{report.start_time.strftime('%Y-%m-%d')} - {report.end_time.strftime('%Y-%m-%d')}")
+        period_value = (
+            f"{report.start_time.strftime('%Y-%m-%d')} - "
+            f"{report.end_time.strftime('%Y-%m-%d')}"
+        )
+        ws.cell(row=row, column=2, value=period_value)
         row += 2
 
         # Sections
@@ -259,7 +260,7 @@ class PDFExporter(ReportExporter):
     async def export(self, report: Report, output_path: Optional[str] = None) -> bytes:
         """تصدير لـ PDF"""
         try:
-            from weasyprint import HTML, CSS
+            from weasyprint import CSS, HTML
         except ImportError:
             logger.warning("weasyprint not available, returning HTML")
             html_exporter = HTMLExporter()

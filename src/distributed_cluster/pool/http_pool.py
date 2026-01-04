@@ -9,12 +9,12 @@ Provides efficient HTTP client pooling with:
 """
 
 import asyncio
+import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
-import logging
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

@@ -19,33 +19,26 @@ from typing import Dict
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QFont, QKeySequence, QShortcut
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget,
-    QSplitter, QFrame, QLabel, QApplication
-)
+from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QSplitter, QStackedWidget, QVBoxLayout, QWidget
 
-from .fluent_design import FluentDesignSystem
-from .titlebar import FramelessWindow, FluentIcons
-from .sidebar import FluentSidebar
-from .notifications import InAppNotificationManager
-from .dashboard import FluentDashboard
 from .components import SkeletonLoader
+from .dashboard import FluentDashboard
+from .dialogs import ConfirmationDialog, ConfirmationType, ConnectionDialog
+from .fluent_design import FluentDesignSystem
+from .notifications import InAppNotificationManager
+from .sidebar import FluentSidebar
+from .titlebar import FluentIcons, FramelessWindow
 from .views import (
     FluentJobsView,
-    FluentWorkersView,
-    FluentSettingsView,
     FluentLogsView,
     FluentMetricsView,
-    FluentTemplatesView,
     FluentPoolsView,
-    FluentQueuesView
+    FluentQueuesView,
+    FluentSettingsView,
+    FluentTemplatesView,
+    FluentWorkersView,
 )
-from .dialogs import ConnectionDialog, ConfirmationDialog, ConfirmationType
-from .windows_integration import (
-    WindowsIntegrationManager,
-    IS_WINDOWS
-)
-
+from .windows_integration import IS_WINDOWS, WindowsIntegrationManager
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FLUENT MAIN WINDOW
@@ -568,8 +561,8 @@ def create_fluent_app(show_splash: bool = True):
 
     # Check for PySide6
     try:
-        from PySide6.QtWidgets import QApplication
         from PySide6.QtCore import Qt
+        from PySide6.QtWidgets import QApplication
     except ImportError:
         print("PySide6 is required. Install with: pip install PySide6")
         sys.exit(1)

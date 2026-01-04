@@ -86,46 +86,6 @@ RuleAction = RuleCondition
 ConditionalRouter = RuleEngine
 
 # Queue components
-from .queue import (
-    NotificationQueue,
-    MultiPriorityQueue,
-    QueueOverflowPolicy,
-    QueueFullError,
-)
-
-# History components
-from .history import (
-    NotificationHistory,
-    HistoryQuery,
-    HistoryStats,
-    RetentionPolicy,
-)
-
-# Scheduler components
-from .scheduler import (
-    NotificationScheduler,
-    ScheduledJob,
-    Schedule,
-    ScheduleType,
-    JobStatus,
-)
-
-# Template components
-from .templates import (
-    NotificationTemplate,
-    TemplateEngine,
-    HTMLTemplate,
-    MarkdownTemplate,
-    RTLTemplate,
-    StringTemplate,
-    TemplateContext,
-    TemplateFormat,
-    TextDirection,
-    default_engine,
-    render_template,
-    create_notification_content,
-)
-
 # Rate limiter from channels (already implemented)
 from .channels import RateLimiter
 
@@ -141,6 +101,45 @@ from .chatbot import (
     SlackBot,
     create_discord_bot,
     create_slack_bot,
+)
+
+# History components
+from .history import (
+    HistoryQuery,
+    HistoryStats,
+    NotificationHistory,
+    RetentionPolicy,
+)
+from .queue import (
+    MultiPriorityQueue,
+    NotificationQueue,
+    QueueFullError,
+    QueueOverflowPolicy,
+)
+
+# Scheduler components
+from .scheduler import (
+    JobStatus,
+    NotificationScheduler,
+    Schedule,
+    ScheduledJob,
+    ScheduleType,
+)
+
+# Template components
+from .templates import (
+    HTMLTemplate,
+    MarkdownTemplate,
+    NotificationTemplate,
+    RTLTemplate,
+    StringTemplate,
+    TemplateContext,
+    TemplateEngine,
+    TemplateFormat,
+    TextDirection,
+    create_notification_content,
+    default_engine,
+    render_template,
 )
 
 

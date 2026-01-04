@@ -20,12 +20,12 @@ import hmac
 from datetime import datetime
 from typing import Any, Callable, Optional
 
+from distributed_cluster.webhooks.templates import TemplateEngine
 from distributed_cluster.webhooks.webhook import (
-    WebhookProvider,
     WebhookConfig,
     WebhookEvent,
+    WebhookProvider,
 )
-from distributed_cluster.webhooks.templates import TemplateEngine
 
 
 class CustomWebhook(WebhookProvider):

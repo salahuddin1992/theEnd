@@ -15,15 +15,15 @@ from .engine import (
     TargetType,
 )
 from .faults import (
-    FaultInjector,
-    FaultType,
     FaultConfig,
+    FaultInjector,
     FaultResult,
+    FaultType,
 )
 from .scheduler import (
     ChaosScheduler,
-    Schedule,
     GameDay,
+    Schedule,
 )
 
 __all__ = [

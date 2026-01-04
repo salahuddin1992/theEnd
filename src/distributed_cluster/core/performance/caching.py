@@ -906,7 +906,6 @@ class CacheInvalidator:
 
     def register_pattern(self, pattern: str, key: str) -> None:
         """تسجيل مفتاح مع نمط للإبطال"""
-        import re
 
         with self._lock:
             for p, keys in self._patterns:

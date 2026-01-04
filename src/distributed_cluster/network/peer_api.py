@@ -20,16 +20,16 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from distributed_cluster.network.peer_discovery import (
-    PeerManager,
-    PeerInfo,
-)
 from distributed_cluster.network.internet_p2p import (
     InternetP2PManager,
     parse_connection_code,
 )
 from distributed_cluster.network.network_stack import (
     NetworkStackManager,
+)
+from distributed_cluster.network.peer_discovery import (
+    PeerInfo,
+    PeerManager,
 )
 
 logger = logging.getLogger(__name__)
@@ -749,8 +749,13 @@ DASHBOARD_HTML = """
             border: 1px solid rgba(255,255,255,0.2);
         }
         .card h2 { color: #00d4ff; margin-bottom: 15px; font-size: 1.2em; }
-        .card.highlight { background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,100,200,0.2)); }
-        .card.internet { background: linear-gradient(135deg, rgba(138,43,226,0.2), rgba(75,0,130,0.2)); border-color: rgba(138,43,226,0.5); }
+        .card.highlight {
+            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,100,200,0.2));
+        }
+        .card.internet {
+            background: linear-gradient(135deg, rgba(138,43,226,0.2), rgba(75,0,130,0.2));
+            border-color: rgba(138,43,226,0.5);
+        }
         .card.internet h2 { color: #da70d6; }
         .peer-list { max-height: 350px; overflow-y: auto; }
         .peer-item {
@@ -798,7 +803,12 @@ DASHBOARD_HTML = """
         .btn-copy { background: #9370db; color: #fff; }
         .btn:hover { transform: scale(1.05); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
         .info-label { color: #888; }
         .info-value { color: #fff; font-weight: 500; }
         .connection-code {
@@ -838,7 +848,11 @@ DASHBOARD_HTML = """
             padding: 10px;
             margin-top: 10px;
         }
-        .message { padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9em; }
+        .message {
+            padding: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9em;
+        }
         .message-time { color: #666; font-size: 0.8em; }
         .badge {
             display: inline-block;
@@ -849,7 +863,13 @@ DASHBOARD_HTML = """
             font-size: 0.8em;
             margin-right: 5px;
         }
-        .section-title { color: #888; font-size: 0.9em; margin: 15px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .section-title {
+            color: #888;
+            font-size: 0.9em;
+            margin: 15px 0 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+        }
         .empty-state { color: #666; text-align: center; padding: 20px; }
     </style>
 </head>
@@ -860,7 +880,10 @@ DASHBOARD_HTML = """
 
         <div class="tabs">
             <button class="tab active" onclick="showTab('local')">الشبكة المحلية</button>
-            <button class="tab" onclick="showTab('internet')">الإنترنت P2P <span id="requestsBadge" class="badge" style="display:none">0</span></button>
+            <button class="tab" onclick="showTab('internet')">
+                الإنترنت P2P
+                <span id="requestsBadge" class="badge" style="display:none">0</span>
+            </button>
             <button class="tab" onclick="showTab('network')">مكدس الشبكة</button>
             <button class="tab" onclick="showTab('messages')">الرسائل</button>
         </div>
@@ -1061,13 +1084,37 @@ DASHBOARD_HTML = """
         }
 
         function updateMyInfo(info) {
+            const hostname = info.device?.hostname || 'غير معروف';
+            const platform = info.device?.platform || '';
+            const ipAddresses = (info.device?.ip_addresses || []).join(', ') || 'غير معروف';
+            const cpuCount = info.device?.cpu_count || 0;
+            const memoryGb = info.device?.memory_gb || 0;
+
             document.getElementById('myInfo').innerHTML = `
-                <div class="info-row"><span class="info-label">المعرف:</span><span class="info-value">${info.peer_id}</span></div>
-                <div class="info-row"><span class="info-label">الاسم:</span><span class="info-value">${info.device?.hostname || 'غير معروف'}</span></div>
-                <div class="info-row"><span class="info-label">النظام:</span><span class="info-value">${info.device?.platform || ''}</span></div>
-                <div class="info-row"><span class="info-label">IP المحلي:</span><span class="info-value">${(info.device?.ip_addresses || []).join(', ') || 'غير معروف'}</span></div>
-                <div class="info-row"><span class="info-label">المعالج:</span><span class="info-value">${info.device?.cpu_count || 0} أنوية</span></div>
-                <div class="info-row"><span class="info-label">الذاكرة:</span><span class="info-value">${info.device?.memory_gb || 0} GB</span></div>
+                <div class="info-row">
+                    <span class="info-label">المعرف:</span>
+                    <span class="info-value">${info.peer_id}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الاسم:</span>
+                    <span class="info-value">${hostname}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">النظام:</span>
+                    <span class="info-value">${platform}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">IP المحلي:</span>
+                    <span class="info-value">${ipAddresses}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">المعالج:</span>
+                    <span class="info-value">${cpuCount} أنوية</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">الذاكرة:</span>
+                    <span class="info-value">${memoryGb} GB</span>
+                </div>
             `;
         }
 

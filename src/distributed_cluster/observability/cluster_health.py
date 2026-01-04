@@ -21,14 +21,14 @@ Unified health monitoring for the entire cluster:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-import json
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -766,7 +766,7 @@ class ClusterHealthAggregator:
             return []
 
         # Bucket by resolution
-        resolution = timedelta(minutes=resolution_minutes)
+        timedelta(minutes=resolution_minutes)
         buckets: Dict[datetime, List[HealthHistoryEntry]] = defaultdict(list)
 
         for entry in relevant:

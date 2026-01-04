@@ -6,8 +6,8 @@ Provides FastAPI middleware and decorators for rate limiting.
 
 import functools
 import hashlib
-from typing import Any, Callable, Dict, List, Optional
 import logging
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class RateLimitMiddleware:
         self.include_paths = include_paths
         self.key_func = key_func or get_client_id
 
-        from .limiter import RateLimiter, RateLimitConfig
+        from .limiter import RateLimitConfig, RateLimiter
         self.config = config or RateLimitConfig()
         self.limiter = RateLimiter(self.config)
 
@@ -168,7 +168,7 @@ def rate_limit(
         key_func: Custom function to extract client ID
         scope: Rate limit scope (endpoint, global)
     """
-    from .limiter import RateLimiter, RateLimitConfig
+    from .limiter import RateLimitConfig, RateLimiter
 
     # Create limiter for this endpoint
     config = RateLimitConfig(
@@ -257,7 +257,7 @@ class RateLimitGroup:
             requests_per_minute: Maximum requests per minute
             burst_size: Allowed burst size
         """
-        from .limiter import RateLimiter, RateLimitConfig
+        from .limiter import RateLimitConfig, RateLimiter
 
         self.name = name
         self.config = RateLimitConfig(

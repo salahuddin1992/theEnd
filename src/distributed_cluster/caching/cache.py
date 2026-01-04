@@ -2,18 +2,16 @@
 Core cache implementation and configuration.
 """
 
-import asyncio
 import hashlib
 import json
 import logging
 import pickle
 import threading
-import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from datetime import datetime
 from enum import Enum
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 

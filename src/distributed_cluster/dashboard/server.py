@@ -18,14 +18,14 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from distributed_cluster.dashboard.metrics import MetricsCollector
-from distributed_cluster.dashboard.health import HealthChecker
 from distributed_cluster.dashboard.alerts import AlertManager
+from distributed_cluster.dashboard.health import HealthChecker
+from distributed_cluster.dashboard.metrics import MetricsCollector
 
 logger = logging.getLogger(__name__)
 

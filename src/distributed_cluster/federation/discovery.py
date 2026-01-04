@@ -16,19 +16,17 @@ License: MIT
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
 from distributed_cluster.federation.cluster import (
     ClusterInfo,
-    ClusterStatus,
     ClusterRole,
-    ClusterCapacity,
+    ClusterStatus,
 )
 
 logger = logging.getLogger(__name__)

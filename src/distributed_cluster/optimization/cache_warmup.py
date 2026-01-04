@@ -7,17 +7,15 @@ predictive models, and scheduled refresh policies.
 """
 
 import asyncio
-import time
-import threading
 import logging
-import hashlib
-import heapq
+import threading
+import time
+from abc import ABC, abstractmethod
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Set, Tuple, Awaitable
 from enum import Enum
-from collections import deque, defaultdict
-from abc import ABC, abstractmethod
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 

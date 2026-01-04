@@ -14,15 +14,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import statistics
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
-
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -546,7 +543,10 @@ class WorkloadClassifier:
         recommendations = {
             "cpu_cores": max(1, profile.avg_cpu_usage / 100 * 4 * safety_margin * scale_factor),
             "memory_mb": max(512, profile.avg_memory_usage / 100 * 8192 * safety_margin * scale_factor),
-            "gpu_units": profile.avg_gpu_usage / 100 * safety_margin * scale_factor if profile.avg_gpu_usage > 10 else 0,
+            "gpu_units": (
+                profile.avg_gpu_usage / 100 * safety_margin * scale_factor
+                if profile.avg_gpu_usage > 10 else 0
+            ),
         }
 
         # Adjust based on category
@@ -693,7 +693,6 @@ class PatternAnalyzer:
 
     async def detect_patterns(self) -> List[PatternMatch]:
         """Detect patterns in event sequence."""
-        import uuid
 
         patterns = []
         events = list(self._sequence_buffer)

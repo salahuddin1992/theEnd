@@ -1333,10 +1333,11 @@ class PostgreSQLDatabase(Database):
 
             # Get paginated results
             params.extend([limit, offset])
-            rows = await conn.fetch(
-                f"SELECT * FROM jobs {where_clause} ORDER BY created_at DESC LIMIT ${param_idx} OFFSET ${param_idx + 1}",
-                *params,
+            query = (
+                f"SELECT * FROM jobs {where_clause} ORDER BY created_at DESC "
+                f"LIMIT ${param_idx} OFFSET ${param_idx + 1}"
             )
+            rows = await conn.fetch(query, *params)
 
         return [self._row_to_job(row) for row in rows], total
 

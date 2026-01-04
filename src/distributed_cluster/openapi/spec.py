@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -431,8 +431,19 @@ def _generate_paths() -> Dict[str, Any]:
                 "parameters": [
                     {"$ref": "#/components/parameters/offsetParam"},
                     {"$ref": "#/components/parameters/limitParam"},
-                    {"name": "status", "in": "query", "schema": {"type": "array", "items": {"$ref": "#/components/schemas/JobStatus"}}},
-                    {"name": "priority", "in": "query", "schema": {"$ref": "#/components/schemas/JobPriority"}},
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/JobStatus"}
+                        }
+                    },
+                    {
+                        "name": "priority",
+                        "in": "query",
+                        "schema": {"$ref": "#/components/schemas/JobPriority"}
+                    },
                     {"name": "worker_id", "in": "query", "schema": {"type": "string"}},
                 ],
                 "responses": {
@@ -443,7 +454,14 @@ def _generate_paths() -> Dict[str, Any]:
                                 "schema": {
                                     "allOf": [
                                         {"$ref": "#/components/schemas/PaginatedResponse"},
-                                        {"properties": {"items": {"type": "array", "items": {"$ref": "#/components/schemas/Job"}}}},
+                                        {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {"$ref": "#/components/schemas/Job"}
+                                                }
+                                            }
+                                        },
                                     ],
                                 },
                             },

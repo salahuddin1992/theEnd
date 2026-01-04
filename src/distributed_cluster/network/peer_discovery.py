@@ -70,6 +70,7 @@ class DeviceInfo:
     def from_system(cls) -> DeviceInfo:
         """جمع معلومات الجهاز الحالي."""
         import os
+
         import psutil
 
         # Get IP addresses

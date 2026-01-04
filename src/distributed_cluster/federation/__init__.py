@@ -24,14 +24,18 @@ License: MIT
 """
 
 from distributed_cluster.federation.cluster import (
-    FederatedCluster,
+    ClusterCapacity,
     ClusterInfo,
     ClusterStatus,
-    ClusterCapacity,
+    FederatedCluster,
+)
+from distributed_cluster.federation.discovery import (
+    ClusterDiscovery,
+    DiscoveryConfig,
 )
 from distributed_cluster.federation.manager import (
-    FederationManager,
     FederationConfig,
+    FederationManager,
 )
 from distributed_cluster.federation.router import (
     JobRouter,
@@ -42,10 +46,6 @@ from distributed_cluster.federation.sync import (
     StateSync,
     SyncConfig,
     SyncResult,
-)
-from distributed_cluster.federation.discovery import (
-    ClusterDiscovery,
-    DiscoveryConfig,
 )
 
 __all__ = [

@@ -9,7 +9,7 @@ License: MIT
 """
 
 from distributed_cluster.desktop.resources.styles import COLORS, MAIN_STYLESHEET
-from distributed_cluster.desktop.resources.themes import get_theme, apply_theme, Theme
+from distributed_cluster.desktop.resources.themes import Theme, apply_theme, get_theme
 
 __all__ = [
     "COLORS",

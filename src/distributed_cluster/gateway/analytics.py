@@ -13,9 +13,9 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from .gateway import GatewayRequest, GatewayResponse
 
@@ -442,27 +442,27 @@ class MetricsCollector:
         lines = []
 
         # Total requests
-        lines.append(f"# HELP gateway_requests_total Total number of requests")
-        lines.append(f"# TYPE gateway_requests_total counter")
+        lines.append("# HELP gateway_requests_total Total number of requests")
+        lines.append("# TYPE gateway_requests_total counter")
         lines.append(f"gateway_requests_total {self._total_requests}")
 
         # Requests by status
-        lines.append(f"# HELP gateway_requests_by_status Requests by status code")
-        lines.append(f"# TYPE gateway_requests_by_status counter")
+        lines.append("# HELP gateway_requests_by_status Requests by status code")
+        lines.append("# TYPE gateway_requests_by_status counter")
         for status, count in self._status_counts.items():
             lines.append(f'gateway_requests_by_status{{status="{status}"}} {count}')
 
         # Latency
         if self._total_requests > 0:
             avg_latency = self._total_latency_ms / self._total_requests
-            lines.append(f"# HELP gateway_request_duration_ms Request duration")
-            lines.append(f"# TYPE gateway_request_duration_ms gauge")
+            lines.append("# HELP gateway_request_duration_ms Request duration")
+            lines.append("# TYPE gateway_request_duration_ms gauge")
             lines.append(f"gateway_request_duration_ms {round(avg_latency, 2)}")
 
         # Percentiles
         percentiles = self.get_latency_percentiles()
-        lines.append(f"# HELP gateway_request_duration_percentile Request duration percentiles")
-        lines.append(f"# TYPE gateway_request_duration_percentile gauge")
+        lines.append("# HELP gateway_request_duration_percentile Request duration percentiles")
+        lines.append("# TYPE gateway_request_duration_percentile gauge")
         for p, v in percentiles.items():
             lines.append(f'gateway_request_duration_percentile{{quantile="{p}"}} {v}')
 
