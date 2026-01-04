@@ -840,7 +840,7 @@ class JobExecutor:
         elif shell_type in (ShellType.BASH, ShellType.SH, ShellType.ZSH):
             if as_admin and not IS_WINDOWS:
                 try:
-                    if os.geteuid() != 0:  # type: ignore
+                    if os.geteuid() != 0:  # type: ignore[attr-defined]
                         return ["sudo", shell_path, "-c", command]
                 except AttributeError:
                     pass

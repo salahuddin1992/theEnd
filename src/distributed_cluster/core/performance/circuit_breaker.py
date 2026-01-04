@@ -705,7 +705,7 @@ class Retry:
                 else:
                     raise
 
-        raise last_exception  # type: ignore
+        raise last_exception  # type: ignore[misc]
 
     def __call__(
         self,

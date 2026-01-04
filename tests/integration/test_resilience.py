@@ -40,7 +40,7 @@ from distributed_cluster.core.performance.resilience import (
 # =============================================================================
 
 
-class TestEventListener(ResilienceEventListener):
+class MockEventListener(ResilienceEventListener):
     """Event listener for testing that captures all events."""
 
     def __init__(self):
@@ -66,7 +66,7 @@ class TestEnhancedCircuitBreaker:
 
     @pytest.fixture
     def event_listener(self):
-        return TestEventListener()
+        return MockEventListener()
 
     @pytest.fixture
     def circuit_breaker(self, event_listener):
@@ -473,7 +473,7 @@ class TestUnifiedRateLimiter:
 
     @pytest.fixture
     def event_listener(self):
-        return TestEventListener()
+        return MockEventListener()
 
     @pytest.fixture
     def limiter(self, event_listener):
@@ -548,7 +548,7 @@ class TestHealthMonitor:
 
     @pytest.fixture
     def event_listener(self):
-        return TestEventListener()
+        return MockEventListener()
 
     @pytest.mark.asyncio
     async def test_healthy_check(self, event_listener):
@@ -675,7 +675,7 @@ class TestResilienceManager:
 
     @pytest.fixture
     def event_listener(self):
-        return TestEventListener()
+        return MockEventListener()
 
     @pytest.fixture
     def manager(self, event_listener):
@@ -875,7 +875,7 @@ class TestEventListeners:
 
     def test_custom_event_listener(self):
         """Test custom event listener receives events."""
-        listener = TestEventListener()
+        listener = MockEventListener()
         event = ResilienceEventData(
             event_type=ResilienceEvent.RATE_LIMIT_EXCEEDED,
             component_name="test-component",
@@ -966,7 +966,7 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_service_degradation_and_recovery(self):
         """Test complete service degradation and recovery cycle."""
-        event_listener = TestEventListener()
+        event_listener = MockEventListener()
         config = ResilienceConfig(
             circuit_breaker_enabled=True,
             rate_limiter_enabled=True,

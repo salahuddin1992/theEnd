@@ -652,7 +652,7 @@ def timed(
                             f"{elapsed_ms:.2f}ms > {threshold_ms}ms"
                         )
 
-            return async_wrapper  # type: ignore
+            return async_wrapper  # type: ignore[return-value]
         else:
 
             @functools.wraps(func)
@@ -670,7 +670,7 @@ def timed(
                             f"{elapsed_ms:.2f}ms > {threshold_ms}ms"
                         )
 
-            return sync_wrapper  # type: ignore
+            return sync_wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -719,7 +719,7 @@ def profile_memory(
                             f"{peak_mb:.2f}MB > {threshold_mb}MB"
                         )
 
-            return async_wrapper  # type: ignore
+            return async_wrapper  # type: ignore[return-value]
         else:
 
             @functools.wraps(func)
@@ -740,7 +740,7 @@ def profile_memory(
                             f"{peak_mb:.2f}MB > {threshold_mb}MB"
                         )
 
-            return sync_wrapper  # type: ignore
+            return sync_wrapper  # type: ignore[return-value]
 
     return decorator
 

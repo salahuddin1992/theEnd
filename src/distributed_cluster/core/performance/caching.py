@@ -281,10 +281,10 @@ def memoize(
             cache.set(key, result)
             return result
 
-        wrapper.cache = cache  # type: ignore
-        wrapper.cache_clear = cache.clear  # type: ignore
+        wrapper.cache = cache  # type: ignore[attr-defined]
+        wrapper.cache_clear = cache.clear  # type: ignore[attr-defined]
 
-        return wrapper  # type: ignore
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -319,10 +319,10 @@ def async_lru_cache(
             await cache.set(key, result)
             return result
 
-        wrapper.cache = cache  # type: ignore
-        wrapper.cache_clear = cache.clear  # type: ignore
+        wrapper.cache = cache  # type: ignore[attr-defined]
+        wrapper.cache_clear = cache.clear  # type: ignore[attr-defined]
 
-        return wrapper  # type: ignore
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -373,7 +373,7 @@ def cached_property(ttl_seconds: Optional[float] = None):
 
             return value
 
-        return wrapper  # type: ignore
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
