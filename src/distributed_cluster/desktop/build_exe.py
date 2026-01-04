@@ -454,8 +454,8 @@ def build_exe(mode="full"):
         "docker",
         # pynvml not needed for desktop GUI
         "pynvml",
-        # pkg_resources causes jaraco issues - exclude if not needed
-        "pkg_resources",
+        # Note: pkg_resources is needed for jaraco - do NOT exclude it
+        # It's included in hidden_imports to ensure compatibility
     ]
 
     for mod in exclude_modules:
