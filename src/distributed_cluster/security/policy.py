@@ -18,15 +18,14 @@ from __future__ import annotations
 
 import fnmatch
 import ipaddress
-import json
 import logging
 import re
 import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, time, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -554,7 +553,7 @@ class NetworkSecurityPolicies:
         return SecurityPolicy(
             policy_id=policy_id,
             name=name,
-            description=f"Block access from blacklisted IPs",
+            description="Block access from blacklisted IPs",
             priority=priority,
             rules=[
                 PolicyRule(

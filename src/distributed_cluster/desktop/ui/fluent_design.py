@@ -17,23 +17,17 @@ from __future__ import annotations
 import platform
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple, Callable, List
+from typing import Callable, List, Optional, Tuple
 
-from PySide6.QtCore import (
-    Qt, QObject, Signal, QPoint, QRect, QTimer, QEvent
-)
-from PySide6.QtGui import (
-    QColor, QPainter, QBrush, QPen, QRadialGradient, QPainterPath, QFont, QPixmap, QImage
-)
-from PySide6.QtWidgets import (
-    QWidget, QGraphicsDropShadowEffect
-)
+from PySide6.QtCore import QEvent, QObject, QPoint, QRect, Qt, QTimer, Signal
+from PySide6.QtGui import QBrush, QColor, QFont, QImage, QPainter, QPainterPath, QPen, QPixmap, QRadialGradient
+from PySide6.QtWidgets import QGraphicsDropShadowEffect, QWidget
 
 # Try to import Windows-specific modules
 try:
     if platform.system() == "Windows":
-        import ctypes
-        from ctypes import wintypes
+        import ctypes  # noqa: F401
+        from ctypes import wintypes  # noqa: F401
         HAS_WIN32 = True
     else:
         HAS_WIN32 = False

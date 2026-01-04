@@ -17,7 +17,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -335,7 +335,7 @@ class TrendAnalyzer:
 
         # Generate predictions
         predictions = []
-        last_timestamp = all_points[-1].timestamp
+        all_points[-1].timestamp
         for i in range(1, periods_ahead + 1):
             predicted_value = slope * (n + i) + intercept
             predictions.append({

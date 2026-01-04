@@ -7,17 +7,14 @@ and predictive access modeling.
 """
 
 import asyncio
-import time
-import threading
 import logging
-import math
-import heapq
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Set, Tuple
-from enum import Enum
-from collections import deque, defaultdict
 import statistics
+import threading
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -433,7 +430,6 @@ class HotDataTracker:
             p99 = scores[int(len(scores) * 0.99)]
 
             old_hot = self.current_hot_threshold
-            old_critical = self.current_critical_threshold
 
             # Smooth threshold adjustment
             self.current_hot_threshold = 0.7 * self.current_hot_threshold + 0.3 * p90

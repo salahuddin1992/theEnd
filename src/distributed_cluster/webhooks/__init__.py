@@ -21,22 +21,22 @@ Author: Distributed Cluster Team
 License: MIT
 """
 
-from distributed_cluster.webhooks.webhook import (
-    WebhookManager,
-    WebhookConfig,
-    WebhookEvent,
-    WebhookResult,
-    WebhookProvider,
+from distributed_cluster.webhooks.providers import (
+    CustomWebhook,
+    DiscordWebhook,
+    SlackWebhook,
+    TeamsWebhook,
 )
 from distributed_cluster.webhooks.templates import (
     PayloadTemplate,
     TemplateEngine,
 )
-from distributed_cluster.webhooks.providers import (
-    DiscordWebhook,
-    SlackWebhook,
-    TeamsWebhook,
-    CustomWebhook,
+from distributed_cluster.webhooks.webhook import (
+    WebhookConfig,
+    WebhookEvent,
+    WebhookManager,
+    WebhookProvider,
+    WebhookResult,
 )
 
 __all__ = [

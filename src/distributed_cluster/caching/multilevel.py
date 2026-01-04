@@ -2,18 +2,16 @@
 Multi-level caching with L1 (memory) and L2 (distributed) caches.
 """
 
-import asyncio
 import logging
 import threading
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
-from .cache import Cache, CacheConfig, CacheEntry, CacheStats, CacheError
-from .backends import CacheBackend, MemoryBackend, RedisBackend
+from .backends import CacheBackend, MemoryBackend
+from .cache import Cache, CacheConfig, CacheStats
 
 logger = logging.getLogger(__name__)
 

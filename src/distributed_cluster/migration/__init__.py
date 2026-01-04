@@ -15,25 +15,25 @@ Features:
 - Automatic failure recovery
 """
 
-from .manager import (
-    MigrationManager,
-    MigrationState,
-    MigrationMode,
-)
 from .checkpoint import (
-    CheckpointManager,
     Checkpoint,
+    CheckpointManager,
     CheckpointType,
-)
-from .transfer import (
-    StateTransfer,
-    TransferProtocol,
-    TransferStatus,
 )
 from .coordinator import (
     MigrationCoordinator,
     MigrationPlan,
     MigrationResult,
+)
+from .manager import (
+    MigrationManager,
+    MigrationMode,
+    MigrationState,
+)
+from .transfer import (
+    StateTransfer,
+    TransferProtocol,
+    TransferStatus,
 )
 
 __all__ = [

@@ -13,23 +13,15 @@ Features:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
-from PySide6.QtCore import (
-    Qt, Signal, QPropertyAnimation, QRect, Property, QParallelAnimationGroup
-)
-from PySide6.QtGui import (
-    QColor, QPainter
-)
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QScrollArea, QFrame
-)
+from PySide6.QtCore import Property, QParallelAnimationGroup, QPropertyAnimation, QRect, Qt, Signal
+from PySide6.QtGui import QColor, QPainter
+from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
-from .fluent_design import FluentDesignSystem
 from .animations import FluentEasing
+from .fluent_design import FluentDesignSystem
 from .titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SIDEBAR ITEM DATA

@@ -2,21 +2,17 @@
 Message broker implementations for Kafka, Redis Streams, and in-memory.
 """
 
-import asyncio
 import json
 import logging
-import time
 import threading
-from abc import ABC, abstractmethod
-from collections import defaultdict
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from queue import Queue, Empty
+import time
 import uuid
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .events import Event
 from .consumers import Offset
+from .events import Event
 
 logger = logging.getLogger(__name__)
 
@@ -259,8 +255,7 @@ class KafkaBroker(MessageBroker):
     def connect(self) -> bool:
         """Connect to Kafka cluster."""
         try:
-            from kafka import KafkaProducer, KafkaConsumer, KafkaAdminClient
-            from kafka.admin import NewTopic
+            from kafka import KafkaAdminClient, KafkaProducer  # noqa: F401
 
             bootstrap_servers = ",".join(self.config.bootstrap_servers)
 
@@ -414,7 +409,7 @@ class KafkaBroker(MessageBroker):
         """Commit offsets to Kafka."""
         try:
             if self._consumer:
-                from kafka import TopicPartition, OffsetAndMetadata
+                from kafka import OffsetAndMetadata, TopicPartition
 
                 offset_dict = {
                     TopicPartition(o.topic, o.partition): OffsetAndMetadata(o.offset + 1, o.metadata)
@@ -459,7 +454,11 @@ class RedisBroker(MessageBroker):
             import redis
 
             host = self.config.bootstrap_servers[0].split(":")[0] if self.config.bootstrap_servers else "localhost"
-            port = int(self.config.bootstrap_servers[0].split(":")[1]) if self.config.bootstrap_servers and ":" in self.config.bootstrap_servers[0] else 6379
+            port = (
+                int(self.config.bootstrap_servers[0].split(":")[1])
+                if self.config.bootstrap_servers and ":" in self.config.bootstrap_servers[0]
+                else 6379
+            )
 
             self._redis = redis.Redis(
                 host=host,
@@ -621,7 +620,6 @@ class RedisBroker(MessageBroker):
         """Acknowledge messages in Redis streams."""
         try:
             for offset in offsets:
-                stream_key = f"stream:{offset.topic}"
                 # In Redis Streams, we acknowledge by message ID
                 # This is a simplified version
                 pass

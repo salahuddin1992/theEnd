@@ -22,9 +22,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from distributed_cluster.ai.llm.cost_tracker import (
+    DEFAULT_PRICING,
     CostTracker,
     ModelPricing,
-    DEFAULT_PRICING,
 )
 
 logger = logging.getLogger(__name__)

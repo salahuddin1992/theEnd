@@ -6,13 +6,12 @@ import asyncio
 import functools
 import hashlib
 import inspect
-import json
 import logging
 import threading
 import time
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Optional
 
-from .cache import Cache, CacheConfig, CacheError, cache_manager
+from .cache import Cache, CacheError, cache_manager
 
 logger = logging.getLogger(__name__)
 

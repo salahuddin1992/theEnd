@@ -13,16 +13,16 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 from distributed_cluster.multitenancy.tenant import (
     Tenant,
+    TenantConfig,
+    TenantQuotas,
     TenantStatus,
     TenantTier,
-    TenantQuotas,
-    TenantConfig,
 )
 
 logger = logging.getLogger(__name__)
@@ -418,7 +418,8 @@ class TenantManager:
         try:
             # Try to import kubernetes client
             try:
-                from kubernetes import client, config as k8s_config
+                from kubernetes import client
+                from kubernetes import config as k8s_config
                 from kubernetes.client.rest import ApiException
             except ImportError:
                 logger.debug("Kubernetes client not available, skipping namespace creation")
@@ -491,7 +492,8 @@ class TenantManager:
         """
         try:
             try:
-                from kubernetes import client, config as k8s_config
+                from kubernetes import client
+                from kubernetes import config as k8s_config
                 from kubernetes.client.rest import ApiException
             except ImportError:
                 return False
@@ -712,7 +714,11 @@ NebulaCompute Team
                                 "type": "section",
                                 "text": {
                                     "type": "mrkdwn",
-                                    "text": f"*Quota Warning*\nTenant: {message['tenant_name']}\nResources: {', '.join(message['warning_resources'])}",
+                                    "text": (
+                                        f"*Quota Warning*\n"
+                                        f"Tenant: {message['tenant_name']}\n"
+                                        f"Resources: {', '.join(message['warning_resources'])}"
+                                    ),
                                 },
                             }
                         ],

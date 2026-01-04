@@ -10,8 +10,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from PySide6.QtCore import QFileSystemWatcher, QThread, Signal, Qt, QTimer
+from PySide6.QtCore import QFileSystemWatcher, Qt, QThread, QTimer, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -27,8 +29,6 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QFileDialog,
-    QCheckBox,
 )
 
 from ..api.client import APIClient
@@ -907,8 +907,8 @@ def on_job_submitted(job):
 
     def _open_plugins_folder(self):
         """Open the plugins folder in file explorer"""
-        import subprocess
         import platform
+        import subprocess
 
         path = self._plugin_dir
 

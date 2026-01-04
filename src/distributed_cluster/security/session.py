@@ -24,11 +24,11 @@ import secrets
 import threading
 import time
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
@@ -697,8 +697,8 @@ class SessionTokenManager:
         extra_claims: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Create a signed session token."""
-        import hmac
         import hashlib
+        import hmac
 
         now = int(time.time())
         payload = {
@@ -729,8 +729,8 @@ class SessionTokenManager:
         Returns:
             (payload, error_message)
         """
-        import hmac
         import hashlib
+        import hmac
 
         try:
             parts = token.split(".")

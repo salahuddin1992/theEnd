@@ -304,6 +304,7 @@ class AzureProvider(CloudProvider):
             raise ProvisioningError("Provider not connected")
 
         from azure.mgmt.compute.models import (
+            BillingProfile,
             DiskCreateOptionTypes,
             HardwareProfile,
             ImageReference,
@@ -318,9 +319,8 @@ class AzureProvider(CloudProvider):
             StorageAccountTypes,
             StorageProfile,
             VirtualMachine,
-            VirtualMachinePriorityTypes,
             VirtualMachineEvictionPolicyTypes,
-            BillingProfile,
+            VirtualMachinePriorityTypes,
         )
 
         vm_size = instance_type or self.vm_size

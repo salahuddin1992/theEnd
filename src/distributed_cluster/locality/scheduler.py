@@ -21,9 +21,9 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional
 
-from distributed_cluster.models.job import Job, JobStatus
+from distributed_cluster.models.job import Job
 from distributed_cluster.models.worker import WorkerInfo
 from distributed_cluster.scheduler.scheduler import (
     Scheduler,
@@ -36,15 +36,14 @@ from distributed_cluster.scheduler.scoring import (
     ScoringWeights,
 )
 
-from .tracker import DataBlock, DataLocationTracker
 from .scorer import (
     LocalityLevel,
-    LocalityScoreResult,
     LocalityScorer,
+    LocalityScoreResult,
     LocalityScoringConfig,
     NetworkTopology,
 )
-from .placement import DataPlacementManager, PlacementConfig
+from .tracker import DataLocationTracker
 
 logger = logging.getLogger(__name__)
 

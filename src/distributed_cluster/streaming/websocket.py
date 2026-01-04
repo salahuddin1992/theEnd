@@ -5,16 +5,14 @@ WebSocket-based real-time event streaming.
 import asyncio
 import json
 import logging
-import time
+import threading
 import uuid
-import weakref
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Union
 from enum import Enum
-import threading
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
-from .events import Event, EventType, EventPriority
+from .events import Event, EventType
 
 logger = logging.getLogger(__name__)
 

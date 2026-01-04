@@ -718,7 +718,11 @@ class GPUSharingManager:
         # Also consider gaps in memory
         total_allocated = sum(slice_sizes)
         expected_contiguous = partition.total_memory_mb - partition.available_memory_mb
-        gap_ratio = abs(total_allocated - expected_contiguous) / partition.total_memory_mb if partition.total_memory_mb > 0 else 0
+        gap_ratio = (
+            abs(total_allocated - expected_contiguous) / partition.total_memory_mb
+            if partition.total_memory_mb > 0
+            else 0
+        )
 
         return min(1.0, (fragmentation + gap_ratio) / 2)
 

@@ -37,8 +37,6 @@ License: MIT
 """
 
 # Core cache components
-from .cache_manager import CacheManager, CacheConfig
-
 # Backends
 from .backends import (
     CacheBackend,
@@ -46,61 +44,62 @@ from .backends import (
     RedisBackend,
     TieredBackend,
 )
-
-# Strategies
-from .strategies import (
-    CacheStrategy,
-    LRUStrategy,
-    LFUStrategy,
-    TTLStrategy,
-    AdaptiveStrategy,
-)
+from .cache_manager import CacheConfig, CacheManager
 
 # Distributed caching
 from .distributed import (
-    DistributedCache,
     CacheNode,
-    ConsistentHashing,
     CacheReplication,
+    ConsistentHashing,
+    DistributedCache,
+)
+
+# Strategies
+from .strategies import (
+    AdaptiveStrategy,
+    CacheStrategy,
+    LFUStrategy,
+    LRUStrategy,
+    TTLStrategy,
 )
 
 # Re-export from caching module for advanced features
 try:
     from distributed_cluster.caching import (
+        AdaptivePolicy,
         # Core
         Cache,
-        CacheEntry,
-        CacheStats,
-        CacheError,
-        # Multi-level
-        MultiLevelCache,
-        L1Cache,
-        L2Cache,
-        CacheLevel,
-        # Invalidation
-        InvalidationStrategy,
-        TTLInvalidation,
-        WriteThrough,
-        WriteBehind,
         CacheAside,
-        RefreshAhead,
-        InvalidationEvent,
-        # Policies
-        EvictionPolicy,
-        LRUPolicy,
-        LFUPolicy,
-        FIFOPolicy,
-        TTLPolicy,
-        SizeBasedPolicy,
-        AdaptivePolicy,
-        # Additional backends
-        MemcachedBackend,
         # Distributed
         CacheCluster,
-        # Decorators
-        cached,
+        CacheEntry,
+        CacheError,
+        CacheLevel,
+        CacheStats,
+        # Policies
+        EvictionPolicy,
+        FIFOPolicy,
+        InvalidationEvent,
+        # Invalidation
+        InvalidationStrategy,
+        L1Cache,
+        L2Cache,
+        LFUPolicy,
+        LRUPolicy,
+        # Additional backends
+        MemcachedBackend,
+        # Multi-level
+        MultiLevelCache,
+        RefreshAhead,
+        SizeBasedPolicy,
+        TTLInvalidation,
+        TTLPolicy,
+        WriteBehind,
+        WriteThrough,
         cache_aside,
         cache_invalidate,
+        # Decorators
+        cached,
         memoize,
     )
     _CACHING_AVAILABLE = True

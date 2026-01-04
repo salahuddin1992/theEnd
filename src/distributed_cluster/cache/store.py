@@ -16,15 +16,13 @@ License: MIT
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import logging
 import pickle
 import time
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Callable, Generic, Optional, TypeVar
+from typing import Any, Generic, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 

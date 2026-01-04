@@ -142,7 +142,7 @@ class SmartBuilder:
 
         # Check cx_Freeze
         try:
-            import cx_Freeze
+            import cx_Freeze  # noqa: F401
             self._available_compilers["cx_freeze"] = True
         except ImportError:
             self._available_compilers["cx_freeze"] = False
@@ -351,7 +351,10 @@ class AutoUpdater:
         self._download_progress: float = 0
         self._is_downloading: bool = False
 
-    def check_for_updates(self, callback: Optional[Callable[[Optional[UpdateInfo]], None]] = None) -> Optional[UpdateInfo]:
+    def check_for_updates(
+        self,
+        callback: Optional[Callable[[Optional[UpdateInfo]], None]] = None
+    ) -> Optional[UpdateInfo]:
         """
         Check for available updates
         التحقق من التحديثات المتاحة

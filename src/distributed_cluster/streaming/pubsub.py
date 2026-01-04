@@ -7,15 +7,13 @@ import logging
 import threading
 import time
 import uuid
-import weakref
-from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set, Union
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set
 
-from .events import Event, EventType, EventPriority
+from .events import Event, EventType
 
 logger = logging.getLogger(__name__)
 
@@ -599,7 +597,6 @@ class PubSubManager:
             # Simple cleanup - clear cache for topics with deduplication
             for topic_name, topic in self._topics.items():
                 if topic.config.enable_deduplication:
-                    window_ms = topic.config.deduplication_window_ms
                     if len(self._dedup_cache[topic_name]) > 100000:
                         # Clear if too large
                         self._dedup_cache[topic_name].clear()

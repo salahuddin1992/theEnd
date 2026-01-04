@@ -161,8 +161,8 @@ class HuggingFaceLoader(ModelLoader):
     async def initialize(self) -> None:
         """تهيئة المحمل"""
         try:
-            import transformers
             import torch
+            import transformers
 
             self._transformers = transformers
             self._torch = torch

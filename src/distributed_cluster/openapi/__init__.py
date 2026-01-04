@@ -16,18 +16,18 @@ Author: NebulaCompute Team
 License: MIT
 """
 
-from distributed_cluster.openapi.spec import (
-    OpenAPISpec,
-    generate_openapi_spec,
-)
-from distributed_cluster.openapi.routes import (
-    setup_openapi_routes,
-    get_swagger_ui,
-    get_redoc_ui,
-)
 from distributed_cluster.openapi.generator import (
     APIDocGenerator,
     EndpointDoc,
+)
+from distributed_cluster.openapi.routes import (
+    get_redoc_ui,
+    get_swagger_ui,
+    setup_openapi_routes,
+)
+from distributed_cluster.openapi.spec import (
+    OpenAPISpec,
+    generate_openapi_spec,
 )
 
 __all__ = [

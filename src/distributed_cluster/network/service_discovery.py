@@ -13,13 +13,12 @@ Provides automatic service registration and discovery:
 
 import asyncio
 import logging
-import time
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

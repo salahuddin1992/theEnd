@@ -678,11 +678,18 @@ class CostTracker:
             if not self._records:
                 return ""
 
-            headers = ["timestamp", "provider", "model", "input_tokens", "output_tokens", "cached_tokens", "cost", "currency"]
+            headers = [
+                "timestamp", "provider", "model", "input_tokens",
+                "output_tokens", "cached_tokens", "cost", "currency"
+            ]
             lines = [",".join(headers)]
 
             for r in self._records:
-                line = f"{r.timestamp.isoformat()},{r.provider},{r.model},{r.input_tokens},{r.output_tokens},{r.cached_tokens},{r.cost},{r.currency.value}"
+                line = (
+                    f"{r.timestamp.isoformat()},{r.provider},{r.model},"
+                    f"{r.input_tokens},{r.output_tokens},{r.cached_tokens},"
+                    f"{r.cost},{r.currency.value}"
+                )
                 lines.append(line)
 
             return "\n".join(lines)

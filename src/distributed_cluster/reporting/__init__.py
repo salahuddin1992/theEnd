@@ -23,21 +23,21 @@ from distributed_cluster.reporting.analytics import (
     MetricAggregator,
     TrendAnalyzer,
 )
-from distributed_cluster.reporting.reports import (
-    ReportGenerator,
-    ReportType,
-    Report,
-)
 from distributed_cluster.reporting.dashboards import (
-    DashboardManager,
     Dashboard,
+    DashboardManager,
     Widget,
 )
 from distributed_cluster.reporting.exporters import (
-    ReportExporter,
-    PDFExporter,
-    ExcelExporter,
     CSVExporter,
+    ExcelExporter,
+    PDFExporter,
+    ReportExporter,
+)
+from distributed_cluster.reporting.reports import (
+    Report,
+    ReportGenerator,
+    ReportType,
 )
 
 __all__ = [

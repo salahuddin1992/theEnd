@@ -8,16 +8,14 @@ Automated machine learning for hyperparameter search and model selection.
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import json
 import logging
 import random
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -276,7 +274,7 @@ class BayesianSearch(SearchStrategy):
         y = np.array(y)
 
         # Simple acquisition: sample randomly and pick best expected improvement
-        best_y = min(y)
+        min(y)
         candidates = [self.search_space.sample() for _ in range(100)]
 
         # For now, just return random candidate (full GP would go here)

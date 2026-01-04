@@ -25,10 +25,8 @@ from typing import (
     Callable,
     Deque,
     Dict,
-    Generic,
     List,
     Optional,
-    Set,
     Tuple,
     TypeVar,
 )
@@ -558,16 +556,16 @@ class MetricsAggregator:
 
         # Request metrics
         req = self.request_metrics.get_summary()
-        lines.append(f"# HELP http_request_rate_per_second HTTP request rate")
-        lines.append(f"# TYPE http_request_rate_per_second gauge")
+        lines.append("# HELP http_request_rate_per_second HTTP request rate")
+        lines.append("# TYPE http_request_rate_per_second gauge")
         lines.append(f'http_request_rate_per_second {req["request_rate"]:.6f} {now_ms}')
 
-        lines.append(f"# HELP http_error_rate HTTP error rate")
-        lines.append(f"# TYPE http_error_rate gauge")
+        lines.append("# HELP http_error_rate HTTP error rate")
+        lines.append("# TYPE http_error_rate gauge")
         lines.append(f'http_error_rate {req["error_rate"]:.6f} {now_ms}')
 
-        lines.append(f"# HELP http_request_latency_ms HTTP request latency")
-        lines.append(f"# TYPE http_request_latency_ms gauge")
+        lines.append("# HELP http_request_latency_ms HTTP request latency")
+        lines.append("# TYPE http_request_latency_ms gauge")
         lines.append(f'http_request_latency_ms{{quantile="0.5"}} {req["p50_latency_ms"]:.6f} {now_ms}')
         lines.append(f'http_request_latency_ms{{quantile="0.9"}} {req["p90_latency_ms"]:.6f} {now_ms}')
         lines.append(f'http_request_latency_ms{{quantile="0.99"}} {req["p99_latency_ms"]:.6f} {now_ms}')
@@ -575,7 +573,7 @@ class MetricsAggregator:
         # Endpoint metrics
         for endpoint, stats in req.get("endpoints", {}).items():
             method, path = endpoint.split(":", 1) if ":" in endpoint else ("GET", endpoint)
-            safe_path = path.replace("/", "_").replace("{", "").replace("}", "")
+            path.replace("/", "_").replace("{", "").replace("}", "")
 
             lines.append(
                 f'http_endpoint_requests_total{{method="{method}",path="{path}"}} '

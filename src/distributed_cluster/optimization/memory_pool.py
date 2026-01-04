@@ -7,16 +7,15 @@ and efficient memory reuse.
 """
 
 import asyncio
-import time
-import threading
-import logging
 import gc
-import sys
+import logging
+import threading
+import time
+from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Set, Tuple
 from enum import Enum
-from collections import deque, defaultdict
+from typing import Any, Callable, Dict, List, Optional
+
 import psutil
 
 logger = logging.getLogger(__name__)

@@ -17,21 +17,20 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import secrets
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from .auth import AuthManager, AuthConfig, Permission, Role, TokenPayload
+from .account import AccountSecurityManager, PasswordPolicy
+from .audit import AuditAction, AuditLogger, AuditResult
+from .auth import AuthConfig, AuthManager, Role, TokenPayload
+from .mfa import MFAManager, TOTPConfig
+from .monitoring import MonitoringConfig, SecurityAlert, SecurityMonitor, ThreatLevel
+from .policy import PolicyDecision, PolicyEngine, SecurityPolicy
 from .rbac import RBACManager
-from .mfa import MFAManager, MFAType, TOTPConfig
-from .session import SessionManager, SessionConfig, Session, DeviceFingerprint
-from .policy import PolicyEngine, PolicyDecision, PolicyEffect, SecurityPolicy
-from .monitoring import SecurityMonitor, SecurityAlert, ThreatLevel, MonitoringConfig
-from .account import AccountSecurityManager, PasswordPolicy, AccountStatus
-from .audit import AuditLogger, AuditAction, AuditResult
+from .session import DeviceFingerprint, Session, SessionConfig, SessionManager
 
 logger = logging.getLogger(__name__)
 
@@ -264,7 +263,7 @@ class ClusterSecurityManager:
 
             if not success:
                 # Record failure for monitoring
-                alerts = self.security_monitor.record_auth_failure(
+                self.security_monitor.record_auth_failure(
                     user_id=user_id,
                     ip_address=ip_address,
                     reason=error or "invalid_credentials",

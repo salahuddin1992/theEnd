@@ -12,12 +12,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .algorithms import TokenBucket
+import logging
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
-import logging
 
 logger = logging.getLogger(__name__)
 

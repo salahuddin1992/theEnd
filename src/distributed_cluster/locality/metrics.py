@@ -17,16 +17,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Callable, Dict, List, Optional
 
-from .tracker import DataBlock, DataLocation, DataLocationTracker, DataType
-from .scorer import LocalityLevel, LocalityScoreResult
-from .transfer import TransferProgress, TransferResult, TransferState
+from .scorer import LocalityLevel
+from .tracker import DataLocationTracker
+from .transfer import TransferResult
 
 logger = logging.getLogger(__name__)
 

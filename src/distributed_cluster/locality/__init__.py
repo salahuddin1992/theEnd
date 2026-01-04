@@ -87,108 +87,107 @@ Version: 1.0.0
 
 from __future__ import annotations
 
-# ==================== Tracker Module ====================
-from .tracker import (
-    # Enums
-    DataType,
-    ReplicaState,
-    # Data classes
-    DataBlock,
-    DataLocation,
-    LocalityInfo,
-    # Main tracker
-    DataLocationTracker,
-    # Helper functions
-    create_block_id,
-    estimate_transfer_time,
-)
-
-# ==================== Scorer Module ====================
-from .scorer import (
-    # Enums
-    LocalityLevel,
-    # Config classes
-    LocalityPreference,
-    NetworkTopology,
-    LocalityScoringConfig,
-    # Result classes
-    LocalityScoreResult,
-    # Scorers
-    LocalityScorerBase,
-    LocalityScorer,
-    SimpleLocalityScorer,
-    CompositeLocalityScorer,
+# ==================== Metrics Module ====================
+from .metrics import (
+    # Dashboard
+    LocalityDashboard,
+    # Metrics classes
+    LocalityMetrics,
+    # Collector
+    LocalityMetricsCollector,
+    SchedulingMetrics,
+    WorkerDataMetrics,
 )
 
 # ==================== Placement Module ====================
 from .placement import (
-    # Enums
-    PlacementStrategy,
+    AffinityBasedPlacementStrategy,
+    ColocatePlacementStrategy,
+    # Manager
+    DataPlacementManager,
+    LoadBalancedPlacementStrategy,
+    MinimizeTransferPlacementStrategy,
     # Config classes
     PlacementConfig,
     # Data classes
     PlacementDecision,
-    WorkerCapacity,
+    # Enums
+    PlacementStrategy,
     # Strategy classes
     PlacementStrategyBase,
+    RackAwarePlacementStrategy,
     RandomPlacementStrategy,
     RoundRobinPlacementStrategy,
-    LoadBalancedPlacementStrategy,
-    RackAwarePlacementStrategy,
-    AffinityBasedPlacementStrategy,
-    ColocatePlacementStrategy,
-    MinimizeTransferPlacementStrategy,
-    # Manager
-    DataPlacementManager,
+    WorkerCapacity,
 )
 
 # ==================== Scheduler Module ====================
 from .scheduler import (
-    # Enums
-    LocalitySchedulingPolicy,
+    # Scheduler
+    LocalityAwareScheduler,
+    LocalitySchedulerLoop,
     # Config classes
     LocalitySchedulingConfig,
     # Decision classes
     LocalitySchedulingDecision,
+    # Enums
+    LocalitySchedulingPolicy,
     WorkerLocalityScore,
-    # Scheduler
-    LocalityAwareScheduler,
-    LocalitySchedulerLoop,
     # Helper functions
     create_locality_scheduler,
     locality_scheduling_plugin,
 )
 
+# ==================== Scorer Module ====================
+from .scorer import (
+    CompositeLocalityScorer,
+    # Enums
+    LocalityLevel,
+    # Config classes
+    LocalityPreference,
+    LocalityScorer,
+    # Scorers
+    LocalityScorerBase,
+    # Result classes
+    LocalityScoreResult,
+    LocalityScoringConfig,
+    NetworkTopology,
+    SimpleLocalityScorer,
+)
+
+# ==================== Tracker Module ====================
+from .tracker import (
+    # Data classes
+    DataBlock,
+    DataLocation,
+    # Main tracker
+    DataLocationTracker,
+    # Enums
+    DataType,
+    LocalityInfo,
+    ReplicaState,
+    # Helper functions
+    create_block_id,
+    estimate_transfer_time,
+)
+
 # ==================== Transfer Module ====================
 from .transfer import (
-    # Enums
-    TransferState,
-    TransferPriority,
-    # Data classes
-    TransferRequest,
-    TransferProgress,
-    TransferResult,
+    # Manager
+    DataTransferManager,
+    SimulatedTransferHandler,
     # Config
     TransferConfig,
     # Handlers
     TransferHandler,
-    SimulatedTransferHandler,
-    # Manager
-    DataTransferManager,
+    TransferPriority,
+    TransferProgress,
+    # Data classes
+    TransferRequest,
+    TransferResult,
+    # Enums
+    TransferState,
 )
-
-# ==================== Metrics Module ====================
-from .metrics import (
-    # Metrics classes
-    LocalityMetrics,
-    WorkerDataMetrics,
-    SchedulingMetrics,
-    # Collector
-    LocalityMetricsCollector,
-    # Dashboard
-    LocalityDashboard,
-)
-
 
 # ==================== Factory Functions ====================
 

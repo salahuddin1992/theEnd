@@ -8,12 +8,12 @@ Implements real-time subscriptions using WebSocket.
 """
 
 import asyncio
+import json
 import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Set
-import uuid
-import json
 
 logger = logging.getLogger(__name__)
 

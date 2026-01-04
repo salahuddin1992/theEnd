@@ -17,6 +17,14 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+# Auto-scaling imports
+from distributed_cluster.autoscaling import (
+    AutoScalingConfig,
+    AutoScalingManager,
+    LocalProvider,
+    MetricsCollector,
+    PolicyTemplates,
+)
 from distributed_cluster.core.config import MasterConfig
 from distributed_cluster.master.state import ClusterState
 from distributed_cluster.models.events import Event
@@ -24,15 +32,6 @@ from distributed_cluster.models.job import JobPriority, JobResult, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec, ResourceUsage
 from distributed_cluster.models.worker import WorkerRegistration
 from distributed_cluster.scheduler.scheduler import Scheduler, SchedulerLoop, SchedulingPolicy
-
-# Auto-scaling imports
-from distributed_cluster.autoscaling import (
-    AutoScalingConfig,
-    AutoScalingManager,
-    MetricsCollector,
-    LocalProvider,
-    PolicyTemplates,
-)
 
 logger = logging.getLogger(__name__)
 

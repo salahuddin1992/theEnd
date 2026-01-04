@@ -10,7 +10,6 @@ License: MIT
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import uuid
@@ -368,7 +367,11 @@ class ReportGenerator:
     ) -> None:
         """بناء تقرير نظرة عامة على الكلاستر"""
         report.title = "نظرة عامة على الكلاستر"
-        report.description = f"تقرير شامل عن حالة الكلاستر للفترة من {report.start_time.strftime('%Y-%m-%d')} إلى {report.end_time.strftime('%Y-%m-%d')}"
+        report.description = (
+            f"تقرير شامل عن حالة الكلاستر للفترة من "
+            f"{report.start_time.strftime('%Y-%m-%d')} إلى "
+            f"{report.end_time.strftime('%Y-%m-%d')}"
+        )
 
         # Get data from source
         cluster_stats = await self._get_cluster_stats()
@@ -617,7 +620,13 @@ class ReportGenerator:
         if self.data_source:
             return await self.data_source.get_worker_stats()
         return [
-            {"name": f"worker-{i}", "status": "online", "jobs_completed": 150 - i * 10, "success_rate": 95 - i, "cpu_usage": 60 + i * 3}
+            {
+                "name": f"worker-{i}",
+                "status": "online",
+                "jobs_completed": 150 - i * 10,
+                "success_rate": 95 - i,
+                "cpu_usage": 60 + i * 3
+            }
             for i in range(10)
         ]
 
@@ -639,7 +648,14 @@ class ReportGenerator:
         if self.data_source:
             return await self.data_source.get_tenant_stats()
         return [
-            {"name": f"tenant-{i}", "status": "active", "total_jobs": 300 - i * 50, "cpu_used": 20 - i * 2, "memory_used_gb": 64 - i * 8, "cost": 250 - i * 30}
+            {
+                "name": f"tenant-{i}",
+                "status": "active",
+                "total_jobs": 300 - i * 50,
+                "cpu_used": 20 - i * 2,
+                "memory_used_gb": 64 - i * 8,
+                "cost": 250 - i * 30
+            }
             for i in range(5)
         ]
 

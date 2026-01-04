@@ -11,7 +11,7 @@ License: MIT
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -79,15 +79,20 @@ def get_redoc_ui(openapi_url: str = "/openapi.json", title: str = "NebulaCompute
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title} - Documentation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Roboto:wght@300;400;700&display=swap"
+        rel="stylesheet"
+    >
     <style>
         body {{ margin: 0; padding: 0; }}
     </style>
 </head>
 <body>
-    <redoc spec-url="{openapi_url}"
-           hide-download-button="false"
-           theme='{{"colors": {{"primary": {{"main": "#667eea"}}}}, "typography": {{"headings": {{"fontFamily": "Montserrat, sans-serif"}}}}}}'
+    <redoc
+        spec-url="{openapi_url}"
+        hide-download-button="false"
+        theme='{{"colors": {{"primary": {{"main": "#667eea"}}}},
+               "typography": {{"headings": {{"fontFamily": "Montserrat, sans-serif"}}}}}}'
     ></redoc>
     <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
 </body>

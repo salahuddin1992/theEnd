@@ -26,7 +26,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -830,7 +830,6 @@ def create_autoscaler(
     """
     from distributed_cluster.autoscaling.metrics import MetricsCollector
     from distributed_cluster.autoscaling.policies import (
-        CompositePolicy,
         PolicyTemplates,
         QueueBasedPolicy,
         ResourceBasedPolicy,
@@ -856,10 +855,14 @@ def create_autoscaler(
             **{k: v for k, v in kwargs.items() if k.startswith("queue_") or k.startswith("scale_")}
         )
     elif policy_type == "resource-based":
+        resource_kwargs = {
+            k: v for k, v in kwargs.items()
+            if k.startswith("cpu_") or k.startswith("memory_") or k.startswith("gpu_")
+        }
         policy = ResourceBasedPolicy(
             min_workers=min_workers,
             max_workers=max_workers,
-            **{k: v for k, v in kwargs.items() if k.startswith("cpu_") or k.startswith("memory_") or k.startswith("gpu_")}
+            **resource_kwargs
         )
     elif policy_type == "aggressive":
         policy = PolicyTemplates.aggressive()

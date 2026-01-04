@@ -10,10 +10,11 @@ License: MIT
 
 from __future__ import annotations
 
-import strawberry
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Optional
+
+import strawberry
 
 if TYPE_CHECKING:
     from distributed_cluster.graphql.context import GraphQLContext

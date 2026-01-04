@@ -209,7 +209,10 @@ class JobExecutor:
                 if not self.docker_available:
                     return JobResult(
                         exit_code=-1,
-                        error_message="Docker required but not available. Install Docker or change execution_mode to 'direct' or 'auto'",
+                        error_message=(
+                            "Docker required but not available. Install Docker or "
+                            "change execution_mode to 'direct' or 'auto'"
+                        ),
                     )
                 if job.submission.docker_image:
                     return await self._execute_docker(context)

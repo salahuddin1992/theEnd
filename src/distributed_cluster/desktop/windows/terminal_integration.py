@@ -25,15 +25,15 @@ import json
 import os
 import subprocess
 import sys
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 IS_WINDOWS = sys.platform == "win32"
 
 if IS_WINDOWS:
-    import winreg
+    pass
 
 
 class TerminalType(str, Enum):
@@ -188,13 +188,19 @@ class WindowsTerminalManager:
         local_app_data = Path(os.environ.get("LOCALAPPDATA", ""))
 
         # Windows Terminal (Store version)
-        store_path = local_app_data / "Packages" / "Microsoft.WindowsTerminal_8wekyb3d8bbwe" / "LocalState" / "settings.json"
+        store_path = (
+            local_app_data / "Packages" / "Microsoft.WindowsTerminal_8wekyb3d8bbwe"
+            / "LocalState" / "settings.json"
+        )
         if store_path.exists():
             self._settings_path = store_path
             return
 
         # Windows Terminal Preview
-        preview_path = local_app_data / "Packages" / "Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe" / "LocalState" / "settings.json"
+        preview_path = (
+            local_app_data / "Packages" / "Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe"
+            / "LocalState" / "settings.json"
+        )
         if preview_path.exists():
             self._settings_path = preview_path
             return
@@ -244,7 +250,7 @@ class WindowsTerminalManager:
         Create SSH connection profile
         إنشاء ملف تعريف اتصال SSH
         """
-        ssh_cmd = f"ssh"
+        ssh_cmd = "ssh"
         if user:
             ssh_cmd += f" {user}@{host}"
         else:

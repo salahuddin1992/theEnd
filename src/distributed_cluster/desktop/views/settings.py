@@ -389,8 +389,9 @@ class SettingsView(QScrollArea):
     def _apply_startup_setting(self):
         """Apply Windows startup setting"""
         try:
-            from ..ui.windows_integration import WindowsRegistry
             import sys
+
+            from ..ui.windows_integration import WindowsRegistry
 
             # set_startup(enabled, app_path) - True to enable, False to disable
             app_path = sys.executable

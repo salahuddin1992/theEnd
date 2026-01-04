@@ -11,21 +11,15 @@ Worker management interface with:
 
 from __future__ import annotations
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QGridLayout, QScrollArea
-)
+from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
 
-from ..fluent_design import FluentDesignSystem
-from ..components import (
-    FluentButton, FluentCard, ButtonVariant
-)
+from ..components import ButtonVariant, FluentButton, FluentCard
 from ..dashboard import CircularProgressChart
+from ..fluent_design import FluentDesignSystem
 from ..titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # WORKER CARD

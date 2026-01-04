@@ -4,10 +4,10 @@ Distributed Rate Limiting for NebulaCompute.
 Provides rate limiting across multiple nodes using Redis.
 """
 
+import logging
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -19,14 +19,13 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
 import logging
 import pickle
 import zlib
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, TypeVar, Generic
+from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
 from uuid import uuid4
 
 if TYPE_CHECKING:

@@ -15,17 +15,17 @@ from __future__ import annotations
 
 # Suppress pynvml deprecation warning
 import warnings
+
 warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 
 import asyncio
+import logging
 import os
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Tuple
-
-import logging
+from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -231,7 +231,7 @@ class CircuitBreaker:
                 self._failure_count = 0
                 self._state = CircuitState.CLOSED
             return result
-        except Exception as e:
+        except Exception:
             async with self._lock:
                 self._failure_count += 1
                 self._last_failure = time.time()

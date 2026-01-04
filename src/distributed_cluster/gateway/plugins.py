@@ -10,13 +10,12 @@ from __future__ import annotations
 import asyncio
 import importlib
 import logging
-import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional
 
 from .gateway import APIGateway, GatewayRequest, GatewayResponse
 

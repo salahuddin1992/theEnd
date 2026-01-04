@@ -2,7 +2,6 @@
 Service discovery implementations for various backends.
 """
 
-import asyncio
 import json
 import logging
 import threading
@@ -11,7 +10,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -281,6 +280,7 @@ class ConsulDiscovery(ServiceDiscovery):
     def register(self, instance: ServiceInstance) -> bool:
         """Register a service with Consul."""
         try:
+            import consul
             check = None
             if instance.health_check_url:
                 check = consul.Check.http(

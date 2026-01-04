@@ -27,7 +27,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional
 
-from PySide6.QtCore import QObject, Signal, QTimer
+from PySide6.QtCore import QObject, QTimer, Signal
 
 # Check for optional dependencies
 try:
@@ -82,7 +82,12 @@ class UpdateAPIError(UpdateError):
     """Error communicating with update API."""
     def __init__(self, status_code: int, message: str = ""):
         self.status_code = status_code
-        super().__init__(f"API error (status {status_code}): {message}" if message else f"API returned status {status_code}")
+        error_msg = (
+            f"API error (status {status_code}): {message}"
+            if message
+            else f"API returned status {status_code}"
+        )
+        super().__init__(error_msg)
 
 
 class UpdateDownloadError(UpdateError):

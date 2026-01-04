@@ -17,13 +17,20 @@ from enum import Enum
 from typing import List, Optional
 
 from PySide6.QtCore import (
-    QObject, Signal, QPropertyAnimation, QParallelAnimationGroup,
-    QSequentialAnimationGroup, QAbstractAnimation, QEasingCurve,
-    QPoint, QSize, QTimer, QVariantAnimation
+    QAbstractAnimation,
+    QEasingCurve,
+    QObject,
+    QParallelAnimationGroup,
+    QPoint,
+    QPropertyAnimation,
+    QSequentialAnimationGroup,
+    QSize,
+    QTimer,
+    QVariantAnimation,
+    Signal,
 )
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QWidget, QGraphicsOpacityEffect
-
+from PySide6.QtWidgets import QGraphicsOpacityEffect, QWidget
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FLUENT EASING CURVES

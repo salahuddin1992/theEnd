@@ -14,11 +14,8 @@ Features:
 
 from __future__ import annotations
 
-import base64
-import hashlib
 import logging
 import os
-import secrets
 import ssl
 import threading
 from abc import ABC, abstractmethod
@@ -26,7 +23,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 try:
     from cryptography import x509

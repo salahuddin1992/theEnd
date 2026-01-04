@@ -14,130 +14,130 @@ This module provides:
 - Modern dialogs
 """
 
-from .fluent_design import (
-    FluentDesignSystem,
-    FluentTheme,
-    FluentColors,
-    FluentTypography,
-    FluentSpacing,
-    FluentCorners,
-    FluentElevation,
-    MicaEffect,
-    AcrylicEffect,
-    RevealEffect,
-    fluent,
-)
 from .animations import (
     AnimationManager,
-    FadeAnimation,
-    SlideAnimation,
-    ScaleAnimation,
-    SpringAnimation,
     ColorAnimation,
-    StaggeredAnimation,
+    FadeAnimation,
     FluentEasing,
+    ScaleAnimation,
+    SlideAnimation,
+    SpringAnimation,
     SpringConfig,
+    StaggeredAnimation,
     animations,
 )
 from .components import (
+    BadgeVariant,
+    ButtonSize,
+    ButtonVariant,
+    FluentAvatar,
+    FluentBadge,
     FluentButton,
     FluentCard,
     FluentInput,
-    FluentSwitch,
-    FluentSlider,
     FluentProgressRing,
-    FluentBadge,
-    FluentAvatar,
+    FluentSlider,
+    FluentSwitch,
     FluentTooltip,
-    ButtonVariant,
-    ButtonSize,
-    BadgeVariant,
     SkeletonLoader,
 )
-from .titlebar import (
-    CustomTitleBar,
-    FramelessWindow,
-    TitleBarButton,
-    FluentIcons,
-)
-from .sidebar import (
-    FluentSidebar,
-    SidebarItem,
-    SidebarGroup,
-    NavItem,
-    SidebarHeader,
-    ConnectionStatus,
-)
-from .notifications import (
-    NotificationCenter,
-    InAppNotificationManager,
-    Toast,
-    Notification,
-    NotificationAction,
-    NotificationType,
-)
 from .dashboard import (
-    FluentDashboard,
-    AnimatedStatCard,
-    CircularProgressChart,
-    LineChart,
     ActivityFeed,
     ActivityItemData,
+    AnimatedStatCard,
+    CircularProgressChart,
+    FluentDashboard,
+    LineChart,
     SystemHealthCard,
 )
 from .data_table import (
-    FluentDataTable,
+    CellRenderer,
     ColumnDefinition,
     ColumnType,
-    CellRenderer,
-)
-from .splash import (
-    FluentSplashScreen,
-    SplashScreenManager,
-    AnimatedLogo,
-    SplashProgressRing,
-    LoadingOverlay,
+    FluentDataTable,
 )
 from .dialogs import (
-    FluentDialog,
-    ConnectionDialog,
     ConfirmationDialog,
     ConfirmationType,
-    ProgressDialog,
+    ConnectionDialog,
+    ConnectionProfile,
+    FluentDialog,
     InputDialog,
     JobSubmitDialog,
-    ConnectionProfile,
+    ProgressDialog,
 )
-from .windows_integration import (
-    WindowsIntegrationManager,
-    WindowsThemeDetector,
-    WindowsToastNotifications,
-    TaskbarProgress,
-    TaskbarProgressState,
-    FluentSystemTray,
-    WindowsRegistry,
-    WindowsCredentialManager,
-    WindowsJumpList,
-    Windows11Effects,
-    JumpListItem,
-    IS_WINDOWS,
-    APP_ID,
-    APP_NAME,
-)
-from .views import (
-    FluentJobsView,
-    FluentWorkersView,
-    FluentSettingsView,
-    FluentLogsView,
-    FluentMetricsView,
-    FluentTemplatesView,
-    FluentPoolsView,
-    FluentQueuesView,
+from .fluent_design import (
+    AcrylicEffect,
+    FluentColors,
+    FluentCorners,
+    FluentDesignSystem,
+    FluentElevation,
+    FluentSpacing,
+    FluentTheme,
+    FluentTypography,
+    MicaEffect,
+    RevealEffect,
+    fluent,
 )
 from .main_window import (
     FluentMainWindow,
     create_fluent_app,
     run_app,
+)
+from .notifications import (
+    InAppNotificationManager,
+    Notification,
+    NotificationAction,
+    NotificationCenter,
+    NotificationType,
+    Toast,
+)
+from .sidebar import (
+    ConnectionStatus,
+    FluentSidebar,
+    NavItem,
+    SidebarGroup,
+    SidebarHeader,
+    SidebarItem,
+)
+from .splash import (
+    AnimatedLogo,
+    FluentSplashScreen,
+    LoadingOverlay,
+    SplashProgressRing,
+    SplashScreenManager,
+)
+from .titlebar import (
+    CustomTitleBar,
+    FluentIcons,
+    FramelessWindow,
+    TitleBarButton,
+)
+from .views import (
+    FluentJobsView,
+    FluentLogsView,
+    FluentMetricsView,
+    FluentPoolsView,
+    FluentQueuesView,
+    FluentSettingsView,
+    FluentTemplatesView,
+    FluentWorkersView,
+)
+from .windows_integration import (
+    APP_ID,
+    APP_NAME,
+    IS_WINDOWS,
+    FluentSystemTray,
+    JumpListItem,
+    TaskbarProgress,
+    TaskbarProgressState,
+    Windows11Effects,
+    WindowsCredentialManager,
+    WindowsIntegrationManager,
+    WindowsJumpList,
+    WindowsRegistry,
+    WindowsThemeDetector,
+    WindowsToastNotifications,
 )
 
 __all__ = [

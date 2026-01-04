@@ -6,15 +6,12 @@ import asyncio
 import functools
 import logging
 import random
-import threading
 import time
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
-from .circuitbreaker import CircuitBreaker, CircuitBreakerConfig, Bulkhead, RateLimiter
+from .circuitbreaker import Bulkhead, CircuitBreaker, CircuitBreakerConfig, RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +270,7 @@ class Resilience:
 
     async def execute_async(self, func: Callable[[], T]) -> T:
         """Execute an async function with resilience policies."""
-        start_time = time.time()
+        time.time()
         self._stats.total_calls += 1
 
         # Rate limiting

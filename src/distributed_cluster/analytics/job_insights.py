@@ -19,15 +19,15 @@ Comprehensive job execution analytics providing:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
-import json
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -601,7 +601,10 @@ class JobInsightsEngine:
                     type=InsightType.FAILURE,
                     priority=InsightPriority.CRITICAL if summary.success_rate < 0.5 else InsightPriority.HIGH,
                     title="Low Job Success Rate",
-                    description=f"Only {summary.success_rate:.1%} of jobs completed successfully in the last {days} days",
+                    description=(
+                        f"Only {summary.success_rate:.1%} of jobs completed successfully "
+                        f"in the last {days} days"
+                    ),
                     metric_value=summary.success_rate * 100,
                     metric_unit="percent",
                     threshold=80.0,
@@ -627,7 +630,10 @@ class JobInsightsEngine:
                 type=InsightType.PERFORMANCE,
                 priority=InsightPriority.MEDIUM,
                 title="High Execution Time Variance",
-                description=f"P95 execution time ({summary.p95_execution_time_seconds:.0f}s) is 3x higher than average ({summary.avg_execution_time_seconds:.0f}s)",
+                description=(
+                    f"P95 execution time ({summary.p95_execution_time_seconds:.0f}s) is 3x higher "
+                    f"than average ({summary.avg_execution_time_seconds:.0f}s)"
+                ),
                 metric_value=summary.p95_execution_time_seconds,
                 metric_unit="seconds",
                 recommendation="Investigate outlier jobs and consider setting execution time limits",
@@ -1008,7 +1014,11 @@ class JobInsightsEngine:
             recommendations.append({
                 "category": "resource_optimization",
                 "title": "Resource Usage Summary",
-                "description": f"Total compute: {summary.total_cpu_hours:.1f} CPU-hours, {summary.total_memory_gb_hours:.1f} GB-hours, {summary.total_gpu_hours:.1f} GPU-hours",
+                "description": (
+                    f"Total compute: {summary.total_cpu_hours:.1f} CPU-hours, "
+                    f"{summary.total_memory_gb_hours:.1f} GB-hours, "
+                    f"{summary.total_gpu_hours:.1f} GPU-hours"
+                ),
                 "priority": "info",
                 "impact": "awareness",
             })
@@ -1040,7 +1050,10 @@ class JobInsightsEngine:
             recommendations.append({
                 "category": "configuration",
                 "title": "Review Timeout Settings",
-                "description": f"{summary.timeout_jobs} jobs timed out. Consider adjusting timeouts based on P95 execution time ({summary.p95_execution_time_seconds:.0f}s)",
+                "description": (
+                    f"{summary.timeout_jobs} jobs timed out. Consider adjusting timeouts "
+                    f"based on P95 execution time ({summary.p95_execution_time_seconds:.0f}s)"
+                ),
                 "priority": "medium",
                 "impact": f"Could save {summary.timeout_jobs} jobs from timeout",
             })

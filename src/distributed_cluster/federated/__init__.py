@@ -52,40 +52,19 @@ License: MIT
 # =============================================================================
 # Models
 # =============================================================================
-from distributed_cluster.federated.models import (
-    # Enums
-    AggregationStrategy,
-    ClientStatus,
-    CompressionMethod,
-    PrivacyMechanism,
-    RoundStatus,
-    SelectionStrategy,
-    # Data Classes
-    ClientConfig,
-    ClientInfo,
-    ClientUpdate,
-    CompressionConfig,
-    FederatedConfig,
-    FederatedMetrics,
-    ModelWeights,
-    PrivacyConfig,
-    RoundConfig,
-    RoundResult,
-)
-
 # =============================================================================
 # Aggregators
 # =============================================================================
 from distributed_cluster.federated.aggregator import (
     Aggregator,
+    FedAdamAggregator,
     FedAvgAggregator,
     FedProxAggregator,
-    FedAdamAggregator,
     FedYogiAggregator,
-    ScaffoldAggregator,
-    MedianAggregator,
-    TrimmedMeanAggregator,
     KrumAggregator,
+    MedianAggregator,
+    ScaffoldAggregator,
+    TrimmedMeanAggregator,
     create_aggregator,
 )
 
@@ -93,16 +72,94 @@ from distributed_cluster.federated.aggregator import (
 # Client
 # =============================================================================
 from distributed_cluster.federated.client import (
+    ClientManager,
     DataLoader,
+    FederatedClient,
     InMemoryDataLoader,
     LocalModel,
     SimpleNeuralNetwork,
-    FederatedClient,
-    ClientManager,
     TrainingResult,
     create_client,
     partition_data_iid,
     partition_data_non_iid,
+)
+
+# =============================================================================
+# Compression
+# =============================================================================
+from distributed_cluster.federated.compression import (
+    CompressionResult,
+    Compressor,
+    GradientCompressor,
+    NoCompressor,
+    QuantizationCompressor,
+    RandomKCompressor,
+    SketchingCompressor,
+    SparsificationCompressor,
+    TopKCompressor,
+    compress_model_weights,
+    create_compressor,
+)
+
+# =============================================================================
+# Coordinator
+# =============================================================================
+from distributed_cluster.federated.coordinator import (
+    CoordinatorState,
+    FederatedCoordinator,
+    create_coordinator,
+)
+from distributed_cluster.federated.models import (
+    # Enums
+    AggregationStrategy,
+    # Data Classes
+    ClientConfig,
+    ClientInfo,
+    ClientStatus,
+    ClientUpdate,
+    CompressionConfig,
+    CompressionMethod,
+    FederatedConfig,
+    FederatedMetrics,
+    ModelWeights,
+    PrivacyConfig,
+    PrivacyMechanism,
+    RoundConfig,
+    RoundResult,
+    RoundStatus,
+    SelectionStrategy,
+)
+
+# =============================================================================
+# Privacy
+# =============================================================================
+from distributed_cluster.federated.privacy import (
+    CentralDPPrivacy,
+    DifferentialPrivacy,
+    LocalDPPrivacy,
+    NonePrivacy,
+    PrivacyAccountant,
+    PrivacyBudget,
+    PrivacyMechanismBase,
+    SecureAggregation,
+    SecureAggregationPrivacy,
+    create_privacy_mechanism,
+)
+
+# =============================================================================
+# Selection
+# =============================================================================
+from distributed_cluster.federated.selection import (
+    AvailabilitySelector,
+    ClientSelector,
+    ContributionBasedSelector,
+    DataQualitySelector,
+    OortSelector,
+    RandomSelector,
+    ResourceAwareSelector,
+    RoundRobinSelector,
+    SelectionResult,
+    create_selector,
 )
 
 # =============================================================================
@@ -112,64 +169,6 @@ from distributed_cluster.federated.server import (
     FederatedServer,
     ServerState,
     create_server,
-)
-
-# =============================================================================
-# Coordinator
-# =============================================================================
-from distributed_cluster.federated.coordinator import (
-    FederatedCoordinator,
-    CoordinatorState,
-    create_coordinator,
-)
-
-# =============================================================================
-# Selection
-# =============================================================================
-from distributed_cluster.federated.selection import (
-    ClientSelector,
-    RandomSelector,
-    RoundRobinSelector,
-    ResourceAwareSelector,
-    DataQualitySelector,
-    ContributionBasedSelector,
-    OortSelector,
-    AvailabilitySelector,
-    SelectionResult,
-    create_selector,
-)
-
-# =============================================================================
-# Privacy
-# =============================================================================
-from distributed_cluster.federated.privacy import (
-    PrivacyMechanismBase,
-    NonePrivacy,
-    LocalDPPrivacy,
-    CentralDPPrivacy,
-    SecureAggregationPrivacy,
-    DifferentialPrivacy,
-    SecureAggregation,
-    PrivacyAccountant,
-    PrivacyBudget,
-    create_privacy_mechanism,
-)
-
-# =============================================================================
-# Compression
-# =============================================================================
-from distributed_cluster.federated.compression import (
-    Compressor,
-    NoCompressor,
-    QuantizationCompressor,
-    SparsificationCompressor,
-    TopKCompressor,
-    RandomKCompressor,
-    GradientCompressor,
-    SketchingCompressor,
-    CompressionResult,
-    create_compressor,
-    compress_model_weights,
 )
 
 # =============================================================================

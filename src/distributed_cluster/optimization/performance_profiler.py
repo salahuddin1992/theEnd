@@ -7,18 +7,15 @@ and bottleneck identification.
 """
 
 import asyncio
-import time
-import threading
-import logging
-import statistics
 import functools
+import logging
+import threading
+import time
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Set, Tuple
+from datetime import datetime
 from enum import Enum
-from collections import deque, defaultdict
-import traceback
-import sys
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

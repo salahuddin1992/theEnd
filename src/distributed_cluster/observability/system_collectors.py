@@ -18,9 +18,9 @@ import logging
 import os
 import platform
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 try:
     import psutil
@@ -34,7 +34,7 @@ try:
 except ImportError:
     PYNVML_AVAILABLE = False
 
-from .prometheus import PrometheusRegistry, Gauge, Counter, Histogram
+from .prometheus import PrometheusRegistry
 
 logger = logging.getLogger(__name__)
 

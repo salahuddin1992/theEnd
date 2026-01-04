@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import statistics
 from collections import deque
 from dataclasses import dataclass, field
@@ -406,7 +405,7 @@ class CapacityPlanner:
             return None
 
         values = [v for _, v in history]
-        timestamps = [t.timestamp() for t, _ in history]
+        [t.timestamp() for t, _ in history]
 
         # Calculate basic statistics
         current = values[-1]

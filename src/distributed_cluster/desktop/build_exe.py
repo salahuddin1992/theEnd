@@ -13,11 +13,11 @@ Requirements:
 This will create a standalone executable with everything included.
 """
 
+import io
 import os
 import shutil
 import subprocess
 import sys
-import io
 
 # Fix Unicode encoding issues on Windows
 if sys.platform == 'win32':
@@ -33,7 +33,6 @@ if sys.platform == 'win32':
         except Exception:
                     pass  # Ignore if reconfiguration fails
 from pathlib import Path
-
 
 
 def get_project_root():

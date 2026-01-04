@@ -20,9 +20,9 @@ import json
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # Import our modules
 from .advanced_metrics import (
@@ -37,13 +37,10 @@ from .comprehensive_health import (
     DiskHealthCheck,
     HealthCheck,
     HealthCheckManager,
-    HealthCheckResult,
     HealthStatus,
-    HTTPHealthCheck,
     LivenessProbe,
     MemoryHealthCheck,
     ReadinessProbe,
-    TCPHealthCheck,
 )
 from .enhanced_logging import (
     AsyncFileHandler,
@@ -54,8 +51,6 @@ from .enhanced_logging import (
     LoggerFactory,
     LogLevel,
     generate_correlation_id,
-    get_logger,
-    setup_logging,
 )
 
 

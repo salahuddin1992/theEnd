@@ -79,7 +79,7 @@ class TemplateEngine:
         self._filters["title"] = lambda x: str(x).title()
         self._filters["strip"] = lambda x: str(x).strip()
         self._filters["default"] = lambda x, d="": x if x else d
-        self._filters["truncate"] = lambda x, l=100: str(x)[:int(l)]
+        self._filters["truncate"] = lambda x, limit=100: str(x)[:int(limit)]
         self._filters["json"] = lambda x: json.dumps(x)
         self._filters["date"] = lambda x, f="%Y-%m-%d": (
             x.strftime(f) if isinstance(x, datetime) else str(x)

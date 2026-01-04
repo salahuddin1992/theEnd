@@ -23,15 +23,14 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, List, Optional, Set
 
+from .scorer import NetworkTopology
 from .tracker import (
-    DataBlock,
     DataLocation,
     DataLocationTracker,
     ReplicaState,
 )
-from .scorer import NetworkTopology, LocalityLevel
 
 logger = logging.getLogger(__name__)
 

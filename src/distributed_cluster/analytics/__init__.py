@@ -8,20 +8,20 @@ and capacity planning.
 نظام التحليلات التنبؤية للحوسبة الموزعة.
 """
 
-from .predictor import (
-    JobPredictor,
-    PredictionResult,
-    PredictionModel,
-)
 from .forecaster import (
-    ResourceForecaster,
     Forecast,
     ForecastHorizon,
+    ResourceForecaster,
+)
+from .predictor import (
+    JobPredictor,
+    PredictionModel,
+    PredictionResult,
 )
 from .trends import (
     TrendAnalyzer,
-    TrendReport,
     TrendDirection,
+    TrendReport,
 )
 
 __all__ = [

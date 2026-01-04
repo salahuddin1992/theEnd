@@ -665,8 +665,9 @@ class GCPProvider(CloudProvider):
             )
 
         try:
-            from google.cloud import compute_v1
             import uuid
+
+            from google.cloud import compute_v1
 
             instance_name = f"nebula-{uuid.uuid4().hex[:8]}"
 
@@ -1172,7 +1173,10 @@ class AzureProvider(CloudProvider):
                 )
                 nic_id = nic.id
             else:
-                nic_id = f"/subscriptions/{self.subscription_id}/resourceGroups/{self.resource_group}/providers/Microsoft.Network/networkInterfaces/{vm_name}-nic"
+                nic_id = (
+                    f"/subscriptions/{self.subscription_id}/resourceGroups/{self.resource_group}"
+                    f"/providers/Microsoft.Network/networkInterfaces/{vm_name}-nic"
+                )
 
             # Prepare tags
             all_tags = {

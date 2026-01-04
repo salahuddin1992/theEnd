@@ -12,22 +12,29 @@ Complete job management interface with:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QSplitter, QScrollArea, QDialog, QTextEdit, QSpinBox, QComboBox, QTabWidget, QPlainTextEdit
+    QComboBox,
+    QDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QPlainTextEdit,
+    QScrollArea,
+    QSpinBox,
+    QSplitter,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
+from ..components import ButtonVariant, FluentBadge, FluentButton, FluentCard, FluentInput, FluentProgressRing
+from ..data_table import Column, ColumnType, FluentDataTable
 from ..fluent_design import FluentDesignSystem
-from ..components import (
-    FluentButton, FluentCard, FluentInput, FluentBadge,
-    FluentProgressRing, ButtonVariant
-)
-from ..data_table import FluentDataTable, Column, ColumnType
 from ..titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # JOB DETAILS PANEL

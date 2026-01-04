@@ -16,7 +16,7 @@ import re
 import uuid
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, List, TypeVar, Union
 
 T = TypeVar("T")
 

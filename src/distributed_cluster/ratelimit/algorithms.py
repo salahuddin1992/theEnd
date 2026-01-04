@@ -9,11 +9,11 @@ Implements various rate limiting algorithms:
 """
 
 import asyncio
+import logging
 import time
 from abc import ABC, abstractmethod
 from collections import deque
 from typing import Deque, Dict, List, Optional
-import logging
 
 logger = logging.getLogger(__name__)
 

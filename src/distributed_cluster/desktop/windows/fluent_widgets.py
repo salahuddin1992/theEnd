@@ -33,20 +33,15 @@ try:
     from PySide6.QtCore import (
         Property,
         QEasingCurve,
-        QPoint,
         QPropertyAnimation,
         QRect,
-        QSize,
         Qt,
         Signal,
     )
     from PySide6.QtGui import (
-        QBrush,
         QColor,
         QFont,
-        QLinearGradient,
         QPainter,
-        QPainterPath,
         QPen,
     )
     from PySide6.QtWidgets import (
@@ -54,7 +49,6 @@ try:
         QComboBox,
         QFrame,
         QGraphicsDropShadowEffect,
-        QHBoxLayout,
         QLabel,
         QLineEdit,
         QProgressBar,

@@ -12,16 +12,14 @@ Real-time log viewer with:
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Dict, Any
 from enum import Enum
+from typing import Any, Dict, List
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPlainTextEdit, QComboBox, QCheckBox
-)
+from PySide6.QtWidgets import QCheckBox, QComboBox, QHBoxLayout, QLabel, QPlainTextEdit, QVBoxLayout, QWidget
 
+from ..components import ButtonVariant, FluentButton
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, ButtonVariant
 
 
 class LogLevel(Enum):
@@ -143,18 +141,78 @@ class FluentLogsView(QWidget):
     def _load_demo_logs(self):
         """Load demo log entries"""
         demo_logs = [
-            {"level": "info", "timestamp": datetime.now(), "source": "master", "message": "Master node started on 0.0.0.0:8765"},
-            {"level": "info", "timestamp": datetime.now(), "source": "worker-01", "message": "Worker connected from 192.168.1.101"},
-            {"level": "info", "timestamp": datetime.now(), "source": "worker-02", "message": "Worker connected from 192.168.1.102"},
-            {"level": "info", "timestamp": datetime.now(), "source": "scheduler", "message": "Scheduler initialized with 'best-fit' policy"},
-            {"level": "debug", "timestamp": datetime.now(), "source": "api", "message": "API endpoint /jobs registered"},
-            {"level": "info", "timestamp": datetime.now(), "source": "master", "message": "Job job-001 submitted: 'Training Model v2'"},
-            {"level": "info", "timestamp": datetime.now(), "source": "scheduler", "message": "Job job-001 assigned to worker-01"},
-            {"level": "debug", "timestamp": datetime.now(), "source": "worker-01", "message": "Starting container for job-001"},
-            {"level": "info", "timestamp": datetime.now(), "source": "worker-01", "message": "Job job-001 started execution"},
-            {"level": "warning", "timestamp": datetime.now(), "source": "worker-02", "message": "Memory usage above 80% threshold"},
-            {"level": "info", "timestamp": datetime.now(), "source": "master", "message": "Job job-002 completed successfully"},
-            {"level": "error", "timestamp": datetime.now(), "source": "worker-03", "message": "Connection lost to worker-03"},
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "master",
+                "message": "Master node started on 0.0.0.0:8765"
+            },
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "worker-01",
+                "message": "Worker connected from 192.168.1.101"
+            },
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "worker-02",
+                "message": "Worker connected from 192.168.1.102"
+            },
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "scheduler",
+                "message": "Scheduler initialized with 'best-fit' policy"
+            },
+            {
+                "level": "debug",
+                "timestamp": datetime.now(),
+                "source": "api",
+                "message": "API endpoint /jobs registered"
+            },
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "master",
+                "message": "Job job-001 submitted: 'Training Model v2'"
+            },
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "scheduler",
+                "message": "Job job-001 assigned to worker-01"
+            },
+            {
+                "level": "debug",
+                "timestamp": datetime.now(),
+                "source": "worker-01",
+                "message": "Starting container for job-001"
+            },
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "worker-01",
+                "message": "Job job-001 started execution"
+            },
+            {
+                "level": "warning",
+                "timestamp": datetime.now(),
+                "source": "worker-02",
+                "message": "Memory usage above 80% threshold"
+            },
+            {
+                "level": "info",
+                "timestamp": datetime.now(),
+                "source": "master",
+                "message": "Job job-002 completed successfully"
+            },
+            {
+                "level": "error",
+                "timestamp": datetime.now(),
+                "source": "worker-03",
+                "message": "Connection lost to worker-03"
+            },
         ]
 
         for log in demo_logs:

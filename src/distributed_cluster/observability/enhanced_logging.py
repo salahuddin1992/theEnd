@@ -24,7 +24,7 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import IntEnum
 from functools import wraps
 from pathlib import Path
@@ -35,11 +35,9 @@ from typing import (
     Dict,
     List,
     Optional,
-    Set,
     TypeVar,
     Union,
 )
-
 
 # =============================================================================
 # Log Levels

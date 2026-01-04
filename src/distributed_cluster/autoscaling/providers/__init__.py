@@ -18,6 +18,8 @@ Author: Distributed Cluster Team
 License: MIT
 """
 
+from distributed_cluster.autoscaling.providers.aws import AWSProvider
+from distributed_cluster.autoscaling.providers.azure import AzureProvider
 from distributed_cluster.autoscaling.providers.base import (
     CloudProvider,
     InstanceInfo,
@@ -27,10 +29,8 @@ from distributed_cluster.autoscaling.providers.base import (
     ProvisioningError,
     TerminationError,
 )
-from distributed_cluster.autoscaling.providers.local import LocalProvider
-from distributed_cluster.autoscaling.providers.aws import AWSProvider
 from distributed_cluster.autoscaling.providers.gcp import GCPProvider
-from distributed_cluster.autoscaling.providers.azure import AzureProvider
+from distributed_cluster.autoscaling.providers.local import LocalProvider
 
 __all__ = [
     # Base

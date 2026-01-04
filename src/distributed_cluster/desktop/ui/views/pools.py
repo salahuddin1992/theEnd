@@ -11,20 +11,16 @@ Resource pool management with:
 
 from __future__ import annotations
 
-from typing import Optional, List
 from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional
 
-from PySide6.QtCore import Qt, Signal, QRectF
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QFrame, QSpinBox, QCheckBox
-)
-from PySide6.QtGui import QFont, QPainter, QColor, QPen
+from PySide6.QtCore import QRectF, Qt, Signal
+from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtWidgets import QCheckBox, QFrame, QHBoxLayout, QLabel, QScrollArea, QSpinBox, QVBoxLayout, QWidget
 
+from ..components import ButtonVariant, FluentButton, FluentCard
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, FluentCard, ButtonVariant
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DATA MODELS

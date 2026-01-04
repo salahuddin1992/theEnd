@@ -7,10 +7,10 @@ Provides efficient database connection pooling for:
 - Generic async databases
 """
 
+import logging
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
-from contextlib import asynccontextmanager
-import logging
 
 logger = logging.getLogger(__name__)
 

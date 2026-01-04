@@ -16,28 +16,26 @@ Comprehensive Windows 11 integration featuring:
 
 from __future__ import annotations
 
-import sys
-import json
 import ctypes
-from pathlib import Path
-from typing import Optional, Callable, List, Dict, Any
-from enum import Enum
+import json
+import sys
 from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
-from PySide6.QtCore import QObject, Signal, QTimer, QSettings
-from PySide6.QtWidgets import (
-    QWidget, QSystemTrayIcon, QMenu
-)
-from PySide6.QtGui import QIcon, QAction
+from PySide6.QtCore import QObject, QSettings, QTimer, Signal
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QMenu, QSystemTrayIcon, QWidget
 
 # Windows-specific imports (conditionally loaded)
 IS_WINDOWS = sys.platform == 'win32'
 
 if IS_WINDOWS:
     try:
+        import ctypes.wintypes  # noqa: F401
         import winreg
-        import ctypes.wintypes
-        from ctypes import windll, byref, sizeof, c_int, c_void_p, POINTER, Structure
+        from ctypes import byref, c_int, sizeof, windll  # noqa: F401
         HAS_WINREG = True
     except ImportError:
         HAS_WINREG = False
@@ -62,9 +60,9 @@ if IS_WINDOWS:
 
     try:
         # Taskbar COM interfaces
-        import comtypes
-        from comtypes import GUID, COMMETHOD, IUnknown
-        from comtypes.client import CreateObject
+        import comtypes  # noqa: F401
+        from comtypes import GUID  # noqa: F401
+        from comtypes.client import CreateObject  # noqa: F401
         HAS_COMTYPES = True
     except ImportError:
         HAS_COMTYPES = False

@@ -15,7 +15,6 @@ License: MIT
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Any, Optional
@@ -280,7 +279,7 @@ class OllamaLoader(ModelLoader):
 
             # Extract relevant details
             details = data.get("details", {})
-            modelfile = data.get("modelfile", "")
+            data.get("modelfile", "")
 
             # Parse context length from modelfile or parameters
             context_length = 4096

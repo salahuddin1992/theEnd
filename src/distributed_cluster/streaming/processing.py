@@ -4,17 +4,16 @@ Stream processing engine for event aggregation, filtering, and transformation.
 
 import asyncio
 import logging
-import time
+import statistics
 import threading
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
 from enum import Enum
-import statistics
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
-from .events import Event, EventType, EventPriority
+from .events import Event, EventPriority, EventType
 
 logger = logging.getLogger(__name__)
 
@@ -230,7 +229,11 @@ class MapTransformer(EventTransformer):
 class EnrichTransformer(EventTransformer):
     """Enrich events with additional data."""
 
-    def __init__(self, enrichments: Dict[str, Any] = None, enrich_fn: Optional[Callable[[Event], Dict[str, Any]]] = None):
+    def __init__(
+        self,
+        enrichments: Dict[str, Any] = None,
+        enrich_fn: Optional[Callable[[Event], Dict[str, Any]]] = None
+    ):
         self.enrichments = enrichments or {}
         self.enrich_fn = enrich_fn
 
@@ -475,12 +478,12 @@ class EventAggregator:
         """Compute aggregations for a window."""
         results = {}
 
-        for field, (extract_fn, agg_class) in self.aggregations.items():
+        for field_name, (extract_fn, agg_class) in self.aggregations.items():
             agg = agg_class()
             for event in window.events:
                 value = extract_fn(event)
                 agg.add(value)
-            results[field] = agg.result()
+            results[field_name] = agg.result()
 
         results["__count__"] = len(window.events)
         results["__window_start__"] = window.start.isoformat()

@@ -11,22 +11,16 @@ Real-time metrics dashboard with:
 
 from __future__ import annotations
 
-from typing import List, Dict, Any
 import random
+from typing import Any, Dict, List
 
-from PySide6.QtCore import Signal, QTimer
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QScrollArea, QComboBox
-)
+from PySide6.QtCore import QTimer, Signal
+from PySide6.QtWidgets import QComboBox, QFrame, QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
 
+from ..components import ButtonVariant, FluentButton, FluentCard
+from ..dashboard import AnimatedStatCard, CircularProgressChart, LineChart
 from ..fluent_design import FluentDesignSystem
-from ..components import FluentButton, FluentCard, ButtonVariant
-from ..dashboard import (
-    AnimatedStatCard, CircularProgressChart, LineChart
-)
 from ..titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # METRIC CHART CARD

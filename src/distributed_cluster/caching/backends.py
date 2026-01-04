@@ -2,18 +2,14 @@
 Cache backend implementations for various storage systems.
 """
 
-import asyncio
 import logging
 import threading
 import time
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Set
-import json
+from typing import Dict, List, Optional, Set, Tuple
 
-from .cache import Cache, CacheConfig, CacheEntry, CacheStats, CacheError, CacheConnectionError
+from .cache import CacheConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -456,9 +452,8 @@ class MemcachedBackend(CacheBackend):
     def _connect(self):
         """Establish Memcached connection."""
         try:
-            from pymemcache.client.hash import HashClient
-            from pymemcache.client.retrying import RetryingClient
             from pymemcache import serde
+            from pymemcache.client.hash import HashClient
 
             self._client = HashClient(
                 self.servers,

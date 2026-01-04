@@ -375,8 +375,14 @@ class BotHandler(ABC):
   GPU: {100 - (data.get('available_gpus', 0) / max(data.get('total_gpus', 1), 1) * 100):.1f}%
 
 *Job Statistics:*
-  Total Jobs: {data.get('completed_jobs', 0) + data.get('failed_jobs', 0) + data.get('running_jobs', 0) + data.get('pending_jobs', 0)}
-  Success Rate: {data.get('completed_jobs', 0) / max(data.get('completed_jobs', 0) + data.get('failed_jobs', 0), 1) * 100:.1f}%
+  Total Jobs: {
+    data.get('completed_jobs', 0) + data.get('failed_jobs', 0) +
+    data.get('running_jobs', 0) + data.get('pending_jobs', 0)
+}
+  Success Rate: {
+    data.get('completed_jobs', 0) /
+    max(data.get('completed_jobs', 0) + data.get('failed_jobs', 0), 1) * 100:.1f
+}%
         """.strip()
 
         return BotResponse(text=text)

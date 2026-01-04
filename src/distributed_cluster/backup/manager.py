@@ -22,21 +22,18 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
-from uuid import uuid4
 
+from distributed_cluster.backup.scheduler import (
+    BackupScheduler,
+    RetentionPolicy,
+)
 from distributed_cluster.backup.snapshot import (
     Snapshot,
     SnapshotBuilder,
-    SnapshotData,
     SnapshotMetadata,
     SnapshotType,
 )
 from distributed_cluster.backup.storage import BackupStorage, LocalStorage
-from distributed_cluster.backup.scheduler import (
-    BackupScheduler,
-    RetentionPolicy,
-    ScheduleConfig,
-)
 
 logger = logging.getLogger(__name__)
 

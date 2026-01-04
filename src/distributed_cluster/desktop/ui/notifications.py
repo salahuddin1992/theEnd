@@ -12,28 +12,29 @@ Features:
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import List, Callable, Dict
-import uuid
+from typing import Callable, Dict, List
 
-from PySide6.QtCore import (
-    Qt, Signal, QTimer, QPropertyAnimation, QPoint
-)
-from PySide6.QtGui import (
-    QColor
-)
+from PySide6.QtCore import QPoint, QPropertyAnimation, Qt, QTimer, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QFrame, QGraphicsDropShadowEffect,
-    QGraphicsOpacityEffect, QApplication
+    QApplication,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QGraphicsOpacityEffect,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from .fluent_design import FluentDesignSystem
 from .animations import FluentEasing
+from .fluent_design import FluentDesignSystem
 from .titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # NOTIFICATION TYPES

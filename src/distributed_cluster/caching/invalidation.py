@@ -2,19 +2,18 @@
 Cache invalidation strategies and patterns.
 """
 
-import asyncio
 import logging
 import threading
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
-from queue import Queue, Empty
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from queue import Empty, Queue
+from typing import Any, Callable, Dict, List, Optional, Set
 
-from .cache import Cache, CacheConfig, CacheStats
+from .cache import Cache
 
 logger = logging.getLogger(__name__)
 

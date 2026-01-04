@@ -2,20 +2,18 @@
 Distributed cache implementation with consistent hashing and clustering.
 """
 
-import asyncio
 import hashlib
 import logging
 import threading
 import time
-from abc import ABC, abstractmethod
 from bisect import bisect_left, insort
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .cache import Cache, CacheConfig, CacheStats, CacheError
 from .backends import CacheBackend, RedisBackend
+from .cache import Cache, CacheConfig, CacheStats
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +121,7 @@ class ConsistentHashing:
             if node_id not in self._nodes:
                 return
 
-            node = self._nodes[node_id]
+            self._nodes[node_id]
 
             # Remove virtual nodes
             self._ring = [
@@ -309,7 +307,7 @@ class CacheCluster:
         ttl: Optional[int] = None
     ) -> bool:
         """Set a value in the cluster."""
-        start = time.time()
+        time.time()
         nodes = self._hasher.get_nodes(key, self.config.replication_factor)
 
         if not nodes:

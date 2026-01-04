@@ -10,16 +10,13 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import os
 import shutil
-import time
 import uuid
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -319,7 +316,11 @@ class CheckpointManager:
 
         # Sort by step and keep most recent
         non_best.sort(key=lambda cp: cp.step)
-        to_remove = non_best[:-self._max_checkpoints + len(best)] if len(non_best) > self._max_checkpoints - len(best) else []
+        to_remove = (
+            non_best[:-self._max_checkpoints + len(best)]
+            if len(non_best) > self._max_checkpoints - len(best)
+            else []
+        )
 
         for cp in to_remove:
             try:
@@ -665,7 +666,7 @@ class TrainingPipeline:
         """Get model state dict."""
         try:
             import torch.nn as nn
-            from torch.nn.parallel import DistributedDataParallel, DataParallel
+            from torch.nn.parallel import DataParallel, DistributedDataParallel
 
             if isinstance(model, (DistributedDataParallel, DataParallel)):
                 return model.module.state_dict()

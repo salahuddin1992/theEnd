@@ -19,22 +19,23 @@ from __future__ import annotations
 
 from enum import Enum
 
-from PySide6.QtCore import (
-    Qt, Signal, QSize, QTimer, QPropertyAnimation,
-    Property, QRect, QRectF
-)
-from PySide6.QtGui import (
-    QColor, QPainter, QFont, QPainterPath, QPen, QLinearGradient, QPixmap, QFontMetrics
-)
+from PySide6.QtCore import Property, QPropertyAnimation, QRect, QRectF, QSize, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QLinearGradient, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (
-    QWidget, QPushButton, QFrame, QLabel, QLineEdit,
-    QVBoxLayout, QHBoxLayout, QGraphicsDropShadowEffect,
-    QSlider, QAbstractButton
+    QAbstractButton,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QSlider,
+    QVBoxLayout,
+    QWidget,
 )
 
-from .fluent_design import FluentDesignSystem, RevealEffect
 from .animations import FluentEasing
-
+from .fluent_design import FluentDesignSystem, RevealEffect
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BUTTON VARIANTS

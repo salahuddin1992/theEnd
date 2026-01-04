@@ -17,6 +17,7 @@ Features:
 from __future__ import annotations
 
 import asyncio
+import heapq
 import json
 import logging
 import sqlite3
@@ -26,7 +27,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
-import heapq
 
 from distributed_cluster.notifications.channels import (
     Notification,

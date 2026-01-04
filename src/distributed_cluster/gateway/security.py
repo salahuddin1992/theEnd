@@ -16,9 +16,9 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from ipaddress import ip_address, ip_network
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from .gateway import GatewayRequest, GatewayResponse
 
@@ -156,7 +156,7 @@ class JWTValidator(Validator):
             raise ValueError("Invalid token format")
 
         # Decode header and payload
-        header = json.loads(base64.urlsafe_b64decode(parts[0] + "=="))
+        json.loads(base64.urlsafe_b64decode(parts[0] + "=="))
         payload = json.loads(base64.urlsafe_b64decode(parts[1] + "=="))
 
         # Verify signature

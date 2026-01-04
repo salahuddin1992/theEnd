@@ -13,9 +13,9 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -234,7 +234,10 @@ class QuotaManager:
                 requested=requested,
                 available=quota.remaining,
                 limit=quota.limit,
-                message=f"Quota exceeded for {resource}: requested {requested}, available {quota.remaining}, limit {quota.limit}",
+                message=(
+                    f"Quota exceeded for {resource}: requested {requested}, "
+                    f"available {quota.remaining}, limit {quota.limit}"
+                ),
             )
 
             # Notify handlers

@@ -15,29 +15,34 @@ Features:
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any, Callable
-import json
+from typing import Any, Callable, Dict, List, Optional
 
-from PySide6.QtCore import (
-    Qt, Signal, QPoint, QSize, QModelIndex,
-    QAbstractTableModel, QSortFilterProxyModel
-)
-from PySide6.QtGui import (
-    QColor, QPainter, QFont, QKeySequence
-)
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPoint, QSize, QSortFilterProxyModel, Qt, Signal
+from PySide6.QtGui import QColor, QFont, QKeySequence, QPainter
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableView, QHeaderView, QFrame, QLineEdit, QComboBox,
-    QMenu, QStyledItemDelegate, QStyle, QStyleOptionViewItem,
-    QAbstractItemView
+    QAbstractItemView,
+    QComboBox,
+    QFrame,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMenu,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QTableView,
+    QVBoxLayout,
+    QWidget,
 )
 
+from .components import ButtonVariant, FluentButton
 from .fluent_design import FluentDesignSystem
-from .components import FluentButton, ButtonVariant
 from .titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # COLUMN DEFINITIONS

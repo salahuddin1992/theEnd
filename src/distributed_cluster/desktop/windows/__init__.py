@@ -24,36 +24,36 @@ Author: Distributed Cluster Team
 License: MIT
 """
 
-from distributed_cluster.desktop.windows.terminal_integration import (
-    WindowsTerminalManager,
-    TerminalProfile,
-    TerminalSettings,
+from distributed_cluster.desktop.windows.auto_start import (
+    AutoStartManager,
+    StartupOptions,
 )
 from distributed_cluster.desktop.windows.enhanced_tray import (
     EnhancedSystemTray,
     QuickAction,
     TrayStatus,
 )
-from distributed_cluster.desktop.windows.winrt_notifications import (
-    WinRTNotificationManager,
-    NotificationButton,
-    NotificationProgress,
-)
-from distributed_cluster.desktop.windows.auto_start import (
-    AutoStartManager,
-    StartupOptions,
-)
 from distributed_cluster.desktop.windows.fluent_widgets import (
     FluentButton,
     FluentCard,
-    FluentProgressBar,
-    FluentToggle,
-    FluentSlider,
     FluentComboBox,
-    FluentSearchBox,
-    FluentNavigationView,
     FluentInfoBar,
+    FluentNavigationView,
+    FluentProgressBar,
+    FluentSearchBox,
+    FluentSlider,
     FluentTeachingTip,
+    FluentToggle,
+)
+from distributed_cluster.desktop.windows.terminal_integration import (
+    TerminalProfile,
+    TerminalSettings,
+    WindowsTerminalManager,
+)
+from distributed_cluster.desktop.windows.winrt_notifications import (
+    NotificationButton,
+    NotificationProgress,
+    WinRTNotificationManager,
 )
 
 __all__ = [

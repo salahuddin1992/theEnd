@@ -12,22 +12,13 @@ Modern splash screen with:
 from __future__ import annotations
 
 import math
-from typing import Optional, List
+from typing import List, Optional
 
-from PySide6.QtCore import (
-    Qt, QTimer, QPropertyAnimation, QEasingCurve,
-    QRectF, Signal
-)
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QGraphicsOpacityEffect, QApplication
-)
-from PySide6.QtGui import (
-    QPainter, QColor, QPen, QFont, QLinearGradient, QRadialGradient, QPainterPath
-)
+from PySide6.QtCore import QEasingCurve, QPropertyAnimation, QRectF, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen, QRadialGradient
+from PySide6.QtWidgets import QApplication, QGraphicsOpacityEffect, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from .fluent_design import FluentDesignSystem
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ANIMATED LOGO

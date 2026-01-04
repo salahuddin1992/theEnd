@@ -6,13 +6,13 @@ All main application views/pages.
 """
 
 from .jobs import FluentJobsView
-from .workers import FluentWorkersView
-from .settings import FluentSettingsView
 from .logs import FluentLogsView
 from .metrics import FluentMetricsView
-from .templates import FluentTemplatesView
 from .pools import FluentPoolsView
 from .queues import FluentQueuesView
+from .settings import FluentSettingsView
+from .templates import FluentTemplatesView
+from .workers import FluentWorkersView
 
 __all__ = [
     "FluentJobsView",
