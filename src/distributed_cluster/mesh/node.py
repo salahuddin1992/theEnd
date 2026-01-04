@@ -168,10 +168,8 @@ class MeshNode:
             gpu_count = 0
             try:
                 import warnings as _w
-
-                with _w.catch_warnings():
-                    _w.filterwarnings("ignore", category=FutureWarning, module="pynvml")
-                    import pynvml
+                _w.filterwarnings("ignore", category=FutureWarning, module="pynvml")
+                import pynvml
                 pynvml.nvmlInit()
                 gpu_count = pynvml.nvmlDeviceGetCount()
                 pynvml.nvmlShutdown()

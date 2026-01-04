@@ -77,6 +77,7 @@ from distributed_cluster.autoscaling.metrics import (
 from distributed_cluster.autoscaling.policies import (
     CompositePolicy,
     CostAwarePolicy,
+    PolicyTemplates,
     PredictivePolicy,
     QueueBasedPolicy,
     ResourceBasedPolicy,
@@ -123,6 +124,7 @@ __all__ = [
     "CostAwarePolicy",
     "PredictivePolicy",
     "ScheduleBasedPolicy",
+    "PolicyTemplates",
     # Providers
     "CloudProvider",
     "ProviderConfig",

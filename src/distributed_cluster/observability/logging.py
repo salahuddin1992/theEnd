@@ -506,7 +506,7 @@ class TimedRotatingFileHandler(RotatingFileHandler):
         # Don't use size-based rotation
         super().__init__(
             filename=filename,
-            max_bytes=float("inf"),  # type: ignore
+            max_bytes=float("inf"),  # type: ignore[arg-type]
             backup_count=backup_count,
             compress=compress,
             encoding=encoding,

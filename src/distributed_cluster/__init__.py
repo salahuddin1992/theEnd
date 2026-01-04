@@ -13,6 +13,10 @@
 
 from __future__ import annotations
 
+# Suppress pynvml deprecation warning
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
+
 import asyncio
 import os
 import time

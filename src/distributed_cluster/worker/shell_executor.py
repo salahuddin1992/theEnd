@@ -438,7 +438,7 @@ class ShellExecutor:
 
         elif shell_type in (ShellType.BASH, ShellType.SH, ShellType.ZSH):
             # Unix shells
-            if config.run_as_admin and os.geteuid() != 0:  # type: ignore
+            if config.run_as_admin and os.geteuid() != 0:  # type: ignore[attr-defined]
                 # Use sudo for admin
                 cmd_args = ["sudo", shell_path, "-c", command]
             else:
@@ -610,7 +610,7 @@ def is_admin() -> bool:
         except Exception:
             return False
     else:
-        return os.geteuid() == 0  # type: ignore
+        return os.geteuid() == 0  # type: ignore[attr-defined]
 
 
 def get_elevation_command(command: str, shell_type: ShellType) -> str:

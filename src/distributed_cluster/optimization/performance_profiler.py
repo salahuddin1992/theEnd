@@ -376,9 +376,11 @@ class PerformanceProfiler:
     def get_latency_percentiles(
         self,
         operation_type: Optional[OperationType] = None,
-        percentiles: List[float] = [0.5, 0.9, 0.95, 0.99]
+        percentiles: Optional[List[float]] = None
     ) -> Dict[str, float]:
         """Get latency percentiles."""
+        if percentiles is None:
+            percentiles = [0.5, 0.9, 0.95, 0.99]
         with self._lock:
             if operation_type:
                 histogram = self.operation_stats[operation_type].latency_histogram
