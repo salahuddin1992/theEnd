@@ -38,6 +38,8 @@ class ChunkingStrategy(str, Enum):
     PARAGRAPH = "paragraph"  # فقرات
     SEMANTIC = "semantic"  # دلالي
     TOKEN_BASED = "token_based"  # بناءً على التوكنز
+    LINE = "line"  # أسطر
+    CHARACTER = "character"  # أحرف
     CUSTOM = "custom"  # مخصص
 
 
@@ -59,6 +61,7 @@ class TaskChunk:
     chunk_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     parent_task_id: str = ""
     sequence: int = 0
+    index: int = 0  # Alias for sequence
     content: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
     token_count: int = 0
@@ -69,6 +72,11 @@ class TaskChunk:
     result: Optional[Any] = None
     error: Optional[str] = None
     execution_time_ms: float = 0
+    processed: bool = False
+
+    # Timing
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    processed_at: Optional[datetime] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """تحويل لقاموس."""
@@ -76,11 +84,15 @@ class TaskChunk:
             "chunk_id": self.chunk_id,
             "parent_task_id": self.parent_task_id,
             "sequence": self.sequence,
-            "content": self.content,
+            "index": self.index,
+            "content": self.content[:100] + "..." if len(self.content) > 100 else self.content,
             "metadata": self.metadata,
             "token_count": self.token_count,
             "worker_id": self.worker_id,
             "status": self.status,
+            "processed": self.processed,
+            "has_result": self.result is not None,
+            "error": self.error,
         }
 
 
@@ -224,6 +236,30 @@ class TextChunker:
 
         return chunks
 
+    def chunk_by_lines(self, text: str) -> List[str]:
+        """تقسيم بالأسطر."""
+        lines = text.split('\n')
+
+        chunks = []
+        current_chunk = []
+        current_tokens = 0
+
+        for line in lines:
+            line_tokens = self.estimate_tokens(line) + 1  # +1 for newline
+
+            if current_tokens + line_tokens > self.max_chunk_tokens and current_chunk:
+                chunks.append("\n".join(current_chunk))
+                current_chunk = []
+                current_tokens = 0
+
+            current_chunk.append(line)
+            current_tokens += line_tokens
+
+        if current_chunk:
+            chunks.append("\n".join(current_chunk))
+
+        return chunks
+
     def chunk(
         self,
         text: str,
@@ -236,7 +272,11 @@ class TextChunker:
             return self.chunk_by_sentences(text)
         elif strategy == ChunkingStrategy.PARAGRAPH:
             return self.chunk_by_paragraphs(text)
+        elif strategy == ChunkingStrategy.LINE:
+            return self.chunk_by_lines(text)
         elif strategy == ChunkingStrategy.TOKEN_BASED:
+            return self.chunk_fixed_size(text)
+        elif strategy == ChunkingStrategy.CHARACTER:
             return self.chunk_fixed_size(text)
         else:
             # Default to paragraph
@@ -286,6 +326,10 @@ class ResultAggregator:
         counter = Counter(str(r) for r in results)
         return counter.most_common(1)[0][0]
 
+    def summarize(self, results: List[str]) -> str:
+        """تجميع بالتلخيص."""
+        return "\n".join(f"- {r[:200]}..." if len(r) > 200 else f"- {r}" for r in results)
+
     def aggregate(
         self,
         results: List[Any],
@@ -299,6 +343,8 @@ class ResultAggregator:
             return self.merge_json(results)
         elif strategy == AggregationStrategy.VOTE:
             return self.vote(results)
+        elif strategy == AggregationStrategy.SUMMARIZE:
+            return self.summarize(results)
         else:
             return self.concatenate(results)
 
@@ -325,6 +371,9 @@ class TaskSplitter:
         self.aggregator = ResultAggregator()
         self.default_chunking = default_chunking
         self.default_aggregation = default_aggregation
+        self.max_chunk_size = max_chunk_tokens * 4  # Approximate char count
+        self.overlap = overlap_tokens * 4
+        self.min_chunk_size = 100
 
     def should_split(
         self,
@@ -334,6 +383,38 @@ class TaskSplitter:
         """هل يجب تقسيم النص؟"""
         estimated_tokens = self.chunker.estimate_tokens(text)
         return estimated_tokens > max_tokens
+
+    def split(self, text: str) -> List[TaskChunk]:
+        """
+        تقسيم النص إلى أجزاء.
+
+        Args:
+            text: النص المراد تقسيمه
+
+        Returns:
+            قائمة الأجزاء
+        """
+        if not text or len(text) <= self.max_chunk_size:
+            return [TaskChunk(index=0, sequence=0, content=text)]
+
+        text_chunks = self.chunker.chunk(text, self.default_chunking)
+
+        chunks = []
+        for i, chunk_text in enumerate(text_chunks):
+            chunk = TaskChunk(
+                index=i,
+                sequence=i,
+                content=chunk_text,
+                token_count=self.chunker.estimate_tokens(chunk_text),
+                metadata={
+                    "strategy": self.default_chunking.value,
+                    "chunk_index": i,
+                    "total_chunks": len(text_chunks),
+                },
+            )
+            chunks.append(chunk)
+
+        return chunks
 
     def split_task(
         self,
@@ -370,6 +451,7 @@ class TaskSplitter:
             chunk = TaskChunk(
                 parent_task_id=split_task.task_id,
                 sequence=i,
+                index=i,
                 content=chunk_text,
                 token_count=self.chunker.estimate_tokens(chunk_text),
                 metadata={
@@ -432,6 +514,16 @@ class TaskSplitter:
 
         return aggregated
 
+    @staticmethod
+    def concatenate_results(results: List[str]) -> str:
+        """تجميع بالربط."""
+        return "\n\n".join(results)
+
+    @staticmethod
+    def summarize_results(results: List[str]) -> str:
+        """تجميع بالتلخيص."""
+        return "\n".join(f"- {r[:200]}..." if len(r) > 200 else f"- {r}" for r in results)
+
 
 @dataclass
 class WorkerInfo:
@@ -462,15 +554,17 @@ class DistributedPromptExecutor:
         max_concurrent_per_worker: int = 3,
         timeout_seconds: float = 300,
         retry_count: int = 2,
+        splitter: Optional[TaskSplitter] = None,
     ):
         self.master_url = master_url
         self.max_concurrent = max_concurrent_per_worker
         self.timeout = timeout_seconds
         self.retry_count = retry_count
 
-        self.splitter = TaskSplitter()
+        self.splitter = splitter or TaskSplitter()
         self._workers: Dict[str, WorkerInfo] = {}
         self._pending_tasks: Dict[str, SplitTask] = {}
+        self._semaphore = asyncio.Semaphore(max_concurrent_per_worker)
 
         # Stats
         self._total_prompts = 0
@@ -502,6 +596,83 @@ class DistributedPromptExecutor:
         available.sort(key=lambda w: (w.current_load, w.avg_latency_ms))
 
         return available[0]
+
+    async def execute(
+        self,
+        text: str,
+        prompt_template: str,
+        executor_fn,
+        aggregate_fn=None,
+    ) -> Dict[str, Any]:
+        """
+        تنفيذ موزع.
+
+        Args:
+            text: النص المراد معالجته
+            prompt_template: قالب الـ prompt مع {chunk}
+            executor_fn: دالة التنفيذ async (prompt) -> result
+            aggregate_fn: دالة تجميع النتائج (results) -> final
+
+        Returns:
+            النتيجة النهائية
+        """
+        # Split text
+        chunks = self.splitter.split(text)
+
+        logger.info(f"Split text into {len(chunks)} chunks")
+
+        # Execute in parallel
+        tasks = []
+        for chunk in chunks:
+            prompt = prompt_template.replace("{chunk}", chunk.content)
+            tasks.append(self._execute_chunk(chunk, prompt, executor_fn))
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Process results
+        successful = []
+        errors = []
+
+        for chunk, result in zip(chunks, results):
+            if isinstance(result, Exception):
+                chunk.error = str(result)
+                errors.append({"chunk": chunk.index, "error": str(result)})
+            else:
+                chunk.result = result
+                chunk.processed = True
+                successful.append(result)
+
+        # Aggregate
+        if aggregate_fn and successful:
+            final_result = aggregate_fn(successful)
+        else:
+            final_result = successful
+
+        return {
+            "success": len(errors) == 0,
+            "total_chunks": len(chunks),
+            "successful_chunks": len(successful),
+            "failed_chunks": len(errors),
+            "result": final_result,
+            "errors": errors,
+            "chunks": [c.to_dict() for c in chunks],
+        }
+
+    async def _execute_chunk(
+        self,
+        chunk: TaskChunk,
+        prompt: str,
+        executor_fn,
+    ) -> Any:
+        """تنفيذ جزء واحد."""
+        async with self._semaphore:
+            try:
+                result = await executor_fn(prompt)
+                chunk.processed_at = datetime.utcnow()
+                return result
+            except Exception as e:
+                logger.error(f"Chunk {chunk.index} failed: {e}")
+                raise
 
     async def execute_distributed(
         self,
@@ -592,7 +763,7 @@ class DistributedPromptExecutor:
         on_progress: Optional[Callable[[float, str], None]] = None,
     ) -> List[Any]:
         """تنفيذ القطع بالتوازي."""
-        semaphore = asyncio.Semaphore(len(self._workers) * self.max_concurrent)
+        semaphore = asyncio.Semaphore(len(self._workers) * self.max_concurrent if self._workers else self.max_concurrent)
 
         async def execute_chunk(chunk: TaskChunk) -> Any:
             async with semaphore:
@@ -619,6 +790,7 @@ class DistributedPromptExecutor:
 
                     chunk.result = result.get("output")
                     chunk.status = "completed"
+                    chunk.processed = True
                     split_task.completed_chunks += 1
 
                     if worker:

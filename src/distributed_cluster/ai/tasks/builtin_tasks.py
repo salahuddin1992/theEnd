@@ -36,6 +36,8 @@ class AITaskCategory(str, Enum):
     TRANSLATION = "translation"  # الترجمة
     EXTRACTION = "extraction"  # الاستخراج
     CONVERSATION = "conversation"  # المحادثة
+    EMBEDDING = "embedding"  # التضمين
+    CLASSIFICATION = "classification"  # التصنيف
     CUSTOM = "custom"  # مخصص
 
 
@@ -51,6 +53,7 @@ class ParameterType(str, Enum):
     MULTI_SELECT = "multi_select"
     FILE = "file"
     JSON = "json"
+    ARRAY = "array"
 
 
 @dataclass
@@ -100,6 +103,10 @@ class TaskParameter:
             if value not in self.options:
                 return False, f"Parameter '{self.name}' must be one of {self.options}"
 
+        elif self.param_type == ParameterType.ARRAY:
+            if not isinstance(value, list):
+                return False, f"Parameter '{self.name}' must be an array"
+
         return True, ""
 
 
@@ -118,6 +125,21 @@ class TaskResult:
     worker_id: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "task_id": self.task_id,
+            "task_name": self.task_name,
+            "success": self.success,
+            "output": self.output,
+            "error": self.error,
+            "execution_time_ms": self.execution_time_ms,
+            "tokens_used": self.tokens_used,
+            "model": self.model,
+            "worker_id": self.worker_id,
+            "metadata": self.metadata,
+            "created_at": self.created_at.isoformat(),
+        }
 
 
 @dataclass
@@ -148,6 +170,9 @@ class AITask:
     supports_distributed: bool = True
     max_input_tokens: int = 4000
     estimated_output_tokens: int = 1000
+
+    # Execution handler (optional)
+    handler: Optional[Callable] = field(default=None, repr=False)
 
     def build_prompt(self, **kwargs) -> str:
         """بناء الـ prompt من المعاملات."""
@@ -513,7 +538,7 @@ Answer:""",
             name_ar="تصنيف النصوص",
             description="Classify text into categories",
             description_ar="تصنيف النصوص إلى فئات محددة",
-            category=AITaskCategory.ANALYSIS,
+            category=AITaskCategory.CLASSIFICATION,
             icon="🏷️",
             tags=["classification", "categorization", "nlp"],
             output_format="json",
@@ -846,6 +871,42 @@ Rewritten text:""",
             recommended_models=["llama3.2", "mistral", "gpt-4"],
         )
 
+    @staticmethod
+    def extract_entities() -> AITask:
+        """استخراج الكيانات."""
+        return AITask(
+            task_id="extract_entities",
+            name="Entity Extraction",
+            name_ar="استخراج الكيانات",
+            description="Extract named entities from text",
+            description_ar="استخراج الكيانات المسماة من النص",
+            category=AITaskCategory.EXTRACTION,
+            icon="🔎",
+            tags=["entities", "ner", "extraction"],
+            output_format="json",
+            prompt_template="""Extract {entity_types} entities from the following text. Return as JSON.
+
+Text: {text}""",
+            parameters=[
+                TaskParameter(
+                    name="text",
+                    label="Text",
+                    param_type=ParameterType.TEXT,
+                    description="Text to extract entities from",
+                    placeholder="Enter text...",
+                ),
+                TaskParameter(
+                    name="entity_types",
+                    label="Entity Types",
+                    param_type=ParameterType.MULTI_SELECT,
+                    description="Types of entities to extract",
+                    default=["person", "organization", "location"],
+                    options=["person", "organization", "location", "date", "money", "product", "event"],
+                ),
+            ],
+            recommended_models=["llama3.2", "mistral"],
+        )
+
 
 class AITaskRegistry:
     """سجل مهام AI."""
@@ -867,6 +928,7 @@ class AITaskRegistry:
             BuiltinTasks.content_generation(),
             BuiltinTasks.code_review(),
             BuiltinTasks.text_rewriting(),
+            BuiltinTasks.extract_entities(),
         ]
 
         for task in builtin:
@@ -893,6 +955,17 @@ class AITaskRegistry:
     def list_by_category(self, category: AITaskCategory) -> List[AITask]:
         """قائمة المهام حسب الفئة."""
         return [t for t in self._tasks.values() if t.category == category]
+
+    def list_tasks(self, category: Optional[AITaskCategory] = None) -> List[AITask]:
+        """قائمة المهام."""
+        tasks = list(self._tasks.values())
+        if category:
+            tasks = [t for t in tasks if t.category == category]
+        return tasks
+
+    def list_categories(self) -> List[str]:
+        """قائمة الفئات."""
+        return list(set(t.category.value for t in self._tasks.values()))
 
     def search(self, query: str) -> List[AITask]:
         """البحث في المهام."""

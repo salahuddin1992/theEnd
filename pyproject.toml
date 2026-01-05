@@ -69,6 +69,9 @@ grpc = [
     "grpcio-tools>=1.60.0",
     "protobuf>=4.25.0",
 ]
+discovery = [
+    "zeroconf>=0.131.0",
+]
 desktop = [
     "PySide6>=6.6.0",
     "qasync>=0.27.0",
@@ -78,10 +81,14 @@ build = [
     "pillow>=10.0.0",
 ]
 all = [
-    "distributed-cluster[postgres,redis,s3,yaml,grpc,desktop,build]",
+    "distributed-cluster[postgres,redis,s3,yaml,grpc,discovery,desktop,build]",
 ]
 
 [project.scripts]
+# Simple CLI (recommended)
+nebula = "distributed_cluster.cli.simple_cli:cli"
+
+# Legacy/Advanced CLI
 dc-master = "distributed_cluster.cli.master_cli:app"
 dc-worker = "distributed_cluster.cli.worker_cli:app"
 dc-submit = "distributed_cluster.cli.submit_cli:app"

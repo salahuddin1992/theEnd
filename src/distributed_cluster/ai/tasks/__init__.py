@@ -1,32 +1,60 @@
 """
-AI Tasks - مهام الذكاء الاصطناعي
-================================
+AI Tasks Module - مهام الذكاء الاصطناعي
+========================================
 
-Built-in AI tasks and distributed prompt execution.
+Built-in AI tasks for distributed inference, training, and more.
+Includes task splitting for distributed prompt execution.
 """
 
-from distributed_cluster.ai.tasks.builtin_tasks import (
-    AITask,
+# Core task management
+from .manager import AITaskManager, AITask, AITaskStatus, AITaskType
+
+# Distributed execution tasks
+from .inference import DistributedInferenceTask
+from .training import DistributedTrainingTask
+from .embedding import EmbeddingTask
+
+# Builtin task definitions
+from .builtin_tasks import (
+    AITask as AITaskDefinition,
     AITaskCategory,
     AITaskRegistry,
     BuiltinTasks,
+    ParameterType,
     TaskParameter,
     TaskResult,
     get_builtin_tasks,
 )
-from distributed_cluster.ai.tasks.task_splitter import (
+
+# Task splitting for distributed execution
+from .task_splitter import (
+    AggregationStrategy,
     ChunkingStrategy,
     DistributedPromptExecutor,
+    ResultAggregator,
+    SplitTask,
     TaskChunk,
     TaskSplitter,
+    TextChunker,
+    WorkerInfo,
 )
 
 __all__ = [
-    # Builtin Tasks
+    # Core
+    "AITaskManager",
     "AITask",
+    "AITaskStatus",
+    "AITaskType",
+    # Distributed Tasks
+    "DistributedInferenceTask",
+    "DistributedTrainingTask",
+    "EmbeddingTask",
+    # Builtin Tasks
+    "AITaskDefinition",
     "AITaskCategory",
     "AITaskRegistry",
     "BuiltinTasks",
+    "ParameterType",
     "TaskParameter",
     "TaskResult",
     "get_builtin_tasks",
@@ -34,5 +62,10 @@ __all__ = [
     "TaskSplitter",
     "TaskChunk",
     "ChunkingStrategy",
+    "AggregationStrategy",
     "DistributedPromptExecutor",
+    "TextChunker",
+    "ResultAggregator",
+    "SplitTask",
+    "WorkerInfo",
 ]
