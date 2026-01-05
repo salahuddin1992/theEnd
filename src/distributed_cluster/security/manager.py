@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 class AuthenticationMethod(str, Enum):
     """Authentication methods."""
+
     PASSWORD = "password"
     API_KEY = "api_key"
     TOKEN = "token"
@@ -48,6 +49,7 @@ class AuthenticationMethod(str, Enum):
 @dataclass
 class SecurityConfig:
     """Unified security configuration."""
+
     # Authentication
     auth_config: AuthConfig = field(default_factory=AuthConfig)
     password_policy: PasswordPolicy = field(default_factory=PasswordPolicy)
@@ -77,6 +79,7 @@ class SecurityConfig:
 @dataclass
 class AuthenticationResult:
     """Result of authentication attempt."""
+
     success: bool
     user_id: Optional[str] = None
     role: Optional[Role] = None
@@ -111,6 +114,7 @@ class AuthenticationResult:
 @dataclass
 class AccessRequest:
     """Access control request."""
+
     user_id: str
     action: str
     resource_type: str
@@ -123,6 +127,7 @@ class AccessRequest:
 @dataclass
 class AccessResult:
     """Result of access control check."""
+
     allowed: bool
     reason: Optional[str] = None
     policy_id: Optional[str] = None
@@ -195,14 +200,17 @@ class ClusterSecurityManager:
     def _handle_session_event(self, event, session, data) -> None:
         """Handle session events."""
         from .session import SessionEvent
+
         if self.config.audit_all_access:
-            asyncio.create_task(self.audit.log(
-                action=AuditAction.AUTH_LOGIN if event == SessionEvent.CREATED else AuditAction.AUTH_LOGOUT,
-                result=AuditResult.SUCCESS,
-                actor_id=session.user_id,
-                resource_type="session",
-                resource_id=session.session_id,
-            ))
+            asyncio.create_task(
+                self.audit.log(
+                    action=AuditAction.AUTH_LOGIN if event == SessionEvent.CREATED else AuditAction.AUTH_LOGOUT,
+                    result=AuditResult.SUCCESS,
+                    actor_id=session.user_id,
+                    resource_type="session",
+                    resource_id=session.session_id,
+                )
+            )
 
     def _handle_policy_audit(self, decision: PolicyDecision, context: Dict) -> None:
         """Handle policy evaluation audit."""
@@ -601,6 +609,7 @@ class ClusterSecurityManager:
 
         # Add to RBAC
         from .rbac import User as RBACUser
+
         rbac_user = RBACUser(
             id=user_id,
             username=user_id,

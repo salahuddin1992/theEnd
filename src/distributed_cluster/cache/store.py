@@ -35,6 +35,7 @@ class CacheEntry(Generic[T]):
     مدخلة التخزين المؤقت
     Cache entry
     """
+
     key: str
     value: T
     created_at: float = field(default_factory=time.time)
@@ -72,6 +73,7 @@ class CacheConfig:
     إعدادات التخزين المؤقت
     Cache configuration
     """
+
     # Capacity
     max_size: int = 10000
     max_memory_bytes: int = 1024 * 1024 * 1024  # 1 GB
@@ -361,10 +363,7 @@ class CacheStore:
             if pattern == "*":
                 return list(self._cache.keys())
 
-            return [
-                key for key in self._cache.keys()
-                if fnmatch.fnmatch(key, pattern)
-            ]
+            return [key for key in self._cache.keys() if fnmatch.fnmatch(key, pattern)]
 
     async def get_by_tag(self, tag: str) -> dict[str, Any]:
         """الحصول على قيم بالوسم"""
@@ -379,10 +378,7 @@ class CacheStore:
         """حذف قيم بالوسم"""
         deleted = 0
         with self._lock:
-            keys_to_delete = [
-                key for key, entry in self._cache.items()
-                if tag in entry.tags
-            ]
+            keys_to_delete = [key for key, entry in self._cache.items() if tag in entry.tags]
             for key in keys_to_delete:
                 self._delete_entry(key)
                 deleted += 1
@@ -427,6 +423,7 @@ class CacheStore:
             )
         elif policy == "random":
             import random
+
             key = random.choice(list(self._cache.keys()))
         else:
             key = next(iter(self._cache))
@@ -462,10 +459,7 @@ class CacheStore:
         now = time.time()
 
         with self._lock:
-            keys_to_delete = [
-                key for key, entry in self._cache.items()
-                if entry.expires_at and now > entry.expires_at
-            ]
+            keys_to_delete = [key for key, entry in self._cache.items() if entry.expires_at and now > entry.expires_at]
 
             for key in keys_to_delete:
                 self._delete_entry(key)

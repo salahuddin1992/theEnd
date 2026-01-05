@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class ModelStage(str, Enum):
     """Model lifecycle stages."""
+
     DEVELOPMENT = "development"
     STAGING = "staging"
     PRODUCTION = "production"
@@ -33,6 +34,7 @@ class ModelStage(str, Enum):
 @dataclass
 class ModelArtifact:
     """Model artifact metadata."""
+
     artifact_id: str
     model_id: str
     version_id: str
@@ -60,6 +62,7 @@ class ModelArtifact:
 @dataclass
 class Experiment:
     """ML experiment for tracking runs."""
+
     experiment_id: str
     name: str
     description: str = ""
@@ -89,6 +92,7 @@ class Experiment:
 @dataclass
 class Run:
     """A single training run within an experiment."""
+
     run_id: str
     experiment_id: str
     name: str = ""
@@ -367,9 +371,7 @@ class ModelRegistry:
     ):
         self._storage_path = Path(storage_path)
         self._storage_path.mkdir(parents=True, exist_ok=True)
-        self._tracker = experiment_tracker or ExperimentTracker(
-            str(self._storage_path / "mlruns")
-        )
+        self._tracker = experiment_tracker or ExperimentTracker(str(self._storage_path / "mlruns"))
 
         self._models: Dict[str, ModelMetadata] = {}
         self._versions: Dict[str, ModelVersion] = {}
@@ -430,10 +432,7 @@ class ModelRegistry:
             return
 
         # Delete all versions
-        versions_to_delete = [
-            v for v in self._versions.values()
-            if v.model_id == name
-        ]
+        versions_to_delete = [v for v in self._versions.values() if v.model_id == name]
         for version in versions_to_delete:
             self.delete_version(version.version_id)
 
@@ -460,10 +459,7 @@ class ModelRegistry:
         model_meta = self._models[model_id]
 
         # Get version number
-        existing_versions = [
-            v for v in self._versions.values()
-            if v.model_id == model_id
-        ]
+        existing_versions = [v for v in self._versions.values() if v.model_id == model_id]
         version_number = len(existing_versions) + 1
 
         # Compute artifact hash
@@ -502,10 +498,7 @@ class ModelRegistry:
 
     def get_latest_version(self, model_id: str) -> Optional[ModelVersion]:
         """Get the latest version of a model."""
-        versions = [
-            v for v in self._versions.values()
-            if v.model_id == model_id
-        ]
+        versions = [v for v in self._versions.values() if v.model_id == model_id]
         if not versions:
             return None
         return max(versions, key=lambda v: v.version_number)
@@ -527,10 +520,7 @@ class ModelRegistry:
         stage: Optional[ModelStage] = None,
     ) -> List[ModelVersion]:
         """List all versions of a model."""
-        versions = [
-            v for v in self._versions.values()
-            if v.model_id == model_id
-        ]
+        versions = [v for v in self._versions.values() if v.model_id == model_id]
 
         if stage:
             version_id = self._stage_assignments.get((model_id, stage))

@@ -454,11 +454,7 @@ class ClusterHealthAggregator:
         if new_status in (HealthStatus.DEGRADED, HealthStatus.UNHEALTHY):
             if old_status == HealthStatus.HEALTHY:
                 # New problem
-                severity = (
-                    AlertSeverity.CRITICAL
-                    if new_status == HealthStatus.UNHEALTHY
-                    else AlertSeverity.WARNING
-                )
+                severity = AlertSeverity.CRITICAL if new_status == HealthStatus.UNHEALTHY else AlertSeverity.WARNING
 
                 await self._create_alert(
                     severity=severity,
@@ -477,10 +473,7 @@ class ClusterHealthAggregator:
 
     def _build_alert_message(self, component: ComponentHealth) -> str:
         """Build detailed alert message."""
-        failed_checks = [
-            c for c in component.checks
-            if c.status != HealthStatus.HEALTHY
-        ]
+        failed_checks = [c for c in component.checks if c.status != HealthStatus.HEALTHY]
 
         if not failed_checks:
             return f"Component {component.name} status changed"
@@ -539,23 +532,27 @@ class ClusterHealthAggregator:
                         result.duration_ms = duration_ms
                         check_results.append(result)
                     else:
-                        check_results.append(HealthCheck(
-                            check_id=f"{component_id}-check-{i}",
-                            name=f"Check {i}",
-                            status=HealthStatus.HEALTHY if result else HealthStatus.UNHEALTHY,
-                            message="OK" if result else "Failed",
-                            duration_ms=duration_ms,
-                        ))
+                        check_results.append(
+                            HealthCheck(
+                                check_id=f"{component_id}-check-{i}",
+                                name=f"Check {i}",
+                                status=HealthStatus.HEALTHY if result else HealthStatus.UNHEALTHY,
+                                message="OK" if result else "Failed",
+                                duration_ms=duration_ms,
+                            )
+                        )
 
                 except Exception as e:
                     duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
-                    check_results.append(HealthCheck(
-                        check_id=f"{component_id}-check-{i}",
-                        name=f"Check {i}",
-                        status=HealthStatus.UNHEALTHY,
-                        message=str(e),
-                        duration_ms=duration_ms,
-                    ))
+                    check_results.append(
+                        HealthCheck(
+                            check_id=f"{component_id}-check-{i}",
+                            name=f"Check {i}",
+                            status=HealthStatus.UNHEALTHY,
+                            message=str(e),
+                            duration_ms=duration_ms,
+                        )
+                    )
 
             if check_results:
                 await self.update_component_health(component_id, check_results)
@@ -591,14 +588,16 @@ class ClusterHealthAggregator:
         """Record current health to history."""
         summary = self.get_cluster_summary()
 
-        self._history.append(HealthHistoryEntry(
-            timestamp=datetime.now(timezone.utc),
-            health_score=summary.health_score,
-            overall_status=summary.overall_status,
-            component_count=summary.total_components,
-            unhealthy_count=summary.unhealthy_components,
-            alert_count=summary.active_alerts,
-        ))
+        self._history.append(
+            HealthHistoryEntry(
+                timestamp=datetime.now(timezone.utc),
+                health_score=summary.health_score,
+                overall_status=summary.overall_status,
+                component_count=summary.total_components,
+                unhealthy_count=summary.unhealthy_components,
+                alert_count=summary.active_alerts,
+            )
+        )
 
         # Trim old history
         cutoff = datetime.now(timezone.utc) - timedelta(hours=self.history_retention_hours)
@@ -649,10 +648,7 @@ class ClusterHealthAggregator:
 
         # Count alerts
         active_alerts = sum(1 for a in self._alerts.values() if a.is_active)
-        critical_alerts = sum(
-            1 for a in self._alerts.values()
-            if a.is_active and a.severity == AlertSeverity.CRITICAL
-        )
+        critical_alerts = sum(1 for a in self._alerts.values() if a.is_active and a.severity == AlertSeverity.CRITICAL)
 
         return ClusterHealthSummary(
             overall_status=overall_status,
@@ -698,17 +694,11 @@ class ClusterHealthAggregator:
 
     def get_components_by_type(self, component_type: ComponentType) -> List[ComponentHealth]:
         """Get components of a specific type."""
-        return [
-            c for c in self._components.values()
-            if c.component_type == component_type
-        ]
+        return [c for c in self._components.values() if c.component_type == component_type]
 
     def get_unhealthy_components(self) -> List[ComponentHealth]:
         """Get all unhealthy or degraded components."""
-        return [
-            c for c in self._components.values()
-            if c.status in (HealthStatus.UNHEALTHY, HealthStatus.DEGRADED)
-        ]
+        return [c for c in self._components.values() if c.status in (HealthStatus.UNHEALTHY, HealthStatus.DEGRADED)]
 
     def get_active_alerts(self, severity: Optional[AlertSeverity] = None) -> List[HealthAlert]:
         """Get all active alerts, optionally filtered by severity."""
@@ -786,12 +776,14 @@ class ClusterHealthAggregator:
             max_unhealthy = max(e.unhealthy_count for e in entries)
             max_alerts = max(e.alert_count for e in entries)
 
-            result.append({
-                "timestamp": bucket_time.isoformat(),
-                "health_score": round(avg_score, 4),
-                "unhealthy_count": max_unhealthy,
-                "alert_count": max_alerts,
-            })
+            result.append(
+                {
+                    "timestamp": bucket_time.isoformat(),
+                    "health_score": round(avg_score, 4),
+                    "unhealthy_count": max_unhealthy,
+                    "alert_count": max_alerts,
+                }
+            )
 
         return result
 
@@ -813,19 +805,23 @@ class ClusterHealthAggregator:
         for dep_id in component.dependencies:
             dep = self._components.get(dep_id)
             if dep:
-                dependencies.append({
-                    "component_id": dep_id,
-                    "name": dep.name,
-                    "status": dep.status.value,
-                    "is_healthy": dep.is_healthy,
-                })
+                dependencies.append(
+                    {
+                        "component_id": dep_id,
+                        "name": dep.name,
+                        "status": dep.status.value,
+                        "is_healthy": dep.is_healthy,
+                    }
+                )
             else:
-                dependencies.append({
-                    "component_id": dep_id,
-                    "name": "Unknown",
-                    "status": HealthStatus.UNKNOWN.value,
-                    "is_healthy": False,
-                })
+                dependencies.append(
+                    {
+                        "component_id": dep_id,
+                        "name": "Unknown",
+                        "status": HealthStatus.UNKNOWN.value,
+                        "is_healthy": False,
+                    }
+                )
 
         # Check if all dependencies are healthy
         all_healthy = all(d["is_healthy"] for d in dependencies)

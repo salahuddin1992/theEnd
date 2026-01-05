@@ -353,40 +353,20 @@ class QueryType:
     description = "Root query type"
 
     fields = [
+        GraphQLField("job", "Job", "Get job by ID", args={"id": "ID!"}),
         GraphQLField(
-            "job", "Job", "Get job by ID",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "jobs", "Job", "List jobs with optional filtering",
+            "jobs",
+            "Job",
+            "List jobs with optional filtering",
             args={"filter": "JobFilterInput", "limit": "Int", "offset": "Int"},
-            is_list=True
+            is_list=True,
         ),
-        GraphQLField(
-            "worker", "Worker", "Get worker by ID",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "workers", "Worker", "List all workers",
-            args={"status": "WorkerStatus"},
-            is_list=True
-        ),
-        GraphQLField(
-            "cluster", "Cluster", "Get cluster information"
-        ),
-        GraphQLField(
-            "queues", "Queue", "List job queues",
-            is_list=True
-        ),
-        GraphQLField(
-            "metrics", "Metric", "Get metrics",
-            args={"names": "[String]", "since": "DateTime"},
-            is_list=True
-        ),
-        GraphQLField(
-            "slas", "SLA", "Get SLA information",
-            is_list=True
-        ),
+        GraphQLField("worker", "Worker", "Get worker by ID", args={"id": "ID!"}),
+        GraphQLField("workers", "Worker", "List all workers", args={"status": "WorkerStatus"}, is_list=True),
+        GraphQLField("cluster", "Cluster", "Get cluster information"),
+        GraphQLField("queues", "Queue", "List job queues", is_list=True),
+        GraphQLField("metrics", "Metric", "Get metrics", args={"names": "[String]", "since": "DateTime"}, is_list=True),
+        GraphQLField("slas", "SLA", "Get SLA information", is_list=True),
     ]
 
 
@@ -397,42 +377,15 @@ class MutationType:
     description = "Root mutation type"
 
     fields = [
-        GraphQLField(
-            "submitJob", "Job", "Submit a new job",
-            args={"input": "JobInput!"}
-        ),
-        GraphQLField(
-            "cancelJob", "Job", "Cancel a job",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "retryJob", "Job", "Retry a failed job",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "pauseJob", "Job", "Pause a running job",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "resumeJob", "Job", "Resume a paused job",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "updateJobPriority", "Job", "Update job priority",
-            args={"id": "ID!", "priority": "Priority!"}
-        ),
-        GraphQLField(
-            "drainWorker", "Worker", "Drain a worker for maintenance",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "activateWorker", "Worker", "Activate a drained worker",
-            args={"id": "ID!"}
-        ),
-        GraphQLField(
-            "scaleCluster", "Cluster", "Scale the cluster",
-            args={"workerCount": "Int!"}
-        ),
+        GraphQLField("submitJob", "Job", "Submit a new job", args={"input": "JobInput!"}),
+        GraphQLField("cancelJob", "Job", "Cancel a job", args={"id": "ID!"}),
+        GraphQLField("retryJob", "Job", "Retry a failed job", args={"id": "ID!"}),
+        GraphQLField("pauseJob", "Job", "Pause a running job", args={"id": "ID!"}),
+        GraphQLField("resumeJob", "Job", "Resume a paused job", args={"id": "ID!"}),
+        GraphQLField("updateJobPriority", "Job", "Update job priority", args={"id": "ID!", "priority": "Priority!"}),
+        GraphQLField("drainWorker", "Worker", "Drain a worker for maintenance", args={"id": "ID!"}),
+        GraphQLField("activateWorker", "Worker", "Activate a drained worker", args={"id": "ID!"}),
+        GraphQLField("scaleCluster", "Cluster", "Scale the cluster", args={"workerCount": "Int!"}),
     ]
 
 
@@ -443,25 +396,11 @@ class SubscriptionType:
     description = "Root subscription type"
 
     fields = [
-        GraphQLField(
-            "jobStatusChanged", "Job", "Subscribe to job status changes",
-            args={"jobId": "ID"}
-        ),
-        GraphQLField(
-            "jobProgress", "Job", "Subscribe to job progress updates",
-            args={"jobId": "ID!"}
-        ),
-        GraphQLField(
-            "workerStatusChanged", "Worker", "Subscribe to worker status changes",
-            args={"workerId": "ID"}
-        ),
-        GraphQLField(
-            "clusterMetrics", "Metric", "Subscribe to cluster metrics",
-            args={"interval": "Int"}
-        ),
-        GraphQLField(
-            "alerts", "JSON", "Subscribe to system alerts"
-        ),
+        GraphQLField("jobStatusChanged", "Job", "Subscribe to job status changes", args={"jobId": "ID"}),
+        GraphQLField("jobProgress", "Job", "Subscribe to job progress updates", args={"jobId": "ID!"}),
+        GraphQLField("workerStatusChanged", "Worker", "Subscribe to worker status changes", args={"workerId": "ID"}),
+        GraphQLField("clusterMetrics", "Metric", "Subscribe to cluster metrics", args={"interval": "Int"}),
+        GraphQLField("alerts", "JSON", "Subscribe to system alerts"),
     ]
 
 
@@ -500,18 +439,12 @@ def create_schema() -> Dict[str, Any]:
                 {
                     "name": JobInputType.name,
                     "description": JobInputType.description,
-                    "fields": [
-                        {"name": f.name, "type": f.type_name}
-                        for f in JobInputType.fields
-                    ],
+                    "fields": [{"name": f.name, "type": f.type_name} for f in JobInputType.fields],
                 },
                 {
                     "name": JobFilterInput.name,
                     "description": JobFilterInput.description,
-                    "fields": [
-                        {"name": f.name, "type": f.type_name}
-                        for f in JobFilterInput.fields
-                    ],
+                    "fields": [{"name": f.name, "type": f.type_name} for f in JobFilterInput.fields],
                 },
             ],
         },

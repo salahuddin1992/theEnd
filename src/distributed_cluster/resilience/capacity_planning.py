@@ -174,8 +174,7 @@ class CapacityRecommendation:
     def change_percentage(self) -> float:
         """Calculate percentage change."""
         if self.current_value > 0:
-            return ((self.recommended_value - self.current_value) /
-                    self.current_value * 100)
+            return (self.recommended_value - self.current_value) / self.current_value * 100
         return 0.0
 
     def to_dict(self) -> Dict[str, Any]:
@@ -270,26 +269,19 @@ class CapacityPlanner:
         self.cost_provider = cost_provider
 
         # Historical data per resource type
-        max_samples = (
-            self.config.history_days * 24 * 60 //
-            self.config.sample_interval_minutes
-        )
+        max_samples = self.config.history_days * 24 * 60 // self.config.sample_interval_minutes
         self._history: Dict[ResourceType, Deque[Tuple[datetime, float]]] = {
             rt: deque(maxlen=max_samples) for rt in ResourceType
         }
 
         # Current capacity per resource
-        self._capacity: Dict[ResourceType, float] = {
-            rt: 0.0 for rt in ResourceType
-        }
+        self._capacity: Dict[ResourceType, float] = {rt: 0.0 for rt in ResourceType}
 
         # Trends
         self._trends: Dict[ResourceType, ResourceTrend] = {}
 
         # Forecasts
-        self._forecasts: Dict[ResourceType, List[CapacityForecast]] = {
-            rt: [] for rt in ResourceType
-        }
+        self._forecasts: Dict[ResourceType, List[CapacityForecast]] = {rt: [] for rt in ResourceType}
 
         # State
         self._running = False
@@ -490,22 +482,14 @@ class CapacityPlanner:
         confidence_interval = (0.0, 0.0)
 
         if model == GrowthModel.LINEAR:
-            forecast_value, confidence_interval = self._forecast_linear(
-                values, horizon_days
-            )
+            forecast_value, confidence_interval = self._forecast_linear(values, horizon_days)
         elif model == GrowthModel.EXPONENTIAL:
-            forecast_value, confidence_interval = self._forecast_exponential(
-                values, horizon_days
-            )
+            forecast_value, confidence_interval = self._forecast_exponential(values, horizon_days)
         elif model == GrowthModel.POLYNOMIAL:
-            forecast_value, confidence_interval = self._forecast_polynomial(
-                values, horizon_days
-            )
+            forecast_value, confidence_interval = self._forecast_polynomial(values, horizon_days)
         else:
             # Default to linear
-            forecast_value, confidence_interval = self._forecast_linear(
-                values, horizon_days
-            )
+            forecast_value, confidence_interval = self._forecast_linear(values, horizon_days)
 
         # Calculate time to exhaustion
         time_to_exhaustion = None
@@ -697,8 +681,7 @@ class CapacityPlanner:
                     recommended_value = capacity * 0.7
 
             # Check time to exhaustion
-            if (forecast.time_to_exhaustion and
-                    forecast.time_to_exhaustion < timedelta(days=7)):
+            if forecast.time_to_exhaustion and forecast.time_to_exhaustion < timedelta(days=7):
                 action = ScalingAction.SCALE_UP
                 urgency = "soon"
                 reason = f"Capacity exhaustion in {forecast.time_to_exhaustion}"
@@ -713,8 +696,7 @@ class CapacityPlanner:
                 try:
                     current_cost = self.cost_provider(resource_type, capacity)
                     new_cost = self.cost_provider(resource_type, recommended_value)
-                    cost_change = ((new_cost - current_cost) / current_cost * 100
-                                   if current_cost > 0 else 0.0)
+                    cost_change = (new_cost - current_cost) / current_cost * 100 if current_cost > 0 else 0.0
                 except Exception:
                     pass
 
@@ -761,10 +743,7 @@ class CapacityPlanner:
             hourly_peaks[hour].append(value)
 
         # Find peak hours
-        peak_by_hour = {
-            h: max(values) if values else 0.0
-            for h, values in hourly_peaks.items()
-        }
+        peak_by_hour = {h: max(values) if values else 0.0 for h, values in hourly_peaks.items()}
 
         # Predict peak for next N hours
         now = datetime.now(timezone.utc)
@@ -776,8 +755,7 @@ class CapacityPlanner:
             "current_hour": now.hour,
             "hours_ahead": hours_ahead,
             "predicted_max": max(predicted_peaks) if predicted_peaks else 0.0,
-            "peak_hour": future_hours[predicted_peaks.index(max(predicted_peaks))]
-            if predicted_peaks else None,
+            "peak_hour": future_hours[predicted_peaks.index(max(predicted_peaks))] if predicted_peaks else None,
             "hourly_predictions": list(zip(future_hours, predicted_peaks)),
         }
 

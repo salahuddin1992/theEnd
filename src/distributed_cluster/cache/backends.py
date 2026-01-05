@@ -74,6 +74,7 @@ class CacheBackend(ABC):
 @dataclass
 class MemoryEntry:
     """Entry in memory cache."""
+
     value: Any
     expires_at: Optional[datetime] = None
     created_at: datetime = field(default_factory=datetime.now)
@@ -139,10 +140,7 @@ class MemoryBackend(CacheBackend):
                 size_bytes = 1024  # Estimate
 
             # Evict if necessary
-            while (
-                len(self._cache) >= self.max_size
-                or self._current_memory + size_bytes > self.max_memory_bytes
-            ):
+            while len(self._cache) >= self.max_size or self._current_memory + size_bytes > self.max_memory_bytes:
                 if not self._cache:
                     break
                 self._evict_oldest()
@@ -208,10 +206,7 @@ class MemoryBackend(CacheBackend):
         """Remove expired entries."""
         async with self._lock:
             now = datetime.now()
-            expired_keys = [
-                key for key, entry in self._cache.items()
-                if entry.expires_at and now > entry.expires_at
-            ]
+            expired_keys = [key for key, entry in self._cache.items() if entry.expires_at and now > entry.expires_at]
 
             for key in expired_keys:
                 self._remove_entry(key)
@@ -482,9 +477,7 @@ class TieredBackend(CacheBackend):
         """Set in all tiers (write-through) or top tier only."""
         if self.write_through:
             # Write to all tiers
-            results = await asyncio.gather(*[
-                tier.set(key, value, ttl) for tier in self.tiers
-            ])
+            results = await asyncio.gather(*[tier.set(key, value, ttl) for tier in self.tiers])
             return all(results)
         else:
             # Write to top tier only
@@ -492,9 +485,7 @@ class TieredBackend(CacheBackend):
 
     async def delete(self, key: str) -> bool:
         """Delete from all tiers."""
-        results = await asyncio.gather(*[
-            tier.delete(key) for tier in self.tiers
-        ])
+        results = await asyncio.gather(*[tier.delete(key) for tier in self.tiers])
         return any(results)
 
     async def exists(self, key: str) -> bool:

@@ -184,6 +184,7 @@ class CustomWebhook(WebhookProvider):
 # Specialized Custom Providers
 # =============================================================================
 
+
 class GitHubWebhook(CustomWebhook):
     """
     مزود GitHub Webhook
@@ -324,6 +325,7 @@ class OpsGenieWebhook(CustomWebhook):
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def create_custom_provider(
     payload_template: Optional[dict[str, Any]] = None,

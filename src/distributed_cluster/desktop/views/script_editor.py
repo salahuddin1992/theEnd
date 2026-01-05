@@ -38,22 +38,101 @@ class PythonHighlighter(QSyntaxHighlighter):
     """Syntax highlighter for Python code"""
 
     KEYWORDS = [
-        'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue',
-        'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from',
-        'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not',
-        'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
-        'True', 'False', 'None'
+        "and",
+        "as",
+        "assert",
+        "async",
+        "await",
+        "break",
+        "class",
+        "continue",
+        "def",
+        "del",
+        "elif",
+        "else",
+        "except",
+        "finally",
+        "for",
+        "from",
+        "global",
+        "if",
+        "import",
+        "in",
+        "is",
+        "lambda",
+        "nonlocal",
+        "not",
+        "or",
+        "pass",
+        "raise",
+        "return",
+        "try",
+        "while",
+        "with",
+        "yield",
+        "True",
+        "False",
+        "None",
     ]
 
     BUILTINS = [
-        'abs', 'all', 'any', 'bin', 'bool', 'bytes', 'callable', 'chr',
-        'dict', 'dir', 'divmod', 'enumerate', 'eval', 'filter', 'float',
-        'format', 'frozenset', 'getattr', 'globals', 'hasattr', 'hash',
-        'help', 'hex', 'id', 'input', 'int', 'isinstance', 'issubclass',
-        'iter', 'len', 'list', 'locals', 'map', 'max', 'min', 'next',
-        'object', 'oct', 'open', 'ord', 'pow', 'print', 'range', 'repr',
-        'reversed', 'round', 'set', 'setattr', 'slice', 'sorted', 'str',
-        'sum', 'super', 'tuple', 'type', 'vars', 'zip'
+        "abs",
+        "all",
+        "any",
+        "bin",
+        "bool",
+        "bytes",
+        "callable",
+        "chr",
+        "dict",
+        "dir",
+        "divmod",
+        "enumerate",
+        "eval",
+        "filter",
+        "float",
+        "format",
+        "frozenset",
+        "getattr",
+        "globals",
+        "hasattr",
+        "hash",
+        "help",
+        "hex",
+        "id",
+        "input",
+        "int",
+        "isinstance",
+        "issubclass",
+        "iter",
+        "len",
+        "list",
+        "locals",
+        "map",
+        "max",
+        "min",
+        "next",
+        "object",
+        "oct",
+        "open",
+        "ord",
+        "pow",
+        "print",
+        "range",
+        "repr",
+        "reversed",
+        "round",
+        "set",
+        "setattr",
+        "slice",
+        "sorted",
+        "str",
+        "sum",
+        "super",
+        "tuple",
+        "type",
+        "vars",
+        "zip",
     ]
 
     def __init__(self, parent=None):
@@ -67,38 +146,38 @@ class PythonHighlighter(QSyntaxHighlighter):
         keyword_format = QTextCharFormat()
         keyword_format.setForeground(QColor("#569CD6"))
         keyword_format.setFontWeight(QFont.Bold)
-        self._formats['keyword'] = keyword_format
+        self._formats["keyword"] = keyword_format
 
         # Builtins
         builtin_format = QTextCharFormat()
         builtin_format.setForeground(QColor("#DCDCAA"))
-        self._formats['builtin'] = builtin_format
+        self._formats["builtin"] = builtin_format
 
         # Strings
         string_format = QTextCharFormat()
         string_format.setForeground(QColor("#CE9178"))
-        self._formats['string'] = string_format
+        self._formats["string"] = string_format
 
         # Comments
         comment_format = QTextCharFormat()
         comment_format.setForeground(QColor("#6A9955"))
         comment_format.setFontItalic(True)
-        self._formats['comment'] = comment_format
+        self._formats["comment"] = comment_format
 
         # Numbers
         number_format = QTextCharFormat()
         number_format.setForeground(QColor("#B5CEA8"))
-        self._formats['number'] = number_format
+        self._formats["number"] = number_format
 
         # Functions
         function_format = QTextCharFormat()
         function_format.setForeground(QColor("#DCDCAA"))
-        self._formats['function'] = function_format
+        self._formats["function"] = function_format
 
         # Classes
         class_format = QTextCharFormat()
         class_format.setForeground(QColor("#4EC9B0"))
-        self._formats['class'] = class_format
+        self._formats["class"] = class_format
 
     def highlightBlock(self, text: str):
         """Highlight a block of text"""
@@ -106,36 +185,36 @@ class PythonHighlighter(QSyntaxHighlighter):
 
         # Keywords
         for keyword in self.KEYWORDS:
-            pattern = rf'\b{keyword}\b'
+            pattern = rf"\b{keyword}\b"
             for match in re.finditer(pattern, text):
-                self.setFormat(match.start(), match.end() - match.start(), self._formats['keyword'])
+                self.setFormat(match.start(), match.end() - match.start(), self._formats["keyword"])
 
         # Builtins
         for builtin in self.BUILTINS:
-            pattern = rf'\b{builtin}\b'
+            pattern = rf"\b{builtin}\b"
             for match in re.finditer(pattern, text):
-                self.setFormat(match.start(), match.end() - match.start(), self._formats['builtin'])
+                self.setFormat(match.start(), match.end() - match.start(), self._formats["builtin"])
 
         # Strings (single and double quotes)
         for pattern in [r'"[^"\\]*(\\.[^"\\]*)*"', r"'[^'\\]*(\\.[^'\\]*)*'"]:
             for match in re.finditer(pattern, text):
-                self.setFormat(match.start(), match.end() - match.start(), self._formats['string'])
+                self.setFormat(match.start(), match.end() - match.start(), self._formats["string"])
 
         # Comments
-        for match in re.finditer(r'#.*$', text):
-            self.setFormat(match.start(), match.end() - match.start(), self._formats['comment'])
+        for match in re.finditer(r"#.*$", text):
+            self.setFormat(match.start(), match.end() - match.start(), self._formats["comment"])
 
         # Numbers
-        for match in re.finditer(r'\b\d+\.?\d*\b', text):
-            self.setFormat(match.start(), match.end() - match.start(), self._formats['number'])
+        for match in re.finditer(r"\b\d+\.?\d*\b", text):
+            self.setFormat(match.start(), match.end() - match.start(), self._formats["number"])
 
         # Function definitions
-        for match in re.finditer(r'(?<=def )\w+', text):
-            self.setFormat(match.start(), match.end() - match.start(), self._formats['function'])
+        for match in re.finditer(r"(?<=def )\w+", text):
+            self.setFormat(match.start(), match.end() - match.start(), self._formats["function"])
 
         # Class definitions
-        for match in re.finditer(r'(?<=class )\w+', text):
-            self.setFormat(match.start(), match.end() - match.start(), self._formats['class'])
+        for match in re.finditer(r"(?<=class )\w+", text):
+            self.setFormat(match.start(), match.end() - match.start(), self._formats["class"])
 
 
 class SandboxExecutor(QThread):
@@ -147,27 +226,82 @@ class SandboxExecutor(QThread):
 
     # Restricted built-ins for sandbox
     SAFE_BUILTINS = {
-        'abs': abs, 'all': all, 'any': any, 'bin': bin, 'bool': bool,
-        'bytes': bytes, 'callable': callable, 'chr': chr, 'dict': dict,
-        'dir': dir, 'divmod': divmod, 'enumerate': enumerate, 'filter': filter,
-        'float': float, 'format': format, 'frozenset': frozenset,
-        'getattr': getattr, 'hasattr': hasattr, 'hash': hash, 'hex': hex,
-        'id': id, 'int': int, 'isinstance': isinstance, 'issubclass': issubclass,
-        'iter': iter, 'len': len, 'list': list, 'map': map, 'max': max,
-        'min': min, 'next': next, 'object': object, 'oct': oct, 'ord': ord,
-        'pow': pow, 'print': print, 'range': range, 'repr': repr,
-        'reversed': reversed, 'round': round, 'set': set, 'slice': slice,
-        'sorted': sorted, 'str': str, 'sum': sum, 'tuple': tuple,
-        'type': type, 'vars': vars, 'zip': zip,
-        'True': True, 'False': False, 'None': None,
+        "abs": abs,
+        "all": all,
+        "any": any,
+        "bin": bin,
+        "bool": bool,
+        "bytes": bytes,
+        "callable": callable,
+        "chr": chr,
+        "dict": dict,
+        "dir": dir,
+        "divmod": divmod,
+        "enumerate": enumerate,
+        "filter": filter,
+        "float": float,
+        "format": format,
+        "frozenset": frozenset,
+        "getattr": getattr,
+        "hasattr": hasattr,
+        "hash": hash,
+        "hex": hex,
+        "id": id,
+        "int": int,
+        "isinstance": isinstance,
+        "issubclass": issubclass,
+        "iter": iter,
+        "len": len,
+        "list": list,
+        "map": map,
+        "max": max,
+        "min": min,
+        "next": next,
+        "object": object,
+        "oct": oct,
+        "ord": ord,
+        "pow": pow,
+        "print": print,
+        "range": range,
+        "repr": repr,
+        "reversed": reversed,
+        "round": round,
+        "set": set,
+        "slice": slice,
+        "sorted": sorted,
+        "str": str,
+        "sum": sum,
+        "tuple": tuple,
+        "type": type,
+        "vars": vars,
+        "zip": zip,
+        "True": True,
+        "False": False,
+        "None": None,
     }
 
     # Blocked imports
     BLOCKED_MODULES = {
-        'os', 'sys', 'subprocess', 'shutil', 'socket', 'http',
-        'ftplib', 'smtplib', 'telnetlib', 'ssl', 'ctypes',
-        'multiprocessing', 'threading', '_thread', 'concurrent',
-        'asyncio', 'signal', 'resource', 'sysconfig', 'importlib'
+        "os",
+        "sys",
+        "subprocess",
+        "shutil",
+        "socket",
+        "http",
+        "ftplib",
+        "smtplib",
+        "telnetlib",
+        "ssl",
+        "ctypes",
+        "multiprocessing",
+        "threading",
+        "_thread",
+        "concurrent",
+        "asyncio",
+        "signal",
+        "resource",
+        "sysconfig",
+        "importlib",
     }
 
     def __init__(self, code: str, context: dict = None, parent=None):
@@ -197,9 +331,9 @@ class SandboxExecutor(QThread):
 
             # Create sandboxed environment
             sandbox_globals = {
-                '__builtins__': self.SAFE_BUILTINS,
-                '__name__': '__sandbox__',
-                '__doc__': None,
+                "__builtins__": self.SAFE_BUILTINS,
+                "__name__": "__sandbox__",
+                "__doc__": None,
             }
 
             # Add safe context (API, etc.)
@@ -233,10 +367,10 @@ class SandboxExecutor(QThread):
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
-                        if alias.name.split('.')[0] in self.BLOCKED_MODULES:
+                        if alias.name.split(".")[0] in self.BLOCKED_MODULES:
                             return True
                 elif isinstance(node, ast.ImportFrom):
-                    if node.module and node.module.split('.')[0] in self.BLOCKED_MODULES:
+                    if node.module and node.module.split(".")[0] in self.BLOCKED_MODULES:
                         return True
             return False
         except (SyntaxError, ValueError):
@@ -308,24 +442,28 @@ class ScriptEditorView(QWidget):
     def _create_toolbar(self) -> QFrame:
         """Create the toolbar"""
         toolbar = QFrame()
-        toolbar.setStyleSheet(f"""
+        toolbar.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border-bottom: 1px solid {COLORS['border']};
                 padding: 8px;
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(toolbar)
         layout.setContentsMargins(16, 8, 16, 8)
 
         # Title
         title = QLabel("🐍 Script Editor")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         layout.addWidget(title)
 
         layout.addSpacing(32)
@@ -335,7 +473,8 @@ class ScriptEditorView(QWidget):
         self.script_name_input.setText(self._current_script_name)
         self.script_name_input.setPlaceholderText("Script name...")
         self.script_name_input.setMaximumWidth(200)
-        self.script_name_input.setStyleSheet(f"""
+        self.script_name_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -343,7 +482,8 @@ class ScriptEditorView(QWidget):
                 border-radius: 4px;
                 padding: 6px 12px;
             }}
-        """)
+        """
+        )
         layout.addWidget(self.script_name_input)
 
         layout.addStretch()
@@ -389,7 +529,8 @@ class ScriptEditorView(QWidget):
 
         # Run button (prominent)
         run_btn = QPushButton("▶ Run Script")
-        run_btn.setStyleSheet(f"""
+        run_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['success']};
                 color: white;
@@ -404,13 +545,15 @@ class ScriptEditorView(QWidget):
             QPushButton:pressed {{
                 background-color: #1b5e20;
             }}
-        """)
+        """
+        )
         run_btn.clicked.connect(self._on_run_script)
         layout.addWidget(run_btn)
 
         # Stop button
         self.stop_btn = QPushButton("⏹ Stop")
-        self.stop_btn.setStyleSheet(f"""
+        self.stop_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['danger']};
                 color: white;
@@ -426,7 +569,8 @@ class ScriptEditorView(QWidget):
                 background-color: {COLORS['bg_light']};
                 color: {COLORS['text_muted']};
             }}
-        """)
+        """
+        )
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self._on_stop_script)
         layout.addWidget(self.stop_btn)
@@ -436,12 +580,14 @@ class ScriptEditorView(QWidget):
     def _create_scripts_panel(self) -> QFrame:
         """Create the scripts list panel"""
         panel = QFrame()
-        panel.setStyleSheet(f"""
+        panel.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_dark']};
                 border-right: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -449,18 +595,21 @@ class ScriptEditorView(QWidget):
 
         # Header
         header = QLabel("  📁 Scripts")
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             font-size: 12px;
             font-weight: 600;
             color: {COLORS['text_muted']};
             padding: 12px 8px;
             background-color: {COLORS['bg_medium']};
-        """)
+        """
+        )
         layout.addWidget(header)
 
         # Scripts list
         self.scripts_list = QListWidget()
-        self.scripts_list.setStyleSheet(f"""
+        self.scripts_list.setStyleSheet(
+            f"""
             QListWidget {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -477,7 +626,8 @@ class ScriptEditorView(QWidget):
             QListWidget::item:hover {{
                 background-color: {COLORS['bg_light']};
             }}
-        """)
+        """
+        )
         self.scripts_list.itemClicked.connect(self._on_script_selected)
         layout.addWidget(self.scripts_list)
 
@@ -486,11 +636,13 @@ class ScriptEditorView(QWidget):
     def _create_editor_container(self) -> QFrame:
         """Create the code editor container"""
         container = QFrame()
-        container.setStyleSheet(f"""
+        container.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_dark']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -498,12 +650,14 @@ class ScriptEditorView(QWidget):
 
         # Editor header
         header = QFrame()
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border-bottom: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(12, 6, 12, 6)
 
@@ -522,7 +676,8 @@ class ScriptEditorView(QWidget):
 
         # Code editor
         self.code_editor = QPlainTextEdit()
-        self.code_editor.setStyleSheet(f"""
+        self.code_editor.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -531,7 +686,8 @@ class ScriptEditorView(QWidget):
                 font-size: 13px;
                 selection-background-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         placeholder_text = (
             "# Write your Python script here...\n"
             "# Available APIs:\n"
@@ -556,12 +712,14 @@ class ScriptEditorView(QWidget):
     def _create_output_container(self) -> QFrame:
         """Create the output console container"""
         container = QFrame()
-        container.setStyleSheet(f"""
+        container.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_dark']};
                 border-top: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -569,7 +727,8 @@ class ScriptEditorView(QWidget):
 
         # Tabs for output/errors
         self.output_tabs = QTabWidget()
-        self.output_tabs.setStyleSheet(f"""
+        self.output_tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: none;
                 background-color: {COLORS['bg_dark']};
@@ -585,12 +744,14 @@ class ScriptEditorView(QWidget):
                 color: {COLORS['text_primary']};
                 border-bottom: 2px solid {COLORS['primary']};
             }}
-        """)
+        """
+        )
 
         # Output console
         self.output_console = QPlainTextEdit()
         self.output_console.setReadOnly(True)
-        self.output_console.setStyleSheet("""
+        self.output_console.setStyleSheet(
+            """
             QPlainTextEdit {
                 background-color: #1a1a1a;
                 color: #00ff00;
@@ -598,14 +759,16 @@ class ScriptEditorView(QWidget):
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 12px;
             }
-        """)
+        """
+        )
         self.output_console.setPlaceholderText("Output will appear here...")
         self.output_tabs.addTab(self.output_console, "📤 Output")
 
         # Error console
         self.error_console = QPlainTextEdit()
         self.error_console.setReadOnly(True)
-        self.error_console.setStyleSheet("""
+        self.error_console.setStyleSheet(
+            """
             QPlainTextEdit {
                 background-color: #1a1a1a;
                 color: #ff6b6b;
@@ -613,7 +776,8 @@ class ScriptEditorView(QWidget):
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 12px;
             }
-        """)
+        """
+        )
         self.error_console.setPlaceholderText("Errors will appear here...")
         self.output_tabs.addTab(self.error_console, "⚠️ Errors")
 
@@ -621,12 +785,14 @@ class ScriptEditorView(QWidget):
 
         # Status bar
         status_bar = QFrame()
-        status_bar.setStyleSheet(f"""
+        status_bar.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border-top: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
         status_layout = QHBoxLayout(status_bar)
         status_layout.setContentsMargins(12, 4, 12, 4)
 
@@ -637,7 +803,8 @@ class ScriptEditorView(QWidget):
         status_layout.addStretch()
 
         clear_btn = QPushButton("Clear")
-        clear_btn.setStyleSheet(f"""
+        clear_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background: none;
                 border: none;
@@ -647,7 +814,8 @@ class ScriptEditorView(QWidget):
             QPushButton:hover {{
                 color: {COLORS['text_primary']};
             }}
-        """)
+        """
+        )
         clear_btn.clicked.connect(self._clear_output)
         status_layout.addWidget(clear_btn)
 
@@ -658,12 +826,14 @@ class ScriptEditorView(QWidget):
     def _create_docs_panel(self) -> QFrame:
         """Create the API documentation panel"""
         panel = QFrame()
-        panel.setStyleSheet(f"""
+        panel.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_dark']};
                 border-left: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -671,19 +841,22 @@ class ScriptEditorView(QWidget):
 
         # Header
         header = QLabel("  📚 API Reference")
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             font-size: 12px;
             font-weight: 600;
             color: {COLORS['text_muted']};
             padding: 12px 8px;
             background-color: {COLORS['bg_medium']};
-        """)
+        """
+        )
         layout.addWidget(header)
 
         # Documentation content
         docs = QTextEdit()
         docs.setReadOnly(True)
-        docs.setStyleSheet(f"""
+        docs.setStyleSheet(
+            f"""
             QTextEdit {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -691,7 +864,8 @@ class ScriptEditorView(QWidget):
                 font-size: 12px;
                 padding: 12px;
             }}
-        """)
+        """
+        )
         docs.setHtml(self._get_api_docs_html())
         layout.addWidget(docs)
 
@@ -769,23 +943,23 @@ for job in list_jobs():
         """Load sample scripts"""
         self._scripts = {
             "hello_world.py": '# Hello World Script\nprint("Hello, NebulaCompute!")\nprint("Welcome to scripting!")',
-            "cluster_info.py": '''# Cluster Information Script
+            "cluster_info.py": """# Cluster Information Script
 stats = get_stats()
 log("=== Cluster Statistics ===")
 log(f"Total Workers: {stats.get('workers', 0)}")
 log(f"Active Jobs: {stats.get('jobs', 0)}")
 log(f"CPU Usage: {stats.get('cpu', 0)}%")
 log(f"Memory Usage: {stats.get('memory', 0)}%")
-''',
-            "job_monitor.py": '''# Job Monitor Script
+""",
+            "job_monitor.py": """# Job Monitor Script
 jobs = list_jobs()
 log(f"Found {len(jobs)} jobs")
 for job in jobs[:10]:
     status = job.get('status', 'unknown')
     name = job.get('name', 'unnamed')
     log(f"[{status.upper()}] {name}")
-''',
-            "automation_example.py": '''# Automation Example
+""",
+            "automation_example.py": """# Automation Example
 # This script runs periodic checks
 
 def check_cluster():
@@ -807,7 +981,7 @@ log("Starting cluster check...")
 check_cluster()
 check_jobs()
 log("Check complete!")
-'''
+""",
         }
 
         # Update scripts list
@@ -840,8 +1014,8 @@ log("Check complete!")
         name = self.script_name_input.text().strip()
         if not name:
             name = "untitled.py"
-        if not name.endswith('.py'):
-            name += '.py'
+        if not name.endswith(".py"):
+            name += ".py"
 
         code = self.code_editor.toPlainText()
         self._scripts[name] = code
@@ -851,15 +1025,13 @@ log("Check complete!")
 
     def _on_load_script(self):
         """Load script from file"""
-        filename, _ = QFileDialog.getOpenFileName(
-            self, "Load Script", "", "Python Files (*.py);;All Files (*)"
-        )
+        filename, _ = QFileDialog.getOpenFileName(self, "Load Script", "", "Python Files (*.py);;All Files (*)")
         if filename:
             try:
-                with open(filename, 'r') as f:
+                with open(filename, "r") as f:
                     code = f.read()
 
-                name = filename.split('/')[-1]
+                name = filename.split("/")[-1]
                 self.code_editor.setPlainText(code)
                 self.script_name_input.setText(name)
                 self._current_script_name = name
@@ -914,6 +1086,7 @@ log("Check complete!")
 
     def _create_sandbox_context(self) -> dict:
         """Create the sandbox execution context with safe APIs"""
+
         # Log function that writes to output
         def log(message):
             print(str(message))
@@ -923,15 +1096,7 @@ log("Check complete!")
             if self.api_client:
                 # Would fetch real stats
                 pass
-            return {
-                'workers': 5,
-                'jobs': 12,
-                'cpu': 45.2,
-                'memory': 62.8,
-                'pending': 3,
-                'running': 5,
-                'completed': 4
-            }
+            return {"workers": 5, "jobs": 12, "cpu": 45.2, "memory": 62.8, "pending": 3, "running": 5, "completed": 4}
 
         # Mock job list
         def list_jobs():
@@ -939,9 +1104,9 @@ log("Check complete!")
                 # Would fetch real jobs
                 pass
             return [
-                {'id': '1', 'name': 'data_processing', 'status': 'running'},
-                {'id': '2', 'name': 'ml_training', 'status': 'pending'},
-                {'id': '3', 'name': 'batch_export', 'status': 'completed'},
+                {"id": "1", "name": "data_processing", "status": "running"},
+                {"id": "2", "name": "ml_training", "status": "pending"},
+                {"id": "3", "name": "batch_export", "status": "completed"},
             ]
 
         # Mock worker list
@@ -950,24 +1115,24 @@ log("Check complete!")
                 # Would fetch real workers
                 pass
             return [
-                {'id': 'w1', 'name': 'worker-1', 'status': 'online', 'cpu': 35},
-                {'id': 'w2', 'name': 'worker-2', 'status': 'online', 'cpu': 78},
-                {'id': 'w3', 'name': 'worker-3', 'status': 'offline', 'cpu': 0},
+                {"id": "w1", "name": "worker-1", "status": "online", "cpu": 35},
+                {"id": "w2", "name": "worker-2", "status": "online", "cpu": 78},
+                {"id": "w3", "name": "worker-3", "status": "offline", "cpu": 0},
             ]
 
         # Submit job (mock)
         def submit_job(name: str, command: str):
             log(f"Job submitted: {name} -> {command}")
-            return {'id': 'new-job-id', 'status': 'pending'}
+            return {"id": "new-job-id", "status": "pending"}
 
         return {
-            'log': log,
-            'get_stats': get_stats,
-            'list_jobs': list_jobs,
-            'list_workers': list_workers,
-            'submit_job': submit_job,
-            'cluster': {'name': 'NebulaCompute', 'version': '0.1.0'},
-            'datetime': datetime,
+            "log": log,
+            "get_stats": get_stats,
+            "list_jobs": list_jobs,
+            "list_workers": list_workers,
+            "submit_job": submit_job,
+            "cluster": {"name": "NebulaCompute", "version": "0.1.0"},
+            "datetime": datetime,
         }
 
     def _on_output_received(self, output: str):

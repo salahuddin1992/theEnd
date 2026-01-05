@@ -95,10 +95,7 @@ class ModelRecommendation:
             "estimated_cost": round(self.estimated_cost, 6),
             "reason": self.reason,
             "confidence": round(self.confidence, 2),
-            "alternatives": [
-                {"model": m, "provider": p, "cost": round(c, 6)}
-                for m, p, c in self.alternatives
-            ],
+            "alternatives": [{"model": m, "provider": p, "cost": round(c, 6)} for m, p, c in self.alternatives],
         }
 
 
@@ -173,7 +170,6 @@ class CostOptimizer:
         "o1": 0.95,
         "claude-3-5-sonnet-20241022": 0.92,
         "gemini-1.5-pro": 0.90,
-
         # Tier 2 - High (0.75-0.89)
         "gpt-4-turbo": 0.88,
         "claude-3-sonnet-20240229": 0.85,
@@ -181,7 +177,6 @@ class CostOptimizer:
         "command-r-plus": 0.80,
         "deepseek-reasoner": 0.80,
         "llama-3.3-70b-versatile": 0.78,
-
         # Tier 3 - Medium (0.5-0.74)
         "claude-3-5-haiku-20241022": 0.72,
         "gpt-4o-mini": 0.70,
@@ -192,12 +187,10 @@ class CostOptimizer:
         "deepseek-chat": 0.60,
         "command-r": 0.58,
         "mixtral-8x7b-32768": 0.55,
-
         # Tier 4 - Basic (0.3-0.49)
         "gpt-3.5-turbo": 0.45,
         "llama-3.1-8b-instant": 0.42,
         "gemini-2.0-flash": 0.40,
-
         # Local models (free but variable quality)
         "llama3": 0.50,
         "mistral": 0.45,
@@ -265,8 +258,7 @@ class CostOptimizer:
 
             data = {
                 "provider_metrics": {
-                    provider: metrics.to_dict()
-                    for provider, metrics in self._provider_metrics.items()
+                    provider: metrics.to_dict() for provider, metrics in self._provider_metrics.items()
                 },
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
@@ -368,13 +360,15 @@ class CostOptimizer:
                 preferred_providers=preferred_providers,
             )
 
-            candidates.append({
-                "model": model_name,
-                "provider": pricing.provider,
-                "cost": cost,
-                "quality": quality,
-                "score": score,
-            })
+            candidates.append(
+                {
+                    "model": model_name,
+                    "provider": pricing.provider,
+                    "cost": cost,
+                    "quality": quality,
+                    "score": score,
+                }
+            )
 
         if not candidates:
             # Fallback to a default
@@ -395,10 +389,7 @@ class CostOptimizer:
         reason = self._build_recommendation_reason(best, strategy, complexity)
 
         # Get alternatives
-        alternatives = [
-            (c["model"], c["provider"], c["cost"])
-            for c in candidates[1:4]  # Top 3 alternatives
-        ]
+        alternatives = [(c["model"], c["provider"], c["cost"]) for c in candidates[1:4]]  # Top 3 alternatives
 
         return ModelRecommendation(
             model=best["model"],
@@ -512,55 +503,63 @@ class CostOptimizer:
                     savings_ratio = 1 - (best_alt[1].input_cost_per_1k / pricing.input_cost_per_1k)
                     potential_savings = cost * savings_ratio
 
-                    opportunities.append(SavingsOpportunity(
-                        description=f"Replace {model} with {best_alt[0]}",
-                        potential_savings=potential_savings,
-                        current_cost=cost,
-                        suggested_cost=cost * (1 - savings_ratio),
-                        action=f"Switch to {best_alt[0]} for similar quality at lower cost",
-                        priority="high" if potential_savings > 10 else "medium",
-                    ))
+                    opportunities.append(
+                        SavingsOpportunity(
+                            description=f"Replace {model} with {best_alt[0]}",
+                            potential_savings=potential_savings,
+                            current_cost=cost,
+                            suggested_cost=cost * (1 - savings_ratio),
+                            action=f"Switch to {best_alt[0]} for similar quality at lower cost",
+                            priority="high" if potential_savings > 10 else "medium",
+                        )
+                    )
 
         # 2. Check for underutilized caching
         if summary.total_cached_tokens < summary.total_input_tokens * 0.1:
             # Less than 10% cache hit rate
             potential_savings = summary.total_cost * 0.2  # Assume 20% savings possible
 
-            opportunities.append(SavingsOpportunity(
-                description="Improve prompt caching",
-                potential_savings=potential_savings,
-                current_cost=summary.total_cost,
-                suggested_cost=summary.total_cost * 0.8,
-                action="Use consistent system prompts and enable caching for repeated patterns",
-                priority="medium",
-            ))
+            opportunities.append(
+                SavingsOpportunity(
+                    description="Improve prompt caching",
+                    potential_savings=potential_savings,
+                    current_cost=summary.total_cost,
+                    suggested_cost=summary.total_cost * 0.8,
+                    action="Use consistent system prompts and enable caching for repeated patterns",
+                    priority="medium",
+                )
+            )
 
         # 3. Check for batch processing opportunities
         if summary.request_count > 100:
             # Many requests could benefit from batching
             potential_savings = summary.total_cost * 0.25  # 50% batch discount on half of requests
 
-            opportunities.append(SavingsOpportunity(
-                description="Use batch API for non-urgent requests",
-                potential_savings=potential_savings,
-                current_cost=summary.total_cost,
-                suggested_cost=summary.total_cost * 0.75,
-                action="Queue non-time-sensitive requests for batch processing",
-                priority="medium",
-            ))
+            opportunities.append(
+                SavingsOpportunity(
+                    description="Use batch API for non-urgent requests",
+                    potential_savings=potential_savings,
+                    current_cost=summary.total_cost,
+                    suggested_cost=summary.total_cost * 0.75,
+                    action="Queue non-time-sensitive requests for batch processing",
+                    priority="medium",
+                )
+            )
 
         # 4. Check for expensive providers
         for provider, cost in summary.by_provider.items():
             if cost > summary.total_cost * 0.5:
                 # Provider accounts for >50% of costs
-                opportunities.append(SavingsOpportunity(
-                    description=f"Diversify away from {provider}",
-                    potential_savings=cost * 0.2,
-                    current_cost=cost,
-                    suggested_cost=cost * 0.8,
-                    action=f"Route some {provider} requests to cheaper alternatives",
-                    priority="low",
-                ))
+                opportunities.append(
+                    SavingsOpportunity(
+                        description=f"Diversify away from {provider}",
+                        potential_savings=cost * 0.2,
+                        current_cost=cost,
+                        suggested_cost=cost * 0.8,
+                        action=f"Route some {provider} requests to cheaper alternatives",
+                        priority="low",
+                    )
+                )
 
         # Sort by potential savings
         opportunities.sort(key=lambda x: x.potential_savings, reverse=True)
@@ -587,7 +586,7 @@ class CostOptimizer:
 
         # Get historical daily costs
         for i in range(days_history):
-            day_start = (now - timedelta(days=i+1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_start = (now - timedelta(days=i + 1)).replace(hour=0, minute=0, second=0, microsecond=0)
             day_end = day_start + timedelta(days=1)
             summary = self.cost_tracker.get_summary(start_date=day_start, end_date=day_end)
             daily_costs.append(summary.total_cost)
@@ -727,10 +726,7 @@ class CostOptimizer:
 
     def get_provider_metrics(self) -> Dict[str, Dict[str, Any]]:
         """الحصول على مقاييس جميع المزودين."""
-        return {
-            provider: metrics.to_dict()
-            for provider, metrics in self._provider_metrics.items()
-        }
+        return {provider: metrics.to_dict() for provider, metrics in self._provider_metrics.items()}
 
     def compare_providers(
         self,
@@ -754,18 +750,20 @@ class CostOptimizer:
             cost = pricing.calculate_cost(estimated_input_tokens, estimated_output_tokens)
             metrics = self._provider_metrics.get(pricing.provider)
 
-            comparisons.append({
-                "provider": pricing.provider,
-                "sample_model": model_name,
-                "estimated_cost": round(cost, 6),
-                "cost_per_1k_input": pricing.input_cost_per_1k,
-                "cost_per_1k_output": pricing.output_cost_per_1k,
-                "supports_cache": pricing.cached_input_cost_per_1k is not None,
-                "batch_discount": pricing.batch_discount,
-                "avg_latency_ms": metrics.avg_latency_ms if metrics else None,
-                "success_rate": metrics.success_rate if metrics else None,
-                "is_available": metrics.is_available if metrics else True,
-            })
+            comparisons.append(
+                {
+                    "provider": pricing.provider,
+                    "sample_model": model_name,
+                    "estimated_cost": round(cost, 6),
+                    "cost_per_1k_input": pricing.input_cost_per_1k,
+                    "cost_per_1k_output": pricing.output_cost_per_1k,
+                    "supports_cache": pricing.cached_input_cost_per_1k is not None,
+                    "batch_discount": pricing.batch_discount,
+                    "avg_latency_ms": metrics.avg_latency_ms if metrics else None,
+                    "success_rate": metrics.success_rate if metrics else None,
+                    "is_available": metrics.is_available if metrics else True,
+                }
+            )
 
         # Sort by cost
         comparisons.sort(key=lambda x: x["estimated_cost"])

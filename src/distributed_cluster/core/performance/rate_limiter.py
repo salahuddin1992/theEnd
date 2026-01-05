@@ -80,9 +80,7 @@ class RateLimitExceeded(Exception):
 
     def __init__(self, result: RateLimitResult):
         self.result = result
-        super().__init__(
-            f"Rate limit exceeded. Retry after {result.retry_after:.1f} seconds."
-        )
+        super().__init__(f"Rate limit exceeded. Retry after {result.retry_after:.1f} seconds.")
 
 
 # =============================================================================
@@ -293,10 +291,7 @@ class FixedWindowLimiter(RateLimiter):
 
                 # Clean old windows
                 old_threshold = window_key - 2
-                keys_to_delete = [
-                    k for k in self._windows.keys()
-                    if int(k.split(":")[-1]) < old_threshold
-                ]
+                keys_to_delete = [k for k in self._windows.keys() if int(k.split(":")[-1]) < old_threshold]
                 for k in keys_to_delete:
                     del self._windows[k]
 

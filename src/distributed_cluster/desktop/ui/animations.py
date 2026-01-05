@@ -37,6 +37,7 @@ from PySide6.QtWidgets import QGraphicsOpacityEffect, QWidget
 # منحنيات التسهيل
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentEasing:
     """
     Windows 11 Fluent Design easing curves.
@@ -95,13 +96,15 @@ class FluentEasing:
 # رسوم متحركة نابضية
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class SpringConfig:
     """Spring physics configuration"""
+
     stiffness: float = 170.0  # Spring stiffness
-    damping: float = 26.0     # Damping ratio
-    mass: float = 1.0         # Mass
-    velocity: float = 0.0     # Initial velocity
+    damping: float = 26.0  # Damping ratio
+    mass: float = 1.0  # Mass
+    velocity: float = 0.0  # Initial velocity
 
     @classmethod
     def default(cls) -> "SpringConfig":
@@ -188,8 +191,7 @@ class SpringAnimation(QObject):
         self.value_changed.emit(self._current_value)
 
         # Check if animation should stop
-        if (abs(self._velocity) < 0.01 and
-            abs(self._current_value - self._target_value) < 0.01):
+        if abs(self._velocity) < 0.01 and abs(self._current_value - self._target_value) < 0.01:
             self._current_value = self._target_value
             self._running = False
             self._timer.stop()
@@ -200,6 +202,7 @@ class SpringAnimation(QObject):
 # FADE ANIMATION
 # رسوم التلاشي
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FadeAnimation(QObject):
     """
@@ -219,8 +222,7 @@ class FadeAnimation(QObject):
         self._animation = QPropertyAnimation(self._opacity_effect, b"opacity")
         self._animation.finished.connect(self.finished.emit)
 
-    def fade_in(self, duration: int = FluentEasing.DURATION_NORMAL,
-                from_opacity: float = 0.0, to_opacity: float = 1.0):
+    def fade_in(self, duration: int = FluentEasing.DURATION_NORMAL, from_opacity: float = 0.0, to_opacity: float = 1.0):
         """Fade in animation"""
         self._animation.stop()
         self._animation.setDuration(duration)
@@ -230,9 +232,13 @@ class FadeAnimation(QObject):
         self._widget.show()
         self._animation.start()
 
-    def fade_out(self, duration: int = FluentEasing.DURATION_NORMAL,
-                 from_opacity: float = 1.0, to_opacity: float = 0.0,
-                 hide_on_finish: bool = True):
+    def fade_out(
+        self,
+        duration: int = FluentEasing.DURATION_NORMAL,
+        from_opacity: float = 1.0,
+        to_opacity: float = 0.0,
+        hide_on_finish: bool = True,
+    ):
         """Fade out animation"""
         self._animation.stop()
         self._animation.setDuration(duration)
@@ -255,8 +261,10 @@ class FadeAnimation(QObject):
 # رسوم الانزلاق
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SlideDirection(Enum):
     """Slide animation directions"""
+
     LEFT = "left"
     RIGHT = "right"
     UP = "up"
@@ -278,9 +286,12 @@ class SlideAnimation(QObject):
         self._animation = QPropertyAnimation(widget, b"pos")
         self._animation.finished.connect(self.finished.emit)
 
-    def slide_in(self, direction: SlideDirection = SlideDirection.RIGHT,
-                 duration: int = FluentEasing.DURATION_NORMAL,
-                 distance: int = 50):
+    def slide_in(
+        self,
+        direction: SlideDirection = SlideDirection.RIGHT,
+        duration: int = FluentEasing.DURATION_NORMAL,
+        distance: int = 50,
+    ):
         """Slide in from direction"""
         self._animation.stop()
 
@@ -304,10 +315,13 @@ class SlideAnimation(QObject):
         self._widget.show()
         self._animation.start()
 
-    def slide_out(self, direction: SlideDirection = SlideDirection.LEFT,
-                  duration: int = FluentEasing.DURATION_NORMAL,
-                  distance: int = 50,
-                  hide_on_finish: bool = True):
+    def slide_out(
+        self,
+        direction: SlideDirection = SlideDirection.LEFT,
+        duration: int = FluentEasing.DURATION_NORMAL,
+        distance: int = 50,
+        hide_on_finish: bool = True,
+    ):
         """Slide out in direction"""
         self._animation.stop()
 
@@ -333,8 +347,7 @@ class SlideAnimation(QObject):
 
         self._animation.start()
 
-    def slide_to(self, target_pos: QPoint,
-                 duration: int = FluentEasing.DURATION_NORMAL):
+    def slide_to(self, target_pos: QPoint, duration: int = FluentEasing.DURATION_NORMAL):
         """Slide to specific position"""
         self._animation.stop()
         self._animation.setDuration(duration)
@@ -348,6 +361,7 @@ class SlideAnimation(QObject):
 # SCALE ANIMATION
 # رسوم التكبير والتصغير
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class ScaleAnimation(QObject):
     """
@@ -365,16 +379,13 @@ class ScaleAnimation(QObject):
         self._animation = QPropertyAnimation(widget, b"size")
         self._animation.finished.connect(self.finished.emit)
 
-    def scale_in(self, duration: int = FluentEasing.DURATION_NORMAL,
-                 from_scale: float = 0.9, to_scale: float = 1.0):
+    def scale_in(self, duration: int = FluentEasing.DURATION_NORMAL, from_scale: float = 0.9, to_scale: float = 1.0):
         """Scale in animation"""
         self._animation.stop()
 
         original = self._original_size
-        start_size = QSize(int(original.width() * from_scale),
-                          int(original.height() * from_scale))
-        end_size = QSize(int(original.width() * to_scale),
-                        int(original.height() * to_scale))
+        start_size = QSize(int(original.width() * from_scale), int(original.height() * from_scale))
+        end_size = QSize(int(original.width() * to_scale), int(original.height() * to_scale))
 
         self._animation.setDuration(duration)
         self._animation.setStartValue(start_size)
@@ -384,17 +395,19 @@ class ScaleAnimation(QObject):
         self._widget.show()
         self._animation.start()
 
-    def scale_out(self, duration: int = FluentEasing.DURATION_NORMAL,
-                  from_scale: float = 1.0, to_scale: float = 0.9,
-                  hide_on_finish: bool = True):
+    def scale_out(
+        self,
+        duration: int = FluentEasing.DURATION_NORMAL,
+        from_scale: float = 1.0,
+        to_scale: float = 0.9,
+        hide_on_finish: bool = True,
+    ):
         """Scale out animation"""
         self._animation.stop()
 
         original = self._original_size
-        start_size = QSize(int(original.width() * from_scale),
-                          int(original.height() * from_scale))
-        end_size = QSize(int(original.width() * to_scale),
-                        int(original.height() * to_scale))
+        start_size = QSize(int(original.width() * from_scale), int(original.height() * from_scale))
+        end_size = QSize(int(original.width() * to_scale), int(original.height() * to_scale))
 
         self._animation.setDuration(duration)
         self._animation.setStartValue(start_size)
@@ -409,8 +422,7 @@ class ScaleAnimation(QObject):
     def pulse(self, duration: int = 300, scale: float = 1.05):
         """Pulse animation (scale up then back)"""
         original = self._original_size
-        scaled_size = QSize(int(original.width() * scale),
-                           int(original.height() * scale))
+        scaled_size = QSize(int(original.width() * scale), int(original.height() * scale))
 
         # Create sequential animation
         group = QSequentialAnimationGroup(self)
@@ -440,6 +452,7 @@ class ScaleAnimation(QObject):
 # رسوم الألوان
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ColorAnimation(QVariantAnimation):
     """
     Smooth color transition animation.
@@ -456,8 +469,7 @@ class ColorAnimation(QVariantAnimation):
         if isinstance(value, QColor):
             self.color_changed.emit(value)
 
-    def animate_to(self, from_color: QColor, to_color: QColor,
-                   duration: int = FluentEasing.DURATION_NORMAL):
+    def animate_to(self, from_color: QColor, to_color: QColor, duration: int = FluentEasing.DURATION_NORMAL):
         """Animate between colors"""
         self.stop()
         self.setDuration(duration)
@@ -472,6 +484,7 @@ class ColorAnimation(QVariantAnimation):
 # رسوم متدرجة
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class StaggeredAnimation(QObject):
     """
     Staggered animation for multiple widgets.
@@ -485,8 +498,7 @@ class StaggeredAnimation(QObject):
         self._widgets = widgets
         self._finished_count = 0
 
-    def fade_in_stagger(self, delay: int = 50,
-                        duration: int = FluentEasing.DURATION_NORMAL):
+    def fade_in_stagger(self, delay: int = 50, duration: int = FluentEasing.DURATION_NORMAL):
         """Fade in widgets with staggered delay"""
         self._finished_count = 0
 
@@ -496,9 +508,12 @@ class StaggeredAnimation(QObject):
 
             QTimer.singleShot(i * delay, lambda w=widget, f=fade: f.fade_in(duration))
 
-    def slide_in_stagger(self, direction: SlideDirection = SlideDirection.UP,
-                         delay: int = 50,
-                         duration: int = FluentEasing.DURATION_NORMAL):
+    def slide_in_stagger(
+        self,
+        direction: SlideDirection = SlideDirection.UP,
+        delay: int = 50,
+        duration: int = FluentEasing.DURATION_NORMAL,
+    ):
         """Slide in widgets with staggered delay"""
         self._finished_count = 0
 
@@ -506,10 +521,7 @@ class StaggeredAnimation(QObject):
             slide = SlideAnimation(widget)
             slide.finished.connect(self._on_animation_finished)
 
-            QTimer.singleShot(
-                i * delay,
-                lambda w=widget, s=slide: s.slide_in(direction, duration)
-            )
+            QTimer.singleShot(i * delay, lambda w=widget, s=slide: s.slide_in(direction, duration))
 
     def _on_animation_finished(self):
         self._finished_count += 1
@@ -521,6 +533,7 @@ class StaggeredAnimation(QObject):
 # ANIMATION MANAGER
 # مدير الرسوم المتحركة
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class AnimationManager(QObject):
     """
@@ -564,8 +577,7 @@ class AnimationManager(QObject):
         anim.fade_in(duration)
         return anim
 
-    def fade_out(self, widget: QWidget, duration: int = None,
-                 hide: bool = True) -> FadeAnimation:
+    def fade_out(self, widget: QWidget, duration: int = None, hide: bool = True) -> FadeAnimation:
         """Create and start fade out animation"""
         if not self._animation_enabled:
             if hide:
@@ -577,9 +589,9 @@ class AnimationManager(QObject):
         anim.fade_out(duration, hide_on_finish=hide)
         return anim
 
-    def slide_in(self, widget: QWidget,
-                 direction: SlideDirection = SlideDirection.RIGHT,
-                 duration: int = None) -> SlideAnimation:
+    def slide_in(
+        self, widget: QWidget, direction: SlideDirection = SlideDirection.RIGHT, duration: int = None
+    ) -> SlideAnimation:
         """Create and start slide in animation"""
         if not self._animation_enabled:
             widget.show()
@@ -590,10 +602,9 @@ class AnimationManager(QObject):
         anim.slide_in(direction, duration)
         return anim
 
-    def slide_out(self, widget: QWidget,
-                  direction: SlideDirection = SlideDirection.LEFT,
-                  duration: int = None,
-                  hide: bool = True) -> SlideAnimation:
+    def slide_out(
+        self, widget: QWidget, direction: SlideDirection = SlideDirection.LEFT, duration: int = None, hide: bool = True
+    ) -> SlideAnimation:
         """Create and start slide out animation"""
         if not self._animation_enabled:
             if hide:
@@ -605,8 +616,7 @@ class AnimationManager(QObject):
         anim.slide_out(direction, duration, hide_on_finish=hide)
         return anim
 
-    def scale_in(self, widget: QWidget,
-                 duration: int = None) -> ScaleAnimation:
+    def scale_in(self, widget: QWidget, duration: int = None) -> ScaleAnimation:
         """Create and start scale in animation"""
         if not self._animation_enabled:
             widget.show()
@@ -633,9 +643,7 @@ class AnimationManager(QObject):
         group.start()
         return group
 
-    def staggered(self, widgets: List[QWidget],
-                  animation_type: str = "fade",
-                  delay: int = 50) -> StaggeredAnimation:
+    def staggered(self, widgets: List[QWidget], animation_type: str = "fade", delay: int = 50) -> StaggeredAnimation:
         """Create staggered animation for multiple widgets"""
         stagger = StaggeredAnimation(widgets)
 

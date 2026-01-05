@@ -33,34 +33,37 @@ logger = logging.getLogger(__name__)
 
 class PeerStatus(str, Enum):
     """حالة الـ Peer."""
-    DISCOVERED = "discovered"      # تم اكتشافه
-    CONNECTING = "connecting"      # جاري الاتصال
-    CONNECTED = "connected"        # متصل
+
+    DISCOVERED = "discovered"  # تم اكتشافه
+    CONNECTING = "connecting"  # جاري الاتصال
+    CONNECTED = "connected"  # متصل
     DISCONNECTED = "disconnected"  # منفصل
-    BLOCKED = "blocked"            # محظور
+    BLOCKED = "blocked"  # محظور
 
 
 class MessageType(str, Enum):
     """أنواع الرسائل."""
-    DISCOVERY = "discovery"        # رسالة اكتشاف
-    HELLO = "hello"                # تحية (معلومات)
-    PING = "ping"                  # فحص الاتصال
-    PONG = "pong"                  # رد الفحص
+
+    DISCOVERY = "discovery"  # رسالة اكتشاف
+    HELLO = "hello"  # تحية (معلومات)
+    PING = "ping"  # فحص الاتصال
+    PONG = "pong"  # رد الفحص
     INFO_REQUEST = "info_request"  # طلب معلومات
     INFO_RESPONSE = "info_response"  # رد المعلومات
-    MESSAGE = "message"            # رسالة عادية
-    DISCONNECT = "disconnect"      # إنهاء الاتصال
-    COMMAND = "command"            # أمر للتنفيذ
+    MESSAGE = "message"  # رسالة عادية
+    DISCONNECT = "disconnect"  # إنهاء الاتصال
+    COMMAND = "command"  # أمر للتنفيذ
     COMMAND_RESULT = "command_result"  # نتيجة الأمر
 
 
 @dataclass
 class DeviceInfo:
     """معلومات الجهاز."""
+
     hostname: str
-    platform: str              # Windows, Linux, macOS
+    platform: str  # Windows, Linux, macOS
     platform_version: str
-    architecture: str          # x64, arm64
+    architecture: str  # x64, arm64
     cpu_count: int
     memory_gb: float
     ip_addresses: List[str] = field(default_factory=list)
@@ -98,9 +101,10 @@ class DeviceInfo:
 @dataclass
 class AppInfo:
     """معلومات التطبيق."""
+
     app_name: str = "NebulaCompute"
     app_version: str = "1.0.0"
-    app_type: str = "worker"       # master, worker, desktop
+    app_type: str = "worker"  # master, worker, desktop
     capabilities: List[str] = field(default_factory=list)
     services: Dict[str, int] = field(default_factory=dict)  # service -> port
 
@@ -108,6 +112,7 @@ class AppInfo:
 @dataclass
 class PeerInfo:
     """معلومات الطرف الآخر."""
+
     peer_id: str
     device: DeviceInfo
     app: AppInfo
@@ -138,6 +143,7 @@ class PeerInfo:
 @dataclass
 class PeerMessage:
     """رسالة بين الأطراف."""
+
     msg_type: MessageType
     sender_id: str
     payload: Dict[str, Any] = field(default_factory=dict)
@@ -145,13 +151,15 @@ class PeerMessage:
     msg_id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def to_json(self) -> str:
-        return json.dumps({
-            "msg_type": self.msg_type.value,
-            "sender_id": self.sender_id,
-            "payload": self.payload,
-            "timestamp": self.timestamp,
-            "msg_id": self.msg_id,
-        })
+        return json.dumps(
+            {
+                "msg_type": self.msg_type.value,
+                "sender_id": self.sender_id,
+                "payload": self.payload,
+                "timestamp": self.timestamp,
+                "msg_id": self.msg_id,
+            }
+        )
 
     @classmethod
     def from_json(cls, data: str) -> PeerMessage:
@@ -957,11 +965,7 @@ class PeerManager:
 
     def get_connected_peers(self) -> List[Dict]:
         """الحصول على الأطراف المتصلة."""
-        return [
-            conn.peer.to_dict()
-            for conn in self.connections.values()
-            if conn.is_connected
-        ]
+        return [conn.peer.to_dict() for conn in self.connections.values() if conn.is_connected]
 
     def get_my_info(self) -> Dict:
         """الحصول على معلوماتي."""

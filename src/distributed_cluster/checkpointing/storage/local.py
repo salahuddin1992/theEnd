@@ -325,18 +325,16 @@ class LocalStorage(CheckpointStorage):
         checkpoint_count = len(list(self._checkpoints_dir.glob("*.ckpt")))
 
         # Calculate total size
-        total_size = sum(
-            f.stat().st_size
-            for f in self._checkpoints_dir.glob("*.ckpt")
-            if f.exists()
-        )
+        total_size = sum(f.stat().st_size for f in self._checkpoints_dir.glob("*.ckpt") if f.exists())
 
-        status.update({
-            "base_path": str(self.base_path),
-            "checkpoint_count": checkpoint_count,
-            "total_size_bytes": total_size,
-            "cache_size": len(self._metadata_cache),
-        })
+        status.update(
+            {
+                "base_path": str(self.base_path),
+                "checkpoint_count": checkpoint_count,
+                "total_size_bytes": total_size,
+                "cache_size": len(self._metadata_cache),
+            }
+        )
 
         return status
 

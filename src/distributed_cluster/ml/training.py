@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class TrainingJobStatus(str, Enum):
     """Training job status."""
+
     PENDING = "pending"
     QUEUED = "queued"
     RUNNING = "running"
@@ -33,6 +34,7 @@ class TrainingJobStatus(str, Enum):
 
 class DistributedStrategy(str, Enum):
     """Distributed training strategies."""
+
     NONE = "none"
     DATA_PARALLEL = "data_parallel"
     MODEL_PARALLEL = "model_parallel"
@@ -43,6 +45,7 @@ class DistributedStrategy(str, Enum):
 @dataclass
 class TrainingConfig:
     """Training configuration."""
+
     # Model settings
     model_name: str = ""
     model_type: str = ""  # pytorch, tensorflow, sklearn
@@ -107,6 +110,7 @@ class TrainingConfig:
 @dataclass
 class TrainingMetrics:
     """Training metrics snapshot."""
+
     epoch: int
     step: int
     metrics: Dict[str, float]
@@ -124,6 +128,7 @@ class TrainingMetrics:
 @dataclass
 class Checkpoint:
     """Model checkpoint."""
+
     checkpoint_id: str
     job_id: str
     epoch: int
@@ -149,6 +154,7 @@ class Checkpoint:
 @dataclass
 class TrainingJob:
     """Training job instance."""
+
     job_id: str
     config: TrainingConfig
     status: TrainingJobStatus = TrainingJobStatus.PENDING
@@ -245,9 +251,11 @@ class CheckpointManager:
         # Try to use torch if available
         try:
             import torch
+
             torch.save(state, checkpoint_path / "state.pt")
         except ImportError:
             import pickle
+
             with open(checkpoint_path / "state.pkl", "wb") as f:
                 pickle.dump(state, f)
 
@@ -285,9 +293,11 @@ class CheckpointManager:
 
         try:
             import torch
+
             state = torch.load(path / "state.pt", map_location="cpu")
         except ImportError:
             import pickle
+
             with open(path / "state.pkl", "rb") as f:
                 state = pickle.load(f)
 
@@ -317,9 +327,7 @@ class CheckpointManager:
         # Sort by step and keep most recent
         non_best.sort(key=lambda cp: cp.step)
         to_remove = (
-            non_best[:-self._max_checkpoints + len(best)]
-            if len(non_best) > self._max_checkpoints - len(best)
-            else []
+            non_best[: -self._max_checkpoints + len(best)] if len(non_best) > self._max_checkpoints - len(best) else []
         )
 
         for cp in to_remove:
@@ -377,6 +385,7 @@ class DistributedTrainer:
         """Cleanup distributed training environment."""
         try:
             import torch.distributed as dist
+
             if dist.is_initialized():
                 dist.destroy_process_group()
         except Exception:
@@ -450,9 +459,7 @@ class TrainingPipeline:
         self._storage_path = Path(storage_path)
         self._storage_path.mkdir(parents=True, exist_ok=True)
         self._jobs: Dict[str, TrainingJob] = {}
-        self._checkpoint_manager = CheckpointManager(
-            str(self._storage_path / "checkpoints")
-        )
+        self._checkpoint_manager = CheckpointManager(str(self._storage_path / "checkpoints"))
 
     def create_job(self, config: TrainingConfig) -> TrainingJob:
         """Create a new training job."""
@@ -519,16 +526,12 @@ class TrainingPipeline:
                 job.current_epoch = epoch + 1
 
                 # Train epoch
-                train_metrics = await self._train_epoch(
-                    job, model, train_loader, train_step_fn, epoch
-                )
+                train_metrics = await self._train_epoch(job, model, train_loader, train_step_fn, epoch)
 
                 # Validation
                 val_metrics = {}
                 if val_loader:
-                    val_metrics = await self._validate(
-                        job, model, val_loader, val_step_fn
-                    )
+                    val_metrics = await self._validate(job, model, val_loader, val_step_fn)
 
                 # Combine metrics
                 all_metrics = {**train_metrics}
@@ -536,11 +539,13 @@ class TrainingPipeline:
                     all_metrics[f"val_{k}"] = v
 
                 # Log metrics
-                job.metrics_history.append(TrainingMetrics(
-                    epoch=epoch + 1,
-                    step=job.current_step,
-                    metrics=all_metrics,
-                ))
+                job.metrics_history.append(
+                    TrainingMetrics(
+                        epoch=epoch + 1,
+                        step=job.current_step,
+                        metrics=all_metrics,
+                    )
+                )
 
                 # Check for best model
                 metric_value = all_metrics.get(config.early_stopping_metric, 0)

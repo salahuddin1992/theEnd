@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class SearchAlgorithm(str, Enum):
     """Hyperparameter search algorithms."""
+
     GRID = "grid"
     RANDOM = "random"
     BAYESIAN = "bayesian"
@@ -31,6 +32,7 @@ class SearchAlgorithm(str, Enum):
 
 class ParameterType(str, Enum):
     """Parameter types for search space."""
+
     FLOAT = "float"
     INT = "int"
     CATEGORICAL = "categorical"
@@ -40,6 +42,7 @@ class ParameterType(str, Enum):
 
 class AutoMLJobStatus(str, Enum):
     """AutoML job status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -50,6 +53,7 @@ class AutoMLJobStatus(str, Enum):
 @dataclass
 class ParameterSpace:
     """Definition of a single parameter's search space."""
+
     name: str
     param_type: ParameterType
     low: Optional[float] = None
@@ -71,12 +75,14 @@ class ParameterSpace:
 
         elif self.param_type == ParameterType.LOG_FLOAT:
             import math
+
             log_low = math.log(self.low, self.log_base)
             log_high = math.log(self.high, self.log_base)
             return self.log_base ** random.uniform(log_low, log_high)
 
         elif self.param_type == ParameterType.LOG_INT:
             import math
+
             log_low = math.log(self.low, self.log_base)
             log_high = math.log(self.high, self.log_base)
             return int(self.log_base ** random.uniform(log_low, log_high))
@@ -97,6 +103,7 @@ class ParameterSpace:
 @dataclass
 class SearchSpace:
     """Complete hyperparameter search space."""
+
     parameters: List[ParameterSpace]
     constraints: Optional[List[Callable[[Dict], bool]]] = None
 
@@ -126,12 +133,14 @@ class SearchSpace:
                 grids.append(p.choices)
             elif p.param_type in (ParameterType.FLOAT, ParameterType.LOG_FLOAT):
                 import numpy as np
+
                 if p.param_type == ParameterType.LOG_FLOAT:
                     grids.append(np.geomspace(p.low, p.high, n_points).tolist())
                 else:
                     grids.append(np.linspace(p.low, p.high, n_points).tolist())
             elif p.param_type in (ParameterType.INT, ParameterType.LOG_INT):
                 import numpy as np
+
                 vals = np.linspace(p.low, p.high, min(n_points, int(p.high - p.low) + 1))
                 grids.append([int(v) for v in vals])
 
@@ -152,6 +161,7 @@ class SearchSpace:
 @dataclass
 class Trial:
     """A single hyperparameter trial."""
+
     trial_id: str
     config: Dict[str, Any]
     status: str = "pending"
@@ -288,6 +298,7 @@ class BayesianSearch(SearchStrategy):
 @dataclass
 class HyperparameterSearch:
     """Hyperparameter search configuration and results."""
+
     search_id: str
     search_space: SearchSpace
     algorithm: SearchAlgorithm = SearchAlgorithm.RANDOM
@@ -336,6 +347,7 @@ class HyperparameterSearch:
 @dataclass
 class AutoMLConfig:
     """AutoML pipeline configuration."""
+
     name: str
     task_type: str = "classification"  # classification, regression
     target_column: str = ""
@@ -379,6 +391,7 @@ class AutoMLConfig:
 @dataclass
 class AutoMLJob:
     """AutoML job instance."""
+
     job_id: str
     config: AutoMLConfig
     status: AutoMLJobStatus = AutoMLJobStatus.PENDING
@@ -453,34 +466,42 @@ class AutoMLPipeline:
     def _init_model_configs(self) -> Dict[str, SearchSpace]:
         """Initialize default search spaces for models."""
         return {
-            "xgboost": SearchSpace(parameters=[
-                ParameterSpace("n_estimators", ParameterType.INT, 50, 500),
-                ParameterSpace("max_depth", ParameterType.INT, 3, 10),
-                ParameterSpace("learning_rate", ParameterType.LOG_FLOAT, 0.01, 0.3),
-                ParameterSpace("subsample", ParameterType.FLOAT, 0.5, 1.0),
-                ParameterSpace("colsample_bytree", ParameterType.FLOAT, 0.5, 1.0),
-                ParameterSpace("min_child_weight", ParameterType.INT, 1, 10),
-            ]),
-            "lightgbm": SearchSpace(parameters=[
-                ParameterSpace("n_estimators", ParameterType.INT, 50, 500),
-                ParameterSpace("max_depth", ParameterType.INT, 3, 10),
-                ParameterSpace("learning_rate", ParameterType.LOG_FLOAT, 0.01, 0.3),
-                ParameterSpace("num_leaves", ParameterType.INT, 20, 150),
-                ParameterSpace("subsample", ParameterType.FLOAT, 0.5, 1.0),
-                ParameterSpace("colsample_bytree", ParameterType.FLOAT, 0.5, 1.0),
-            ]),
-            "random_forest": SearchSpace(parameters=[
-                ParameterSpace("n_estimators", ParameterType.INT, 50, 500),
-                ParameterSpace("max_depth", ParameterType.INT, 3, 20),
-                ParameterSpace("min_samples_split", ParameterType.INT, 2, 20),
-                ParameterSpace("min_samples_leaf", ParameterType.INT, 1, 10),
-                ParameterSpace("max_features", ParameterType.CATEGORICAL, choices=["sqrt", "log2", None]),
-            ]),
-            "logistic_regression": SearchSpace(parameters=[
-                ParameterSpace("C", ParameterType.LOG_FLOAT, 0.001, 100),
-                ParameterSpace("penalty", ParameterType.CATEGORICAL, choices=["l1", "l2"]),
-                ParameterSpace("solver", ParameterType.CATEGORICAL, choices=["liblinear", "saga"]),
-            ]),
+            "xgboost": SearchSpace(
+                parameters=[
+                    ParameterSpace("n_estimators", ParameterType.INT, 50, 500),
+                    ParameterSpace("max_depth", ParameterType.INT, 3, 10),
+                    ParameterSpace("learning_rate", ParameterType.LOG_FLOAT, 0.01, 0.3),
+                    ParameterSpace("subsample", ParameterType.FLOAT, 0.5, 1.0),
+                    ParameterSpace("colsample_bytree", ParameterType.FLOAT, 0.5, 1.0),
+                    ParameterSpace("min_child_weight", ParameterType.INT, 1, 10),
+                ]
+            ),
+            "lightgbm": SearchSpace(
+                parameters=[
+                    ParameterSpace("n_estimators", ParameterType.INT, 50, 500),
+                    ParameterSpace("max_depth", ParameterType.INT, 3, 10),
+                    ParameterSpace("learning_rate", ParameterType.LOG_FLOAT, 0.01, 0.3),
+                    ParameterSpace("num_leaves", ParameterType.INT, 20, 150),
+                    ParameterSpace("subsample", ParameterType.FLOAT, 0.5, 1.0),
+                    ParameterSpace("colsample_bytree", ParameterType.FLOAT, 0.5, 1.0),
+                ]
+            ),
+            "random_forest": SearchSpace(
+                parameters=[
+                    ParameterSpace("n_estimators", ParameterType.INT, 50, 500),
+                    ParameterSpace("max_depth", ParameterType.INT, 3, 20),
+                    ParameterSpace("min_samples_split", ParameterType.INT, 2, 20),
+                    ParameterSpace("min_samples_leaf", ParameterType.INT, 1, 10),
+                    ParameterSpace("max_features", ParameterType.CATEGORICAL, choices=["sqrt", "log2", None]),
+                ]
+            ),
+            "logistic_regression": SearchSpace(
+                parameters=[
+                    ParameterSpace("C", ParameterType.LOG_FLOAT, 0.001, 100),
+                    ParameterSpace("penalty", ParameterType.CATEGORICAL, choices=["l1", "l2"]),
+                    ParameterSpace("solver", ParameterType.CATEGORICAL, choices=["liblinear", "saga"]),
+                ]
+            ),
         }
 
     def create_job(
@@ -620,7 +641,7 @@ class AutoMLPipeline:
 
             # Early stopping check
             if len(search.trials) >= job.config.early_stopping_rounds:
-                recent = search.trials[-job.config.early_stopping_rounds:]
+                recent = search.trials[-job.config.early_stopping_rounds :]
                 if all(t.objective_value == recent[0].objective_value for t in recent if t.objective_value):
                     break
 

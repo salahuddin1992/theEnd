@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 try:
     import aiofiles
     import aiofiles.os
+
     HAS_AIOFILES = True
 except ImportError:
     HAS_AIOFILES = False
@@ -63,9 +64,7 @@ class AsyncFileReader:
     async def read(self) -> str:
         """قراءة الملف كاملاً"""
         if HAS_AIOFILES:
-            async with aiofiles.open(
-                self.file_path, mode="r", encoding=self.encoding
-            ) as f:
+            async with aiofiles.open(self.file_path, mode="r", encoding=self.encoding) as f:
                 return await f.read()
         else:
             return await self._read_with_executor()
@@ -81,9 +80,7 @@ class AsyncFileReader:
     async def read_lines(self) -> list[str]:
         """قراءة الملف كقائمة أسطر"""
         if HAS_AIOFILES:
-            async with aiofiles.open(
-                self.file_path, mode="r", encoding=self.encoding
-            ) as f:
+            async with aiofiles.open(self.file_path, mode="r", encoding=self.encoding) as f:
                 return await f.readlines()
         else:
             content = await self._read_with_executor()
@@ -101,7 +98,7 @@ class AsyncFileReader:
         else:
             content = await self._read_bytes_with_executor()
             for i in range(0, len(content), self.chunk_size):
-                yield content[i:i + self.chunk_size]
+                yield content[i : i + self.chunk_size]
 
     async def _read_with_executor(self) -> str:
         """قراءة باستخدام thread pool"""
@@ -156,9 +153,7 @@ class AsyncFileWriter:
         await self._ensure_dir()
 
         if HAS_AIOFILES:
-            async with aiofiles.open(
-                self.file_path, mode="w", encoding=self.encoding
-            ) as f:
+            async with aiofiles.open(self.file_path, mode="w", encoding=self.encoding) as f:
                 return await f.write(content)
         else:
             return await self._write_with_executor(content)
@@ -178,9 +173,7 @@ class AsyncFileWriter:
         await self._ensure_dir()
 
         if HAS_AIOFILES:
-            async with aiofiles.open(
-                self.file_path, mode="a", encoding=self.encoding
-            ) as f:
+            async with aiofiles.open(self.file_path, mode="a", encoding=self.encoding) as f:
                 return await f.write(content)
         else:
             return await self._append_with_executor(content)
@@ -190,9 +183,7 @@ class AsyncFileWriter:
         await self._ensure_dir()
 
         if HAS_AIOFILES:
-            async with aiofiles.open(
-                self.file_path, mode="w", encoding=self.encoding
-            ) as f:
+            async with aiofiles.open(self.file_path, mode="w", encoding=self.encoding) as f:
                 await f.writelines(lines)
         else:
             content = "".join(lines)
@@ -242,6 +233,7 @@ class AsyncFileWriter:
 # =============================================================================
 # Convenience Functions / دوال مساعدة
 # =============================================================================
+
 
 async def async_read_file(
     file_path: Union[str, Path],

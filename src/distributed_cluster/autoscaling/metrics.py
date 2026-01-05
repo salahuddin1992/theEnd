@@ -389,8 +389,7 @@ class MetricsCollector:
         # التاريخ
         self._history: deque[ResourceMetrics] = deque(maxlen=history_size)
         self._samples: dict[MetricType, deque[MetricsSample]] = {
-            metric_type: deque(maxlen=history_size)
-            for metric_type in MetricType
+            metric_type: deque(maxlen=history_size) for metric_type in MetricType
         }
 
         # التحكم
@@ -402,8 +401,7 @@ class MetricsCollector:
         self._latest_metrics: Optional[ResourceMetrics] = None
 
         logger.info(
-            f"MetricsCollector initialized: interval={collection_interval_seconds}s, "
-            f"history={history_size} samples"
+            f"MetricsCollector initialized: interval={collection_interval_seconds}s, " f"history={history_size} samples"
         )
 
     def add_callback(self, callback: Callable[[ResourceMetrics], None]) -> None:
@@ -541,9 +539,7 @@ class MetricsCollector:
             failure_rate = (metrics.jobs_failed_last_minute / total_jobs) * 100
         else:
             failure_rate = 0.0
-        self._samples[MetricType.FAILURE_RATE].append(
-            MetricsSample(now, MetricType.FAILURE_RATE, failure_rate)
-        )
+        self._samples[MetricType.FAILURE_RATE].append(MetricsSample(now, MetricType.FAILURE_RATE, failure_rate))
 
     async def collect_now(self) -> ResourceMetrics:
         """
@@ -715,10 +711,6 @@ class MetricsCollector:
             "history_size": len(self._history),
             "max_history_size": self.history_size,
             "sources_count": len(self._sources),
-            "latest_collection": (
-                self._latest_metrics.timestamp.isoformat()
-                if self._latest_metrics
-                else None
-            ),
+            "latest_collection": (self._latest_metrics.timestamp.isoformat() if self._latest_metrics else None),
             "callbacks_count": len(self._callbacks),
         }

@@ -205,9 +205,7 @@ class SLATracker:
 
         for metric_name, result in evaluation.metric_results.items():
             if not result["passed"]:
-                violation = await self._create_or_update_violation(
-                    sla, metric_name, result
-                )
+                violation = await self._create_or_update_violation(sla, metric_name, result)
                 if violation:
                     violations.append(violation)
 
@@ -289,9 +287,7 @@ class SLATracker:
                     violation = self._violations.get(violation_id)
                     if violation:
                         violation.ended_at = datetime.now(timezone.utc)
-                        violation.duration_seconds = (
-                            violation.ended_at - violation.started_at
-                        ).total_seconds()
+                        violation.duration_seconds = (violation.ended_at - violation.started_at).total_seconds()
 
                         self._stats["active_violations"] -= 1
                         self._stats["resolved_violations"] += 1
@@ -381,10 +377,7 @@ class SLATracker:
         sla_id: Optional[str] = None,
     ) -> List[SLAViolation]:
         """Get active violations."""
-        violations = [
-            self._violations[vid]
-            for vid in self._active_violations.values()
-        ]
+        violations = [self._violations[vid] for vid in self._active_violations.values()]
 
         if sla_id:
             violations = [v for v in violations if v.sla_id == sla_id]
@@ -484,10 +477,7 @@ class SLATracker:
             self._reports[report.report_id] = report
             self._stats["reports_generated"] += 1
 
-        logger.info(
-            f"Generated compliance report: {compliance:.1f}% compliance, "
-            f"{len(violations)} violations"
-        )
+        logger.info(f"Generated compliance report: {compliance:.1f}% compliance, " f"{len(violations)} violations")
 
         return report
 
@@ -525,11 +515,7 @@ class SLATracker:
         removed = 0
 
         async with self._lock:
-            to_remove = [
-                vid
-                for vid, v in self._violations.items()
-                if v.started_at < cutoff and not v.is_active
-            ]
+            to_remove = [vid for vid, v in self._violations.items() if v.started_at < cutoff and not v.is_active]
 
             for vid in to_remove:
                 del self._violations[vid]

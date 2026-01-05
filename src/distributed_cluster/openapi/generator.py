@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ParameterDoc:
     """توثيق المعامل"""
+
     name: str
     type_name: str
     description: str = ""
@@ -33,6 +34,7 @@ class ParameterDoc:
 @dataclass
 class ResponseDoc:
     """توثيق الاستجابة"""
+
     status_code: int
     description: str
     schema: Optional[Dict[str, Any]] = None
@@ -42,6 +44,7 @@ class ResponseDoc:
 @dataclass
 class EndpointDoc:
     """توثيق نقطة النهاية"""
+
     path: str
     method: str
     summary: str
@@ -72,14 +75,16 @@ class EndpointDoc:
             operation["parameters"] = []
             for param in self.parameters:
                 if param.location != "body":
-                    operation["parameters"].append({
-                        "name": param.name,
-                        "in": param.location,
-                        "description": param.description,
-                        "required": param.required,
-                        "schema": {"type": param.type_name},
-                        **({"example": param.example} if param.example else {}),
-                    })
+                    operation["parameters"].append(
+                        {
+                            "name": param.name,
+                            "in": param.location,
+                            "description": param.description,
+                            "required": param.required,
+                            "schema": {"type": param.type_name},
+                            **({"example": param.example} if param.example else {}),
+                        }
+                    )
 
         # Request body
         if self.request_body:
@@ -155,6 +160,7 @@ class APIDocGenerator:
             async def submit_job(job_input: JobInput) -> Job:
                 ...
         """
+
         def decorator(func: Callable) -> Callable:
             # Extract docstring
             doc = inspect.getdoc(func) or ""
@@ -205,14 +211,16 @@ class APIDocGenerator:
             else:
                 location = "query"
 
-            parameters.append(ParameterDoc(
-                name=name,
-                type_name=type_name,
-                description=f"The {name} parameter",
-                required=param.default == inspect.Parameter.empty,
-                default=param.default if param.default != inspect.Parameter.empty else None,
-                location=location,
-            ))
+            parameters.append(
+                ParameterDoc(
+                    name=name,
+                    type_name=type_name,
+                    description=f"The {name} parameter",
+                    required=param.default == inspect.Parameter.empty,
+                    default=param.default if param.default != inspect.Parameter.empty else None,
+                    location=location,
+                )
+            )
 
         return parameters
 

@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Optional
 
 class WidgetType(str, Enum):
     """نوع الأداة"""
+
     METRIC = "metric"
     CHART = "chart"
     TABLE = "table"
@@ -32,6 +33,7 @@ class WidgetType(str, Enum):
 
 class ChartType(str, Enum):
     """نوع الرسم البياني"""
+
     LINE = "line"
     BAR = "bar"
     PIE = "pie"
@@ -43,6 +45,7 @@ class ChartType(str, Enum):
 @dataclass
 class WidgetConfig:
     """تكوين الأداة"""
+
     data_source: str = ""
     refresh_interval_seconds: int = 30
     query: Optional[str] = None
@@ -58,6 +61,7 @@ class Widget:
     أداة لوحة التحكم
     Dashboard Widget
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     title: str = ""
     widget_type: WidgetType = WidgetType.METRIC
@@ -126,6 +130,7 @@ class Dashboard:
     لوحة التحكم
     Dashboard
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     description: str = ""
@@ -396,59 +401,89 @@ class DashboardManager:
             is_public=True,
         )
 
-        cluster_dashboard.add_widget(Widget(
-            title="إجمالي العمال",
-            widget_type=WidgetType.METRIC,
-            config=WidgetConfig(data_source="cluster.workers.total"),
-            x=0, y=0, width=3, height=2,
-        ))
+        cluster_dashboard.add_widget(
+            Widget(
+                title="إجمالي العمال",
+                widget_type=WidgetType.METRIC,
+                config=WidgetConfig(data_source="cluster.workers.total"),
+                x=0,
+                y=0,
+                width=3,
+                height=2,
+            )
+        )
 
-        cluster_dashboard.add_widget(Widget(
-            title="المهام الجارية",
-            widget_type=WidgetType.METRIC,
-            config=WidgetConfig(data_source="cluster.jobs.running"),
-            x=3, y=0, width=3, height=2,
-        ))
+        cluster_dashboard.add_widget(
+            Widget(
+                title="المهام الجارية",
+                widget_type=WidgetType.METRIC,
+                config=WidgetConfig(data_source="cluster.jobs.running"),
+                x=3,
+                y=0,
+                width=3,
+                height=2,
+            )
+        )
 
-        cluster_dashboard.add_widget(Widget(
-            title="استخدام CPU",
-            widget_type=WidgetType.GAUGE,
-            config=WidgetConfig(
-                data_source="cluster.cpu.utilization",
-                thresholds={"warning": 70, "critical": 90},
-            ),
-            x=6, y=0, width=3, height=2,
-        ))
+        cluster_dashboard.add_widget(
+            Widget(
+                title="استخدام CPU",
+                widget_type=WidgetType.GAUGE,
+                config=WidgetConfig(
+                    data_source="cluster.cpu.utilization",
+                    thresholds={"warning": 70, "critical": 90},
+                ),
+                x=6,
+                y=0,
+                width=3,
+                height=2,
+            )
+        )
 
-        cluster_dashboard.add_widget(Widget(
-            title="استخدام الذاكرة",
-            widget_type=WidgetType.GAUGE,
-            config=WidgetConfig(
-                data_source="cluster.memory.utilization",
-                thresholds={"warning": 70, "critical": 90},
-            ),
-            x=9, y=0, width=3, height=2,
-        ))
+        cluster_dashboard.add_widget(
+            Widget(
+                title="استخدام الذاكرة",
+                widget_type=WidgetType.GAUGE,
+                config=WidgetConfig(
+                    data_source="cluster.memory.utilization",
+                    thresholds={"warning": 70, "critical": 90},
+                ),
+                x=9,
+                y=0,
+                width=3,
+                height=2,
+            )
+        )
 
-        cluster_dashboard.add_widget(Widget(
-            title="المهام عبر الزمن",
-            widget_type=WidgetType.CHART,
-            config=WidgetConfig(
-                data_source="cluster.jobs.timeline",
-                chart_type=ChartType.LINE,
-            ),
-            x=0, y=2, width=8, height=4,
-        ))
+        cluster_dashboard.add_widget(
+            Widget(
+                title="المهام عبر الزمن",
+                widget_type=WidgetType.CHART,
+                config=WidgetConfig(
+                    data_source="cluster.jobs.timeline",
+                    chart_type=ChartType.LINE,
+                ),
+                x=0,
+                y=2,
+                width=8,
+                height=4,
+            )
+        )
 
-        cluster_dashboard.add_widget(Widget(
-            title="حالة العمال",
-            widget_type=WidgetType.CHART,
-            config=WidgetConfig(
-                data_source="cluster.workers.status",
-                chart_type=ChartType.PIE,
-            ),
-            x=8, y=2, width=4, height=4,
-        ))
+        cluster_dashboard.add_widget(
+            Widget(
+                title="حالة العمال",
+                widget_type=WidgetType.CHART,
+                config=WidgetConfig(
+                    data_source="cluster.workers.status",
+                    chart_type=ChartType.PIE,
+                ),
+                x=8,
+                y=2,
+                width=4,
+                height=4,
+            )
+        )
 
         self._dashboards[cluster_dashboard.id] = cluster_dashboard
         self._default_dashboard_id = cluster_dashboard.id

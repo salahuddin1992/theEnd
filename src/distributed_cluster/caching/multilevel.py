@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class CacheLevel(Enum):
     """Cache hierarchy levels."""
+
     L1 = 1  # Fastest, smallest (in-process memory)
     L2 = 2  # Fast, larger (local Redis/Memcached)
     L3 = 3  # Slower, largest (distributed cache)
@@ -63,10 +64,7 @@ class L1Cache(CacheTier):
     """L1 in-memory cache tier."""
 
     def __init__(
-        self,
-        max_size: int = 1000,
-        default_ttl: int = 300,  # 5 minutes for L1
-        backend: Optional[MemoryBackend] = None
+        self, max_size: int = 1000, default_ttl: int = 300, backend: Optional[MemoryBackend] = None  # 5 minutes for L1
     ):
         self._backend = backend or MemoryBackend(max_size=max_size, default_ttl=default_ttl)
         super().__init__(CacheLevel.L1, self._backend)
@@ -119,12 +117,7 @@ class L1Cache(CacheTier):
 class L2Cache(CacheTier):
     """L2 distributed cache tier (Redis/Memcached)."""
 
-    def __init__(
-        self,
-        backend: CacheBackend,
-        default_ttl: int = 3600,  # 1 hour for L2
-        write_through: bool = True
-    ):
+    def __init__(self, backend: CacheBackend, default_ttl: int = 3600, write_through: bool = True):  # 1 hour for L2
         super().__init__(CacheLevel.L2, backend)
         self.default_ttl = default_ttl
         self.write_through = write_through
@@ -173,11 +166,7 @@ class L2Cache(CacheTier):
             return {key: None for key in keys}
         return self.backend.get_many(keys)
 
-    def set_many(
-        self,
-        mapping: Dict[str, bytes],
-        ttl: Optional[int] = None
-    ) -> Dict[str, bool]:
+    def set_many(self, mapping: Dict[str, bytes], ttl: Optional[int] = None) -> Dict[str, bool]:
         if not self._enabled:
             return {key: False for key in mapping}
         return self.backend.set_many(mapping, ttl or self.default_ttl)
@@ -186,6 +175,7 @@ class L2Cache(CacheTier):
 @dataclass
 class MultiLevelConfig:
     """Configuration for multi-level cache."""
+
     l1_enabled: bool = True
     l1_max_size: int = 1000
     l1_ttl: int = 300  # 5 minutes
@@ -209,7 +199,7 @@ class MultiLevelCache(Cache):
         self,
         l2_backend: CacheBackend,
         config: Optional[MultiLevelConfig] = None,
-        cache_config: Optional[CacheConfig] = None
+        cache_config: Optional[CacheConfig] = None,
     ):
         super().__init__(cache_config)
         self.ml_config = config or MultiLevelConfig()
@@ -217,18 +207,13 @@ class MultiLevelCache(Cache):
         # Initialize L1 cache
         self.l1: Optional[L1Cache] = None
         if self.ml_config.l1_enabled:
-            self.l1 = L1Cache(
-                max_size=self.ml_config.l1_max_size,
-                default_ttl=self.ml_config.l1_ttl
-            )
+            self.l1 = L1Cache(max_size=self.ml_config.l1_max_size, default_ttl=self.ml_config.l1_ttl)
 
         # Initialize L2 cache
         self.l2: Optional[L2Cache] = None
         if self.ml_config.l2_enabled:
             self.l2 = L2Cache(
-                backend=l2_backend,
-                default_ttl=self.ml_config.l2_ttl,
-                write_through=self.ml_config.write_through
+                backend=l2_backend, default_ttl=self.ml_config.l2_ttl, write_through=self.ml_config.write_through
             )
 
         self._lock = threading.RLock()
@@ -260,11 +245,7 @@ class MultiLevelCache(Cache):
                 # Populate L1 if read-through enabled
                 if self.ml_config.read_through and self.l1:
                     if self.ml_config.async_populate:
-                        threading.Thread(
-                            target=self.l1.set,
-                            args=(full_key, value),
-                            daemon=True
-                        ).start()
+                        threading.Thread(target=self.l1.set, args=(full_key, value), daemon=True).start()
                     else:
                         self.l1.set(full_key, value)
 
@@ -278,13 +259,7 @@ class MultiLevelCache(Cache):
         return default
 
     def set(
-        self,
-        key: str,
-        value: Any,
-        ttl: Optional[int] = None,
-        l1_only: bool = False,
-        l2_only: bool = False,
-        **kwargs
+        self, key: str, value: Any, ttl: Optional[int] = None, l1_only: bool = False, l2_only: bool = False, **kwargs
     ) -> bool:
         """Set value in cache."""
         full_key = self._make_key(key)
@@ -419,11 +394,7 @@ class MultiLevelCache(Cache):
 
         return results
 
-    def set_many(
-        self,
-        mapping: Dict[str, Any],
-        ttl: Optional[int] = None
-    ) -> Dict[str, bool]:
+    def set_many(self, mapping: Dict[str, Any], ttl: Optional[int] = None) -> Dict[str, bool]:
         """Set multiple values."""
         results = {}
         serialized = {}
@@ -467,7 +438,7 @@ class MultiLevelCache(Cache):
         if self.l1:
             stats["l1"] = {
                 **self.l1.stats.to_dict(),
-                "size": self.l1.backend.size if hasattr(self.l1.backend, 'size') else 0,
+                "size": self.l1.backend.size if hasattr(self.l1.backend, "size") else 0,
                 "max_size": self.ml_config.l1_max_size,
             }
 
@@ -542,6 +513,7 @@ class AdaptiveMultiLevelCache(MultiLevelCache):
 
     def _start_demotion_thread(self):
         """Start background thread for demoting cold entries."""
+
         def demotion_loop():
             while self._running:
                 time.sleep(self.demotion_interval)

@@ -24,7 +24,7 @@ def _make_cache_key(
     key_builder: Optional[Callable] = None,
     include_args: bool = True,
     include_kwargs: bool = True,
-    arg_names: Optional[List[str]] = None
+    arg_names: Optional[List[str]] = None,
 ) -> str:
     """Generate a cache key from function and arguments."""
     if key_builder:
@@ -73,7 +73,7 @@ def _serialize_arg(arg: Any) -> str:
     elif isinstance(arg, dict):
         items = [f"{k}:{_serialize_arg(v)}" for k, v in sorted(arg.items())]
         return f"{{{','.join(items)}}}"
-    elif hasattr(arg, '__dict__'):
+    elif hasattr(arg, "__dict__"):
         return f"{arg.__class__.__name__}:{id(arg)}"
     else:
         return str(hash(arg))
@@ -88,7 +88,7 @@ def cached(
     condition: Optional[Callable[..., bool]] = None,
     unless: Optional[Callable[[Any], bool]] = None,
     lock: bool = False,
-    namespace: Optional[str] = None
+    namespace: Optional[str] = None,
 ):
     """
     Decorator for caching function results.
@@ -104,6 +104,7 @@ def cached(
         lock: Use a lock to prevent thundering herd
         namespace: Cache namespace
     """
+
     def decorator(func: Callable) -> Callable:
         _cache = cache or (cache_manager.get_cache(cache_name) if cache_name else None)
         _prefix = key_prefix or f"cached:{func.__module__}:{func.__qualname__}"
@@ -212,7 +213,7 @@ def cache_aside(
     cache_name: Optional[str] = None,
     ttl: Optional[int] = None,
     key_prefix: Optional[str] = None,
-    key_builder: Optional[Callable[..., str]] = None
+    key_builder: Optional[Callable[..., str]] = None,
 ):
     """
     Cache-aside pattern decorator.
@@ -235,7 +236,7 @@ def cache_invalidate(
     key_builder: Optional[Callable[..., str]] = None,
     keys: Optional[List[str]] = None,
     patterns: Optional[List[str]] = None,
-    all_keys: bool = False
+    all_keys: bool = False,
 ):
     """
     Decorator that invalidates cache entries when the function is called.
@@ -249,6 +250,7 @@ def cache_invalidate(
         patterns: Patterns to match keys for invalidation
         all_keys: Invalidate all keys with the prefix
     """
+
     def decorator(func: Callable) -> Callable:
         _cache = cache or (cache_manager.get_cache(cache_name) if cache_name else None)
         _prefix = key_prefix or f"cached:{func.__module__}:{func.__qualname__}"
@@ -324,11 +326,7 @@ def cache_invalidate(
     return decorator
 
 
-def memoize(
-    maxsize: int = 128,
-    ttl: Optional[int] = None,
-    typed: bool = False
-):
+def memoize(maxsize: int = 128, ttl: Optional[int] = None, typed: bool = False):
     """
     Simple in-memory memoization decorator.
 
@@ -339,6 +337,7 @@ def memoize(
         ttl: Time-to-live in seconds for cached results
         typed: If True, arguments of different types are cached separately
     """
+
     def decorator(func: Callable) -> Callable:
         cache: Dict[str, tuple] = {}  # key -> (value, timestamp)
         order: List[str] = []  # For LRU eviction
@@ -348,20 +347,11 @@ def memoize(
         def wrapper(*args, **kwargs) -> Any:
             # Build cache key
             if typed:
-                key_parts = [
-                    f"{type(arg).__name__}:{_serialize_arg(arg)}"
-                    for arg in args
-                ]
-                key_parts.extend(
-                    f"{k}:{type(v).__name__}:{_serialize_arg(v)}"
-                    for k, v in sorted(kwargs.items())
-                )
+                key_parts = [f"{type(arg).__name__}:{_serialize_arg(arg)}" for arg in args]
+                key_parts.extend(f"{k}:{type(v).__name__}:{_serialize_arg(v)}" for k, v in sorted(kwargs.items()))
             else:
                 key_parts = [_serialize_arg(arg) for arg in args]
-                key_parts.extend(
-                    f"{k}:{_serialize_arg(v)}"
-                    for k, v in sorted(kwargs.items())
-                )
+                key_parts.extend(f"{k}:{_serialize_arg(v)}" for k, v in sorted(kwargs.items()))
 
             cache_key = ":".join(key_parts)
 
@@ -452,14 +442,7 @@ class CacheableClass:
         key = self._get_cache_key(method_name, *args, **kwargs)
         return self._cache.get(key)
 
-    def cache_set(
-        self,
-        method_name: str,
-        value: Any,
-        *args,
-        ttl: Optional[int] = None,
-        **kwargs
-    ):
+    def cache_set(self, method_name: str, value: Any, *args, ttl: Optional[int] = None, **kwargs):
         """Cache a method result."""
         if not self._cache:
             return
@@ -489,6 +472,7 @@ def cacheable_method(ttl: Optional[int] = None):
     """
     Decorator for methods in CacheableClass subclasses.
     """
+
     def decorator(method: Callable) -> Callable:
         @functools.wraps(method)
         def wrapper(self: CacheableClass, *args, **kwargs) -> Any:

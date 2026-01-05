@@ -231,11 +231,13 @@ class JsonPathTransform(RequestTransform, ResponseTransform):
         - rename: Rename key at path
         - copy: Copy value from one path to another
         """
-        self.operations.append({
-            "path": path,
-            "operation": operation,
-            "value": value,
-        })
+        self.operations.append(
+            {
+                "path": path,
+                "operation": operation,
+                "value": value,
+            }
+        )
 
     def apply(self, target: Union[GatewayRequest, GatewayResponse]) -> Union[GatewayRequest, GatewayResponse]:
         if not target.body or "json" not in target.content_type:
@@ -422,8 +424,7 @@ class MaskTransform(ResponseTransform):
         """Recursively mask sensitive fields."""
         if isinstance(data, dict):
             return {
-                k: self._mask_value(k, v) if self._should_mask(k) else self._mask_recursive(v)
-                for k, v in data.items()
+                k: self._mask_value(k, v) if self._should_mask(k) else self._mask_recursive(v) for k, v in data.items()
             }
         elif isinstance(data, list):
             return [self._mask_recursive(item) for item in data]

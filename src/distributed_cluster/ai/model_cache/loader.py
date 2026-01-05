@@ -41,6 +41,7 @@ class LoaderConfig:
     إعدادات المحمل
     Loader configuration
     """
+
     # Paths
     cache_dir: str = ".model_cache"
     download_dir: str = ".model_downloads"
@@ -170,6 +171,7 @@ class HuggingFaceLoader(ModelLoader):
             # Set token if provided
             if self.config.huggingface_token:
                 from huggingface_hub import login
+
                 login(token=self.config.huggingface_token)
 
             # Create cache directories
@@ -249,7 +251,7 @@ class HuggingFaceLoader(ModelLoader):
             model_id,
             cache_dir=self.config.cache_dir,
             trust_remote_code=self.config.trust_remote_code,
-            revision=spec.revision if spec and hasattr(spec, 'revision') else None,
+            revision=spec.revision if spec and hasattr(spec, "revision") else None,
         )
 
         # Load model
@@ -268,7 +270,7 @@ class HuggingFaceLoader(ModelLoader):
         if spec and spec.quantization:
             model_kwargs.update(self._get_quantization_config(spec.quantization))
 
-        if spec and hasattr(spec, 'revision') and spec.revision:
+        if spec and hasattr(spec, "revision") and spec.revision:
             model_kwargs["revision"] = spec.revision
 
         # nosec B615 - model_id is user-specified, revision pinning is optional via spec
@@ -351,7 +353,7 @@ class HuggingFaceLoader(ModelLoader):
             model_id,
             cache_dir=self.config.cache_dir,
             trust_remote_code=self.config.trust_remote_code,
-            revision=spec.revision if spec and hasattr(spec, 'revision') else None,
+            revision=spec.revision if spec and hasattr(spec, "revision") else None,
         )
 
         # nosec B615 - model_id is user-specified, revision pinning is optional via spec
@@ -360,7 +362,7 @@ class HuggingFaceLoader(ModelLoader):
             cache_dir=self.config.cache_dir,
             trust_remote_code=self.config.trust_remote_code,
             torch_dtype=dtype,
-            revision=spec.revision if spec and hasattr(spec, 'revision') else None,
+            revision=spec.revision if spec and hasattr(spec, "revision") else None,
         )
 
         memory_mb = self._estimate_memory(model)
@@ -464,9 +466,7 @@ class HuggingFaceLoader(ModelLoader):
             from transformers import BitsAndBytesConfig
 
             if quantization == "int8":
-                return {
-                    "quantization_config": BitsAndBytesConfig(load_in_8bit=True)
-                }
+                return {"quantization_config": BitsAndBytesConfig(load_in_8bit=True)}
             elif quantization == "int4":
                 return {
                     "quantization_config": BitsAndBytesConfig(

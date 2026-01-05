@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ConnectionState(Enum):
     """WebSocket connection states."""
+
     CONNECTING = "connecting"
     OPEN = "open"
     CLOSING = "closing"
@@ -28,6 +29,7 @@ class ConnectionState(Enum):
 @dataclass
 class WebSocketConfig:
     """Configuration for WebSocket event streaming."""
+
     host: str = "0.0.0.0"
     port: int = 8765
     path: str = "/events"
@@ -62,6 +64,7 @@ class WebSocketConfig:
 @dataclass
 class WebSocketClient:
     """Represents a connected WebSocket client."""
+
     client_id: str
     websocket: Any  # WebSocket connection object
     connected_at: datetime = field(default_factory=datetime.utcnow)
@@ -108,11 +111,9 @@ class WebSocketEventServer:
             ssl_context = None
             if self.config.ssl_cert and self.config.ssl_key:
                 import ssl
+
                 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-                ssl_context.load_cert_chain(
-                    self.config.ssl_cert,
-                    self.config.ssl_key
-                )
+                ssl_context.load_cert_chain(self.config.ssl_cert, self.config.ssl_key)
 
             self._server = await websockets.serve(
                 self._handle_connection,
@@ -164,10 +165,7 @@ class WebSocketEventServer:
         # Authentication if required
         if self.config.auth_required:
             try:
-                auth_message = await asyncio.wait_for(
-                    websocket.recv(),
-                    timeout=10
-                )
+                auth_message = await asyncio.wait_for(websocket.recv(), timeout=10)
                 auth_data = json.loads(auth_message)
                 token = auth_data.get("token")
 
@@ -190,11 +188,14 @@ class WebSocketEventServer:
         logger.info(f"Client {client_id} connected")
 
         # Send welcome message
-        await self._send_to_client(client_id, {
-            "type": "connected",
-            "client_id": client_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        await self._send_to_client(
+            client_id,
+            {
+                "type": "connected",
+                "client_id": client_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
 
         try:
             async for message in websocket:
@@ -231,10 +232,7 @@ class WebSocketEventServer:
                         logger.error(f"Handler error: {e}")
 
         except json.JSONDecodeError:
-            await self._send_to_client(client_id, {
-                "type": "error",
-                "message": "Invalid JSON"
-            })
+            await self._send_to_client(client_id, {"type": "error", "message": "Invalid JSON"})
 
     async def _handle_subscribe(self, client_id: str, data: Dict):
         """Handle subscription request."""
@@ -253,10 +251,13 @@ class WebSocketEventServer:
                     self._topic_subscribers[topic] = set()
                 self._topic_subscribers[topic].add(client_id)
 
-        await self._send_to_client(client_id, {
-            "type": "subscribed",
-            "topics": topics,
-        })
+        await self._send_to_client(
+            client_id,
+            {
+                "type": "subscribed",
+                "topics": topics,
+            },
+        )
 
         logger.debug(f"Client {client_id} subscribed to: {topics}")
 
@@ -276,10 +277,13 @@ class WebSocketEventServer:
                 if topic in self._topic_subscribers:
                     self._topic_subscribers[topic].discard(client_id)
 
-        await self._send_to_client(client_id, {
-            "type": "unsubscribed",
-            "topics": topics,
-        })
+        await self._send_to_client(
+            client_id,
+            {
+                "type": "unsubscribed",
+                "topics": topics,
+            },
+        )
 
     async def _handle_publish(self, client_id: str, data: Dict):
         """Handle publish request from a client."""
@@ -287,10 +291,7 @@ class WebSocketEventServer:
         payload = data.get("payload", {})
 
         if not topic:
-            await self._send_to_client(client_id, {
-                "type": "error",
-                "message": "Topic required"
-            })
+            await self._send_to_client(client_id, {"type": "error", "message": "Topic required"})
             return
 
         event = Event(
@@ -346,10 +347,7 @@ class WebSocketEventServer:
             "event": event.to_dict(),
         }
 
-        tasks = [
-            self._send_to_client(client_id, message)
-            for client_id in subscribers
-        ]
+        tasks = [self._send_to_client(client_id, message) for client_id in subscribers]
 
         await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -361,10 +359,7 @@ class WebSocketEventServer:
             "event": event.to_dict(),
         }
 
-        tasks = [
-            self._send_to_client(client_id, message)
-            for client_id in self._clients.keys()
-        ]
+        tasks = [self._send_to_client(client_id, message) for client_id in self._clients.keys()]
 
         await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -476,15 +471,16 @@ class WebSocketEventClient:
 
             # Authenticate if token provided
             if token:
-                await self._websocket.send(json.dumps({
-                    "token": token,
-                }))
+                await self._websocket.send(
+                    json.dumps(
+                        {
+                            "token": token,
+                        }
+                    )
+                )
 
             # Wait for connected message
-            response = await asyncio.wait_for(
-                self._websocket.recv(),
-                timeout=10
-            )
+            response = await asyncio.wait_for(self._websocket.recv(), timeout=10)
             data = json.loads(response)
             if data.get("type") != "connected":
                 raise ConnectionError("Failed to connect")
@@ -590,10 +586,14 @@ class WebSocketEventClient:
         if not self.is_connected:
             raise RuntimeError("Not connected")
 
-        await self._websocket.send(json.dumps({
-            "type": "subscribe",
-            "topics": topics,
-        }))
+        await self._websocket.send(
+            json.dumps(
+                {
+                    "type": "subscribe",
+                    "topics": topics,
+                }
+            )
+        )
 
         for topic in topics:
             self._subscriptions.add(topic)
@@ -606,10 +606,14 @@ class WebSocketEventClient:
         if not self.is_connected:
             return
 
-        await self._websocket.send(json.dumps({
-            "type": "unsubscribe",
-            "topics": topics,
-        }))
+        await self._websocket.send(
+            json.dumps(
+                {
+                    "type": "unsubscribe",
+                    "topics": topics,
+                }
+            )
+        )
 
         for topic in topics:
             self._subscriptions.discard(topic)
@@ -619,11 +623,15 @@ class WebSocketEventClient:
         if not self.is_connected:
             raise RuntimeError("Not connected")
 
-        await self._websocket.send(json.dumps({
-            "type": "publish",
-            "topic": topic,
-            "payload": payload,
-        }))
+        await self._websocket.send(
+            json.dumps(
+                {
+                    "type": "publish",
+                    "topic": topic,
+                    "payload": payload,
+                }
+            )
+        )
 
     def on(self, topic: str, handler: Callable):
         """Register a handler for events on a topic."""

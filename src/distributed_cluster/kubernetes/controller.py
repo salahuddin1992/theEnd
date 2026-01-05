@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 class ReconcileResult(str, Enum):
     """نتيجة المصالحة / Reconciliation result"""
+
     SUCCESS = "success"
     REQUEUE = "requeue"
     REQUEUE_AFTER = "requeue_after"
@@ -47,6 +48,7 @@ class ControllerConfig:
     إعدادات المتحكم
     Controller configuration
     """
+
     # Reconciliation
     reconcile_interval_seconds: int = 30
     requeue_delay_seconds: int = 5
@@ -93,6 +95,7 @@ class ControllerConfig:
 @dataclass
 class ReconcileRequest:
     """طلب مصالحة"""
+
     name: str
     namespace: str
     resource_type: str
@@ -271,8 +274,7 @@ class ClusterController:
 
             duration = (datetime.now(timezone.utc) - start_time).total_seconds()
             logger.debug(
-                f"Reconciled {request.resource_type}/{request.name} "
-                f"in {duration:.2f}s with result {result.value}"
+                f"Reconciled {request.resource_type}/{request.name} " f"in {duration:.2f}s with result {result.value}"
             )
 
         except Exception as e:
@@ -388,9 +390,7 @@ class ClusterController:
                                 "name": "master",
                                 "image": cluster.spec.image,
                                 "imagePullPolicy": cluster.spec.image_pull_policy,
-                                "ports": [
-                                    {"containerPort": cluster.spec.master_port}
-                                ],
+                                "ports": [{"containerPort": cluster.spec.master_port}],
                                 "resources": cluster.spec.master_resources.to_dict(),
                                 "livenessProbe": {
                                     "httpGet": {
@@ -476,9 +476,7 @@ class ClusterController:
                             {
                                 "name": "worker",
                                 "image": cluster.spec.image,
-                                "ports": [
-                                    {"containerPort": cluster.spec.worker_port}
-                                ],
+                                "ports": [{"containerPort": cluster.spec.worker_port}],
                                 "resources": cluster.spec.worker_resources.to_dict(),
                                 "env": [
                                     {"name": "CLUSTER_ROLE", "value": "worker"},
@@ -556,9 +554,9 @@ class ClusterController:
             )
 
             ready_workers = sum(
-                1 for pod in pods.items
-                if pod.status.phase == "Running"
-                and all(c.ready for c in (pod.status.container_statuses or []))
+                1
+                for pod in pods.items
+                if pod.status.phase == "Running" and all(c.ready for c in (pod.status.container_statuses or []))
             )
 
             total_workers = len(pods.items)
@@ -654,7 +652,6 @@ class ClusterController:
             "queue_size": self._work_queue.qsize(),
             "reconcile_count": self._reconcile_count,
             "reconcile_errors": self._reconcile_errors,
-            "last_reconcile_time": self._last_reconcile_time.isoformat()
-                if self._last_reconcile_time else None,
+            "last_reconcile_time": self._last_reconcile_time.isoformat() if self._last_reconcile_time else None,
             "workers": len(self._workers),
         }

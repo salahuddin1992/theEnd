@@ -26,6 +26,7 @@ from ..titlebar import FluentIcons
 # METRIC CHART CARD
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class MetricChartCard(FluentCard):
     """A card containing a line chart for metrics"""
 
@@ -52,6 +53,7 @@ class MetricChartCard(FluentCard):
 # ═══════════════════════════════════════════════════════════════════════════════
 # FLUENT METRICS VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentMetricsView(QWidget):
     """
@@ -86,11 +88,13 @@ class FluentMetricsView(QWidget):
         header = QHBoxLayout()
 
         title = QLabel("Metrics")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(title)
 
         header.addStretch()
@@ -103,7 +107,8 @@ class FluentMetricsView(QWidget):
         range_combo = QComboBox()
         range_combo.addItems(["Last hour", "Last 6 hours", "Last 24 hours", "Last 7 days"])
         range_combo.setMinimumWidth(140)
-        range_combo.setStyleSheet(f"""
+        range_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -111,7 +116,8 @@ class FluentMetricsView(QWidget):
                 border-radius: 6px;
                 padding: 6px 12px;
             }}
-        """)
+        """
+        )
         header.addWidget(range_combo)
 
         # Refresh
@@ -126,32 +132,16 @@ class FluentMetricsView(QWidget):
         stats_layout = QHBoxLayout()
         stats_layout.setSpacing(16)
 
-        self._jobs_card = AnimatedStatCard(
-            "Jobs/Hour", 0,
-            icon=FluentIcons.JOBS,
-            color=colors.accent
-        )
+        self._jobs_card = AnimatedStatCard("Jobs/Hour", 0, icon=FluentIcons.JOBS, color=colors.accent)
         stats_layout.addWidget(self._jobs_card)
 
-        self._success_card = AnimatedStatCard(
-            "Success Rate", 0,
-            icon=FluentIcons.CHECKMARK,
-            color=colors.success
-        )
+        self._success_card = AnimatedStatCard("Success Rate", 0, icon=FluentIcons.CHECKMARK, color=colors.success)
         stats_layout.addWidget(self._success_card)
 
-        self._latency_card = AnimatedStatCard(
-            "Avg Latency", 0,
-            icon="\uE916",  # Timer
-            color=colors.info
-        )
+        self._latency_card = AnimatedStatCard("Avg Latency", 0, icon="\ue916", color=colors.info)  # Timer
         stats_layout.addWidget(self._latency_card)
 
-        self._throughput_card = AnimatedStatCard(
-            "Throughput", 0,
-            icon="\uE9D9",  # Chart
-            color=colors.warning
-        )
+        self._throughput_card = AnimatedStatCard("Throughput", 0, icon="\ue9d9", color=colors.warning)  # Chart
         stats_layout.addWidget(self._throughput_card)
 
         stats_layout.addStretch()
@@ -183,11 +173,13 @@ class FluentMetricsView(QWidget):
 
         # System health section
         health_title = QLabel("System Health")
-        health_title.setStyleSheet(f"""
+        health_title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 20px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(health_title)
 
         health_layout = QHBoxLayout()

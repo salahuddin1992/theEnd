@@ -153,7 +153,8 @@ class NotificationHistory:
             self._db.row_factory = sqlite3.Row
 
             # Main table
-            self._db.execute("""
+            self._db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS notification_history (
                     id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
@@ -174,37 +175,51 @@ class NotificationHistory:
                     parent_id TEXT,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Indexes
-            self._db.execute("""
+            self._db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_history_timestamp
                 ON notification_history(timestamp DESC)
-            """)
-            self._db.execute("""
+            """
+            )
+            self._db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_history_priority
                 ON notification_history(priority)
-            """)
-            self._db.execute("""
+            """
+            )
+            self._db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_history_category
                 ON notification_history(category)
-            """)
-            self._db.execute("""
+            """
+            )
+            self._db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_history_status
                 ON notification_history(delivery_status)
-            """)
-            self._db.execute("""
+            """
+            )
+            self._db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_history_source
                 ON notification_history(source)
-            """)
-            self._db.execute("""
+            """
+            )
+            self._db.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_history_correlation
                 ON notification_history(correlation_id)
-            """)
+            """
+            )
 
             # Full-text search
             if self.enable_fts:
-                self._db.execute("""
+                self._db.execute(
+                    """
                     CREATE VIRTUAL TABLE IF NOT EXISTS notification_fts USING fts5(
                         id,
                         title,
@@ -213,29 +228,36 @@ class NotificationHistory:
                         content=notification_history,
                         content_rowid=rowid
                     )
-                """)
+                """
+                )
 
                 # Triggers for FTS sync
-                self._db.execute("""
+                self._db.execute(
+                    """
                     CREATE TRIGGER IF NOT EXISTS notification_ai AFTER INSERT ON notification_history BEGIN
                         INSERT INTO notification_fts(rowid, id, title, message, tags)
                         VALUES (NEW.rowid, NEW.id, NEW.title, NEW.message, NEW.tags);
                     END
-                """)
-                self._db.execute("""
+                """
+                )
+                self._db.execute(
+                    """
                     CREATE TRIGGER IF NOT EXISTS notification_ad AFTER DELETE ON notification_history BEGIN
                         INSERT INTO notification_fts(notification_fts, rowid, id, title, message, tags)
                         VALUES('delete', OLD.rowid, OLD.id, OLD.title, OLD.message, OLD.tags);
                     END
-                """)
-                self._db.execute("""
+                """
+                )
+                self._db.execute(
+                    """
                     CREATE TRIGGER IF NOT EXISTS notification_au AFTER UPDATE ON notification_history BEGIN
                         INSERT INTO notification_fts(notification_fts, rowid, id, title, message, tags)
                         VALUES('delete', OLD.rowid, OLD.id, OLD.title, OLD.message, OLD.tags);
                         INSERT INTO notification_fts(rowid, id, title, message, tags)
                         VALUES (NEW.rowid, NEW.id, NEW.title, NEW.message, NEW.tags);
                     END
-                """)
+                """
+                )
 
             self._db.commit()
             self._initialized = True
@@ -367,12 +389,14 @@ class NotificationHistory:
         # Full-text search
         if query.search_text and self.enable_fts:
             # Use FTS table
-            conditions.append("""
+            conditions.append(
+                """
                 id IN (
                     SELECT id FROM notification_fts
                     WHERE notification_fts MATCH ?
                 )
-            """)
+            """
+            )
             params.append(query.search_text)
 
         # Priority filter
@@ -381,13 +405,9 @@ class NotificationHistory:
             params.append(query.priority.value)
         elif query.min_priority:
             # Map priority to numeric for comparison
-            priority_order = {
-                "low": 1, "normal": 2, "high": 3, "critical": 4, "emergency": 5
-            }
+            priority_order = {"low": 1, "normal": 2, "high": 3, "critical": 4, "emergency": 5}
             min_val = priority_order.get(query.min_priority.value, 1)
-            valid_priorities = [
-                p for p, v in priority_order.items() if v >= min_val
-            ]
+            valid_priorities = [p for p, v in priority_order.items() if v >= min_val]
             placeholders = ",".join("?" * len(valid_priorities))
             conditions.append(f"priority IN ({placeholders})")
             params.extend(valid_priorities)
@@ -707,8 +727,15 @@ class NotificationHistory:
         notifications = await self.search(query or HistoryQuery(limit=100000))
 
         headers = [
-            "id", "title", "message", "priority", "category",
-            "source", "timestamp", "delivery_status", "error",
+            "id",
+            "title",
+            "message",
+            "priority",
+            "category",
+            "source",
+            "timestamp",
+            "delivery_status",
+            "error",
         ]
 
         with open(output_path, "w", newline="", encoding="utf-8") as f:
@@ -716,17 +743,19 @@ class NotificationHistory:
             writer.writerow(headers)
 
             for n in notifications:
-                writer.writerow([
-                    n.notification_id,
-                    n.title,
-                    n.message,
-                    n.priority.value,
-                    n.category.value,
-                    n.source,
-                    n.timestamp.isoformat(),
-                    n.delivery_status.value,
-                    n.error or "",
-                ])
+                writer.writerow(
+                    [
+                        n.notification_id,
+                        n.title,
+                        n.message,
+                        n.priority.value,
+                        n.category.value,
+                        n.source,
+                        n.timestamp.isoformat(),
+                        n.delivery_status.value,
+                        n.error or "",
+                    ]
+                )
 
         return len(notifications)
 
@@ -743,9 +772,7 @@ class NotificationHistory:
             sent_at=datetime.fromisoformat(row["sent_at"]) if row["sent_at"] else None,
             delivered_at=datetime.fromisoformat(row["delivered_at"]) if row["delivered_at"] else None,
             delivery_status=(
-                DeliveryStatus(row["delivery_status"])
-                if row["delivery_status"]
-                else DeliveryStatus.PENDING
+                DeliveryStatus(row["delivery_status"]) if row["delivery_status"] else DeliveryStatus.PENDING
             ),
             error=row["error"],
             retry_count=row["retry_count"] or 0,

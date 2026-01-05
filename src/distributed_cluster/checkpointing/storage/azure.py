@@ -95,18 +95,15 @@ class AzureBlobStorage(CheckpointStorage):
 
             # Create client based on available credentials
             if self.connection_string:
-                self._blob_service_client = BlobServiceClient.from_connection_string(
-                    self.connection_string
-                )
+                self._blob_service_client = BlobServiceClient.from_connection_string(self.connection_string)
             elif self.account_url:
                 if self.sas_token:
-                    self._blob_service_client = BlobServiceClient(
-                        account_url=f"{self.account_url}?{self.sas_token}"
-                    )
+                    self._blob_service_client = BlobServiceClient(account_url=f"{self.account_url}?{self.sas_token}")
                 elif self.account_key:
                     from azure.storage.blob import (
                         BlobServiceClient as BSC,
                     )
+
                     self._blob_service_client = BSC(
                         account_url=self.account_url,
                         credential=self.account_key,
@@ -114,6 +111,7 @@ class AzureBlobStorage(CheckpointStorage):
                 else:
                     # Try DefaultAzureCredential
                     from azure.identity import DefaultAzureCredential
+
                     credential = DefaultAzureCredential()
                     self._blob_service_client = BlobServiceClient(
                         account_url=self.account_url,
@@ -132,22 +130,17 @@ class AzureBlobStorage(CheckpointStorage):
                 )
 
             # Get container client
-            self._container_client = self._blob_service_client.get_container_client(
-                self.container_name
-            )
+            self._container_client = self._blob_service_client.get_container_client(self.container_name)
 
             # Create container if not exists
-            await self._run_in_executor(
-                self._container_client.create_container
-            )
+            await self._run_in_executor(self._container_client.create_container)
 
             self._connected = True
             logger.info(f"AzureBlobStorage connected to container {self.container_name}")
 
         except ImportError:
             raise ConnectionError(
-                "azure-storage-blob required for Azure storage. "
-                "Install with: pip install azure-storage-blob"
+                "azure-storage-blob required for Azure storage. " "Install with: pip install azure-storage-blob"
             )
         except Exception as e:
             if "ContainerAlreadyExists" not in str(e):
@@ -165,9 +158,7 @@ class AzureBlobStorage(CheckpointStorage):
     async def _run_in_executor(self, func, *args, **kwargs):
         """تشغيل دالة Azure في thread pool"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            self._executor, lambda: func(*args, **kwargs)
-        )
+        return await loop.run_in_executor(self._executor, lambda: func(*args, **kwargs))
 
     # =========================================================================
     # Checkpoint Operations / عمليات نقاط الحفظ
@@ -230,9 +221,7 @@ class AzureBlobStorage(CheckpointStorage):
             data_blob = self._get_data_blob_name(checkpoint_id)
             blob_client = self._container_client.get_blob_client(data_blob)
 
-            download = await self._run_in_executor(
-                blob_client.download_blob
-            )
+            download = await self._run_in_executor(blob_client.download_blob)
 
             return await self._run_in_executor(download.readall)
 
@@ -290,9 +279,7 @@ class AzureBlobStorage(CheckpointStorage):
             metadata_blob = self._get_metadata_blob_name(checkpoint_id)
             blob_client = self._container_client.get_blob_client(metadata_blob)
 
-            download = await self._run_in_executor(
-                blob_client.download_blob
-            )
+            download = await self._run_in_executor(blob_client.download_blob)
 
             data = await self._run_in_executor(download.readall)
             metadata_dict = json.loads(data.decode())
@@ -320,9 +307,7 @@ class AzureBlobStorage(CheckpointStorage):
             blob_client = self._container_client.get_blob_client(index_blob)
 
             try:
-                download = await self._run_in_executor(
-                    blob_client.download_blob
-                )
+                download = await self._run_in_executor(blob_client.download_blob)
                 data = await self._run_in_executor(download.readall)
                 index = json.loads(data.decode())
             except Exception:
@@ -372,9 +357,7 @@ class AzureBlobStorage(CheckpointStorage):
         blob_client = self._container_client.get_blob_client(index_blob)
 
         try:
-            download = await self._run_in_executor(
-                blob_client.download_blob
-            )
+            download = await self._run_in_executor(blob_client.download_blob)
             data = await self._run_in_executor(download.readall)
             index = json.loads(data.decode())
         except Exception:
@@ -396,9 +379,7 @@ class AzureBlobStorage(CheckpointStorage):
         blob_client = self._container_client.get_blob_client(index_blob)
 
         try:
-            download = await self._run_in_executor(
-                blob_client.download_blob
-            )
+            download = await self._run_in_executor(blob_client.download_blob)
             data = await self._run_in_executor(download.readall)
             index = json.loads(data.decode())
 
@@ -436,9 +417,11 @@ class AzureBlobStorage(CheckpointStorage):
     def get_status(self) -> dict:
         """الحصول على حالة التخزين"""
         status = super().get_status()
-        status.update({
-            "container": self.container_name,
-            "prefix": self.prefix,
-            "account": self.account_name or "connection_string",
-        })
+        status.update(
+            {
+                "container": self.container_name,
+                "prefix": self.prefix,
+                "account": self.account_name or "connection_string",
+            }
+        )
         return status

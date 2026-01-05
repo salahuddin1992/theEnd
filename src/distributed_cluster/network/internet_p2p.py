@@ -42,24 +42,26 @@ logger = logging.getLogger(__name__)
 
 class ConnectionRequestStatus(str, Enum):
     """حالة طلب الاتصال."""
-    PENDING = "pending"        # في الانتظار
-    APPROVED = "approved"      # موافق عليه
-    REJECTED = "rejected"      # مرفوض
-    EXPIRED = "expired"        # منتهي الصلاحية
-    CANCELLED = "cancelled"    # ملغي
+
+    PENDING = "pending"  # في الانتظار
+    APPROVED = "approved"  # موافق عليه
+    REJECTED = "rejected"  # مرفوض
+    EXPIRED = "expired"  # منتهي الصلاحية
+    CANCELLED = "cancelled"  # ملغي
 
 
 class InternetMessageType(str, Enum):
     """أنواع رسائل الإنترنت."""
+
     # Connection handshake
-    CONNECTION_REQUEST = "connection_request"    # طلب اتصال
+    CONNECTION_REQUEST = "connection_request"  # طلب اتصال
     CONNECTION_RESPONSE = "connection_response"  # رد على طلب الاتصال
     CONNECTION_APPROVED = "connection_approved"  # موافقة على الاتصال
     CONNECTION_REJECTED = "connection_rejected"  # رفض الاتصال
 
     # Info sharing
-    FULL_INFO_REQUEST = "full_info_request"      # طلب معلومات كاملة
-    FULL_INFO_RESPONSE = "full_info_response"    # رد المعلومات الكاملة
+    FULL_INFO_REQUEST = "full_info_request"  # طلب معلومات كاملة
+    FULL_INFO_RESPONSE = "full_info_response"  # رد المعلومات الكاملة
 
     # Keepalive
     HEARTBEAT = "heartbeat"
@@ -75,6 +77,7 @@ class InternetMessageType(str, Enum):
 @dataclass
 class ConnectionRequest:
     """طلب اتصال."""
+
     request_id: str
     requester_id: str
     requester_info: Dict[str, Any]
@@ -109,6 +112,7 @@ class ConnectionRequest:
 @dataclass
 class SharedInfo:
     """المعلومات المشاركة الكاملة."""
+
     peer_id: str
     device: DeviceInfo
     app: AppInfo
@@ -167,7 +171,7 @@ def generate_connection_code(peer_id: str, address: str, port: int, secret: str 
     encoded = base64.urlsafe_b64encode(data.encode()).decode()
 
     # تقسيم لسهولة القراءة: XXXX-XXXX-XXXX
-    chunks = [encoded[i:i+4] for i in range(0, len(encoded), 4)]
+    chunks = [encoded[i : i + 4] for i in range(0, len(encoded), 4)]
     return "-".join(chunks[:4])  # أول 4 أجزاء فقط
 
 
@@ -689,10 +693,7 @@ class InternetP2PServer:
         """الحصول على طلبات الاتصال المعلقة."""
         # Clean expired
         time.time()
-        expired = [
-            req_id for req_id, req in self._pending_requests.items()
-            if req.is_expired()
-        ]
+        expired = [req_id for req_id, req in self._pending_requests.items() if req.is_expired()]
         for req_id in expired:
             self._pending_requests.pop(req_id, None)
             self._pending_writers.pop(req_id, None)
@@ -1097,25 +1098,29 @@ class InternetP2PManager:
 
         for conn in self.connections.values():
             if conn.peer_info:
-                result.append({
-                    "peer_id": conn.peer_id,
-                    "direction": "outgoing",
-                    "connected": conn.is_connected,
-                    "connected_at": conn.connected_at,
-                    "latency_ms": conn.latency_ms,
-                    "info": conn.peer_info.to_dict(),
-                })
+                result.append(
+                    {
+                        "peer_id": conn.peer_id,
+                        "direction": "outgoing",
+                        "connected": conn.is_connected,
+                        "connected_at": conn.connected_at,
+                        "latency_ms": conn.latency_ms,
+                        "info": conn.peer_info.to_dict(),
+                    }
+                )
 
         for conn in self.server.get_connections():
             if conn.peer_info:
-                result.append({
-                    "peer_id": conn.peer_id,
-                    "direction": "incoming",
-                    "connected": conn.is_connected,
-                    "connected_at": conn.connected_at,
-                    "latency_ms": conn.latency_ms,
-                    "info": conn.peer_info.to_dict(),
-                })
+                result.append(
+                    {
+                        "peer_id": conn.peer_id,
+                        "direction": "incoming",
+                        "connected": conn.is_connected,
+                        "connected_at": conn.connected_at,
+                        "latency_ms": conn.latency_ms,
+                        "info": conn.peer_info.to_dict(),
+                    }
+                )
 
         return result
 

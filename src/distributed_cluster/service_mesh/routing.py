@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class MatchType(Enum):
     """Types of request matching."""
+
     EXACT = "exact"
     PREFIX = "prefix"
     REGEX = "regex"
@@ -24,6 +25,7 @@ class MatchType(Enum):
 
 class RouteAction(Enum):
     """Actions for matched routes."""
+
     FORWARD = "forward"
     REDIRECT = "redirect"
     ABORT = "abort"
@@ -34,6 +36,7 @@ class RouteAction(Enum):
 @dataclass
 class HeaderMatch:
     """Header matching configuration."""
+
     name: str
     value: Optional[str] = None
     regex: Optional[str] = None
@@ -58,6 +61,7 @@ class HeaderMatch:
 @dataclass
 class RouteMatch:
     """Route matching criteria."""
+
     path: Optional[str] = None
     path_type: MatchType = MatchType.PREFIX
     headers: List[HeaderMatch] = field(default_factory=list)
@@ -70,7 +74,7 @@ class RouteMatch:
         path: str,
         headers: Optional[Dict[str, str]] = None,
         query_params: Optional[Dict[str, str]] = None,
-        method: Optional[str] = None
+        method: Optional[str] = None,
     ) -> bool:
         headers = headers or {}
         query_params = query_params or {}
@@ -108,6 +112,7 @@ class RouteMatch:
 @dataclass
 class RouteDestination:
     """Destination for a route."""
+
     host: str
     port: int = 80
     weight: int = 100
@@ -119,6 +124,7 @@ class RouteDestination:
 @dataclass
 class RetryConfig:
     """Retry configuration for routes."""
+
     attempts: int = 3
     per_try_timeout: float = 2.0
     retry_on: List[str] = field(default_factory=lambda: ["5xx", "reset", "connect-failure"])
@@ -128,6 +134,7 @@ class RetryConfig:
 @dataclass
 class TimeoutConfig:
     """Timeout configuration for routes."""
+
     request_timeout: float = 15.0
     idle_timeout: float = 60.0
 
@@ -135,6 +142,7 @@ class TimeoutConfig:
 @dataclass
 class FaultConfig:
     """Fault injection configuration."""
+
     delay_percent: float = 0.0
     delay_seconds: float = 0.0
     abort_percent: float = 0.0
@@ -144,6 +152,7 @@ class FaultConfig:
 @dataclass
 class Route:
     """A route definition."""
+
     name: str
     match: RouteMatch
     destinations: List[RouteDestination] = field(default_factory=list)
@@ -180,6 +189,7 @@ class Route:
 @dataclass
 class RouteRule:
     """A rule containing multiple routes."""
+
     name: str
     hosts: List[str] = field(default_factory=list)
     routes: List[Route] = field(default_factory=list)
@@ -192,7 +202,7 @@ class RouteRule:
         path: str,
         headers: Optional[Dict[str, str]] = None,
         query_params: Optional[Dict[str, str]] = None,
-        method: Optional[str] = None
+        method: Optional[str] = None,
     ) -> Optional[Route]:
         """Find matching route for a request."""
         if not self.enabled:
@@ -210,11 +220,7 @@ class RouteRule:
                 return None
 
         # Find matching route (sorted by priority)
-        sorted_routes = sorted(
-            [r for r in self.routes if r.enabled],
-            key=lambda r: r.priority,
-            reverse=True
-        )
+        sorted_routes = sorted([r for r in self.routes if r.enabled], key=lambda r: r.priority, reverse=True)
 
         for route in sorted_routes:
             if route.match.matches(path, headers, query_params, method):
@@ -226,6 +232,7 @@ class RouteRule:
 @dataclass
 class TrafficPolicy:
     """Traffic policy for a service."""
+
     connection_pool_size: int = 100
     max_requests_per_connection: int = 1000
     h2_upgrade: bool = True
@@ -283,7 +290,7 @@ class Router:
         path: str,
         headers: Optional[Dict[str, str]] = None,
         query_params: Optional[Dict[str, str]] = None,
-        method: Optional[str] = None
+        method: Optional[str] = None,
     ) -> Tuple[Optional[Route], Optional[RouteDestination]]:
         """Route a request and return matching route and destination."""
         with self._lock:
@@ -360,10 +367,7 @@ class HeaderBasedRouting:
         """Select version based on request headers."""
         with self._lock:
             for route_headers, version in self._routes:
-                match = all(
-                    request_headers.get(k) == v
-                    for k, v in route_headers.items()
-                )
+                match = all(request_headers.get(k) == v for k, v in route_headers.items())
                 if match:
                     return version
 
@@ -373,13 +377,7 @@ class HeaderBasedRouting:
 class CanaryRouting:
     """Canary deployment routing."""
 
-    def __init__(
-        self,
-        service: str,
-        canary_version: str,
-        stable_version: str,
-        canary_weight: int = 10
-    ):
+    def __init__(self, service: str, canary_version: str, stable_version: str, canary_weight: int = 10):
         self.service = service
         self.canary_version = canary_version
         self.stable_version = stable_version

@@ -19,6 +19,7 @@ from fastapi import FastAPI, Request
 @dataclass
 class ExecutionResult:
     """نتيجة التنفيذ"""
+
     success: bool
     output: str
     error: str
@@ -107,15 +108,8 @@ class RemoteExecutor:
             # تحديد طريقة التنفيذ
             if command_type == "python":
                 shell_cmd = [sys.executable, "-c", command]
-            elif command_type == "powershell" or (
-                platform.system() == "Windows" and command_type == "shell"
-            ):
-                shell_cmd = [
-                    "powershell.exe",
-                    "-NoProfile",
-                    "-ExecutionPolicy", "Bypass",
-                    "-Command", command
-                ]
+            elif command_type == "powershell" or (platform.system() == "Windows" and command_type == "shell"):
+                shell_cmd = ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command]
             else:
                 # Linux/Mac bash
                 shell_cmd = command
@@ -127,10 +121,7 @@ class RemoteExecutor:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=timeout
-            )
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
 
             execution_time = (datetime.now() - start_time).total_seconds()
 

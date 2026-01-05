@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ProducerConfig:
     """Configuration for event producers."""
+
     batch_size: int = 100
     batch_timeout_ms: int = 1000
     max_retries: int = 3
@@ -137,7 +138,7 @@ class EventProducer(ABC):
         source: str,
         priority: EventPriority = EventPriority.NORMAL,
         key: Optional[str] = None,
-        **metadata_kwargs
+        **metadata_kwargs,
     ) -> bool:
         """Convenience method to create and send an event."""
         metadata = EventMetadata(source=source, **metadata_kwargs)
@@ -154,9 +155,7 @@ class SyncEventProducer(EventProducer):
     """Synchronous event producer implementation."""
 
     def __init__(
-        self,
-        broker_send_fn: Callable[[str, Event, Optional[str]], bool],
-        config: Optional[ProducerConfig] = None
+        self, broker_send_fn: Callable[[str, Event, Optional[str]], bool], config: Optional[ProducerConfig] = None
     ):
         super().__init__(config)
         self._broker_send = broker_send_fn
@@ -203,9 +202,7 @@ class AsyncEventProducer(EventProducer):
     """Asynchronous event producer using asyncio."""
 
     def __init__(
-        self,
-        broker_send_fn: Callable[[str, Event, Optional[str]], bool],
-        config: Optional[ProducerConfig] = None
+        self, broker_send_fn: Callable[[str, Event, Optional[str]], bool], config: Optional[ProducerConfig] = None
     ):
         super().__init__(config)
         self._broker_send = broker_send_fn
@@ -224,10 +221,7 @@ class AsyncEventProducer(EventProducer):
         """Background task to send events."""
         while self._started:
             try:
-                topic, event, key = await asyncio.wait_for(
-                    self._buffer.get(),
-                    timeout=0.1
-                )
+                topic, event, key = await asyncio.wait_for(self._buffer.get(), timeout=0.1)
                 await self._send_with_retry(topic, event, key)
             except asyncio.TimeoutError:
                 continue
@@ -236,12 +230,7 @@ class AsyncEventProducer(EventProducer):
             except Exception as e:
                 logger.error(f"Error in send loop: {e}")
 
-    async def _send_with_retry(
-        self,
-        topic: str,
-        event: Event,
-        key: Optional[str]
-    ) -> bool:
+    async def _send_with_retry(self, topic: str, event: Event, key: Optional[str]) -> bool:
         start_time = time.time()
         retries = 0
         last_error = None
@@ -249,13 +238,7 @@ class AsyncEventProducer(EventProducer):
         while retries <= self.config.max_retries:
             try:
                 # Run in executor to avoid blocking
-                success = await self._loop.run_in_executor(
-                    None,
-                    self._broker_send,
-                    topic,
-                    event,
-                    key
-                )
+                success = await self._loop.run_in_executor(None, self._broker_send, topic, event, key)
                 if success:
                     latency_ms = (time.time() - start_time) * 1000
                     self.metrics.record_send(event, latency_ms, len(event.to_json()))
@@ -285,12 +268,7 @@ class AsyncEventProducer(EventProducer):
             self.metrics.record_failure()
             return False
 
-    async def send_async(
-        self,
-        topic: str,
-        event: Event,
-        key: Optional[str] = None
-    ) -> bool:
+    async def send_async(self, topic: str, event: Event, key: Optional[str] = None) -> bool:
         """Async send with await."""
         if not self._started:
             raise RuntimeError("Producer not started")
@@ -302,10 +280,7 @@ class AsyncEventProducer(EventProducer):
         """Wait for all pending events to be sent."""
         timeout = timeout_ms / 1000 if timeout_ms else None
         try:
-            await asyncio.wait_for(
-                self._wait_empty(),
-                timeout=timeout
-            )
+            await asyncio.wait_for(self._wait_empty(), timeout=timeout)
         except asyncio.TimeoutError:
             logger.warning("Flush timeout reached")
 
@@ -332,9 +307,7 @@ class BatchEventProducer(EventProducer):
     """Batch event producer for high-throughput scenarios."""
 
     def __init__(
-        self,
-        broker_send_batch_fn: Callable[[str, List[Event]], bool],
-        config: Optional[ProducerConfig] = None
+        self, broker_send_batch_fn: Callable[[str, List[Event]], bool], config: Optional[ProducerConfig] = None
     ):
         super().__init__(config)
         self._broker_send_batch = broker_send_batch_fn
@@ -370,8 +343,8 @@ class BatchEventProducer(EventProducer):
             if topic not in self._buffers or not self._buffers[topic]:
                 return
 
-            batch = self._buffers[topic][:self.config.batch_size]
-            self._buffers[topic] = self._buffers[topic][self.config.batch_size:]
+            batch = self._buffers[topic][: self.config.batch_size]
+            self._buffers[topic] = self._buffers[topic][self.config.batch_size :]
 
         if batch:
             events = [e for e, _ in batch]
@@ -432,7 +405,7 @@ class PartitionedProducer(EventProducer):
         self,
         base_producer: EventProducer,
         partition_fn: Optional[Callable[[Event], int]] = None,
-        num_partitions: int = 8
+        num_partitions: int = 8,
     ):
         super().__init__(base_producer.config)
         self._base_producer = base_producer
@@ -458,11 +431,7 @@ class PartitionedProducer(EventProducer):
 class TransactionalProducer(EventProducer):
     """Producer with transaction support."""
 
-    def __init__(
-        self,
-        base_producer: EventProducer,
-        transaction_id: str
-    ):
+    def __init__(self, base_producer: EventProducer, transaction_id: str):
         super().__init__(base_producer.config)
         self._base_producer = base_producer
         self._transaction_id = transaction_id

@@ -322,10 +322,7 @@ class MigrationManager:
                         r.requested_at,
                     )
                 )
-                logger.info(
-                    f"Migration request {request.request_id} queued "
-                    f"(position {len(self._pending_queue)})"
-                )
+                logger.info(f"Migration request {request.request_id} queued " f"(position {len(self._pending_queue)})")
 
         return request
 
@@ -395,9 +392,7 @@ class MigrationManager:
             total = self._stats["total_migrations"]
             current_avg = self._stats["avg_migration_time_seconds"]
             new_time = progress.duration_seconds
-            self._stats["avg_migration_time_seconds"] = (
-                (current_avg * (total - 1) + new_time) / total
-            )
+            self._stats["avg_migration_time_seconds"] = (current_avg * (total - 1) + new_time) / total
 
             logger.info(
                 f"Migration {request.request_id} completed successfully: "
@@ -435,9 +430,7 @@ class MigrationManager:
             # Move to completed and process queue
             async with self._lock:
                 if request.request_id in self._active_migrations:
-                    self._completed_migrations[request.request_id] = (
-                        self._active_migrations.pop(request.request_id)
-                    )
+                    self._completed_migrations[request.request_id] = self._active_migrations.pop(request.request_id)
                 await self._process_queue()
 
     async def _prepare_migration(self, record: MigrationRecord) -> None:
@@ -452,12 +445,8 @@ class MigrationManager:
         logger.debug(f"Verifying target worker {request.target_worker} availability")
 
         # Create checkpoint paths
-        record.source_checkpoint_path = str(
-            self.checkpoint_dir / f"migration-{request.request_id}-source"
-        )
-        record.target_checkpoint_path = str(
-            self.checkpoint_dir / f"migration-{request.request_id}-target"
-        )
+        record.source_checkpoint_path = str(self.checkpoint_dir / f"migration-{request.request_id}-source")
+        record.target_checkpoint_path = str(self.checkpoint_dir / f"migration-{request.request_id}-target")
 
         # Estimate transfer size
         # (In real implementation, would query job memory usage)
@@ -496,10 +485,7 @@ class MigrationManager:
             # Simulate dirty page generation (decreasing)
             dirty_pages = int(dirty_pages * 0.3)
 
-            logger.debug(
-                f"Pre-copy iteration {iteration}: "
-                f"transferred={pages_to_transfer}, dirty={dirty_pages}"
-            )
+            logger.debug(f"Pre-copy iteration {iteration}: " f"transferred={pages_to_transfer}, dirty={dirty_pages}")
 
             # Check convergence
             if dirty_pages / 10000 < self.convergence_threshold:
@@ -584,9 +570,7 @@ class MigrationManager:
 
         for i in range(5):
             progress.bytes_transferred += progress.bytes_total // 10
-            progress.progress_percent = (
-                progress.bytes_transferred / progress.bytes_total
-            ) * 100
+            progress.progress_percent = (progress.bytes_transferred / progress.bytes_total) * 100
             await asyncio.sleep(0.05)
 
         # Restore from checkpoint
@@ -643,9 +627,7 @@ class MigrationManager:
         target_bytes = int(progress.bytes_total * 0.7)
         while progress.bytes_transferred < target_bytes:
             progress.bytes_transferred += 1024 * 1024 * 10
-            progress.progress_percent = (
-                progress.bytes_transferred / progress.bytes_total
-            ) * 80
+            progress.progress_percent = (progress.bytes_transferred / progress.bytes_total) * 80
             await asyncio.sleep(0.05)
 
         # Switch to checkpoint/restore for remaining
@@ -697,15 +679,10 @@ class MigrationManager:
         old_state = record.progress.state
         record.progress.state = new_state
 
-        logger.debug(
-            f"Migration {record.request.request_id}: "
-            f"{old_state.value} -> {new_state.value}"
-        )
+        logger.debug(f"Migration {record.request.request_id}: " f"{old_state.value} -> {new_state.value}")
 
         if self._on_state_change:
-            await self._safe_callback(
-                self._on_state_change, record, old_state, new_state
-            )
+            await self._safe_callback(self._on_state_change, record, old_state, new_state)
 
     async def _process_queue(self) -> None:
         """Process pending migration queue."""
@@ -740,10 +717,7 @@ class MigrationManager:
             # Check active migrations
             if request_id in self._active_migrations:
                 # Would need to cancel the running task
-                logger.warning(
-                    f"Cannot cancel active migration {request_id} "
-                    "(not fully implemented)"
-                )
+                logger.warning(f"Cannot cancel active migration {request_id} " "(not fully implemented)")
                 return False
 
         return False
@@ -794,8 +768,7 @@ class MigrationManager:
             to_remove = [
                 request_id
                 for request_id, record in self._completed_migrations.items()
-                if record.progress.completed_at
-                and record.progress.completed_at < cutoff
+                if record.progress.completed_at and record.progress.completed_at < cutoff
             ]
 
             for request_id in to_remove:
@@ -817,10 +790,7 @@ class MigrationManager:
 
         # Wait for active migrations (with timeout)
         if self._active_migrations:
-            logger.info(
-                f"Waiting for {len(self._active_migrations)} "
-                "active migrations to complete..."
-            )
+            logger.info(f"Waiting for {len(self._active_migrations)} " "active migrations to complete...")
             # In production, would implement proper cancellation
 
         logger.info("Migration Manager shutdown complete")

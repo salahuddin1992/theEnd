@@ -112,8 +112,7 @@ def async_retry(
                             on_retry(e, attempt + 1)
 
                         logger.debug(
-                            f"Retry {attempt + 1}/{max_retries} for {func.__name__} "
-                            f"after {current_delay}s: {e}"
+                            f"Retry {attempt + 1}/{max_retries} for {func.__name__} " f"after {current_delay}s: {e}"
                         )
 
                         await asyncio.sleep(current_delay)
@@ -300,9 +299,7 @@ class AsyncPool:
         items: List[Any],
     ) -> List[T]:
         """Map function over items with concurrency control"""
-        return await asyncio.gather(
-            *[self.submit(func(item)) for item in items]
-        )
+        return await asyncio.gather(*[self.submit(func(item)) for item in items])
 
     async def shutdown(self, wait: bool = True) -> None:
         """Shutdown pool"""

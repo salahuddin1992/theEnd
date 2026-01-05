@@ -41,8 +41,10 @@ from .titlebar import FluentIcons
 # أنواع الإشعارات
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class NotificationType(Enum):
     """Notification severity types"""
+
     INFO = "info"
     SUCCESS = "success"
     WARNING = "warning"
@@ -52,6 +54,7 @@ class NotificationType(Enum):
 @dataclass
 class NotificationAction:
     """Action button for notification"""
+
     label: str
     callback: Callable[[], None]
     primary: bool = False
@@ -60,6 +63,7 @@ class NotificationAction:
 @dataclass
 class Notification:
     """Notification data"""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     title: str = ""
     message: str = ""
@@ -76,6 +80,7 @@ class Notification:
 # TOAST NOTIFICATION
 # إشعار Toast
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class Toast(QFrame):
     """
@@ -115,14 +120,16 @@ class Toast(QFrame):
         accent_color, default_icon = type_styles[self._notification.type]
         icon = self._notification.icon or default_icon
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             #toast {{
                 background-color: {colors.bg_solid_secondary};
                 border: 1px solid {colors.stroke_surface};
                 border-left: 3px solid {accent_color};
                 border-radius: 8px;
             }}
-        """)
+        """
+        )
 
         # Shadow
         shadow = QGraphicsDropShadowEffect()
@@ -140,13 +147,15 @@ class Toast(QFrame):
         icon_label = QLabel()
         icon_label.setFixedSize(24, 24)
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setStyleSheet(f"""
+        icon_label.setStyleSheet(
+            f"""
             QLabel {{
                 font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
                 font-size: 16px;
                 color: {accent_color};
             }}
-        """)
+        """
+        )
         icon_label.setText(icon)
         main_layout.addWidget(icon_label, 0, Qt.AlignTop)
 
@@ -158,25 +167,29 @@ class Toast(QFrame):
         # Title
         if self._notification.title:
             title_label = QLabel(self._notification.title)
-            title_label.setStyleSheet(f"""
+            title_label.setStyleSheet(
+                f"""
                 QLabel {{
                     color: {colors.text_primary};
                     font-size: 14px;
                     font-weight: 600;
                 }}
-            """)
+            """
+            )
             title_label.setWordWrap(True)
             content_layout.addWidget(title_label)
 
         # Message
         if self._notification.message:
             message_label = QLabel(self._notification.message)
-            message_label.setStyleSheet(f"""
+            message_label.setStyleSheet(
+                f"""
                 QLabel {{
                     color: {colors.text_secondary};
                     font-size: 13px;
                 }}
-            """)
+            """
+            )
             message_label.setWordWrap(True)
             content_layout.addWidget(message_label)
 
@@ -191,7 +204,8 @@ class Toast(QFrame):
                 btn.setCursor(Qt.PointingHandCursor)
 
                 if action.primary:
-                    btn.setStyleSheet(f"""
+                    btn.setStyleSheet(
+                        f"""
                         QPushButton {{
                             background-color: {colors.accent};
                             color: #FFFFFF;
@@ -204,9 +218,11 @@ class Toast(QFrame):
                         QPushButton:hover {{
                             background-color: {colors.accent_light_1};
                         }}
-                    """)
+                    """
+                    )
                 else:
-                    btn.setStyleSheet(f"""
+                    btn.setStyleSheet(
+                        f"""
                         QPushButton {{
                             background-color: {colors.fill_control};
                             color: {colors.text_primary};
@@ -218,7 +234,8 @@ class Toast(QFrame):
                         QPushButton:hover {{
                             background-color: {colors.fill_control_secondary};
                         }}
-                    """)
+                    """
+                    )
 
                 btn.clicked.connect(lambda checked, idx=i: self._on_action_clicked(idx))
                 actions_layout.addWidget(btn)
@@ -233,7 +250,8 @@ class Toast(QFrame):
             close_btn = QPushButton()
             close_btn.setFixedSize(24, 24)
             close_btn.setCursor(Qt.PointingHandCursor)
-            close_btn.setStyleSheet(f"""
+            close_btn.setStyleSheet(
+                f"""
                 QPushButton {{
                     background-color: transparent;
                     border: none;
@@ -246,7 +264,8 @@ class Toast(QFrame):
                     background-color: {colors.fill_subtle};
                     color: {colors.text_primary};
                 }}
-            """)
+            """
+            )
             close_btn.setText(FluentIcons.CANCEL)
             close_btn.clicked.connect(self.dismiss)
             main_layout.addWidget(close_btn, 0, Qt.AlignTop)
@@ -305,6 +324,7 @@ class Toast(QFrame):
 # مركز الإشعارات
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class NotificationCenter(QWidget):
     """
     Manages toast notifications display.
@@ -342,10 +362,7 @@ class NotificationCenter(QWidget):
         screen = QApplication.primaryScreen()
         if screen:
             geometry = screen.availableGeometry()
-            return QPoint(
-                geometry.right() - 360 - self.TOAST_MARGIN,
-                geometry.bottom() - self.TOAST_MARGIN
-            )
+            return QPoint(geometry.right() - 360 - self.TOAST_MARGIN, geometry.bottom() - self.TOAST_MARGIN)
         return QPoint(0, 0)
 
     def _calculate_toast_position(self, index: int) -> QPoint:
@@ -409,51 +426,31 @@ class NotificationCenter(QWidget):
             anim.start()
 
     # Convenience methods
-    def info(self, title: str, message: str = "", duration: int = 5000,
-             actions: List[NotificationAction] = None):
+    def info(self, title: str, message: str = "", duration: int = 5000, actions: List[NotificationAction] = None):
         """Show info notification"""
         notification = Notification(
-            title=title,
-            message=message,
-            type=NotificationType.INFO,
-            duration=duration,
-            actions=actions or []
+            title=title, message=message, type=NotificationType.INFO, duration=duration, actions=actions or []
         )
         self.show_notification(notification)
 
-    def success(self, title: str, message: str = "", duration: int = 5000,
-                actions: List[NotificationAction] = None):
+    def success(self, title: str, message: str = "", duration: int = 5000, actions: List[NotificationAction] = None):
         """Show success notification"""
         notification = Notification(
-            title=title,
-            message=message,
-            type=NotificationType.SUCCESS,
-            duration=duration,
-            actions=actions or []
+            title=title, message=message, type=NotificationType.SUCCESS, duration=duration, actions=actions or []
         )
         self.show_notification(notification)
 
-    def warning(self, title: str, message: str = "", duration: int = 7000,
-                actions: List[NotificationAction] = None):
+    def warning(self, title: str, message: str = "", duration: int = 7000, actions: List[NotificationAction] = None):
         """Show warning notification"""
         notification = Notification(
-            title=title,
-            message=message,
-            type=NotificationType.WARNING,
-            duration=duration,
-            actions=actions or []
+            title=title, message=message, type=NotificationType.WARNING, duration=duration, actions=actions or []
         )
         self.show_notification(notification)
 
-    def error(self, title: str, message: str = "", duration: int = 0,
-              actions: List[NotificationAction] = None):
+    def error(self, title: str, message: str = "", duration: int = 0, actions: List[NotificationAction] = None):
         """Show error notification (no auto-dismiss by default)"""
         notification = Notification(
-            title=title,
-            message=message,
-            type=NotificationType.ERROR,
-            duration=duration,
-            actions=actions or []
+            title=title, message=message, type=NotificationType.ERROR, duration=duration, actions=actions or []
         )
         self.show_notification(notification)
 
@@ -471,6 +468,7 @@ class NotificationCenter(QWidget):
 # IN-APP NOTIFICATION MANAGER
 # مدير الإشعارات داخل التطبيق
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class InAppNotificationManager(QWidget):
     """
@@ -508,10 +506,7 @@ class InAppNotificationManager(QWidget):
         for i, toast in enumerate(list(self._toasts.values())[:index]):
             offset_y += toast.height() + self._spacing
 
-        return QPoint(
-            parent_rect.width() - 360 - self._margin,
-            offset_y
-        )
+        return QPoint(parent_rect.width() - 360 - self._margin, offset_y)
 
     def show_notification(self, notification: Notification):
         """Show notification"""
@@ -548,21 +543,13 @@ class InAppNotificationManager(QWidget):
 
     # Convenience methods
     def info(self, title: str, message: str = ""):
-        self.show_notification(Notification(
-            title=title, message=message, type=NotificationType.INFO
-        ))
+        self.show_notification(Notification(title=title, message=message, type=NotificationType.INFO))
 
     def success(self, title: str, message: str = ""):
-        self.show_notification(Notification(
-            title=title, message=message, type=NotificationType.SUCCESS
-        ))
+        self.show_notification(Notification(title=title, message=message, type=NotificationType.SUCCESS))
 
     def warning(self, title: str, message: str = ""):
-        self.show_notification(Notification(
-            title=title, message=message, type=NotificationType.WARNING, duration=7000
-        ))
+        self.show_notification(Notification(title=title, message=message, type=NotificationType.WARNING, duration=7000))
 
     def error(self, title: str, message: str = ""):
-        self.show_notification(Notification(
-            title=title, message=message, type=NotificationType.ERROR, duration=0
-        ))
+        self.show_notification(Notification(title=title, message=message, type=NotificationType.ERROR, duration=0))

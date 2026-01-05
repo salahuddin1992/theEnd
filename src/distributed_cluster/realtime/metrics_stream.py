@@ -75,9 +75,9 @@ class MetricPoint:
     def to_compact(self) -> List[Any]:
         """Compact format: [name, value, timestamp_ms, labels_hash]"""
         ts_ms = int(self.timestamp.timestamp() * 1000)
-        labels_hash = hashlib.md5(
-            json.dumps(self.labels, sort_keys=True).encode()
-        ).hexdigest()[:8] if self.labels else ""
+        labels_hash = (
+            hashlib.md5(json.dumps(self.labels, sort_keys=True).encode()).hexdigest()[:8] if self.labels else ""
+        )
         return [self.name, self.value, ts_ms, labels_hash]
 
 
@@ -371,7 +371,7 @@ class MetricsStreamManager:
 
             # Trim buffer
             if len(self._metric_buffer[key]) > self.buffer_size:
-                self._metric_buffer[key] = self._metric_buffer[key][-self.buffer_size:]
+                self._metric_buffer[key] = self._metric_buffer[key][-self.buffer_size :]
         else:
             # Direct publish
             await self._distribute_metric(metric)
@@ -606,91 +606,106 @@ class SystemMetricsCollector:
                 if psutil:
                     if self.collect_cpu:
                         cpu_percent = psutil.cpu_percent(interval=0.1)
-                        metrics.append(MetricPoint(
-                            name="system.cpu.usage_percent",
-                            value=cpu_percent,
-                            unit="percent",
-                        ))
+                        metrics.append(
+                            MetricPoint(
+                                name="system.cpu.usage_percent",
+                                value=cpu_percent,
+                                unit="percent",
+                            )
+                        )
 
                         # Per-CPU
                         cpu_per = psutil.cpu_percent(interval=0.1, percpu=True)
                         for i, percent in enumerate(cpu_per):
-                            metrics.append(MetricPoint(
-                                name="system.cpu.core_usage_percent",
-                                value=percent,
-                                labels={"core": str(i)},
-                                unit="percent",
-                            ))
+                            metrics.append(
+                                MetricPoint(
+                                    name="system.cpu.core_usage_percent",
+                                    value=percent,
+                                    labels={"core": str(i)},
+                                    unit="percent",
+                                )
+                            )
 
                     if self.collect_memory:
                         mem = psutil.virtual_memory()
-                        metrics.extend([
-                            MetricPoint(
-                                name="system.memory.used_bytes",
-                                value=mem.used,
-                                unit="bytes",
-                            ),
-                            MetricPoint(
-                                name="system.memory.available_bytes",
-                                value=mem.available,
-                                unit="bytes",
-                            ),
-                            MetricPoint(
-                                name="system.memory.usage_percent",
-                                value=mem.percent,
-                                unit="percent",
-                            ),
-                        ])
+                        metrics.extend(
+                            [
+                                MetricPoint(
+                                    name="system.memory.used_bytes",
+                                    value=mem.used,
+                                    unit="bytes",
+                                ),
+                                MetricPoint(
+                                    name="system.memory.available_bytes",
+                                    value=mem.available,
+                                    unit="bytes",
+                                ),
+                                MetricPoint(
+                                    name="system.memory.usage_percent",
+                                    value=mem.percent,
+                                    unit="percent",
+                                ),
+                            ]
+                        )
 
                     if self.collect_disk:
                         disk = psutil.disk_usage("/")
-                        metrics.extend([
-                            MetricPoint(
-                                name="system.disk.used_bytes",
-                                value=disk.used,
-                                unit="bytes",
-                            ),
-                            MetricPoint(
-                                name="system.disk.free_bytes",
-                                value=disk.free,
-                                unit="bytes",
-                            ),
-                            MetricPoint(
-                                name="system.disk.usage_percent",
-                                value=disk.percent,
-                                unit="percent",
-                            ),
-                        ])
+                        metrics.extend(
+                            [
+                                MetricPoint(
+                                    name="system.disk.used_bytes",
+                                    value=disk.used,
+                                    unit="bytes",
+                                ),
+                                MetricPoint(
+                                    name="system.disk.free_bytes",
+                                    value=disk.free,
+                                    unit="bytes",
+                                ),
+                                MetricPoint(
+                                    name="system.disk.usage_percent",
+                                    value=disk.percent,
+                                    unit="percent",
+                                ),
+                            ]
+                        )
 
                     if self.collect_network:
                         net = psutil.net_io_counters()
-                        metrics.extend([
-                            MetricPoint(
-                                name="system.network.bytes_sent",
-                                value=net.bytes_sent,
-                                metric_type=MetricType.COUNTER,
-                                unit="bytes",
-                            ),
-                            MetricPoint(
-                                name="system.network.bytes_recv",
-                                value=net.bytes_recv,
-                                metric_type=MetricType.COUNTER,
-                                unit="bytes",
-                            ),
-                        ])
+                        metrics.extend(
+                            [
+                                MetricPoint(
+                                    name="system.network.bytes_sent",
+                                    value=net.bytes_sent,
+                                    metric_type=MetricType.COUNTER,
+                                    unit="bytes",
+                                ),
+                                MetricPoint(
+                                    name="system.network.bytes_recv",
+                                    value=net.bytes_recv,
+                                    metric_type=MetricType.COUNTER,
+                                    unit="bytes",
+                                ),
+                            ]
+                        )
                 else:
                     # Mock metrics for testing
                     import random
-                    metrics.append(MetricPoint(
-                        name="system.cpu.usage_percent",
-                        value=random.uniform(10, 90),
-                        unit="percent",
-                    ))
-                    metrics.append(MetricPoint(
-                        name="system.memory.usage_percent",
-                        value=random.uniform(30, 80),
-                        unit="percent",
-                    ))
+
+                    metrics.append(
+                        MetricPoint(
+                            name="system.cpu.usage_percent",
+                            value=random.uniform(10, 90),
+                            unit="percent",
+                        )
+                    )
+                    metrics.append(
+                        MetricPoint(
+                            name="system.memory.usage_percent",
+                            value=random.uniform(30, 80),
+                            unit="percent",
+                        )
+                    )
 
                 # Publish all metrics
                 await self.stream_manager.publish_batch(metrics)

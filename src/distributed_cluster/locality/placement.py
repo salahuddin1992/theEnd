@@ -249,19 +249,11 @@ class LoadBalancedPlacementStrategy(PlacementStrategyBase):
 
         # Filter by constraints
         if self.config.max_blocks_per_worker:
-            candidates = [
-                w
-                for w in candidates
-                if w.total_blocks < self.config.max_blocks_per_worker
-            ]
+            candidates = [w for w in candidates if w.total_blocks < self.config.max_blocks_per_worker]
 
         if self.config.max_size_per_worker_gb:
             max_bytes = self.config.max_size_per_worker_gb * 1024 * 1024 * 1024
-            candidates = [
-                w
-                for w in candidates
-                if w.total_size_bytes + block.size_bytes <= max_bytes
-            ]
+            candidates = [w for w in candidates if w.total_size_bytes + block.size_bytes <= max_bytes]
 
         if not candidates:
             return []
@@ -283,9 +275,7 @@ class LoadBalancedPlacementStrategy(PlacementStrategyBase):
 
         # Available space score (0-0.4)
         if worker.available_space_bytes > 0:
-            space_ratio = (
-                worker.available_space_bytes - block.size_bytes
-            ) / worker.available_space_bytes
+            space_ratio = (worker.available_space_bytes - block.size_bytes) / worker.available_space_bytes
             score += 0.4 * max(0, min(1, space_ratio))
 
         # Block count score (0-0.3) - fewer blocks = higher score
@@ -402,10 +392,7 @@ class AffinityBasedPlacementStrategy(PlacementStrategyBase):
 
         if not related_blocks:
             # Fall back to random
-            return [
-                w.worker_id
-                for w in random.sample(candidates, min(count, len(candidates)))
-            ]
+            return [w.worker_id for w in random.sample(candidates, min(count, len(candidates)))]
 
         # Find workers with related data
         worker_scores: Dict[str, float] = {}
@@ -490,10 +477,7 @@ class ColocatePlacementStrategy(PlacementStrategyBase):
             candidates = [w for w in available_workers if w.worker_id not in exclude]
             if not candidates:
                 return []
-            return [
-                w.worker_id
-                for w in random.sample(candidates, min(count, len(candidates)))
-            ]
+            return [w.worker_id for w in random.sample(candidates, min(count, len(candidates)))]
 
         return list(valid_workers)[:count]
 
@@ -533,10 +517,7 @@ class MinimizeTransferPlacementStrategy(PlacementStrategyBase):
 
         if not source:
             # No source, use random
-            return [
-                w.worker_id
-                for w in random.sample(candidates, min(count, len(candidates)))
-            ]
+            return [w.worker_id for w in random.sample(candidates, min(count, len(candidates)))]
 
         # Score workers by network proximity to source
         scored = []
@@ -579,12 +560,8 @@ class DataPlacementManager:
             PlacementStrategy.RANDOM: RandomPlacementStrategy(),
             PlacementStrategy.ROUND_ROBIN: RoundRobinPlacementStrategy(),
             PlacementStrategy.LOAD_BALANCED: LoadBalancedPlacementStrategy(self.config),
-            PlacementStrategy.RACK_AWARE: RackAwarePlacementStrategy(
-                self.config, self.topology
-            ),
-            PlacementStrategy.AFFINITY_BASED: AffinityBasedPlacementStrategy(
-                self.tracker, self.config
-            ),
+            PlacementStrategy.RACK_AWARE: RackAwarePlacementStrategy(self.config, self.topology),
+            PlacementStrategy.AFFINITY_BASED: AffinityBasedPlacementStrategy(self.tracker, self.config),
         }
 
         # Worker capacity cache
@@ -755,16 +732,8 @@ class DataPlacementManager:
         avg_blocks = total_blocks / len(workers)
 
         # Find overloaded and underloaded workers
-        overloaded = [
-            (w, count)
-            for w, count in distribution.items()
-            if count > avg_blocks * 1.2
-        ]
-        underloaded = [
-            (w, count)
-            for w, count in distribution.items()
-            if count < avg_blocks * 0.8
-        ]
+        overloaded = [(w, count) for w, count in distribution.items() if count > avg_blocks * 1.2]
+        underloaded = [(w, count) for w, count in distribution.items() if count < avg_blocks * 0.8]
 
         # Plan moves
         for over_worker, over_count in overloaded:
@@ -793,9 +762,7 @@ class DataPlacementManager:
         if not dry_run:
             # Apply moves (would need actual transfer implementation)
             for decision in decisions:
-                logger.info(
-                    f"Moving block {decision.block_id} to {decision.primary_worker}"
-                )
+                logger.info(f"Moving block {decision.block_id} to {decision.primary_worker}")
 
         return decisions
 
@@ -810,9 +777,11 @@ class DataPlacementManager:
             worker_id=worker.worker_id,
             total_blocks=len(blocks),
             total_size_bytes=sum(b.size_bytes for b in blocks),
-            available_space_bytes=worker.available_resources.disk_gb * 1024 * 1024 * 1024
-            if hasattr(worker.available_resources, "disk_gb")
-            else 1024 * 1024 * 1024 * 100,  # Default 100GB
+            available_space_bytes=(
+                worker.available_resources.disk_gb * 1024 * 1024 * 1024
+                if hasattr(worker.available_resources, "disk_gb")
+                else 1024 * 1024 * 1024 * 100
+            ),  # Default 100GB
             health_score=1.0 if worker.is_healthy else 0.0,
             rack_id=self.topology.get_worker_rack(worker.worker_id),
             zone_id=self.topology.get_worker_zone(worker.worker_id),

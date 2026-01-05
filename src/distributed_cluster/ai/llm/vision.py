@@ -587,10 +587,7 @@ class SemanticSearchIndex:
         query_embedding = query_result.embedding
 
         # Calculate similarities
-        scores = [
-            (i, cosine_similarity(query_embedding, emb))
-            for i, emb in enumerate(self._embeddings)
-        ]
+        scores = [(i, cosine_similarity(query_embedding, emb)) for i, emb in enumerate(self._embeddings)]
 
         # Sort by score descending
         scores.sort(key=lambda x: -x[1])
@@ -599,12 +596,14 @@ class SemanticSearchIndex:
         results = []
         for idx, score in scores[:top_k]:
             if score >= threshold:
-                results.append(SearchResult(
-                    text=self._documents[idx],
-                    score=score,
-                    index=idx,
-                    metadata=self._metadata[idx],
-                ))
+                results.append(
+                    SearchResult(
+                        text=self._documents[idx],
+                        score=score,
+                        index=idx,
+                        metadata=self._metadata[idx],
+                    )
+                )
 
         return results
 

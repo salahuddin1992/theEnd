@@ -42,18 +42,20 @@ class RateLimitExceeded(Exception):
 
 class LimitType(Enum):
     """Types of rate limits."""
-    REQUESTS = "requests"      # Number of requests
-    BANDWIDTH = "bandwidth"    # Bytes transferred
-    CPU_TIME = "cpu_time"      # CPU seconds used
-    TOKENS = "tokens"          # API tokens (for AI)
-    JOBS = "jobs"              # Number of jobs
+
+    REQUESTS = "requests"  # Number of requests
+    BANDWIDTH = "bandwidth"  # Bytes transferred
+    CPU_TIME = "cpu_time"  # CPU seconds used
+    TOKENS = "tokens"  # API tokens (for AI)
+    JOBS = "jobs"  # Number of jobs
 
 
 class LimitScope(Enum):
     """Scope of rate limiting."""
-    GLOBAL = "global"          # All clients combined
+
+    GLOBAL = "global"  # All clients combined
     PER_CLIENT = "per_client"  # Per client/IP
-    PER_USER = "per_user"      # Per authenticated user
+    PER_USER = "per_user"  # Per authenticated user
     PER_API_KEY = "per_api_key"  # Per API key
     PER_ENDPOINT = "per_endpoint"  # Per API endpoint
 
@@ -61,6 +63,7 @@ class LimitScope(Enum):
 @dataclass
 class RateLimitConfig:
     """Configuration for rate limiting."""
+
     # Limit settings
     requests_per_second: float = 10.0
     requests_per_minute: float = 100.0
@@ -88,6 +91,7 @@ class RateLimitConfig:
 @dataclass
 class RateLimitResult:
     """Result of a rate limit check."""
+
     allowed: bool
     limit: int
     remaining: int
@@ -116,6 +120,7 @@ class RateLimitResult:
 @dataclass
 class RateLimitStats:
     """Statistics for rate limiting."""
+
     total_requests: int = 0
     allowed_requests: int = 0
     denied_requests: int = 0
@@ -172,6 +177,7 @@ class RateLimiter:
 
         # Import algorithm
         from .algorithms import TokenBucket
+
         self._bucket_class = TokenBucket
 
         logger.info("RateLimiter initialized with config: %s", self.config)
@@ -250,9 +256,7 @@ class RateLimiter:
                 self._stats.denied_requests += 1
 
                 # Block client if exceeding limit
-                block_until = now + timedelta(
-                    seconds=self.config.block_duration_seconds
-                )
+                block_until = now + timedelta(seconds=self.config.block_duration_seconds)
                 self._blocked_clients[client_id] = block_until
                 self._stats.blocked_clients += 1
 
@@ -330,10 +334,7 @@ class RateLimiter:
         self._request_times.append(now)
 
         # Remove old entries (older than 1 second)
-        self._request_times = [
-            t for t in self._request_times
-            if now - t < 1.0
-        ]
+        self._request_times = [t for t in self._request_times if now - t < 1.0]
 
         # Calculate current rate
         self._stats.current_rate = len(self._request_times)
@@ -376,10 +377,7 @@ class RateLimiter:
             now = datetime.now()
 
             # Remove expired blocks
-            expired = [
-                client_id for client_id, expires in self._blocked_clients.items()
-                if now >= expires
-            ]
+            expired = [client_id for client_id, expires in self._blocked_clients.items() if now >= expires]
 
             for client_id in expired:
                 del self._blocked_clients[client_id]
@@ -387,7 +385,8 @@ class RateLimiter:
             # Remove inactive buckets (no activity for 1 hour)
             inactive_threshold = time.time() - 3600
             inactive = [
-                client_id for client_id, bucket in self._client_buckets.items()
+                client_id
+                for client_id, bucket in self._client_buckets.items()
                 if bucket.last_update < inactive_threshold
             ]
 
@@ -450,7 +449,4 @@ class MultiTierRateLimiter:
 
     def get_tier_stats(self) -> Dict[str, Dict[str, Any]]:
         """Get stats for all tiers."""
-        return {
-            tier: limiter.get_stats()
-            for tier, limiter in self._tiers.items()
-        }
+        return {tier: limiter.get_stats() for tier, limiter in self._tiers.items()}

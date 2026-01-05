@@ -368,6 +368,7 @@ class SSLCertificateCheck(HealthCheck):
             not_after = cert.get("notAfter", "")
             # Format: 'Dec 31 23:59:59 2024 GMT'
             from datetime import datetime as dt
+
             expiry = dt.strptime(not_after, "%b %d %H:%M:%S %Y %Z")
             days_until_expiry = (expiry - dt.utcnow()).days
 
@@ -598,9 +599,7 @@ class CPUHealthCheck(HealthCheck):
 
             # Get CPU percent over a short interval
             loop = asyncio.get_running_loop()
-            cpu_percent = await loop.run_in_executor(
-                None, lambda: psutil.cpu_percent(interval=0.5)
-            )
+            cpu_percent = await loop.run_in_executor(None, lambda: psutil.cpu_percent(interval=0.5))
 
             duration = (time.time() - start) * 1000
             cpu_count = psutil.cpu_count()

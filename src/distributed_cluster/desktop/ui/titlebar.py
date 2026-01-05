@@ -37,6 +37,7 @@ try:
     if platform.system() == "Windows":
         import ctypes  # noqa: F401
         from ctypes import wintypes  # noqa: F401
+
         HAS_WIN32 = True
     else:
         HAS_WIN32 = False
@@ -49,60 +50,63 @@ except ImportError:
 # أيقونات Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentIcons:
     """Segoe Fluent Icons unicode characters"""
+
     # Window controls
-    MINIMIZE = "\uE921"
-    MAXIMIZE = "\uE922"
-    RESTORE = "\uE923"
-    CLOSE = "\uE8BB"
+    MINIMIZE = "\ue921"
+    MAXIMIZE = "\ue922"
+    RESTORE = "\ue923"
+    CLOSE = "\ue8bb"
 
     # Navigation
-    BACK = "\uE72B"
-    FORWARD = "\uE72A"
-    HOME = "\uE80F"
-    REFRESH = "\uE72C"
-    SETTINGS = "\uE713"
+    BACK = "\ue72b"
+    FORWARD = "\ue72a"
+    HOME = "\ue80f"
+    REFRESH = "\ue72c"
+    SETTINGS = "\ue713"
 
     # Common
-    SEARCH = "\uE721"
-    ADD = "\uE710"
-    DELETE = "\uE74D"
-    EDIT = "\uE70F"
-    SAVE = "\uE74E"
-    COPY = "\uE8C8"
-    PASTE = "\uE77F"
+    SEARCH = "\ue721"
+    ADD = "\ue710"
+    DELETE = "\ue74d"
+    EDIT = "\ue70f"
+    SAVE = "\ue74e"
+    COPY = "\ue8c8"
+    PASTE = "\ue77f"
 
     # Status
-    CHECKMARK = "\uE73E"
-    CANCEL = "\uE711"
-    WARNING = "\uE7BA"
-    ERROR = "\uE783"
-    INFO = "\uE946"
+    CHECKMARK = "\ue73e"
+    CANCEL = "\ue711"
+    WARNING = "\ue7ba"
+    ERROR = "\ue783"
+    INFO = "\ue946"
 
     # Navigation items
-    DASHBOARD = "\uE80F"
-    JOBS = "\uE9D5"
-    WORKERS = "\uE716"
-    TEMPLATES = "\uE8A5"
-    POOLS = "\uE8C4"
-    QUEUES = "\uE8FD"
-    LOGS = "\uE756"
-    METRICS = "\uE9D9"
-    TERMINAL = "\uE756"
+    DASHBOARD = "\ue80f"
+    JOBS = "\ue9d5"
+    WORKERS = "\ue716"
+    TEMPLATES = "\ue8a5"
+    POOLS = "\ue8c4"
+    QUEUES = "\ue8fd"
+    LOGS = "\ue756"
+    METRICS = "\ue9d9"
+    TERMINAL = "\ue756"
 
     # Actions
-    PLAY = "\uE768"
-    PAUSE = "\uE769"
-    STOP = "\uE71A"
-    CONNECT = "\uE703"
-    DISCONNECT = "\uE8CD"
+    PLAY = "\ue768"
+    PAUSE = "\ue769"
+    STOP = "\ue71a"
+    CONNECT = "\ue703"
+    DISCONNECT = "\ue8cd"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TITLE BAR BUTTON
 # زر شريط العنوان
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TitleBarButton(QPushButton):
     """
@@ -147,7 +151,8 @@ class TitleBarButton(QPushButton):
                 bg = "transparent"
             text_color = colors.text_primary
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {bg};
                 border: none;
@@ -156,7 +161,8 @@ class TitleBarButton(QPushButton):
                 font-size: 10px;
                 color: {text_color};
             }}
-        """)
+        """
+        )
 
     def enterEvent(self, event):
         self._hovered = True
@@ -205,6 +211,7 @@ class TitleBarButton(QPushButton):
 # شريط العنوان المخصص
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class CustomTitleBar(QWidget):
     """
     Windows 11 style custom title bar.
@@ -251,11 +258,13 @@ class CustomTitleBar(QWidget):
 
         # Title
         self.title_label = QLabel(self._title)
-        self.title_label.setStyleSheet(f"""
+        self.title_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 12px;
             font-weight: 400;
-        """)
+        """
+        )
         left_layout.addWidget(self.title_label)
 
         layout.addWidget(left_widget)
@@ -287,11 +296,13 @@ class CustomTitleBar(QWidget):
         layout.addWidget(controls_widget)
 
         # Style
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             #custom_titlebar {
                 background-color: transparent;
             }
-        """)
+        """
+        )
 
     def set_title(self, title: str):
         """Set window title"""
@@ -355,6 +366,7 @@ class CustomTitleBar(QWidget):
 # نافذة بدون إطار
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FramelessWindow(QMainWindow):
     """
     Windows 11 style frameless window with custom title bar.
@@ -378,12 +390,7 @@ class FramelessWindow(QMainWindow):
     def _setup_window(self):
         """Configure window properties"""
         # Remove standard frame
-        self.setWindowFlags(
-            Qt.Window |
-            Qt.FramelessWindowHint |
-            Qt.WindowSystemMenuHint |
-            Qt.WindowMinMaxButtonsHint
-        )
+        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint)
 
         # Enable transparency for rounded corners
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -401,13 +408,15 @@ class FramelessWindow(QMainWindow):
         # Central container with rounded corners
         self.container = QFrame()
         self.container.setObjectName("main_container")
-        self.container.setStyleSheet(f"""
+        self.container.setStyleSheet(
+            f"""
             #main_container {{
                 background-color: {colors.bg_mica_base};
                 border: 1px solid {colors.stroke_surface};
                 border-radius: 8px;
             }}
-        """)
+        """
+        )
 
         # Main layout
         main_layout = QVBoxLayout(self.container)
@@ -435,6 +444,7 @@ class FramelessWindow(QMainWindow):
         if HAS_WIN32:
             try:
                 from .fluent_design import MicaEffect
+
                 mica = MicaEffect(self)
                 mica.apply(mica_alt=True)
             except Exception:
@@ -477,22 +487,26 @@ class FramelessWindow(QMainWindow):
 
             # Adjust border radius for maximized state
             if is_maximized:
-                self.container.setStyleSheet(f"""
+                self.container.setStyleSheet(
+                    f"""
                     #main_container {{
                         background-color: {FluentDesignSystem().colors.bg_mica_base};
                         border: none;
                         border-radius: 0px;
                     }}
-                """)
+                """
+                )
             else:
                 colors = FluentDesignSystem().colors
-                self.container.setStyleSheet(f"""
+                self.container.setStyleSheet(
+                    f"""
                     #main_container {{
                         background-color: {colors.bg_mica_base};
                         border: 1px solid {colors.stroke_surface};
                         border-radius: 8px;
                     }}
-                """)
+                """
+                )
 
         super().changeEvent(event)
 

@@ -166,9 +166,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    async def update_worker_heartbeat(
-        self, worker_id: str, last_heartbeat: datetime, status: WorkerStatus
-    ) -> bool:
+    async def update_worker_heartbeat(self, worker_id: str, last_heartbeat: datetime, status: WorkerStatus) -> bool:
         pass
 
     # ==================== Jobs ====================
@@ -632,9 +630,7 @@ class SQLiteDatabase(Database):
 
     async def get_jobs_count_by_status(self) -> Dict[str, int]:
         """إحصائيات المهام حسب الحالة."""
-        cursor = await self._connection.execute(
-            "SELECT status, COUNT(*) as count FROM jobs GROUP BY status"
-        )
+        cursor = await self._connection.execute("SELECT status, COUNT(*) as count FROM jobs GROUP BY status")
         rows = await cursor.fetchall()
         return {row["status"]: row["count"] for row in rows}
 
@@ -659,9 +655,7 @@ class SQLiteDatabase(Database):
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
         # Get total count
-        count_cursor = await self._connection.execute(
-            f"SELECT COUNT(*) FROM jobs {where_clause}", params
-        )
+        count_cursor = await self._connection.execute(f"SELECT COUNT(*) FROM jobs {where_clause}", params)
         total = (await count_cursor.fetchone())[0]
 
         # Get paginated results
@@ -736,9 +730,7 @@ class SQLiteDatabase(Database):
 
     async def get_lease(self, lease_id: str) -> Optional[Lease]:
         """الحصول على lease."""
-        cursor = await self._connection.execute(
-            "SELECT * FROM leases WHERE lease_id = ?", (lease_id,)
-        )
+        cursor = await self._connection.execute("SELECT * FROM leases WHERE lease_id = ?", (lease_id,))
         row = await cursor.fetchone()
         if not row:
             return None
@@ -766,17 +758,14 @@ class SQLiteDatabase(Database):
 
     async def get_active_leases(self) -> List[Lease]:
         """الحصول على جميع الـ leases الفعّالة."""
-        cursor = await self._connection.execute(
-            "SELECT * FROM leases WHERE state = 'active' ORDER BY expires_at ASC"
-        )
+        cursor = await self._connection.execute("SELECT * FROM leases WHERE state = 'active' ORDER BY expires_at ASC")
         rows = await cursor.fetchall()
         return [self._row_to_lease(row) for row in rows]
 
     async def update_lease_state(self, lease_id: str, state: LeaseState) -> bool:
         """تحديث حالة lease."""
         released_at = (
-            datetime.now(timezone.utc).isoformat()
-            if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
+            datetime.now(timezone.utc).isoformat() if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
         )
 
         cursor = await self._connection.execute(
@@ -1446,9 +1435,7 @@ class PostgreSQLDatabase(Database):
     async def get_active_leases(self) -> List[Lease]:
         """الحصول على active leases."""
         async with self._pool.acquire() as conn:
-            rows = await conn.fetch(
-                "SELECT * FROM leases WHERE state = 'active' ORDER BY expires_at ASC"
-            )
+            rows = await conn.fetch("SELECT * FROM leases WHERE state = 'active' ORDER BY expires_at ASC")
             return [self._row_to_lease(row) for row in rows]
 
     async def update_lease_state(self, lease_id: str, state: LeaseState) -> bool:
@@ -1527,9 +1514,7 @@ class PostgreSQLDatabase(Database):
     async def get_recent_events(self, limit: int = 100) -> List[Event]:
         """الحصول على آخر الأحداث."""
         async with self._pool.acquire() as conn:
-            rows = await conn.fetch(
-                "SELECT * FROM events ORDER BY timestamp DESC LIMIT $1", limit
-            )
+            rows = await conn.fetch("SELECT * FROM events ORDER BY timestamp DESC LIMIT $1", limit)
             return [self._row_to_event(row) for row in rows]
 
     async def get_events_by_type(self, event_type: EventType, limit: int = 100) -> List[Event]:
@@ -1601,9 +1586,7 @@ class PostgreSQLDatabase(Database):
                 results["leases"] = int(result.split()[1]) if result.startswith("DELETE") else 0
 
                 # Delete old events
-                result = await conn.execute(
-                    "DELETE FROM events WHERE timestamp < $1", cutoff
-                )
+                result = await conn.execute("DELETE FROM events WHERE timestamp < $1", cutoff)
                 results["events"] = int(result.split()[1]) if result.startswith("DELETE") else 0
 
         logger.info(f"Cleanup completed: {results}")

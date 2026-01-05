@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class DeliveryMode(Enum):
     """Message delivery modes."""
+
     AT_MOST_ONCE = "at_most_once"  # Fire and forget
     AT_LEAST_ONCE = "at_least_once"  # Acknowledge required
     EXACTLY_ONCE = "exactly_once"  # Deduplication
@@ -27,6 +28,7 @@ class DeliveryMode(Enum):
 
 class SubscriptionType(Enum):
     """Types of subscriptions."""
+
     EXCLUSIVE = "exclusive"  # Only one subscriber receives each message
     SHARED = "shared"  # Multiple subscribers share messages
     FAILOVER = "failover"  # Backup subscribers
@@ -36,6 +38,7 @@ class SubscriptionType(Enum):
 @dataclass
 class TopicConfig:
     """Configuration for a topic."""
+
     name: str
     partitions: int = 1
     retention_hours: int = 24
@@ -48,6 +51,7 @@ class TopicConfig:
 @dataclass
 class SubscriptionConfig:
     """Configuration for a subscription."""
+
     name: str
     topic: str
     subscription_type: SubscriptionType = SubscriptionType.SHARED
@@ -61,6 +65,7 @@ class SubscriptionConfig:
 @dataclass
 class Message:
     """A message in the pub/sub system."""
+
     message_id: str
     topic: str
     payload: Dict[str, Any]
@@ -95,6 +100,7 @@ class Message:
 @dataclass
 class Topic:
     """Represents a topic in the pub/sub system."""
+
     config: TopicConfig
     subscriptions: Dict[str, "Subscription"] = field(default_factory=dict)
     partitions: Dict[int, List[Message]] = field(default_factory=dict)
@@ -117,6 +123,7 @@ class Topic:
 @dataclass
 class Subscription:
     """Represents a subscription to a topic."""
+
     config: SubscriptionConfig
     topic: "Topic" = None
     subscribers: List["Subscriber"] = field(default_factory=list)
@@ -147,7 +154,7 @@ class Publisher:
         payload: Dict[str, Any],
         key: Optional[str] = None,
         properties: Optional[Dict[str, str]] = None,
-        event_time: Optional[datetime] = None
+        event_time: Optional[datetime] = None,
     ) -> str:
         """Publish a message to a topic."""
         with self._lock:
@@ -171,12 +178,7 @@ class Publisher:
             else:
                 raise RuntimeError(f"Failed to publish message to topic {topic}")
 
-    def publish_event(
-        self,
-        topic: str,
-        event: Event,
-        key: Optional[str] = None
-    ) -> str:
+    def publish_event(self, topic: str, event: Event, key: Optional[str] = None) -> str:
         """Publish an event as a message."""
         return self.publish(
             topic=topic,
@@ -189,30 +191,16 @@ class Publisher:
             event_time=event.timestamp,
         )
 
-    async def publish_async(
-        self,
-        topic: str,
-        payload: Dict[str, Any],
-        key: Optional[str] = None,
-        **kwargs
-    ) -> str:
+    async def publish_async(self, topic: str, payload: Dict[str, Any], key: Optional[str] = None, **kwargs) -> str:
         """Async publish."""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None,
-            lambda: self.publish(topic, payload, key, **kwargs)
-        )
+        return await loop.run_in_executor(None, lambda: self.publish(topic, payload, key, **kwargs))
 
 
 class Subscriber:
     """Subscriber for receiving messages from topics."""
 
-    def __init__(
-        self,
-        subscription: Subscription,
-        handler: Callable[[Message], bool],
-        manager: "PubSubManager"
-    ):
+    def __init__(self, subscription: Subscription, handler: Callable[[Message], bool], manager: "PubSubManager"):
         self.subscription = subscription
         self.handler = handler
         self.manager = manager
@@ -325,6 +313,7 @@ class PubSubManager:
 
     def _start_cleanup_thread(self):
         """Start background cleanup thread."""
+
         def cleanup_loop():
             while self._running:
                 time.sleep(60)  # Check every minute
@@ -425,11 +414,7 @@ class PubSubManager:
         self._publishers.append(publisher)
         return publisher
 
-    def create_subscriber(
-        self,
-        subscription_name: str,
-        handler: Callable[[Message], bool]
-    ) -> Subscriber:
+    def create_subscriber(self, subscription_name: str, handler: Callable[[Message], bool]) -> Subscriber:
         """Create a new subscriber."""
         subscription = self._subscriptions.get(subscription_name)
         if not subscription:
@@ -463,11 +448,7 @@ class PubSubManager:
             logger.debug(f"Published message {message.message_id} to {message.topic}[{partition}]")
             return True
 
-    def _get_next_message(
-        self,
-        subscription: Subscription,
-        subscriber: Subscriber
-    ) -> Optional[Message]:
+    def _get_next_message(self, subscription: Subscription, subscriber: Subscriber) -> Optional[Message]:
         """Get the next message for a subscriber."""
         with self._lock:
             topic = subscription.topic
@@ -506,7 +487,7 @@ class PubSubManager:
                         subscription.pending_acks[message.message_id] = (
                             message,
                             subscriber,
-                            datetime.now(timezone.utc)
+                            datetime.now(timezone.utc),
                         )
 
                     subscription.cursor_positions[partition] = position + 1
@@ -538,17 +519,19 @@ class PubSubManager:
             if message.redelivery_count >= subscription.config.max_redeliveries:
                 if subscription.config.dead_letter_topic:
                     # Send to dead letter topic
-                    self._publish_message(Message(
-                        message_id=str(uuid.uuid4()),
-                        topic=subscription.config.dead_letter_topic,
-                        payload=message.payload,
-                        properties={
-                            **message.properties,
-                            "original_topic": message.topic,
-                            "original_message_id": message.message_id,
-                            "redelivery_count": str(message.redelivery_count),
-                        }
-                    ))
+                    self._publish_message(
+                        Message(
+                            message_id=str(uuid.uuid4()),
+                            topic=subscription.config.dead_letter_topic,
+                            payload=message.payload,
+                            properties={
+                                **message.properties,
+                                "original_topic": message.topic,
+                                "original_message_id": message.message_id,
+                                "redelivery_count": str(message.redelivery_count),
+                            },
+                        )
+                    )
                 logger.warning(f"Message {message_id} exceeded max redeliveries")
             else:
                 # Re-add to topic for redelivery

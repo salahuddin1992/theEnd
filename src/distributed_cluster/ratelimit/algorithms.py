@@ -179,9 +179,7 @@ class SlidingWindow(RateLimitAlgorithm):
                 self._counts[idx] = 0
 
             # Advance current index
-            self._current_idx = (
-                self._current_idx + windows_to_advance
-            ) % self.precision
+            self._current_idx = (self._current_idx + windows_to_advance) % self.precision
 
             self._last_update = now
 

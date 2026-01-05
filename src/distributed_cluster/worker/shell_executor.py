@@ -39,26 +39,26 @@ class ShellType(str, Enum):
     """أنواع الـ Shell المدعومة."""
 
     # Windows Shells
-    CMD = "cmd"                    # Windows Command Prompt
-    POWERSHELL = "powershell"      # Windows PowerShell 5.1
-    POWERSHELL_7 = "pwsh"          # PowerShell 7 (Cross-platform)
+    CMD = "cmd"  # Windows Command Prompt
+    POWERSHELL = "powershell"  # Windows PowerShell 5.1
+    POWERSHELL_7 = "pwsh"  # PowerShell 7 (Cross-platform)
 
     # Linux/Unix Shells
-    BASH = "bash"                  # Bash shell
-    SH = "sh"                      # POSIX shell
-    ZSH = "zsh"                    # Z shell
+    BASH = "bash"  # Bash shell
+    SH = "sh"  # POSIX shell
+    ZSH = "zsh"  # Z shell
 
     # WSL Distributions
-    WSL = "wsl"                    # Default WSL
-    WSL_UBUNTU = "ubuntu"          # Ubuntu via WSL
-    WSL_DEBIAN = "debian"          # Debian via WSL
-    WSL_KALI = "kali"              # Kali Linux via WSL
+    WSL = "wsl"  # Default WSL
+    WSL_UBUNTU = "ubuntu"  # Ubuntu via WSL
+    WSL_DEBIAN = "debian"  # Debian via WSL
+    WSL_KALI = "kali"  # Kali Linux via WSL
 
     # Git Bash
-    GIT_BASH = "git-bash"          # Git Bash (MINGW)
+    GIT_BASH = "git-bash"  # Git Bash (MINGW)
 
     # Auto-detect
-    AUTO = "auto"                  # تلقائي - يختار الأفضل
+    AUTO = "auto"  # تلقائي - يختار الأفضل
 
 
 @dataclass
@@ -66,7 +66,7 @@ class ShellConfig:
     """إعدادات الـ Shell."""
 
     shell_type: ShellType = ShellType.AUTO
-    run_as_admin: bool = True          # تشغيل كمدير
+    run_as_admin: bool = True  # تشغيل كمدير
     working_dir: Optional[str] = None
     environment: Dict[str, str] = field(default_factory=dict)
     timeout_seconds: int = 3600
@@ -74,10 +74,10 @@ class ShellConfig:
 
     # WSL specific
     wsl_distribution: Optional[str] = None
-    wsl_user: Optional[str] = None     # المستخدم في WSL (root للصلاحيات الكاملة)
+    wsl_user: Optional[str] = None  # المستخدم في WSL (root للصلاحيات الكاملة)
 
     # Admin elevation
-    elevate_privileges: bool = True    # رفع الصلاحيات تلقائياً
+    elevate_privileges: bool = True  # رفع الصلاحيات تلقائياً
 
 
 @dataclass
@@ -298,6 +298,7 @@ class ShellExecutor:
             ShellResult مع النتيجة
         """
         import time
+
         start_time = time.time()
 
         config = config or ShellConfig()
@@ -394,8 +395,10 @@ class ShellExecutor:
                 shell_path,
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy", "Bypass",
-                "-Command", ps_command,
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                ps_command,
             ]
 
         elif shell_type == ShellType.POWERSHELL_7:
@@ -407,8 +410,10 @@ class ShellExecutor:
                 shell_path,
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy", "Bypass",
-                "-Command", ps_command,
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                ps_command,
             ]
 
         elif shell_type in (ShellType.WSL, ShellType.WSL_UBUNTU, ShellType.WSL_DEBIAN, ShellType.WSL_KALI):
@@ -542,14 +547,11 @@ class ShellExecutor:
     def list_available_shells(self) -> Dict[str, bool]:
         """قائمة الـ Shells المتاحة."""
         all_shells = list(ShellType)
-        return {
-            shell.value: shell in self.available_shells
-            for shell in all_shells
-            if shell != ShellType.AUTO
-        }
+        return {shell.value: shell in self.available_shells for shell in all_shells if shell != ShellType.AUTO}
 
 
 # === Convenience Functions ===
+
 
 async def run_cmd(command: str, admin: bool = True) -> ShellResult:
     """تنفيذ أمر في CMD."""
@@ -601,11 +603,13 @@ async def run_git_bash(command: str) -> ShellResult:
 
 # === Admin Privilege Helpers ===
 
+
 def is_admin() -> bool:
     """التحقق من صلاحيات المدير."""
     if IS_WINDOWS:
         try:
             import ctypes
+
             return ctypes.windll.shell32.IsUserAnAdmin() != 0
         except Exception:
             return False

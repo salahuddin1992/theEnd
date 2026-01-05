@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class VaultConfig:
     """إعدادات Vault."""
+
     address: str
     token: Optional[str] = None
     namespace: Optional[str] = None
@@ -83,6 +84,7 @@ class HashiCorpVaultStore(VaultBackend):
         if self._client is None:
             try:
                 import httpx
+
                 self._client = httpx.AsyncClient(
                     base_url=self.config.address,
                     timeout=self.config.timeout,
@@ -126,16 +128,10 @@ class HashiCorpVaultStore(VaultBackend):
             path = self._secret_path(secret.metadata.name, secret.metadata.namespace)
 
             # Convert bytes to strings
-            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v
-                    for k, v in secret.data.items()}
+            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in secret.data.items()}
 
             # Add metadata as custom metadata
-            payload = {
-                "data": data,
-                "options": {
-                    "cas": 0  # Create only if doesn't exist
-                }
-            }
+            payload = {"data": data, "options": {"cas": 0}}  # Create only if doesn't exist
 
             resp = await client.post(path, json=payload, headers=self._headers())
 
@@ -181,8 +177,7 @@ class HashiCorpVaultStore(VaultBackend):
             )
 
             # Encode values as bytes
-            data = {k: v.encode("utf-8") if isinstance(v, str) else v
-                    for k, v in secret_data.items()}
+            data = {k: v.encode("utf-8") if isinstance(v, str) else v for k, v in secret_data.items()}
 
             return Secret(metadata=metadata, data=data)
 
@@ -196,8 +191,7 @@ class HashiCorpVaultStore(VaultBackend):
             client = await self._get_client()
             path = self._secret_path(secret.metadata.name, secret.metadata.namespace)
 
-            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v
-                    for k, v in secret.data.items()}
+            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in secret.data.items()}
 
             payload = {"data": data}
 
@@ -255,10 +249,12 @@ class HashiCorpVaultStore(VaultBackend):
 
             for key in keys:
                 if not key.endswith("/"):
-                    secrets.append(SecretMetadata(
-                        name=key,
-                        namespace=ns,
-                    ))
+                    secrets.append(
+                        SecretMetadata(
+                            name=key,
+                            namespace=ns,
+                        )
+                    )
 
             return secrets
 
@@ -363,8 +359,7 @@ class AWSSecretsManagerStore(VaultBackend):
             name = self._secret_name(secret.metadata.name, secret.metadata.namespace)
 
             # Convert to JSON string
-            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v
-                    for k, v in secret.data.items()}
+            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in secret.data.items()}
 
             client.create_secret(
                 Name=name,
@@ -423,8 +418,7 @@ class AWSSecretsManagerStore(VaultBackend):
             client = self._get_client()
             name = self._secret_name(secret.metadata.name, secret.metadata.namespace)
 
-            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v
-                    for k, v in secret.data.items()}
+            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in secret.data.items()}
 
             client.put_secret_value(
                 SecretId=name,
@@ -482,11 +476,13 @@ class AWSSecretsManagerStore(VaultBackend):
                     if namespace and ns != namespace:
                         continue
 
-                    secrets.append(SecretMetadata(
-                        name=name,
-                        namespace=ns,
-                        created_at=secret.get("CreatedDate", datetime.now(timezone.utc)),
-                    ))
+                    secrets.append(
+                        SecretMetadata(
+                            name=name,
+                            namespace=ns,
+                            created_at=secret.get("CreatedDate", datetime.now(timezone.utc)),
+                        )
+                    )
 
             return secrets
 
@@ -546,9 +542,7 @@ class AzureKeyVaultStore(VaultBackend):
                 from azure.identity import DefaultAzureCredential
                 from azure.keyvault.secrets import SecretClient
             except ImportError:
-                raise ImportError(
-                    "Azure SDK required: pip install azure-identity azure-keyvault-secrets"
-                )
+                raise ImportError("Azure SDK required: pip install azure-identity azure-keyvault-secrets")
 
             credential = self._credential or DefaultAzureCredential()
             self._client = SecretClient(vault_url=self.vault_url, credential=credential)
@@ -578,8 +572,7 @@ class AzureKeyVaultStore(VaultBackend):
             name = self._secret_name(secret.metadata.name, secret.metadata.namespace)
 
             # Convert to JSON string
-            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v
-                    for k, v in secret.data.items()}
+            data = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in secret.data.items()}
 
             client.set_secret(
                 name,
@@ -669,11 +662,13 @@ class AzureKeyVaultStore(VaultBackend):
                 if namespace and ns != namespace:
                     continue
 
-                secrets.append(SecretMetadata(
-                    name=name,
-                    namespace=ns,
-                    created_at=props.created_on or datetime.now(timezone.utc),
-                ))
+                secrets.append(
+                    SecretMetadata(
+                        name=name,
+                        namespace=ns,
+                        created_at=props.created_on or datetime.now(timezone.utc),
+                    )
+                )
 
             return secrets
 

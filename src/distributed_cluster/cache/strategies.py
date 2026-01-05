@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CacheItem:
     """Represents a cached item with metadata."""
+
     key: str
     value: Any
     size_bytes: int = 0
@@ -237,10 +238,7 @@ class TTLStrategy(CacheStrategy):
     def get_expired(self) -> List[str]:
         """Get all expired keys."""
         now = time.time()
-        return [
-            key for key, exp in self._expirations.items()
-            if now > exp
-        ]
+        return [key for key, exp in self._expirations.items() if now > exp]
 
 
 class AdaptiveStrategy(CacheStrategy):
@@ -309,11 +307,7 @@ class AdaptiveStrategy(CacheStrategy):
         size_score = min(item.size_bytes / (1024 * 1024), 1.0)  # Cap at 1MB
 
         # Weighted combination
-        score = (
-            self.lru_weight * idle_score
-            + self.lfu_weight * freq_score
-            + self.size_weight * size_score
-        )
+        score = self.lru_weight * idle_score + self.lfu_weight * freq_score + self.size_weight * size_score
 
         return score
 
@@ -405,11 +399,7 @@ class AdaptiveStrategy(CacheStrategy):
 
     def get_stats(self) -> Dict[str, Any]:
         """Get strategy statistics."""
-        regret_rate = (
-            self._regret_count / self._eviction_count
-            if self._eviction_count > 0
-            else 0
-        )
+        regret_rate = self._regret_count / self._eviction_count if self._eviction_count > 0 else 0
 
         return {
             "lru_weight": self.lru_weight,

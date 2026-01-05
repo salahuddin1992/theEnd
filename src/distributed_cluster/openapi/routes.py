@@ -127,6 +127,7 @@ def setup_openapi_routes(app: Any, spec_generator: Any = None) -> None:
         async def get_openapi_yaml():
             """Get OpenAPI specification as YAML"""
             from fastapi.responses import PlainTextResponse
+
             return PlainTextResponse(spec.to_yaml(), media_type="text/yaml")
 
         @app.get("/docs", include_in_schema=False)
@@ -155,6 +156,7 @@ class OpenAPIRouter:
 
     def __init__(self, spec_generator: Any = None):
         from distributed_cluster.openapi.spec import generate_openapi_spec
+
         self.spec = spec_generator() if spec_generator else generate_openapi_spec()
 
     def get_openapi_json(self) -> Dict[str, Any]:
@@ -182,6 +184,7 @@ class OpenAPIRouter:
         """
         if path == "/openapi.json":
             import json
+
             return json.dumps(self.get_openapi_json()), "application/json", 200
         elif path == "/openapi.yaml":
             return self.get_openapi_yaml(), "text/yaml", 200

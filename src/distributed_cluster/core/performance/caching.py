@@ -37,6 +37,7 @@ class CacheEntry:
     مدخلة ذاكرة مؤقتة
     Cache entry
     """
+
     value: Any
     created_at: float = field(default_factory=time.time)
     accessed_at: float = field(default_factory=time.time)
@@ -140,10 +141,7 @@ class LRUCache:
         """تنظيف العناصر المنتهية"""
         removed = 0
         with self._lock:
-            keys_to_remove = [
-                key for key, entry in self._cache.items()
-                if entry.is_expired()
-            ]
+            keys_to_remove = [key for key, entry in self._cache.items() if entry.is_expired()]
             for key in keys_to_remove:
                 del self._cache[key]
                 removed += 1
@@ -239,6 +237,7 @@ class AsyncLRUCache:
 # =============================================================================
 # Decorators / المزخرفات
 # =============================================================================
+
 
 def _make_key(*args: Any, **kwargs: Any) -> str:
     """إنشاء مفتاح من المعاملات"""
@@ -350,6 +349,7 @@ def cached_property(ttl_seconds: Optional[float] = None):
     مزخرف للخاصية المخزنة مؤقتاً
     Cached property decorator
     """
+
     def decorator(func: Callable) -> property:
         attr_name = f"_cached_{func.__name__}"
         time_attr = f"_cached_{func.__name__}_time"
@@ -381,6 +381,7 @@ def cached_property(ttl_seconds: Optional[float] = None):
 # =============================================================================
 # Utility Classes / فئات مساعدة
 # =============================================================================
+
 
 class CacheManager:
     """
@@ -430,10 +431,7 @@ class CacheManager:
 
     def stats(self) -> dict[str, Any]:
         """إحصائيات جميع الذاكرات"""
-        return {
-            name: cache.stats()
-            for name, cache in self._caches.items()
-        }
+        return {name: cache.stats() for name, cache in self._caches.items()}
 
 
 # Global cache manager
@@ -694,10 +692,7 @@ class MultiLevelCache:
 
     def stats(self) -> dict[str, Any]:
         """إحصائيات جميع المستويات"""
-        return {
-            f"L{i + 1}": level.stats()
-            for i, level in enumerate(self.levels)
-        }
+        return {f"L{i + 1}": level.stats() for i, level in enumerate(self.levels)}
 
 
 class WriteThroughCache:

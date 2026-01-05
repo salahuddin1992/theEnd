@@ -156,12 +156,8 @@ class SystemCollector:
         loop = asyncio.get_running_loop()
 
         # Run CPU-intensive operations in executor
-        cpu_percent = await loop.run_in_executor(
-            None, psutil.cpu_percent, 0.1
-        )
-        cpu_percent_per_core = await loop.run_in_executor(
-            None, psutil.cpu_percent, 0.1, True
-        )
+        cpu_percent = await loop.run_in_executor(None, psutil.cpu_percent, 0.1)
+        cpu_percent_per_core = await loop.run_in_executor(None, psutil.cpu_percent, 0.1, True)
 
         cpu_count = psutil.cpu_count(logical=False) or 1
         cpu_count_logical = psutil.cpu_count(logical=True) or 1
@@ -300,9 +296,7 @@ class SystemCollector:
                 utilization = pynvml.nvmlDeviceGetUtilizationRates(handle)
 
                 try:
-                    temperature = pynvml.nvmlDeviceGetTemperature(
-                        handle, pynvml.NVML_TEMPERATURE_GPU
-                    )
+                    temperature = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
                 except Exception:
                     temperature = 0
 
@@ -312,17 +306,19 @@ class SystemCollector:
                 except Exception:
                     power = power_limit = 0
 
-                gpus.append(GPUMetrics(
-                    index=i,
-                    name=name,
-                    memory_total_mb=memory.total // (1024 * 1024),
-                    memory_used_mb=memory.used // (1024 * 1024),
-                    memory_free_mb=memory.free // (1024 * 1024),
-                    utilization_percent=utilization.gpu,
-                    temperature_c=temperature,
-                    power_usage_w=power,
-                    power_limit_w=power_limit,
-                ))
+                gpus.append(
+                    GPUMetrics(
+                        index=i,
+                        name=name,
+                        memory_total_mb=memory.total // (1024 * 1024),
+                        memory_used_mb=memory.used // (1024 * 1024),
+                        memory_free_mb=memory.free // (1024 * 1024),
+                        utilization_percent=utilization.gpu,
+                        temperature_c=temperature,
+                        power_usage_w=power,
+                        power_limit_w=power_limit,
+                    )
+                )
 
             pynvml.nvmlShutdown()
 
@@ -389,10 +385,9 @@ class SystemCollector:
         cpu_metrics = results[0] if not isinstance(results[0], Exception) else None
         memory_metrics = results[1] if not isinstance(results[1], Exception) else None
 
-        disk_results = results[2:2 + len(self.disk_paths)]
+        disk_results = results[2 : 2 + len(self.disk_paths)]
         disk_metrics = {
-            path: result for path, result in zip(self.disk_paths, disk_results)
-            if not isinstance(result, Exception)
+            path: result for path, result in zip(self.disk_paths, disk_results) if not isinstance(result, Exception)
         }
 
         network_idx = 2 + len(self.disk_paths)
@@ -550,112 +545,126 @@ class PrometheusSystemCollector:
         # CPU metrics
         cpu = self._last_metrics.get("cpu")
         if cpu:
-            lines.extend([
-                f"# HELP {p}_cpu_percent CPU usage percentage",
-                f"# TYPE {p}_cpu_percent gauge",
-                f"{p}_cpu_percent {cpu.percent}",
-                "",
-                f"# HELP {p}_cpu_count Number of CPU cores",
-                f"# TYPE {p}_cpu_count gauge",
-                f"{p}_cpu_count{{type=\"physical\"}} {cpu.count}",
-                f"{p}_cpu_count{{type=\"logical\"}} {cpu.count_logical}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"# HELP {p}_cpu_percent CPU usage percentage",
+                    f"# TYPE {p}_cpu_percent gauge",
+                    f"{p}_cpu_percent {cpu.percent}",
+                    "",
+                    f"# HELP {p}_cpu_count Number of CPU cores",
+                    f"# TYPE {p}_cpu_count gauge",
+                    f'{p}_cpu_count{{type="physical"}} {cpu.count}',
+                    f'{p}_cpu_count{{type="logical"}} {cpu.count_logical}',
+                    "",
+                ]
+            )
 
             if cpu.load_avg_1m:
-                lines.extend([
-                    f"# HELP {p}_load Load average",
-                    f"# TYPE {p}_load gauge",
-                    f"{p}_load{{interval=\"1m\"}} {cpu.load_avg_1m}",
-                    f"{p}_load{{interval=\"5m\"}} {cpu.load_avg_5m}",
-                    f"{p}_load{{interval=\"15m\"}} {cpu.load_avg_15m}",
-                    "",
-                ])
+                lines.extend(
+                    [
+                        f"# HELP {p}_load Load average",
+                        f"# TYPE {p}_load gauge",
+                        f'{p}_load{{interval="1m"}} {cpu.load_avg_1m}',
+                        f'{p}_load{{interval="5m"}} {cpu.load_avg_5m}',
+                        f'{p}_load{{interval="15m"}} {cpu.load_avg_15m}',
+                        "",
+                    ]
+                )
 
         # Memory metrics
         memory = self._last_metrics.get("memory")
         if memory:
-            lines.extend([
-                f"# HELP {p}_memory_bytes Memory in bytes",
-                f"# TYPE {p}_memory_bytes gauge",
-                f"{p}_memory_bytes{{type=\"total\"}} {memory.total_bytes}",
-                f"{p}_memory_bytes{{type=\"available\"}} {memory.available_bytes}",
-                f"{p}_memory_bytes{{type=\"used\"}} {memory.used_bytes}",
-                "",
-                f"# HELP {p}_memory_percent Memory usage percentage",
-                f"# TYPE {p}_memory_percent gauge",
-                f"{p}_memory_percent {memory.percent}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"# HELP {p}_memory_bytes Memory in bytes",
+                    f"# TYPE {p}_memory_bytes gauge",
+                    f'{p}_memory_bytes{{type="total"}} {memory.total_bytes}',
+                    f'{p}_memory_bytes{{type="available"}} {memory.available_bytes}',
+                    f'{p}_memory_bytes{{type="used"}} {memory.used_bytes}',
+                    "",
+                    f"# HELP {p}_memory_percent Memory usage percentage",
+                    f"# TYPE {p}_memory_percent gauge",
+                    f"{p}_memory_percent {memory.percent}",
+                    "",
+                ]
+            )
 
             if memory.swap_total_bytes:
-                lines.extend([
-                    f"# HELP {p}_swap_bytes Swap in bytes",
-                    f"# TYPE {p}_swap_bytes gauge",
-                    f"{p}_swap_bytes{{type=\"total\"}} {memory.swap_total_bytes}",
-                    f"{p}_swap_bytes{{type=\"used\"}} {memory.swap_used_bytes}",
-                    f"{p}_swap_bytes{{type=\"free\"}} {memory.swap_free_bytes}",
-                    "",
-                ])
+                lines.extend(
+                    [
+                        f"# HELP {p}_swap_bytes Swap in bytes",
+                        f"# TYPE {p}_swap_bytes gauge",
+                        f'{p}_swap_bytes{{type="total"}} {memory.swap_total_bytes}',
+                        f'{p}_swap_bytes{{type="used"}} {memory.swap_used_bytes}',
+                        f'{p}_swap_bytes{{type="free"}} {memory.swap_free_bytes}',
+                        "",
+                    ]
+                )
 
         # Disk metrics
         disk = self._last_metrics.get("disk", {})
         for path, disk_metrics in disk.items():
             if disk_metrics:
                 path.replace("/", "_").strip("_") or "root"
-                lines.extend([
-                    f"# HELP {p}_disk_bytes Disk space in bytes",
-                    f"# TYPE {p}_disk_bytes gauge",
-                    f"{p}_disk_bytes{{path=\"{path}\",type=\"total\"}} {disk_metrics.total_bytes}",
-                    f"{p}_disk_bytes{{path=\"{path}\",type=\"used\"}} {disk_metrics.used_bytes}",
-                    f"{p}_disk_bytes{{path=\"{path}\",type=\"free\"}} {disk_metrics.free_bytes}",
-                    "",
-                    f"# HELP {p}_disk_percent Disk usage percentage",
-                    f"# TYPE {p}_disk_percent gauge",
-                    f"{p}_disk_percent{{path=\"{path}\"}} {disk_metrics.percent}",
-                    "",
-                ])
+                lines.extend(
+                    [
+                        f"# HELP {p}_disk_bytes Disk space in bytes",
+                        f"# TYPE {p}_disk_bytes gauge",
+                        f'{p}_disk_bytes{{path="{path}",type="total"}} {disk_metrics.total_bytes}',
+                        f'{p}_disk_bytes{{path="{path}",type="used"}} {disk_metrics.used_bytes}',
+                        f'{p}_disk_bytes{{path="{path}",type="free"}} {disk_metrics.free_bytes}',
+                        "",
+                        f"# HELP {p}_disk_percent Disk usage percentage",
+                        f"# TYPE {p}_disk_percent gauge",
+                        f'{p}_disk_percent{{path="{path}"}} {disk_metrics.percent}',
+                        "",
+                    ]
+                )
 
         # Network metrics
         network = self._last_metrics.get("network")
         if network:
-            lines.extend([
-                f"# HELP {p}_network_bytes Network bytes total",
-                f"# TYPE {p}_network_bytes counter",
-                f"{p}_network_bytes{{direction=\"sent\"}} {network.bytes_sent}",
-                f"{p}_network_bytes{{direction=\"recv\"}} {network.bytes_recv}",
-                "",
-                f"# HELP {p}_network_packets Network packets total",
-                f"# TYPE {p}_network_packets counter",
-                f"{p}_network_packets{{direction=\"sent\"}} {network.packets_sent}",
-                f"{p}_network_packets{{direction=\"recv\"}} {network.packets_recv}",
-                "",
-                f"# HELP {p}_network_errors Network errors total",
-                f"# TYPE {p}_network_errors counter",
-                f"{p}_network_errors{{direction=\"in\"}} {network.errors_in}",
-                f"{p}_network_errors{{direction=\"out\"}} {network.errors_out}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"# HELP {p}_network_bytes Network bytes total",
+                    f"# TYPE {p}_network_bytes counter",
+                    f'{p}_network_bytes{{direction="sent"}} {network.bytes_sent}',
+                    f'{p}_network_bytes{{direction="recv"}} {network.bytes_recv}',
+                    "",
+                    f"# HELP {p}_network_packets Network packets total",
+                    f"# TYPE {p}_network_packets counter",
+                    f'{p}_network_packets{{direction="sent"}} {network.packets_sent}',
+                    f'{p}_network_packets{{direction="recv"}} {network.packets_recv}',
+                    "",
+                    f"# HELP {p}_network_errors Network errors total",
+                    f"# TYPE {p}_network_errors counter",
+                    f'{p}_network_errors{{direction="in"}} {network.errors_in}',
+                    f'{p}_network_errors{{direction="out"}} {network.errors_out}',
+                    "",
+                ]
+            )
 
         # GPU metrics
         gpus = self._last_metrics.get("gpu", [])
         for gpu in gpus:
             total_bytes = gpu.memory_total_mb * 1024 * 1024
             used_bytes = gpu.memory_used_mb * 1024 * 1024
-            lines.extend([
-                f"# HELP {p}_gpu_memory_bytes GPU memory in bytes",
-                f"# TYPE {p}_gpu_memory_bytes gauge",
-                f"{p}_gpu_memory_bytes{{gpu=\"{gpu.index}\",name=\"{gpu.name}\",type=\"total\"}} {total_bytes}",
-                f"{p}_gpu_memory_bytes{{gpu=\"{gpu.index}\",name=\"{gpu.name}\",type=\"used\"}} {used_bytes}",
-                "",
-                f"# HELP {p}_gpu_utilization GPU utilization percentage",
-                f"# TYPE {p}_gpu_utilization gauge",
-                f"{p}_gpu_utilization{{gpu=\"{gpu.index}\",name=\"{gpu.name}\"}} {gpu.utilization_percent}",
-                "",
-                f"# HELP {p}_gpu_temperature GPU temperature in Celsius",
-                f"# TYPE {p}_gpu_temperature gauge",
-                f"{p}_gpu_temperature{{gpu=\"{gpu.index}\",name=\"{gpu.name}\"}} {gpu.temperature_c}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"# HELP {p}_gpu_memory_bytes GPU memory in bytes",
+                    f"# TYPE {p}_gpu_memory_bytes gauge",
+                    f'{p}_gpu_memory_bytes{{gpu="{gpu.index}",name="{gpu.name}",type="total"}} {total_bytes}',
+                    f'{p}_gpu_memory_bytes{{gpu="{gpu.index}",name="{gpu.name}",type="used"}} {used_bytes}',
+                    "",
+                    f"# HELP {p}_gpu_utilization GPU utilization percentage",
+                    f"# TYPE {p}_gpu_utilization gauge",
+                    f'{p}_gpu_utilization{{gpu="{gpu.index}",name="{gpu.name}"}} {gpu.utilization_percent}',
+                    "",
+                    f"# HELP {p}_gpu_temperature GPU temperature in Celsius",
+                    f"# TYPE {p}_gpu_temperature gauge",
+                    f'{p}_gpu_temperature{{gpu="{gpu.index}",name="{gpu.name}"}} {gpu.temperature_c}',
+                    "",
+                ]
+            )
 
         return "\n".join(lines)

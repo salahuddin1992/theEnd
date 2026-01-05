@@ -130,119 +130,110 @@ from .query_cache import (
 
 __all__ = [
     # Cache Optimizer
-    'CacheOptimizer',
-    'CacheConfiguration',
-    'CacheMetrics',
-    'WorkloadType',
-    'WorkloadCharacteristics',
-    'OptimizationStrategy',
-    'OptimizationRecommendation',
-    'AccessPattern',
-    'AdaptiveTTLManager',
-
+    "CacheOptimizer",
+    "CacheConfiguration",
+    "CacheMetrics",
+    "WorkloadType",
+    "WorkloadCharacteristics",
+    "OptimizationStrategy",
+    "OptimizationRecommendation",
+    "AccessPattern",
+    "AdaptiveTTLManager",
     # Performance Optimizer
-    'PerformanceOptimizer',
-    'ResourceMonitor',
-    'BottleneckDetector',
-    'BottleneckType',
-    'ResourceMetrics',
-    'PerformanceMetrics',
-    'PerformanceProfile',
-    'OptimizationLevel',
-    'OptimizationAction',
-    'AdaptiveConnectionPool',
-    'AdaptiveThreadPool',
-    'QueryOptimizer',
-    'track_performance',
-
+    "PerformanceOptimizer",
+    "ResourceMonitor",
+    "BottleneckDetector",
+    "BottleneckType",
+    "ResourceMetrics",
+    "PerformanceMetrics",
+    "PerformanceProfile",
+    "OptimizationLevel",
+    "OptimizationAction",
+    "AdaptiveConnectionPool",
+    "AdaptiveThreadPool",
+    "QueryOptimizer",
+    "track_performance",
     # Cache Warmup
-    'CacheWarmer',
-    'WarmupStrategy',
-    'WarmupPriority',
-    'WarmupItem',
-    'WarmupResult',
-    'WarmupStats',
-    'WarmupDataSource',
-    'StaticWarmupSource',
-    'HistoricalWarmupSource',
-    'AccessPatternPredictor',
-    'IncrementalWarmer',
-    'CacheRefresher',
-
+    "CacheWarmer",
+    "WarmupStrategy",
+    "WarmupPriority",
+    "WarmupItem",
+    "WarmupResult",
+    "WarmupStats",
+    "WarmupDataSource",
+    "StaticWarmupSource",
+    "HistoricalWarmupSource",
+    "AccessPatternPredictor",
+    "IncrementalWarmer",
+    "CacheRefresher",
     # Cache Analytics
-    'CacheAnalytics',
-    'CacheEvent',
-    'CacheAnomaly',
-    'AnomalyType',
-    'MetricType',
-    'KeyAnalytics',
-    'AnalyticsReport',
-    'TimeSeriesBuffer',
-    'TimeSeriesPoint',
-    'TimeGranularity',
-    'AccessPatternAnalyzer',
-    'AnomalyDetector',
-
+    "CacheAnalytics",
+    "CacheEvent",
+    "CacheAnomaly",
+    "AnomalyType",
+    "MetricType",
+    "KeyAnalytics",
+    "AnalyticsReport",
+    "TimeSeriesBuffer",
+    "TimeSeriesPoint",
+    "TimeGranularity",
+    "AccessPatternAnalyzer",
+    "AnomalyDetector",
     # Query Cache
-    'QueryCache',
-    'QueryType',
-    'QueryCacheConfig',
-    'QueryKeyBuilder',
-    'CachedQuery',
-    'CachedQueryExecutor',
-    'BatchQueryCache',
-    'WorkerStatusCache',
-    'JobStatusCache',
-    'SchedulerStateCache',
-    'cached_query',
-
+    "QueryCache",
+    "QueryType",
+    "QueryCacheConfig",
+    "QueryKeyBuilder",
+    "CachedQuery",
+    "CachedQueryExecutor",
+    "BatchQueryCache",
+    "WorkerStatusCache",
+    "JobStatusCache",
+    "SchedulerStateCache",
+    "cached_query",
     # Memory Pool
-    'MemoryPoolManager',
-    'SlabAllocator',
-    'MemoryBlock',
-    'SlabClass',
-    'MemoryStats',
-    'PoolConfig',
-    'MemoryPressureLevel',
-    'MemoryPressureHandler',
-    'ObjectPool',
-
+    "MemoryPoolManager",
+    "SlabAllocator",
+    "MemoryBlock",
+    "SlabClass",
+    "MemoryStats",
+    "PoolConfig",
+    "MemoryPressureLevel",
+    "MemoryPressureHandler",
+    "ObjectPool",
     # Hot Data Tracker
-    'HotDataTracker',
-    'HotLevel',
-    'HotDataConfig',
-    'KeyMetrics',
-    'AccessEventType',
-    'FrequencyCounter',
-    'RecencyTracker',
-    'HotDataReplicator',
-
+    "HotDataTracker",
+    "HotLevel",
+    "HotDataConfig",
+    "KeyMetrics",
+    "AccessEventType",
+    "FrequencyCounter",
+    "RecencyTracker",
+    "HotDataReplicator",
     # Distributed Coordinator
-    'DistributedCacheCoordinator',
-    'ConsistentHash',
-    'ReplicationManager',
-    'PartitionManager',
-    'CacheNode',
-    'Partition',
-    'NodeStatus',
-    'ReplicationStrategy',
-    'ConsistencyLevel',
-    'ReplicationEvent',
-
+    "DistributedCacheCoordinator",
+    "ConsistentHash",
+    "ReplicationManager",
+    "PartitionManager",
+    "CacheNode",
+    "Partition",
+    "NodeStatus",
+    "ReplicationStrategy",
+    "ConsistencyLevel",
+    "ReplicationEvent",
     # Performance Profiler
-    'PerformanceProfiler',
-    'ProfileLevel',
-    'OperationType',
-    'OperationProfile',
-    'OperationStats',
-    'OperationContext',
-    'ProfileSnapshot',
-    'LatencyHistogram',
-    'FlameGraphProfiler',
-    'profile_function',
-
+    "PerformanceProfiler",
+    "ProfileLevel",
+    "OperationType",
+    "OperationProfile",
+    "OperationStats",
+    "OperationContext",
+    "ProfileSnapshot",
+    "LatencyHistogram",
+    "FlameGraphProfiler",
+    "profile_function",
     # Unified API
-    'OptimizationManager',
+    "OptimizationManager",
 ]
 
 
@@ -279,18 +270,16 @@ class OptimizationManager:
         self.profiler = None
 
         if enable_cache_optimization:
-            self.cache_optimizer = CacheOptimizer(
-                strategy=OptimizationStrategy.ADAPTIVE
-            )
+            self.cache_optimizer = CacheOptimizer(strategy=OptimizationStrategy.ADAPTIVE)
 
         if enable_performance_optimization:
-            self.performance_optimizer = PerformanceOptimizer(
-                level=optimization_level
-            )
+            self.performance_optimizer = PerformanceOptimizer(level=optimization_level)
 
         if enable_warmup:
+
             async def dummy_set(k, v, t):
                 return True
+
             self.cache_warmer = CacheWarmer(cache_set=dummy_set)
 
         if enable_analytics:
@@ -301,9 +290,7 @@ class OptimizationManager:
         self.hot_data_tracker = HotDataTracker()
 
         if enable_distributed:
-            self.distributed_coordinator = DistributedCacheCoordinator(
-                node_id=node_id
-            )
+            self.distributed_coordinator = DistributedCacheCoordinator(node_id=node_id)
 
         if enable_profiling:
             self.profiler = PerformanceProfiler(level=profile_level)
@@ -368,70 +355,61 @@ class OptimizationManager:
             await self.profiler.stop_snapshot_loop()
 
     def record_cache_operation(
-        self,
-        key: str,
-        operation: str,
-        hit: bool = True,
-        latency_ms: float = 0.0,
-        value_size: int = 0
+        self, key: str, operation: str, hit: bool = True, latency_ms: float = 0.0, value_size: int = 0
     ):
         """Record a cache operation across all relevant components."""
         if self.cache_optimizer:
-            self.cache_optimizer.record_operation(
-                key, operation, hit, latency_ms, value_size
-            )
+            self.cache_optimizer.record_operation(key, operation, hit, latency_ms, value_size)
 
         if self.analytics:
-            if operation == 'r' and hit:
+            if operation == "r" and hit:
                 self.analytics.record_hit(key, latency_ms, value_size)
-            elif operation == 'r':
+            elif operation == "r":
                 self.analytics.record_miss(key, latency_ms)
-            elif operation == 'w':
+            elif operation == "w":
                 self.analytics.record_write(key, latency_ms, value_size)
 
         if self.hot_data_tracker:
-            event_type = AccessEventType.READ if operation == 'r' else AccessEventType.WRITE
+            event_type = AccessEventType.READ if operation == "r" else AccessEventType.WRITE
             self.hot_data_tracker.record_access(key, event_type, latency_ms, value_size)
 
         if self.cache_warmer:
             self.cache_warmer.record_access(key)
 
         if self.profiler:
-            op_type = OperationType.CACHE_GET if operation == 'r' else OperationType.CACHE_SET
-            self.profiler.record_operation(
-                op_type, latency_ms, success=True, key=key, size=value_size
-            )
+            op_type = OperationType.CACHE_GET if operation == "r" else OperationType.CACHE_SET
+            self.profiler.record_operation(op_type, latency_ms, success=True, key=key, size=value_size)
 
     def get_comprehensive_report(self) -> dict:
         """Get a comprehensive report from all components."""
         report = {
-            'node_id': self.node_id,
-            'running': self._running,
+            "node_id": self.node_id,
+            "running": self._running,
         }
 
         if self.cache_optimizer:
-            report['cache_optimization'] = self.cache_optimizer.get_optimization_report()
+            report["cache_optimization"] = self.cache_optimizer.get_optimization_report()
 
         if self.performance_optimizer:
-            report['performance_optimization'] = self.performance_optimizer.get_optimization_report()
+            report["performance_optimization"] = self.performance_optimizer.get_optimization_report()
 
         if self.analytics:
-            report['cache_analytics'] = self.analytics.get_analytics_summary()
+            report["cache_analytics"] = self.analytics.get_analytics_summary()
 
         if self.query_cache:
-            report['query_cache'] = self.query_cache.get_stats()
+            report["query_cache"] = self.query_cache.get_stats()
 
         if self.memory_pool:
-            report['memory_pool'] = self.memory_pool.get_detailed_stats()
+            report["memory_pool"] = self.memory_pool.get_detailed_stats()
 
         if self.hot_data_tracker:
-            report['hot_data'] = self.hot_data_tracker.get_stats()
+            report["hot_data"] = self.hot_data_tracker.get_stats()
 
         if self.distributed_coordinator:
-            report['distributed_cluster'] = self.distributed_coordinator.get_cluster_stats()
+            report["distributed_cluster"] = self.distributed_coordinator.get_cluster_stats()
 
         if self.profiler:
-            report['profiling'] = self.profiler.get_profiling_report()
+            report["profiling"] = self.profiler.get_profiling_report()
 
         return report
 
@@ -442,27 +420,31 @@ class OptimizationManager:
         if self.cache_optimizer:
             recs = self.cache_optimizer.analyze_and_recommend()
             for rec in recs:
-                recommendations.append({
-                    'source': 'cache_optimizer',
-                    'parameter': rec.parameter,
-                    'current': rec.current_value,
-                    'recommended': rec.recommended_value,
-                    'reason': rec.reason,
-                    'priority': rec.priority,
-                    'confidence': rec.confidence,
-                })
+                recommendations.append(
+                    {
+                        "source": "cache_optimizer",
+                        "parameter": rec.parameter,
+                        "current": rec.current_value,
+                        "recommended": rec.recommended_value,
+                        "reason": rec.reason,
+                        "priority": rec.priority,
+                        "confidence": rec.confidence,
+                    }
+                )
 
         if self.analytics:
             report = self.analytics.generate_report()
             for rec in report.recommendations:
-                recommendations.append({
-                    'source': 'analytics',
-                    'parameter': None,
-                    'current': None,
-                    'recommended': None,
-                    'reason': rec,
-                    'priority': 5,
-                    'confidence': 0.7,
-                })
+                recommendations.append(
+                    {
+                        "source": "analytics",
+                        "parameter": None,
+                        "current": None,
+                        "recommended": None,
+                        "reason": rec,
+                        "priority": 5,
+                        "confidence": 0.7,
+                    }
+                )
 
-        return sorted(recommendations, key=lambda r: r['priority'], reverse=True)
+        return sorted(recommendations, key=lambda r: r["priority"], reverse=True)

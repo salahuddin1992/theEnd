@@ -40,6 +40,7 @@ from ..titlebar import FluentIcons
 # JOB DETAILS PANEL
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class JobDetailsPanel(QFrame):
     """
     Job details side panel.
@@ -60,12 +61,14 @@ class JobDetailsPanel(QFrame):
 
         self.setMinimumWidth(350)
         self.setMaximumWidth(400)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card_default};
                 border-left: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -75,11 +78,13 @@ class JobDetailsPanel(QFrame):
         header_layout = QHBoxLayout()
 
         self._title_label = QLabel("Job Details")
-        self._title_label.setStyleSheet(f"""
+        self._title_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 18px;
             font-weight: 600;
-        """)
+        """
+        )
         header_layout.addWidget(self._title_label)
 
         header_layout.addStretch()
@@ -145,7 +150,8 @@ class JobDetailsPanel(QFrame):
 
         # Output tabs
         tabs = QTabWidget()
-        tabs.setStyleSheet(f"""
+        tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 background-color: {colors.bg_solid_secondary};
                 border: 1px solid {colors.stroke_surface};
@@ -161,12 +167,14 @@ class JobDetailsPanel(QFrame):
                 color: {colors.text_primary};
                 border-bottom: 2px solid {colors.accent};
             }}
-        """)
+        """
+        )
 
         # Stdout
         self._stdout_text = QPlainTextEdit()
         self._stdout_text.setReadOnly(True)
-        self._stdout_text.setStyleSheet(f"""
+        self._stdout_text.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: {colors.bg_solid_base};
                 color: {colors.text_primary};
@@ -175,7 +183,8 @@ class JobDetailsPanel(QFrame):
                 border: none;
                 padding: 12px;
             }}
-        """)
+        """
+        )
         tabs.addTab(self._stdout_text, "Output")
 
         # Stderr
@@ -226,7 +235,8 @@ class JobDetailsPanel(QFrame):
             "pending": colors.warning,
         }
         color = status_colors.get(status, colors.text_secondary)
-        self._status_badge.setStyleSheet(f"""
+        self._status_badge.setStyleSheet(
+            f"""
             QLabel {{
                 background-color: {color}30;
                 color: {color};
@@ -235,7 +245,8 @@ class JobDetailsPanel(QFrame):
                 padding: 4px 12px;
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
 
         # Show progress for running jobs
         self._progress_ring.setVisible(status == "running")
@@ -264,6 +275,7 @@ class JobDetailsPanel(QFrame):
 # JOB SUBMISSION DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class JobSubmitDialog(QDialog):
     """
     Job submission dialog.
@@ -285,11 +297,13 @@ class JobSubmitDialog(QDialog):
         """Setup dialog UI"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QDialog {{
                 background-color: {colors.bg_mica_base};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -297,11 +311,13 @@ class JobSubmitDialog(QDialog):
 
         # Header
         header = QLabel("Submit New Job")
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 24px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(header)
 
         # Form
@@ -326,7 +342,8 @@ class JobSubmitDialog(QDialog):
         self._command_input = QTextEdit()
         self._command_input.setPlaceholderText("Enter command to execute...")
         self._command_input.setMinimumHeight(100)
-        self._command_input.setStyleSheet(f"""
+        self._command_input.setStyleSheet(
+            f"""
             QTextEdit {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -339,7 +356,8 @@ class JobSubmitDialog(QDialog):
             QTextEdit:focus {{
                 border-color: {colors.accent};
             }}
-        """)
+        """
+        )
         form_layout.addWidget(self._command_input)
 
         # Docker image
@@ -361,7 +379,8 @@ class JobSubmitDialog(QDialog):
         self._cpu_spin = QSpinBox()
         self._cpu_spin.setRange(1, 128)
         self._cpu_spin.setValue(1)
-        self._cpu_spin.setStyleSheet(f"""
+        self._cpu_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -370,7 +389,8 @@ class JobSubmitDialog(QDialog):
                 padding: 8px;
                 min-width: 80px;
             }}
-        """)
+        """
+        )
         cpu_layout.addWidget(self._cpu_spin)
         res_layout.addLayout(cpu_layout)
 
@@ -418,7 +438,8 @@ class JobSubmitDialog(QDialog):
         self._priority_combo.addItems(["Low", "Normal", "High", "Critical"])
         self._priority_combo.setCurrentIndex(1)
         self._priority_combo.setMinimumWidth(150)
-        self._priority_combo.setStyleSheet(f"""
+        self._priority_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -426,7 +447,8 @@ class JobSubmitDialog(QDialog):
                 border-radius: 6px;
                 padding: 8px 12px;
             }}
-        """)
+        """
+        )
         priority_layout.addWidget(self._priority_combo)
         priority_layout.addStretch()
 
@@ -479,6 +501,7 @@ class JobSubmitDialog(QDialog):
 # FLUENT JOBS VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentJobsView(QWidget):
     """
     Complete jobs management view.
@@ -518,11 +541,13 @@ class FluentJobsView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Jobs")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         header_layout.addStretch()
@@ -537,11 +562,13 @@ class FluentJobsView(QWidget):
         # Main content with splitter
         splitter = QSplitter(Qt.Horizontal)
         splitter.setHandleWidth(1)
-        splitter.setStyleSheet(f"""
+        splitter.setStyleSheet(
+            f"""
             QSplitter::handle {{
                 background-color: {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         # Jobs table
         self._table = FluentDataTable(self.COLUMNS)

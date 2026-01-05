@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class StorageConfig:
     """Configuration for event storage."""
+
     retention_days: int = 30
     max_events: int = 10000000  # 10 million
     batch_size: int = 1000
@@ -36,6 +37,7 @@ class StorageConfig:
 @dataclass
 class StorageMetrics:
     """Metrics for event storage."""
+
     events_stored: int = 0
     events_retrieved: int = 0
     bytes_stored: int = 0
@@ -72,7 +74,7 @@ class EventStore(ABC):
         end_time: Optional[datetime] = None,
         event_types: Optional[List[EventType]] = None,
         limit: int = 1000,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Event]:
         """Query events with filters."""
         pass
@@ -82,7 +84,7 @@ class EventStore(ABC):
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        event_types: Optional[List[EventType]] = None
+        event_types: Optional[List[EventType]] = None,
     ) -> int:
         """Count events matching filters."""
         pass
@@ -147,7 +149,7 @@ class InMemoryEventStore(EventStore):
         end_time: Optional[datetime] = None,
         event_types: Optional[List[EventType]] = None,
         limit: int = 1000,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Event]:
         with self._lock:
             results = []
@@ -168,7 +170,7 @@ class InMemoryEventStore(EventStore):
                 results.append(event)
 
             # Apply offset and limit
-            results = results[offset:offset + limit]
+            results = results[offset : offset + limit]
 
             for event in results:
                 self.metrics.events_retrieved += 1
@@ -180,7 +182,7 @@ class InMemoryEventStore(EventStore):
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        event_types: Optional[List[EventType]] = None
+        event_types: Optional[List[EventType]] = None,
     ) -> int:
         with self._lock:
             count = 0
@@ -210,10 +212,7 @@ class InMemoryEventStore(EventStore):
                     del self._events[event_id]
                     count += 1
 
-            self._events_by_time = [
-                (ts, eid) for ts, eid in self._events_by_time
-                if eid not in event_ids
-            ]
+            self._events_by_time = [(ts, eid) for ts, eid in self._events_by_time if eid not in event_ids]
             return count
 
     def cleanup(self, before: datetime) -> int:
@@ -319,8 +318,10 @@ class FileEventStore(EventStore):
                 self.metrics.bytes_stored += len(event.to_json())
 
                 # Flush if batch size reached or sync interval passed
-                if (len(self._buffer) >= self.config.batch_size or
-                    (time.time() - self._last_sync) * 1000 >= self.config.sync_interval_ms):
+                if (
+                    len(self._buffer) >= self.config.batch_size
+                    or (time.time() - self._last_sync) * 1000 >= self.config.sync_interval_ms
+                ):
                     self._flush_buffer()
 
                 return True
@@ -359,7 +360,7 @@ class FileEventStore(EventStore):
         end_time: Optional[datetime] = None,
         event_types: Optional[List[EventType]] = None,
         limit: int = 1000,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Event]:
         with self._lock:
             self._flush_buffer()  # Ensure all events are on disk
@@ -391,7 +392,7 @@ class FileEventStore(EventStore):
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        event_types: Optional[List[EventType]] = None
+        event_types: Optional[List[EventType]] = None,
     ) -> int:
         with self._lock:
             self._flush_buffer()
@@ -474,11 +475,7 @@ class PostgresEventStore(EventStore):
             import psycopg2  # noqa: F401
             from psycopg2 import pool
 
-            self._pool = pool.ThreadedConnectionPool(
-                minconn=2,
-                maxconn=10,
-                dsn=self.connection_string
-            )
+            self._pool = pool.ThreadedConnectionPool(minconn=2, maxconn=10, dsn=self.connection_string)
         except ImportError:
             logger.error("psycopg2 not installed. Run: pip install psycopg2-binary")
             raise
@@ -488,7 +485,8 @@ class PostgresEventStore(EventStore):
         conn = self._pool.getconn()
         try:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS events (
                         event_id VARCHAR(36) PRIMARY KEY,
                         event_type VARCHAR(50) NOT NULL,
@@ -503,7 +501,8 @@ class PostgresEventStore(EventStore):
                     CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
                     CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
                     CREATE INDEX IF NOT EXISTS idx_events_type_timestamp ON events(event_type, timestamp);
-                """)
+                """
+                )
                 conn.commit()
         finally:
             self._pool.putconn(conn)
@@ -512,19 +511,22 @@ class PostgresEventStore(EventStore):
         conn = self._pool.getconn()
         try:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     INSERT INTO events (event_id, event_type, priority, timestamp, payload, metadata, version)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (event_id) DO NOTHING
-                """, (
-                    event.event_id,
-                    event.event_type.name,
-                    event.priority.name,
-                    event.timestamp,
-                    json.dumps(event.payload),
-                    json.dumps(event.metadata.to_dict()),
-                    event.version
-                ))
+                """,
+                    (
+                        event.event_id,
+                        event.event_type.name,
+                        event.priority.name,
+                        event.timestamp,
+                        json.dumps(event.payload),
+                        json.dumps(event.metadata.to_dict()),
+                        event.version,
+                    ),
+                )
                 conn.commit()
                 self.metrics.events_stored += 1
                 self.metrics.bytes_stored += len(event.to_json())
@@ -551,16 +553,20 @@ class PostgresEventStore(EventStore):
                         e.timestamp,
                         json.dumps(e.payload),
                         json.dumps(e.metadata.to_dict()),
-                        e.version
+                        e.version,
                     )
                     for e in events
                 ]
 
-                execute_values(cur, """
+                execute_values(
+                    cur,
+                    """
                     INSERT INTO events (event_id, event_type, priority, timestamp, payload, metadata, version)
                     VALUES %s
                     ON CONFLICT (event_id) DO NOTHING
-                """, values)
+                """,
+                    values,
+                )
 
                 conn.commit()
                 count = cur.rowcount
@@ -578,10 +584,13 @@ class PostgresEventStore(EventStore):
         conn = self._pool.getconn()
         try:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT event_id, event_type, priority, timestamp, payload, metadata, version
                     FROM events WHERE event_id = %s
-                """, (event_id,))
+                """,
+                    (event_id,),
+                )
 
                 row = cur.fetchone()
                 if row:
@@ -597,7 +606,7 @@ class PostgresEventStore(EventStore):
         end_time: Optional[datetime] = None,
         event_types: Optional[List[EventType]] = None,
         limit: int = 1000,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[Event]:
         conn = self._pool.getconn()
         try:
@@ -618,13 +627,16 @@ class PostgresEventStore(EventStore):
 
                 where_clause = " AND ".join(conditions) if conditions else "1=1"
 
-                cur.execute(f"""
+                cur.execute(
+                    f"""
                     SELECT event_id, event_type, priority, timestamp, payload, metadata, version
                     FROM events
                     WHERE {where_clause}
                     ORDER BY timestamp
                     LIMIT %s OFFSET %s
-                """, params + [limit, offset])
+                """,
+                    params + [limit, offset],
+                )
 
                 results = [self._row_to_event(row) for row in cur.fetchall()]
                 self.metrics.events_retrieved += len(results)
@@ -636,7 +648,7 @@ class PostgresEventStore(EventStore):
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        event_types: Optional[List[EventType]] = None
+        event_types: Optional[List[EventType]] = None,
     ) -> int:
         conn = self._pool.getconn()
         try:
@@ -692,7 +704,7 @@ class PostgresEventStore(EventStore):
             timestamp=row[3],
             payload=row[4],
             metadata=row[5],
-            version=row[6]
+            version=row[6],
         )
 
     def close(self) -> None:
@@ -704,11 +716,7 @@ class EventReplay:
     """Replays events from storage."""
 
     def __init__(
-        self,
-        store: EventStore,
-        handler: Callable[[Event], None],
-        speed_multiplier: float = 1.0,
-        batch_size: int = 100
+        self, store: EventStore, handler: Callable[[Event], None], speed_multiplier: float = 1.0, batch_size: int = 100
     ):
         self.store = store
         self.handler = handler
@@ -725,7 +733,7 @@ class EventReplay:
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
         event_types: Optional[List[EventType]] = None,
-        real_time: bool = False
+        real_time: bool = False,
     ):
         """
         Replay events within a time range.
@@ -749,11 +757,7 @@ class EventReplay:
                 continue
 
             events = self.store.query(
-                start_time=start_time,
-                end_time=end_time,
-                event_types=event_types,
-                limit=self.batch_size,
-                offset=offset
+                start_time=start_time, end_time=end_time, event_types=event_types, limit=self.batch_size, offset=offset
             )
 
             if not events:

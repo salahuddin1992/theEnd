@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LoadBalancerStats:
     """Statistics for load balancer."""
+
     requests: int = 0
     successful: int = 0
     failed: int = 0
@@ -78,12 +79,7 @@ class LoadBalancer(ABC):
         """Select an instance for the next request."""
         pass
 
-    def record_result(
-        self,
-        instance: ServiceInstance,
-        success: bool,
-        response_time_ms: float = 0
-    ):
+    def record_result(self, instance: ServiceInstance, success: bool, response_time_ms: float = 0):
         """Record the result of a request."""
         self.stats.record_request(instance.instance_id, success, response_time_ms)
 
@@ -122,7 +118,7 @@ class LeastConnectionsBalancer(LoadBalancer):
                 return None
 
             # Find instance with least connections
-            min_conn = float('inf')
+            min_conn = float("inf")
             selected = None
 
             for instance in self._instances:
@@ -230,12 +226,7 @@ class HealthAwareBalancer(LoadBalancer):
     Combines round-robin with health-based weighting.
     """
 
-    def __init__(
-        self,
-        health_check_interval: float = 5.0,
-        error_threshold: int = 5,
-        recovery_time: float = 30.0
-    ):
+    def __init__(self, health_check_interval: float = 5.0, error_threshold: int = 5, recovery_time: float = 30.0):
         super().__init__()
         self._health_scores: Dict[str, float] = {}  # 0.0 to 1.0
         self._error_counts: Dict[str, int] = defaultdict(int)
@@ -259,20 +250,14 @@ class HealthAwareBalancer(LoadBalancer):
                 return None
 
             # Filter by minimum health score
-            healthy = [
-                i for i in self._instances
-                if self._health_scores.get(i.instance_id, 1.0) > 0.1
-            ]
+            healthy = [i for i in self._instances if self._health_scores.get(i.instance_id, 1.0) > 0.1]
 
             if not healthy:
                 # Fall back to all instances if none are healthy enough
                 healthy = self._instances
 
             # Weighted selection by health score
-            total_weight = sum(
-                self._health_scores.get(i.instance_id, 1.0) * i.weight
-                for i in healthy
-            )
+            total_weight = sum(self._health_scores.get(i.instance_id, 1.0) * i.weight for i in healthy)
 
             if total_weight <= 0:
                 return healthy[self._index % len(healthy)]
@@ -288,12 +273,7 @@ class HealthAwareBalancer(LoadBalancer):
 
             return healthy[-1]
 
-    def record_result(
-        self,
-        instance: ServiceInstance,
-        success: bool,
-        response_time_ms: float = 0
-    ):
+    def record_result(self, instance: ServiceInstance, success: bool, response_time_ms: float = 0):
         super().record_result(instance, success, response_time_ms)
 
         with self._lock:

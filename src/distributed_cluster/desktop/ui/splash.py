@@ -24,6 +24,7 @@ from .fluent_design import FluentDesignSystem
 # ANIMATED LOGO
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class AnimatedLogo(QWidget):
     """
     Animated NebulaCompute logo.
@@ -58,14 +59,17 @@ class AnimatedLogo(QWidget):
     def _init_particles(self):
         """Initialize orbital particles"""
         import random
+
         for i in range(8):
-            self._particles.append({
-                "angle": i * 45,
-                "radius": self._size * 0.35,
-                "speed": random.uniform(0.5, 1.5),
-                "size": random.uniform(3, 6),
-                "opacity": random.uniform(0.5, 1.0)
-            })
+            self._particles.append(
+                {
+                    "angle": i * 45,
+                    "radius": self._size * 0.35,
+                    "speed": random.uniform(0.5, 1.5),
+                    "size": random.uniform(3, 6),
+                    "opacity": random.uniform(0.5, 1.0),
+                }
+            )
 
     def _animate(self):
         """Animation frame"""
@@ -127,7 +131,7 @@ class AnimatedLogo(QWidget):
             color.setAlphaF(p["opacity"])
             painter.setBrush(color)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawEllipse(QRectF(x - p["size"]/2, y - p["size"]/2, p["size"], p["size"]))
+            painter.drawEllipse(QRectF(x - p["size"] / 2, y - p["size"] / 2, p["size"], p["size"]))
 
         # Draw center hexagon
         painter.save()
@@ -168,6 +172,7 @@ class AnimatedLogo(QWidget):
 # ═══════════════════════════════════════════════════════════════════════════════
 # FLUENT PROGRESS RING
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class SplashProgressRing(QWidget):
     """
@@ -223,6 +228,7 @@ class SplashProgressRing(QWidget):
 # SPLASH SCREEN
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentSplashScreen(QWidget):
     """
     Modern Windows 11 Fluent Design splash screen.
@@ -252,9 +258,7 @@ class FluentSplashScreen(QWidget):
     def _setup_window(self):
         """Setup frameless window"""
         self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowStaysOnTopHint |
-            Qt.WindowType.SplashScreen
+            Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.SplashScreen
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedSize(480, 360)
@@ -275,7 +279,8 @@ class FluentSplashScreen(QWidget):
 
         container = QWidget()
         container.setObjectName("splashContainer")
-        container.setStyleSheet(f"""
+        container.setStyleSheet(
+            f"""
             #splashContainer {{
                 background: qlineargradient(
                     x1:0, y1:0, x2:1, y2:1,
@@ -285,7 +290,8 @@ class FluentSplashScreen(QWidget):
                 border-radius: 16px;
                 border: 1px solid {colors.stroke_surface};
             }}
-        """)
+        """
+        )
 
         container_layout = QVBoxLayout(container)
         container_layout.setContentsMargins(40, 50, 40, 40)
@@ -302,22 +308,26 @@ class FluentSplashScreen(QWidget):
         # App name
         name_label = QLabel("NebulaCompute")
         name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 32px;
             font-weight: 700;
             font-family: 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
-        """)
+        """
+        )
         container_layout.addWidget(name_label)
 
         # Tagline
         tagline = QLabel("Distributed Computing Platform")
         tagline.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        tagline.setStyleSheet(f"""
+        tagline.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 14px;
             font-weight: 400;
-        """)
+        """
+        )
         container_layout.addWidget(tagline)
 
         container_layout.addSpacing(20)
@@ -332,10 +342,12 @@ class FluentSplashScreen(QWidget):
 
         # Status text
         self._status_label = QLabel("Initializing...")
-        self._status_label.setStyleSheet(f"""
+        self._status_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 13px;
-        """)
+        """
+        )
         progress_layout.addWidget(self._status_label)
         progress_layout.addStretch()
 
@@ -344,10 +356,12 @@ class FluentSplashScreen(QWidget):
         # Version
         version_label = QLabel("Version 1.0.0")
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        version_label.setStyleSheet(f"""
+        version_label.setStyleSheet(
+            f"""
             color: {colors.text_tertiary};
             font-size: 11px;
-        """)
+        """
+        )
         container_layout.addWidget(version_label)
 
         layout.addWidget(container)
@@ -411,7 +425,7 @@ class FluentSplashScreen(QWidget):
         self._logo.stop()
         self._progress_ring.stop()
 
-        if hasattr(self, '_main_window') and self._main_window:
+        if hasattr(self, "_main_window") and self._main_window:
             self._main_window.show()
 
         self.finished.emit()
@@ -421,6 +435,7 @@ class FluentSplashScreen(QWidget):
 # ═══════════════════════════════════════════════════════════════════════════════
 # SPLASH SCREEN MANAGER
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class SplashScreenManager:
     """
@@ -485,6 +500,7 @@ class SplashScreenManager:
 # LOADING OVERLAY
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class LoadingOverlay(QWidget):
     """
     Loading overlay for async operations.
@@ -521,20 +537,24 @@ class LoadingOverlay(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Background
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             LoadingOverlay {
                 background-color: rgba(0, 0, 0, 0.5);
             }
-        """)
+        """
+        )
 
         # Card
         card = QWidget()
         card.setFixedSize(200, 150)
-        card.setStyleSheet(f"""
+        card.setStyleSheet(
+            f"""
             background-color: {colors.bg_solid_base};
             border-radius: 12px;
             border: 1px solid {colors.stroke_surface};
-        """)
+        """
+        )
 
         card_layout = QVBoxLayout(card)
         card_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -551,10 +571,12 @@ class LoadingOverlay(QWidget):
         # Message
         self._message = QLabel("Loading...")
         self._message.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._message.setStyleSheet(f"""
+        self._message.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 14px;
-        """)
+        """
+        )
         card_layout.addWidget(self._message)
 
         layout.addWidget(card)

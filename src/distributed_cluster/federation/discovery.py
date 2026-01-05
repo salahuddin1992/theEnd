@@ -34,12 +34,13 @@ logger = logging.getLogger(__name__)
 
 class DiscoveryMethod(str, Enum):
     """طريقة الاكتشاف / Discovery method"""
-    STATIC = "static"           # قائمة ثابتة
-    DNS = "dns"                 # DNS SRV records
-    CONSUL = "consul"           # Consul service discovery
-    ETCD = "etcd"               # etcd registry
-    KUBERNETES = "kubernetes"   # Kubernetes services
-    MULTICAST = "multicast"     # UDP multicast
+
+    STATIC = "static"  # قائمة ثابتة
+    DNS = "dns"  # DNS SRV records
+    CONSUL = "consul"  # Consul service discovery
+    ETCD = "etcd"  # etcd registry
+    KUBERNETES = "kubernetes"  # Kubernetes services
+    MULTICAST = "multicast"  # UDP multicast
 
 
 @dataclass
@@ -48,6 +49,7 @@ class DiscoveryConfig:
     إعدادات الاكتشاف
     Discovery Configuration
     """
+
     method: DiscoveryMethod = DiscoveryMethod.STATIC
 
     # Polling
@@ -125,20 +127,19 @@ class StaticDiscovery(DiscoveryBackend):
 
     async def register(self, cluster: ClusterInfo) -> bool:
         """تسجيل كتلة"""
-        self.clusters.append({
-            "cluster_id": cluster.cluster_id,
-            "cluster_name": cluster.cluster_name,
-            "endpoint": cluster.endpoint,
-            "region": cluster.region,
-        })
+        self.clusters.append(
+            {
+                "cluster_id": cluster.cluster_id,
+                "cluster_name": cluster.cluster_name,
+                "endpoint": cluster.endpoint,
+                "region": cluster.region,
+            }
+        )
         return True
 
     async def deregister(self, cluster_id: str) -> bool:
         """إلغاء تسجيل"""
-        self.clusters = [
-            c for c in self.clusters
-            if c.get("cluster_id") != cluster_id
-        ]
+        self.clusters = [c for c in self.clusters if c.get("cluster_id") != cluster_id]
         return True
 
 
@@ -159,6 +160,7 @@ class ConsulDiscovery(DiscoveryBackend):
     async def _get_client(self):
         if self._client is None:
             import httpx
+
             self._client = httpx.AsyncClient(base_url=self.address)
         return self._client
 
@@ -214,6 +216,7 @@ class ConsulDiscovery(DiscoveryBackend):
 
         # Parse endpoint
         from urllib.parse import urlparse
+
         parsed = urlparse(cluster.endpoint)
 
         service = {
@@ -487,9 +490,7 @@ class ClusterDiscovery:
 
     def _mark_unhealthy(self, cluster_id: str) -> None:
         """تعليم كتلة كغير صحية"""
-        self._unhealthy_counts[cluster_id] = (
-            self._unhealthy_counts.get(cluster_id, 0) + 1
-        )
+        self._unhealthy_counts[cluster_id] = self._unhealthy_counts.get(cluster_id, 0) + 1
 
         if self._unhealthy_counts[cluster_id] >= self.config.unhealthy_threshold:
             cluster = self._clusters.get(cluster_id)
@@ -596,11 +597,7 @@ class ClusterDiscovery:
         return {
             "method": self.config.method.value,
             "running": self._running,
-            "last_discovery": (
-                self._last_discovery.isoformat()
-                if self._last_discovery
-                else None
-            ),
+            "last_discovery": (self._last_discovery.isoformat() if self._last_discovery else None),
             "cluster_count": len(self._clusters),
             "healthy_count": len(self.get_healthy_clusters()),
             "clusters": [c.to_dict() for c in self._clusters.values()],

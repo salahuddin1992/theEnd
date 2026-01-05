@@ -73,14 +73,8 @@ class Forecast:
             "horizon": self.horizon.value,
             "start_time": self.start_time.isoformat(),
             "end_time": self.end_time.isoformat(),
-            "predictions": [
-                {"timestamp": ts.isoformat(), "value": val}
-                for ts, val in self.predictions
-            ],
-            "confidence_intervals": [
-                {"lower": lower, "upper": upper}
-                for lower, upper in self.confidence_intervals
-            ],
+            "predictions": [{"timestamp": ts.isoformat(), "value": val} for ts, val in self.predictions],
+            "confidence_intervals": [{"lower": lower, "upper": upper} for lower, upper in self.confidence_intervals],
             "confidence_level": self.confidence_level,
             "seasonality_detected": self.seasonality_detected,
             "trend": self.trend,
@@ -197,9 +191,7 @@ class ResourceForecaster:
         history = await self._get_resource_history(resource_type)
 
         if len(history) < 24:  # Need at least 24 hours of data
-            return await self._generate_naive_forecast(
-                resource_type, horizon, steps
-            )
+            return await self._generate_naive_forecast(resource_type, horizon, steps)
 
         # Detect seasonality
         seasonality = await self._detect_seasonality(history)
@@ -208,9 +200,7 @@ class ResourceForecaster:
         trend = await self._detect_trend(history)
 
         # Generate forecast using Holt-Winters or similar
-        predictions, intervals = await self._generate_forecast(
-            history, steps, seasonality, trend
-        )
+        predictions, intervals = await self._generate_forecast(history, steps, seasonality, trend)
 
         # Create forecast object
         start_time = datetime.now(timezone.utc)
@@ -223,10 +213,7 @@ class ResourceForecaster:
             horizon=horizon,
             start_time=start_time,
             end_time=end_time,
-            predictions=[
-                (start_time + step_duration * i, pred)
-                for i, pred in enumerate(predictions)
-            ],
+            predictions=[(start_time + step_duration * i, pred) for i, pred in enumerate(predictions)],
             confidence_intervals=intervals,
             confidence_level=self.confidence_level,
             seasonality_detected=seasonality is not None,
@@ -260,9 +247,7 @@ class ResourceForecaster:
 
         for resource_type, current_capacity in current_capacities.items():
             # Get weekly forecast
-            forecast = await self.forecast(
-                resource_type, ForecastHorizon.WEEK
-            )
+            forecast = await self.forecast(resource_type, ForecastHorizon.WEEK)
 
             if not forecast.predictions:
                 continue
@@ -276,8 +261,7 @@ class ResourceForecaster:
             recommended = predicted_peak * (1 + safety_margin)
 
             # Determine scale factor
-            scale_by = ((recommended - current_capacity) / current_capacity * 100
-                        if current_capacity > 0 else 100)
+            scale_by = (recommended - current_capacity) / current_capacity * 100 if current_capacity > 0 else 100
 
             # Determine urgency
             if predicted_peak > current_capacity:
@@ -364,9 +348,7 @@ class ResourceForecaster:
         x = np.arange(n)
         y = np.array(values)
 
-        slope = (n * np.sum(x * y) - np.sum(x) * np.sum(y)) / (
-            n * np.sum(x ** 2) - np.sum(x) ** 2
-        )
+        slope = (n * np.sum(x * y) - np.sum(x) * np.sum(y)) / (n * np.sum(x**2) - np.sum(x) ** 2)
 
         # Determine trend based on slope relative to mean
         mean = np.mean(y)
@@ -470,15 +452,15 @@ class ResourceForecaster:
         if var == 0:
             return 0.0
 
-        cov = np.sum((x[:n - lag] - mean) * (x[lag:] - mean)) / n
+        cov = np.sum((x[: n - lag] - mean) * (x[lag:] - mean)) / n
         return cov / var
 
     def _get_default_steps(self, horizon: ForecastHorizon) -> int:
         """Get default number of forecast steps."""
         return {
-            ForecastHorizon.HOUR: 12,   # 12 x 5-min intervals
-            ForecastHorizon.DAY: 24,    # 24 hours
-            ForecastHorizon.WEEK: 7,    # 7 days
+            ForecastHorizon.HOUR: 12,  # 12 x 5-min intervals
+            ForecastHorizon.DAY: 24,  # 24 hours
+            ForecastHorizon.WEEK: 7,  # 7 days
             ForecastHorizon.MONTH: 30,  # 30 days
         }.get(horizon, 24)
 

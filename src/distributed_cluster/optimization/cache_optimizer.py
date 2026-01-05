@@ -22,29 +22,32 @@ logger = logging.getLogger(__name__)
 
 class WorkloadType(Enum):
     """Classification of cache workload patterns."""
-    READ_HEAVY = "read_heavy"           # High read-to-write ratio
-    WRITE_HEAVY = "write_heavy"         # High write-to-read ratio
-    BALANCED = "balanced"               # Approximately equal reads/writes
-    BURSTY = "bursty"                   # Irregular access patterns
-    SEQUENTIAL = "sequential"           # Sequential access patterns
-    RANDOM = "random"                   # Random access patterns
-    HOT_COLD = "hot_cold"               # Skewed access (few hot keys)
-    UNIFORM = "uniform"                 # Uniform access distribution
+
+    READ_HEAVY = "read_heavy"  # High read-to-write ratio
+    WRITE_HEAVY = "write_heavy"  # High write-to-read ratio
+    BALANCED = "balanced"  # Approximately equal reads/writes
+    BURSTY = "bursty"  # Irregular access patterns
+    SEQUENTIAL = "sequential"  # Sequential access patterns
+    RANDOM = "random"  # Random access patterns
+    HOT_COLD = "hot_cold"  # Skewed access (few hot keys)
+    UNIFORM = "uniform"  # Uniform access distribution
 
 
 class OptimizationStrategy(Enum):
     """Cache optimization strategies."""
-    AGGRESSIVE = "aggressive"           # Maximize hit rate
-    CONSERVATIVE = "conservative"       # Minimize memory usage
-    BALANCED = "balanced"               # Balance hit rate and memory
-    LATENCY_FOCUSED = "latency_focused" # Minimize latency
+
+    AGGRESSIVE = "aggressive"  # Maximize hit rate
+    CONSERVATIVE = "conservative"  # Minimize memory usage
+    BALANCED = "balanced"  # Balance hit rate and memory
+    LATENCY_FOCUSED = "latency_focused"  # Minimize latency
     THROUGHPUT_FOCUSED = "throughput_focused"  # Maximize throughput
-    ADAPTIVE = "adaptive"               # Dynamically adjust based on metrics
+    ADAPTIVE = "adaptive"  # Dynamically adjust based on metrics
 
 
 @dataclass
 class CacheMetrics:
     """Snapshot of cache performance metrics."""
+
     timestamp: datetime = field(default_factory=datetime.now)
     hits: int = 0
     misses: int = 0
@@ -72,18 +75,19 @@ class CacheMetrics:
 @dataclass
 class WorkloadCharacteristics:
     """Characteristics of observed workload."""
+
     workload_type: WorkloadType
     read_write_ratio: float
     avg_key_size: float
     avg_value_size: float
     access_frequency_std: float  # Standard deviation of access frequency
-    temporal_locality: float     # 0-1, higher = more temporal locality
-    spatial_locality: float      # 0-1, higher = more spatial locality
-    hot_key_ratio: float         # Percentage of keys that are "hot"
-    burstiness_score: float      # 0-1, higher = more bursty
+    temporal_locality: float  # 0-1, higher = more temporal locality
+    spatial_locality: float  # 0-1, higher = more spatial locality
+    hot_key_ratio: float  # Percentage of keys that are "hot"
+    burstiness_score: float  # 0-1, higher = more bursty
 
     @classmethod
-    def default(cls) -> 'WorkloadCharacteristics':
+    def default(cls) -> "WorkloadCharacteristics":
         """Create default characteristics."""
         return cls(
             workload_type=WorkloadType.BALANCED,
@@ -94,13 +98,14 @@ class WorkloadCharacteristics:
             temporal_locality=0.5,
             spatial_locality=0.5,
             hot_key_ratio=0.2,
-            burstiness_score=0.3
+            burstiness_score=0.3,
         )
 
 
 @dataclass
 class OptimizationRecommendation:
     """Recommendation for cache optimization."""
+
     parameter: str
     current_value: Any
     recommended_value: Any
@@ -113,6 +118,7 @@ class OptimizationRecommendation:
 @dataclass
 class CacheConfiguration:
     """Tunable cache configuration parameters."""
+
     max_size: int = 10000
     ttl_seconds: int = 300
     eviction_policy: str = "lru"
@@ -145,7 +151,7 @@ class AccessPattern:
         self._last_access_time: Optional[float] = None
         self._lock = threading.Lock()
 
-    def record_access(self, key: str, operation: str = 'r', value_size: int = 0):
+    def record_access(self, key: str, operation: str = "r", value_size: int = 0):
         """Record a cache access."""
         current_time = time.time()
 
@@ -168,7 +174,7 @@ class AccessPattern:
                 return WorkloadType.BALANCED
 
             # Calculate read/write ratio
-            reads = sum(1 for op in self.operation_types if op == 'r')
+            reads = sum(1 for op in self.operation_types if op == "r")
             writes = len(self.operation_types) - reads
 
             if reads > writes * 4:
@@ -206,9 +212,9 @@ class AccessPattern:
             workload_type = self.get_workload_type()
 
             # Read/write ratio
-            reads = sum(1 for op in self.operation_types if op == 'r')
+            reads = sum(1 for op in self.operation_types if op == "r")
             writes = len(self.operation_types) - reads
-            rw_ratio = reads / writes if writes > 0 else float('inf')
+            rw_ratio = reads / writes if writes > 0 else float("inf")
 
             # Value sizes
             avg_value_size = statistics.mean(self.value_sizes) if self.value_sizes else 256.0
@@ -259,7 +265,7 @@ class AccessPattern:
                 temporal_locality=min(1.0, temporal_locality),
                 spatial_locality=0.5,  # Would need key analysis
                 hot_key_ratio=hot_key_ratio,
-                burstiness_score=burstiness
+                burstiness_score=burstiness,
             )
 
 
@@ -274,7 +280,7 @@ class CacheOptimizer:
         config: Optional[CacheConfiguration] = None,
         strategy: OptimizationStrategy = OptimizationStrategy.ADAPTIVE,
         optimization_interval: float = 60.0,
-        metrics_window_size: int = 1000
+        metrics_window_size: int = 1000,
     ):
         self.config = config or CacheConfiguration()
         self.strategy = strategy
@@ -300,25 +306,20 @@ class CacheOptimizer:
 
         # Configuration bounds
         self._param_bounds = {
-            'max_size': (100, 10000000),
-            'ttl_seconds': (1, 86400),
-            'batch_size': (1, 10000),
-            'memory_limit_mb': (10, 65536),
-            'l1_size_ratio': (0.01, 0.5),
-            'l2_size_ratio': (0.1, 0.8),
-            'hot_key_threshold': (1, 1000),
-            'prefetch_threshold': (0.1, 0.99),
-            'bloom_filter_fp_rate': (0.001, 0.1),
-            'compression_threshold': (64, 65536),
+            "max_size": (100, 10000000),
+            "ttl_seconds": (1, 86400),
+            "batch_size": (1, 10000),
+            "memory_limit_mb": (10, 65536),
+            "l1_size_ratio": (0.01, 0.5),
+            "l2_size_ratio": (0.1, 0.8),
+            "hot_key_threshold": (1, 1000),
+            "prefetch_threshold": (0.1, 0.99),
+            "bloom_filter_fp_rate": (0.001, 0.1),
+            "compression_threshold": (64, 65536),
         }
 
     def record_operation(
-        self,
-        key: str,
-        operation: str,
-        hit: bool = True,
-        latency_ms: float = 0.0,
-        value_size: int = 0
+        self, key: str, operation: str, hit: bool = True, latency_ms: float = 0.0, value_size: int = 0
     ):
         """Record a cache operation for analysis."""
         with self._lock:
@@ -326,14 +327,14 @@ class CacheOptimizer:
             self.access_pattern.record_access(key, operation, value_size)
 
             # Update metrics
-            if operation == 'r':
+            if operation == "r":
                 if hit:
                     self.current_metrics.hits += 1
                 else:
                     self.current_metrics.misses += 1
-            elif operation == 'w':
+            elif operation == "w":
                 self.current_metrics.writes += 1
-            elif operation == 'd':
+            elif operation == "d":
                 self.current_metrics.deletes += 1
 
             # Track latency
@@ -379,7 +380,7 @@ class CacheOptimizer:
                 entry_count=self.current_metrics.entry_count,
                 avg_latency_ms=self.current_metrics.avg_latency_ms,
                 p99_latency_ms=self.current_metrics.p99_latency_ms,
-                throughput_ops=self.current_metrics.throughput_ops
+                throughput_ops=self.current_metrics.throughput_ops,
             )
 
             # Store in history
@@ -409,25 +410,19 @@ class CacheOptimizer:
 
         # Generate recommendations based on strategy
         if self.strategy == OptimizationStrategy.AGGRESSIVE:
-            recommendations.extend(self._aggressive_recommendations(
-                avg_hit_rate, avg_evictions, avg_latency, characteristics
-            ))
+            recommendations.extend(
+                self._aggressive_recommendations(avg_hit_rate, avg_evictions, avg_latency, characteristics)
+            )
         elif self.strategy == OptimizationStrategy.CONSERVATIVE:
-            recommendations.extend(self._conservative_recommendations(
-                avg_hit_rate, avg_evictions, characteristics
-            ))
+            recommendations.extend(self._conservative_recommendations(avg_hit_rate, avg_evictions, characteristics))
         elif self.strategy == OptimizationStrategy.LATENCY_FOCUSED:
-            recommendations.extend(self._latency_recommendations(
-                avg_latency, characteristics
-            ))
+            recommendations.extend(self._latency_recommendations(avg_latency, characteristics))
         elif self.strategy == OptimizationStrategy.THROUGHPUT_FOCUSED:
-            recommendations.extend(self._throughput_recommendations(
-                avg_evictions, characteristics
-            ))
+            recommendations.extend(self._throughput_recommendations(avg_evictions, characteristics))
         else:  # BALANCED or ADAPTIVE
-            recommendations.extend(self._balanced_recommendations(
-                avg_hit_rate, avg_evictions, avg_latency, characteristics
-            ))
+            recommendations.extend(
+                self._balanced_recommendations(avg_hit_rate, avg_evictions, avg_latency, characteristics)
+            )
 
         # Sort by priority
         recommendations.sort(key=lambda r: r.priority, reverse=True)
@@ -436,104 +431,99 @@ class CacheOptimizer:
         return recommendations
 
     def _aggressive_recommendations(
-        self,
-        hit_rate: float,
-        evictions: float,
-        latency: float,
-        characteristics: WorkloadCharacteristics
+        self, hit_rate: float, evictions: float, latency: float, characteristics: WorkloadCharacteristics
     ) -> List[OptimizationRecommendation]:
         """Generate aggressive optimization recommendations."""
         recs = []
 
         # Increase cache size if hit rate is low
         if hit_rate < 0.9 and evictions > 0:
-            new_size = min(
-                self.config.max_size * 2,
-                self._param_bounds['max_size'][1]
-            )
+            new_size = min(self.config.max_size * 2, self._param_bounds["max_size"][1])
             if new_size != self.config.max_size:
-                recs.append(OptimizationRecommendation(
-                    parameter='max_size',
-                    current_value=self.config.max_size,
-                    recommended_value=new_size,
-                    reason=f"Hit rate {hit_rate:.2%} is below 90%, increase cache size",
-                    priority=9,
-                    estimated_improvement=min(20.0, (0.9 - hit_rate) * 100),
-                    confidence=0.8
-                ))
+                recs.append(
+                    OptimizationRecommendation(
+                        parameter="max_size",
+                        current_value=self.config.max_size,
+                        recommended_value=new_size,
+                        reason=f"Hit rate {hit_rate:.2%} is below 90%, increase cache size",
+                        priority=9,
+                        estimated_improvement=min(20.0, (0.9 - hit_rate) * 100),
+                        confidence=0.8,
+                    )
+                )
 
         # Adjust TTL based on workload
         if characteristics.workload_type == WorkloadType.READ_HEAVY:
             new_ttl = min(self.config.ttl_seconds * 2, 3600)
             if new_ttl != self.config.ttl_seconds:
-                recs.append(OptimizationRecommendation(
-                    parameter='ttl_seconds',
-                    current_value=self.config.ttl_seconds,
-                    recommended_value=new_ttl,
-                    reason="Read-heavy workload benefits from longer TTL",
-                    priority=7,
-                    estimated_improvement=10.0,
-                    confidence=0.7
-                ))
+                recs.append(
+                    OptimizationRecommendation(
+                        parameter="ttl_seconds",
+                        current_value=self.config.ttl_seconds,
+                        recommended_value=new_ttl,
+                        reason="Read-heavy workload benefits from longer TTL",
+                        priority=7,
+                        estimated_improvement=10.0,
+                        confidence=0.7,
+                    )
+                )
 
         # Enable prefetching for high temporal locality
         if characteristics.temporal_locality > 0.7 and not self.config.prefetch_enabled:
-            recs.append(OptimizationRecommendation(
-                parameter='prefetch_enabled',
-                current_value=False,
-                recommended_value=True,
-                reason="High temporal locality suggests prefetching would help",
-                priority=8,
-                estimated_improvement=15.0,
-                confidence=0.75
-            ))
+            recs.append(
+                OptimizationRecommendation(
+                    parameter="prefetch_enabled",
+                    current_value=False,
+                    recommended_value=True,
+                    reason="High temporal locality suggests prefetching would help",
+                    priority=8,
+                    estimated_improvement=15.0,
+                    confidence=0.75,
+                )
+            )
 
         return recs
 
     def _conservative_recommendations(
-        self,
-        hit_rate: float,
-        evictions: float,
-        characteristics: WorkloadCharacteristics
+        self, hit_rate: float, evictions: float, characteristics: WorkloadCharacteristics
     ) -> List[OptimizationRecommendation]:
         """Generate conservative optimization recommendations."""
         recs = []
 
         # Reduce cache size if hit rate is already high
         if hit_rate > 0.95 and evictions < 10:
-            new_size = max(
-                int(self.config.max_size * 0.8),
-                self._param_bounds['max_size'][0]
-            )
+            new_size = max(int(self.config.max_size * 0.8), self._param_bounds["max_size"][0])
             if new_size != self.config.max_size:
-                recs.append(OptimizationRecommendation(
-                    parameter='max_size',
-                    current_value=self.config.max_size,
-                    recommended_value=new_size,
-                    reason=f"Hit rate {hit_rate:.2%} is high with low evictions, can reduce size",
-                    priority=5,
-                    estimated_improvement=0.0,  # Memory savings, not hit rate
-                    confidence=0.7
-                ))
+                recs.append(
+                    OptimizationRecommendation(
+                        parameter="max_size",
+                        current_value=self.config.max_size,
+                        recommended_value=new_size,
+                        reason=f"Hit rate {hit_rate:.2%} is high with low evictions, can reduce size",
+                        priority=5,
+                        estimated_improvement=0.0,  # Memory savings, not hit rate
+                        confidence=0.7,
+                    )
+                )
 
         # Enable compression for large values
         if characteristics.avg_value_size > 512 and not self.config.compression_enabled:
-            recs.append(OptimizationRecommendation(
-                parameter='compression_enabled',
-                current_value=False,
-                recommended_value=True,
-                reason="Large average value size would benefit from compression",
-                priority=6,
-                estimated_improvement=0.0,
-                confidence=0.8
-            ))
+            recs.append(
+                OptimizationRecommendation(
+                    parameter="compression_enabled",
+                    current_value=False,
+                    recommended_value=True,
+                    reason="Large average value size would benefit from compression",
+                    priority=6,
+                    estimated_improvement=0.0,
+                    confidence=0.8,
+                )
+            )
 
         return recs
 
     def _latency_recommendations(
-        self,
-        latency: float,
-        characteristics: WorkloadCharacteristics
+        self, latency: float, characteristics: WorkloadCharacteristics
     ) -> List[OptimizationRecommendation]:
         """Generate latency-focused optimization recommendations."""
         recs = []
@@ -541,84 +531,88 @@ class CacheOptimizer:
         # Increase L1 cache ratio for lower latency
         if latency > 5.0 and self.config.l1_size_ratio < 0.3:
             new_ratio = min(self.config.l1_size_ratio * 1.5, 0.4)
-            recs.append(OptimizationRecommendation(
-                parameter='l1_size_ratio',
-                current_value=self.config.l1_size_ratio,
-                recommended_value=new_ratio,
-                reason=f"High latency ({latency:.2f}ms) - increase L1 cache for faster access",
-                priority=9,
-                estimated_improvement=20.0,
-                confidence=0.8
-            ))
+            recs.append(
+                OptimizationRecommendation(
+                    parameter="l1_size_ratio",
+                    current_value=self.config.l1_size_ratio,
+                    recommended_value=new_ratio,
+                    reason=f"High latency ({latency:.2f}ms) - increase L1 cache for faster access",
+                    priority=9,
+                    estimated_improvement=20.0,
+                    confidence=0.8,
+                )
+            )
 
         # Disable compression for latency-sensitive workloads
         if latency > 10.0 and self.config.compression_enabled:
-            recs.append(OptimizationRecommendation(
-                parameter='compression_enabled',
-                current_value=True,
-                recommended_value=False,
-                reason="Disable compression to reduce latency overhead",
-                priority=7,
-                estimated_improvement=15.0,
-                confidence=0.6
-            ))
+            recs.append(
+                OptimizationRecommendation(
+                    parameter="compression_enabled",
+                    current_value=True,
+                    recommended_value=False,
+                    reason="Disable compression to reduce latency overhead",
+                    priority=7,
+                    estimated_improvement=15.0,
+                    confidence=0.6,
+                )
+            )
 
         # Enable bloom filter for faster miss detection
         if not self.config.bloom_filter_enabled:
-            recs.append(OptimizationRecommendation(
-                parameter='bloom_filter_enabled',
-                current_value=False,
-                recommended_value=True,
-                reason="Bloom filter reduces latency for cache misses",
-                priority=6,
-                estimated_improvement=10.0,
-                confidence=0.7
-            ))
+            recs.append(
+                OptimizationRecommendation(
+                    parameter="bloom_filter_enabled",
+                    current_value=False,
+                    recommended_value=True,
+                    reason="Bloom filter reduces latency for cache misses",
+                    priority=6,
+                    estimated_improvement=10.0,
+                    confidence=0.7,
+                )
+            )
 
         return recs
 
     def _throughput_recommendations(
-        self,
-        evictions: float,
-        characteristics: WorkloadCharacteristics
+        self, evictions: float, characteristics: WorkloadCharacteristics
     ) -> List[OptimizationRecommendation]:
         """Generate throughput-focused optimization recommendations."""
         recs = []
 
         # Enable async writes for better throughput
         if not self.config.async_writes:
-            recs.append(OptimizationRecommendation(
-                parameter='async_writes',
-                current_value=False,
-                recommended_value=True,
-                reason="Async writes improve throughput for write operations",
-                priority=8,
-                estimated_improvement=30.0,
-                confidence=0.85
-            ))
+            recs.append(
+                OptimizationRecommendation(
+                    parameter="async_writes",
+                    current_value=False,
+                    recommended_value=True,
+                    reason="Async writes improve throughput for write operations",
+                    priority=8,
+                    estimated_improvement=30.0,
+                    confidence=0.85,
+                )
+            )
 
         # Increase batch size for bursty workloads
         if characteristics.workload_type == WorkloadType.BURSTY:
             new_batch = min(self.config.batch_size * 2, 1000)
             if new_batch != self.config.batch_size:
-                recs.append(OptimizationRecommendation(
-                    parameter='batch_size',
-                    current_value=self.config.batch_size,
-                    recommended_value=new_batch,
-                    reason="Bursty workload benefits from larger batch sizes",
-                    priority=7,
-                    estimated_improvement=20.0,
-                    confidence=0.7
-                ))
+                recs.append(
+                    OptimizationRecommendation(
+                        parameter="batch_size",
+                        current_value=self.config.batch_size,
+                        recommended_value=new_batch,
+                        reason="Bursty workload benefits from larger batch sizes",
+                        priority=7,
+                        estimated_improvement=20.0,
+                        confidence=0.7,
+                    )
+                )
 
         return recs
 
     def _balanced_recommendations(
-        self,
-        hit_rate: float,
-        evictions: float,
-        latency: float,
-        characteristics: WorkloadCharacteristics
+        self, hit_rate: float, evictions: float, latency: float, characteristics: WorkloadCharacteristics
     ) -> List[OptimizationRecommendation]:
         """Generate balanced optimization recommendations."""
         recs = []
@@ -635,15 +629,17 @@ class CacheOptimizer:
         # Eviction policy recommendation based on workload
         recommended_policy = self._recommend_eviction_policy(characteristics)
         if recommended_policy != self.config.eviction_policy:
-            recs.append(OptimizationRecommendation(
-                parameter='eviction_policy',
-                current_value=self.config.eviction_policy,
-                recommended_value=recommended_policy,
-                reason=f"Workload type {characteristics.workload_type.value} suits {recommended_policy} policy",
-                priority=6,
-                estimated_improvement=10.0,
-                confidence=0.7
-            ))
+            recs.append(
+                OptimizationRecommendation(
+                    parameter="eviction_policy",
+                    current_value=self.config.eviction_policy,
+                    recommended_value=recommended_policy,
+                    reason=f"Workload type {characteristics.workload_type.value} suits {recommended_policy} policy",
+                    priority=6,
+                    estimated_improvement=10.0,
+                    confidence=0.7,
+                )
+            )
 
         return recs
 
@@ -658,11 +654,7 @@ class CacheOptimizer:
         else:
             return "adaptive"  # Adaptive for mixed workloads
 
-    def apply_recommendation(
-        self,
-        recommendation: OptimizationRecommendation,
-        notify: bool = True
-    ) -> bool:
+    def apply_recommendation(self, recommendation: OptimizationRecommendation, notify: bool = True) -> bool:
         """Apply a specific optimization recommendation."""
         try:
             # Validate the parameter exists
@@ -675,13 +667,15 @@ class CacheOptimizer:
             setattr(self.config, recommendation.parameter, recommendation.recommended_value)
 
             # Record the optimization
-            self.applied_optimizations.append({
-                'timestamp': datetime.now().isoformat(),
-                'parameter': recommendation.parameter,
-                'old_value': old_value,
-                'new_value': recommendation.recommended_value,
-                'reason': recommendation.reason
-            })
+            self.applied_optimizations.append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "parameter": recommendation.parameter,
+                    "old_value": old_value,
+                    "new_value": recommendation.recommended_value,
+                    "reason": recommendation.reason,
+                }
+            )
 
             logger.info(
                 f"Applied optimization: {recommendation.parameter} "
@@ -765,52 +759,47 @@ class CacheOptimizer:
         recent_metrics = list(self.metrics_history)[-10:] if self.metrics_history else []
 
         return {
-            'current_configuration': {
-                'max_size': self.config.max_size,
-                'ttl_seconds': self.config.ttl_seconds,
-                'eviction_policy': self.config.eviction_policy,
-                'write_policy': self.config.write_policy,
-                'compression_enabled': self.config.compression_enabled,
-                'async_writes': self.config.async_writes,
-                'prefetch_enabled': self.config.prefetch_enabled,
-                'l1_size_ratio': self.config.l1_size_ratio,
-                'l2_size_ratio': self.config.l2_size_ratio,
+            "current_configuration": {
+                "max_size": self.config.max_size,
+                "ttl_seconds": self.config.ttl_seconds,
+                "eviction_policy": self.config.eviction_policy,
+                "write_policy": self.config.write_policy,
+                "compression_enabled": self.config.compression_enabled,
+                "async_writes": self.config.async_writes,
+                "prefetch_enabled": self.config.prefetch_enabled,
+                "l1_size_ratio": self.config.l1_size_ratio,
+                "l2_size_ratio": self.config.l2_size_ratio,
             },
-            'workload_characteristics': {
-                'type': characteristics.workload_type.value,
-                'read_write_ratio': characteristics.read_write_ratio,
-                'temporal_locality': characteristics.temporal_locality,
-                'hot_key_ratio': characteristics.hot_key_ratio,
-                'burstiness_score': characteristics.burstiness_score,
+            "workload_characteristics": {
+                "type": characteristics.workload_type.value,
+                "read_write_ratio": characteristics.read_write_ratio,
+                "temporal_locality": characteristics.temporal_locality,
+                "hot_key_ratio": characteristics.hot_key_ratio,
+                "burstiness_score": characteristics.burstiness_score,
             },
-            'performance_metrics': {
-                'avg_hit_rate': (
-                    statistics.mean([m.hit_rate for m in recent_metrics])
-                    if recent_metrics else 0
+            "performance_metrics": {
+                "avg_hit_rate": (statistics.mean([m.hit_rate for m in recent_metrics]) if recent_metrics else 0),
+                "avg_latency_ms": (
+                    statistics.mean([m.avg_latency_ms for m in recent_metrics]) if recent_metrics else 0
                 ),
-                'avg_latency_ms': (
-                    statistics.mean([m.avg_latency_ms for m in recent_metrics])
-                    if recent_metrics else 0
-                ),
-                'avg_throughput_ops': (
-                    statistics.mean([m.throughput_ops for m in recent_metrics])
-                    if recent_metrics else 0
+                "avg_throughput_ops": (
+                    statistics.mean([m.throughput_ops for m in recent_metrics]) if recent_metrics else 0
                 ),
             },
-            'recommendations': [
+            "recommendations": [
                 {
-                    'parameter': r.parameter,
-                    'current': r.current_value,
-                    'recommended': r.recommended_value,
-                    'reason': r.reason,
-                    'priority': r.priority,
-                    'estimated_improvement': r.estimated_improvement,
-                    'confidence': r.confidence,
+                    "parameter": r.parameter,
+                    "current": r.current_value,
+                    "recommended": r.recommended_value,
+                    "reason": r.reason,
+                    "priority": r.priority,
+                    "estimated_improvement": r.estimated_improvement,
+                    "confidence": r.confidence,
                 }
                 for r in self.recommendations
             ],
-            'applied_optimizations': self.applied_optimizations[-20:],
-            'strategy': self.strategy.value,
+            "applied_optimizations": self.applied_optimizations[-20:],
+            "strategy": self.strategy.value,
         }
 
 
@@ -819,12 +808,7 @@ class AdaptiveTTLManager:
     Manages TTL values adaptively based on access patterns and data freshness requirements.
     """
 
-    def __init__(
-        self,
-        default_ttl: int = 300,
-        min_ttl: int = 10,
-        max_ttl: int = 86400
-    ):
+    def __init__(self, default_ttl: int = 300, min_ttl: int = 10, max_ttl: int = 86400):
         self.default_ttl = default_ttl
         self.min_ttl = min_ttl
         self.max_ttl = max_ttl
@@ -873,10 +857,7 @@ class AdaptiveTTLManager:
         cutoff = current_time - max_age
 
         with self._lock:
-            stale_keys = [
-                k for k, t in self.key_last_access.items()
-                if t < cutoff
-            ]
+            stale_keys = [k for k, t in self.key_last_access.items() if t < cutoff]
 
             for key in stale_keys:
                 self.key_access_counts.pop(key, None)

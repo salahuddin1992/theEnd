@@ -34,6 +34,7 @@ try:
     from io import BytesIO
 
     import qrcode
+
     QRCODE_AVAILABLE = True
 except ImportError:
     QRCODE_AVAILABLE = False
@@ -43,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 class MFAType(str, Enum):
     """MFA method types."""
+
     TOTP = "totp"  # Time-based OTP (Authenticator apps)
     HOTP = "hotp"  # Counter-based OTP
     BACKUP_CODE = "backup_code"  # Recovery codes
@@ -53,6 +55,7 @@ class MFAType(str, Enum):
 
 class MFAStatus(str, Enum):
     """MFA enrollment status."""
+
     NOT_ENROLLED = "not_enrolled"
     PENDING = "pending"  # Awaiting verification
     ENROLLED = "enrolled"
@@ -62,6 +65,7 @@ class MFAStatus(str, Enum):
 @dataclass
 class TOTPConfig:
     """TOTP configuration."""
+
     digits: int = 6  # OTP length (6 or 8)
     period: int = 30  # Time step in seconds
     algorithm: str = "SHA1"  # SHA1, SHA256, SHA512
@@ -76,6 +80,7 @@ class TOTPConfig:
 @dataclass
 class MFADevice:
     """Registered MFA device."""
+
     device_id: str
     user_id: str
     device_name: str
@@ -108,6 +113,7 @@ class MFADevice:
 @dataclass
 class BackupCodes:
     """Backup recovery codes."""
+
     user_id: str
     codes: Set[str] = field(default_factory=set)  # Hashed codes
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -120,6 +126,7 @@ class BackupCodes:
 @dataclass
 class MFAChallenge:
     """Active MFA challenge."""
+
     challenge_id: str
     user_id: str
     mfa_type: MFAType
@@ -175,10 +182,10 @@ class TOTPGenerator:
 
         # Dynamic truncation
         offset = hmac_hash[-1] & 0x0F
-        truncated = struct.unpack(">I", hmac_hash[offset:offset + 4])[0] & 0x7FFFFFFF
+        truncated = struct.unpack(">I", hmac_hash[offset : offset + 4])[0] & 0x7FFFFFFF
 
         # Generate OTP
-        otp = truncated % (10 ** self.config.digits)
+        otp = truncated % (10**self.config.digits)
         return str(otp).zfill(self.config.digits)
 
     def _decode_secret(self, secret: str) -> bytes:
@@ -423,10 +430,7 @@ class MFAManager:
             # Check recent failures
             if user_id in self._failed_attempts:
                 window_start = now - self.config.rate_limit_window
-                self._failed_attempts[user_id] = [
-                    t for t in self._failed_attempts[user_id]
-                    if t > window_start
-                ]
+                self._failed_attempts[user_id] = [t for t in self._failed_attempts[user_id] if t > window_start]
 
                 if len(self._failed_attempts[user_id]) >= self.config.rate_limit_attempts:
                     self._lockouts[user_id] = now + self.config.lockout_duration
@@ -567,10 +571,7 @@ class MFAManager:
 
         # Get user's TOTP devices
         devices = self.store.get_user_devices(user_id)
-        totp_devices = [
-            d for d in devices
-            if d.mfa_type == MFAType.TOTP and d.status == MFAStatus.ENROLLED
-        ]
+        totp_devices = [d for d in devices if d.mfa_type == MFAType.TOTP and d.status == MFAStatus.ENROLLED]
 
         if device_id:
             totp_devices = [d for d in totp_devices if d.device_id == device_id]
@@ -729,10 +730,7 @@ class MFAManager:
     def get_enrolled_methods(self, user_id: str) -> List[MFAType]:
         """Get enrolled MFA methods for a user."""
         devices = self.store.get_user_devices(user_id)
-        return list(set(
-            d.mfa_type for d in devices
-            if d.status == MFAStatus.ENROLLED
-        ))
+        return list(set(d.mfa_type for d in devices if d.status == MFAStatus.ENROLLED))
 
     def is_mfa_enabled(self, user_id: str) -> bool:
         """Check if user has MFA enabled."""

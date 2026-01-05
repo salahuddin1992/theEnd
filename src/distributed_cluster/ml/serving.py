@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class EndpointState(str, Enum):
     """Endpoint lifecycle states."""
+
     CREATING = "creating"
     READY = "ready"
     UPDATING = "updating"
@@ -37,6 +38,7 @@ class EndpointState(str, Enum):
 @dataclass
 class ServingConfig:
     """Model serving configuration."""
+
     host: str = "0.0.0.0"
     port: int = 8080
     workers: int = 4
@@ -61,6 +63,7 @@ class ServingConfig:
 @dataclass
 class InferenceRequest:
     """Inference request."""
+
     request_id: str
     model_id: str
     inputs: Any
@@ -88,6 +91,7 @@ class InferenceRequest:
 @dataclass
 class InferenceResponse:
     """Inference response."""
+
     request_id: str
     model_id: str
     version_id: str
@@ -285,6 +289,7 @@ class ModelEndpoint:
 @dataclass
 class EndpointStats:
     """Endpoint statistics."""
+
     requests: int = 0
     successful: int = 0
     failed: int = 0
@@ -315,6 +320,7 @@ class EndpointStats:
 @dataclass
 class BatchInferenceJob:
     """Batch inference job for processing large datasets."""
+
     job_id: str
     model_id: str
     version_id: str
@@ -378,7 +384,7 @@ class BatchInferenceRunner:
 
             # Process in batches
             for i in range(0, total_records, job.batch_size):
-                batch_df = df.iloc[i:i + job.batch_size]
+                batch_df = df.iloc[i : i + job.batch_size]
                 batch_inputs = batch_df.to_dict(orient="records")
 
                 try:
@@ -549,18 +555,12 @@ class ModelServer:
             "running": self._running,
             "endpoints": len(self._endpoints),
             "models": len(self._models),
-            "endpoint_stats": {
-                eid: ep.get_stats()
-                for eid, ep in self._endpoints.items()
-            },
+            "endpoint_stats": {eid: ep.get_stats() for eid, ep in self._endpoints.items()},
         }
 
     def health_check(self) -> Dict[str, Any]:
         """Health check endpoint."""
         return {
             "status": "healthy" if self._running else "unhealthy",
-            "endpoints": {
-                eid: ep.is_healthy()
-                for eid, ep in self._endpoints.items()
-            },
+            "endpoints": {eid: ep.is_healthy() for eid, ep in self._endpoints.items()},
         }

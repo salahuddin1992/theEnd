@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CacheItem:
     """Represents an item in the cache for eviction tracking."""
+
     key: str
     size: int = 0
     created_at: float = field(default_factory=time.time)
@@ -299,7 +300,7 @@ class TTLPolicy(EvictionPolicy):
             else:
                 self._current_size += 1
 
-            expires_at = time.time() + ttl if ttl else float('inf')
+            expires_at = time.time() + ttl if ttl else float("inf")
             item = CacheItem(key=key, size=size, expires_at=expires_at, priority=priority)
 
             self._items[key] = item
@@ -432,11 +433,7 @@ class AdaptivePolicy(EvictionPolicy):
     """
 
     def __init__(
-        self,
-        max_size: int = 10000,
-        max_memory_bytes: int = 0,
-        learning_rate: float = 0.5,
-        window_size: int = 1000
+        self, max_size: int = 10000, max_memory_bytes: int = 0, learning_rate: float = 0.5, window_size: int = 1000
     ):
         super().__init__(max_size, max_memory_bytes)
         self.learning_rate = learning_rate
@@ -461,10 +458,7 @@ class AdaptivePolicy(EvictionPolicy):
 
             if lru_hits + lfu_hits > 0:
                 lru_ratio = lru_hits / (lru_hits + lfu_hits)
-                self._lru_weight = (
-                    self._lru_weight * (1 - self.learning_rate) +
-                    lru_ratio * self.learning_rate
-                )
+                self._lru_weight = self._lru_weight * (1 - self.learning_rate) + lru_ratio * self.learning_rate
 
     def on_access(self, key: str) -> None:
         with self._lock:

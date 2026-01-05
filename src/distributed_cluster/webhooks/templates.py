@@ -31,6 +31,7 @@ class PayloadTemplate:
     قالب البيانات
     Payload template
     """
+
     name: str
     template: dict[str, Any]
     description: str = ""
@@ -58,9 +59,7 @@ class TemplateEngine:
     VARIABLE_PATTERN = re.compile(r"\{\{\s*([a-zA-Z_][a-zA-Z0-9_\.]*)\s*\}\}")
 
     # Filter pattern: {{variable|filter}} or {{variable|filter:arg}}
-    FILTER_PATTERN = re.compile(
-        r"\{\{\s*([a-zA-Z_][a-zA-Z0-9_\.]*)\s*\|\s*([a-zA-Z_]+)(?::([^}]+))?\s*\}\}"
-    )
+    FILTER_PATTERN = re.compile(r"\{\{\s*([a-zA-Z_][a-zA-Z0-9_\.]*)\s*\|\s*([a-zA-Z_]+)(?::([^}]+))?\s*\}\}")
 
     def __init__(self):
         """تهيئة المحرك"""
@@ -79,14 +78,10 @@ class TemplateEngine:
         self._filters["title"] = lambda x: str(x).title()
         self._filters["strip"] = lambda x: str(x).strip()
         self._filters["default"] = lambda x, d="": x if x else d
-        self._filters["truncate"] = lambda x, limit=100: str(x)[:int(limit)]
+        self._filters["truncate"] = lambda x, limit=100: str(x)[: int(limit)]
         self._filters["json"] = lambda x: json.dumps(x)
-        self._filters["date"] = lambda x, f="%Y-%m-%d": (
-            x.strftime(f) if isinstance(x, datetime) else str(x)
-        )
-        self._filters["time"] = lambda x, f="%H:%M:%S": (
-            x.strftime(f) if isinstance(x, datetime) else str(x)
-        )
+        self._filters["date"] = lambda x, f="%Y-%m-%d": (x.strftime(f) if isinstance(x, datetime) else str(x))
+        self._filters["time"] = lambda x, f="%H:%M:%S": (x.strftime(f) if isinstance(x, datetime) else str(x))
         self._filters["datetime"] = lambda x, f="%Y-%m-%d %H:%M:%S": (
             x.strftime(f) if isinstance(x, datetime) else str(x)
         )
@@ -207,9 +202,7 @@ class TemplateEngine:
             elif isinstance(value, dict):
                 result[rendered_key] = self._render_dict(value, context)
             elif isinstance(value, list):
-                result[rendered_key] = [
-                    self.render(item, context) for item in value
-                ]
+                result[rendered_key] = [self.render(item, context) for item in value]
             else:
                 result[rendered_key] = value
 
@@ -221,6 +214,7 @@ class TemplateEngine:
         context: dict[str, Any],
     ) -> str:
         """تقديم نص"""
+
         # First, apply filters
         def replace_filter(match: re.Match) -> str:
             var_path = match.group(1)
@@ -336,6 +330,7 @@ class TemplateEngine:
 # =============================================================================
 # Predefined Templates
 # =============================================================================
+
 
 def create_simple_template() -> PayloadTemplate:
     """إنشاء قالب بسيط"""

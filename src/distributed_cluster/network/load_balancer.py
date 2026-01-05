@@ -79,10 +79,7 @@ class Backend:
     @property
     def is_available(self) -> bool:
         """Check if backend is available."""
-        return (
-            self.status == BackendStatus.HEALTHY
-            and self.current_connections < self.max_connections
-        )
+        return self.status == BackendStatus.HEALTHY and self.current_connections < self.max_connections
 
     @property
     def connection_ratio(self) -> float:
@@ -264,10 +261,7 @@ class LeastConnectionsStrategy(LoadBalancerStrategy):
 
         # Select backend with least connections
         # Consider weight: effective_connections = connections / weight
-        return min(
-            available,
-            key=lambda b: b.current_connections / b.weight if b.weight > 0 else float('inf')
-        )
+        return min(available, key=lambda b: b.current_connections / b.weight if b.weight > 0 else float("inf"))
 
 
 class IPHashStrategy(LoadBalancerStrategy):
@@ -298,9 +292,7 @@ class IPHashStrategy(LoadBalancerStrategy):
             client_ip = request_context.get("client_ip", "0.0.0.0")
 
         # Hash the IP
-        hash_value = int(hashlib.md5(
-            client_ip.encode(), usedforsecurity=False
-        ).hexdigest(), 16)
+        hash_value = int(hashlib.md5(client_ip.encode(), usedforsecurity=False).hexdigest(), 16)
 
         # Select backend based on hash
         index = hash_value % len(available)
@@ -332,8 +324,7 @@ class LeastResponseTimeStrategy(LoadBalancerStrategy):
         # Select backend with lowest response time
         # Weight factor: effective_time = response_time / weight
         return min(
-            available,
-            key=lambda b: (b.avg_response_time_ms or 1.0) / b.weight if b.weight > 0 else float('inf')
+            available, key=lambda b: (b.avg_response_time_ms or 1.0) / b.weight if b.weight > 0 else float("inf")
         )
 
 
@@ -390,9 +381,7 @@ class ConsistentHashStrategy(LoadBalancerStrategy):
         for backend in backends:
             for i in range(self.replicas):
                 key = f"{backend.id}:{i}"
-                hash_val = int(hashlib.md5(
-                    key.encode(), usedforsecurity=False
-                ).hexdigest(), 16)
+                hash_val = int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest(), 16)
                 self._ring[hash_val] = backend.id
                 self._sorted_keys.append(hash_val)
 
@@ -403,9 +392,7 @@ class ConsistentHashStrategy(LoadBalancerStrategy):
         if not self._ring:
             return None
 
-        hash_val = int(hashlib.md5(
-            key.encode(), usedforsecurity=False
-        ).hexdigest(), 16)
+        hash_val = int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest(), 16)
 
         # Find first node clockwise
         for ring_key in self._sorted_keys:
@@ -433,8 +420,7 @@ class ConsistentHashStrategy(LoadBalancerStrategy):
         # Get request key
         request_key = "default"
         if request_context:
-            request_key = request_context.get("request_key",
-                          request_context.get("client_ip", "default"))
+            request_key = request_context.get("request_key", request_context.get("client_ip", "default"))
 
         # Find backend
         backend_id = self._get_backend_id(request_key)
@@ -606,9 +592,7 @@ class LoadBalancer:
         if backend.avg_response_time_ms == 0:
             backend.avg_response_time_ms = response_time_ms
         else:
-            backend.avg_response_time_ms = (
-                alpha * response_time_ms + (1 - alpha) * backend.avg_response_time_ms
-            )
+            backend.avg_response_time_ms = alpha * response_time_ms + (1 - alpha) * backend.avg_response_time_ms
 
         # Update stats
         self._stats.total_response_time_ms += response_time_ms

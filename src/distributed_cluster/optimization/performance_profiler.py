@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class ProfileLevel(Enum):
     """Levels of profiling detail."""
+
     OFF = 0
     BASIC = 1
     DETAILED = 2
@@ -30,6 +31,7 @@ class ProfileLevel(Enum):
 
 class OperationType(Enum):
     """Types of operations to profile."""
+
     CACHE_GET = "cache_get"
     CACHE_SET = "cache_set"
     CACHE_DELETE = "cache_delete"
@@ -51,6 +53,7 @@ class OperationType(Enum):
 @dataclass
 class OperationProfile:
     """Profile data for a single operation."""
+
     operation_id: str
     operation_type: OperationType
     start_time: float
@@ -59,7 +62,7 @@ class OperationProfile:
     success: bool = True
     error: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
-    child_operations: List['OperationProfile'] = field(default_factory=list)
+    child_operations: List["OperationProfile"] = field(default_factory=list)
     parent_id: Optional[str] = None
 
     @property
@@ -71,10 +74,11 @@ class OperationProfile:
 @dataclass
 class LatencyHistogram:
     """Histogram for latency distribution."""
+
     buckets: Dict[float, int] = field(default_factory=dict)
     total_count: int = 0
     total_sum: float = 0.0
-    min_value: float = float('inf')
+    min_value: float = float("inf")
     max_value: float = 0.0
 
     def record(self, value: float):
@@ -84,6 +88,7 @@ class LatencyHistogram:
             bucket = 0.0
         else:
             import math
+
             bucket = 2 ** math.floor(math.log2(value))
 
         self.buckets[bucket] = self.buckets.get(bucket, 0) + 1
@@ -116,12 +121,13 @@ class LatencyHistogram:
 @dataclass
 class OperationStats:
     """Aggregated statistics for an operation type."""
+
     operation_type: OperationType
     count: int = 0
     success_count: int = 0
     error_count: int = 0
     total_duration_ms: float = 0.0
-    min_duration_ms: float = float('inf')
+    min_duration_ms: float = float("inf")
     max_duration_ms: float = 0.0
     latency_histogram: LatencyHistogram = field(default_factory=LatencyHistogram)
 
@@ -152,6 +158,7 @@ class OperationStats:
 @dataclass
 class ProfileSnapshot:
     """Snapshot of profiling data at a point in time."""
+
     timestamp: datetime
     operation_stats: Dict[OperationType, OperationStats]
     throughput_ops: float
@@ -166,11 +173,11 @@ class OperationContext:
 
     def __init__(
         self,
-        profiler: 'PerformanceProfiler',
+        profiler: "PerformanceProfiler",
         operation_type: OperationType,
         operation_id: Optional[str] = None,
         parent_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         self.profiler = profiler
         self.operation_type = operation_type
@@ -224,7 +231,7 @@ class PerformanceProfiler:
         self,
         level: ProfileLevel = ProfileLevel.BASIC,
         history_size: int = 10000,
-        snapshot_interval_seconds: float = 60.0
+        snapshot_interval_seconds: float = 60.0,
     ):
         self.level = level
         self.history_size = history_size
@@ -236,8 +243,7 @@ class PerformanceProfiler:
 
         # Statistics by operation type
         self.operation_stats: Dict[OperationType, OperationStats] = {
-            op: OperationStats(operation_type=op)
-            for op in OperationType
+            op: OperationStats(operation_type=op) for op in OperationType
         }
 
         # Time-series snapshots
@@ -264,7 +270,7 @@ class PerformanceProfiler:
         operation_type: OperationType,
         operation_id: Optional[str] = None,
         parent_id: Optional[str] = None,
-        **metadata
+        **metadata,
     ) -> OperationContext:
         """Create a profiling context for an operation."""
         if self.level == ProfileLevel.OFF:
@@ -301,13 +307,15 @@ class PerformanceProfiler:
 
             # Track errors
             if not profile.success and self.level >= ProfileLevel.DETAILED:
-                self.error_traces.append({
-                    'operation_id': profile.operation_id,
-                    'operation_type': profile.operation_type.value,
-                    'error': profile.error,
-                    'timestamp': profile.end_time,
-                    'metadata': profile.metadata,
-                })
+                self.error_traces.append(
+                    {
+                        "operation_id": profile.operation_id,
+                        "operation_type": profile.operation_type.value,
+                        "error": profile.error,
+                        "timestamp": profile.end_time,
+                        "metadata": profile.metadata,
+                    }
+                )
 
     def record_operation(
         self,
@@ -315,7 +323,7 @@ class PerformanceProfiler:
         duration_ms: float,
         success: bool = True,
         error: Optional[str] = None,
-        **metadata
+        **metadata,
     ):
         """Directly record an operation without context manager."""
         if self.level == ProfileLevel.OFF:
@@ -342,24 +350,20 @@ class PerformanceProfiler:
             if operation_type:
                 stats = self.operation_stats[operation_type]
                 return {
-                    'operation_type': operation_type.value,
-                    'count': stats.count,
-                    'success_count': stats.success_count,
-                    'error_count': stats.error_count,
-                    'success_rate': stats.success_rate,
-                    'avg_duration_ms': stats.avg_duration_ms,
-                    'min_duration_ms': stats.min_duration_ms if stats.min_duration_ms != float('inf') else 0,
-                    'max_duration_ms': stats.max_duration_ms,
-                    'p50_duration_ms': stats.latency_histogram.percentile(0.5),
-                    'p95_duration_ms': stats.latency_histogram.percentile(0.95),
-                    'p99_duration_ms': stats.latency_histogram.percentile(0.99),
+                    "operation_type": operation_type.value,
+                    "count": stats.count,
+                    "success_count": stats.success_count,
+                    "error_count": stats.error_count,
+                    "success_rate": stats.success_rate,
+                    "avg_duration_ms": stats.avg_duration_ms,
+                    "min_duration_ms": stats.min_duration_ms if stats.min_duration_ms != float("inf") else 0,
+                    "max_duration_ms": stats.max_duration_ms,
+                    "p50_duration_ms": stats.latency_histogram.percentile(0.5),
+                    "p95_duration_ms": stats.latency_histogram.percentile(0.95),
+                    "p99_duration_ms": stats.latency_histogram.percentile(0.99),
                 }
             else:
-                return {
-                    op.value: self.get_stats(op)
-                    for op in OperationType
-                    if self.operation_stats[op].count > 0
-                }
+                return {op.value: self.get_stats(op) for op in OperationType if self.operation_stats[op].count > 0}
 
     def get_throughput(self, window_seconds: float = 60.0) -> float:
         """Calculate operations per second over a time window."""
@@ -371,9 +375,7 @@ class PerformanceProfiler:
             return count / window_seconds if window_seconds > 0 else 0
 
     def get_latency_percentiles(
-        self,
-        operation_type: Optional[OperationType] = None,
-        percentiles: Optional[List[float]] = None
+        self, operation_type: Optional[OperationType] = None, percentiles: Optional[List[float]] = None
     ) -> Dict[str, float]:
         """Get latency percentiles."""
         if percentiles is None:
@@ -387,21 +389,18 @@ class PerformanceProfiler:
                 for profile in self.completed_operations:
                     histogram.record(profile.duration_ms)
 
-            return {
-                f"p{int(p*100)}": histogram.percentile(p)
-                for p in percentiles
-            }
+            return {f"p{int(p*100)}": histogram.percentile(p) for p in percentiles}
 
     def get_slow_operations(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get recent slow operations."""
         with self._lock:
             return [
                 {
-                    'operation_id': op.operation_id,
-                    'operation_type': op.operation_type.value,
-                    'duration_ms': op.duration_ms,
-                    'timestamp': op.end_time,
-                    'metadata': op.metadata,
+                    "operation_id": op.operation_id,
+                    "operation_type": op.operation_type.value,
+                    "duration_ms": op.duration_ms,
+                    "timestamp": op.end_time,
+                    "metadata": op.metadata,
                 }
                 for op in list(self.slow_operations)[-limit:]
             ]
@@ -417,10 +416,10 @@ class PerformanceProfiler:
             current_time = time.time()
             return [
                 {
-                    'operation_id': op.operation_id,
-                    'operation_type': op.operation_type.value,
-                    'running_time_ms': (current_time - op.start_time) * 1000,
-                    'metadata': op.metadata,
+                    "operation_id": op.operation_id,
+                    "operation_type": op.operation_type.value,
+                    "running_time_ms": (current_time - op.start_time) * 1000,
+                    "metadata": op.metadata,
                 }
                 for op in self.active_operations.values()
             ]
@@ -449,7 +448,7 @@ class PerformanceProfiler:
                 },
                 throughput_ops=self.get_throughput(),
                 avg_latency_ms=total_duration / total_ops if total_ops > 0 else 0,
-                p99_latency_ms=self.get_latency_percentiles().get('p99', 0),
+                p99_latency_ms=self.get_latency_percentiles().get("p99", 0),
                 error_rate=total_errors / total_ops if total_ops > 0 else 0,
                 active_operations=len(self.active_operations),
             )
@@ -503,18 +502,18 @@ class PerformanceProfiler:
         """Generate a comprehensive profiling report."""
         with self._lock:
             return {
-                'level': self.level.value,
-                'total_operations': sum(s.count for s in self.operation_stats.values()),
-                'active_operations': len(self.active_operations),
-                'throughput_ops': self.get_throughput(),
-                'latency_percentiles': self.get_latency_percentiles(),
-                'operation_stats': self.get_stats(),
-                'slow_operations_count': len(self.slow_operations),
-                'slow_threshold_ms': self.slow_threshold_ms,
-                'recent_slow_operations': self.get_slow_operations(5),
-                'error_count': sum(s.error_count for s in self.operation_stats.values()),
-                'recent_errors': self.get_error_traces(5),
-                'snapshot_count': len(self.snapshots),
+                "level": self.level.value,
+                "total_operations": sum(s.count for s in self.operation_stats.values()),
+                "active_operations": len(self.active_operations),
+                "throughput_ops": self.get_throughput(),
+                "latency_percentiles": self.get_latency_percentiles(),
+                "operation_stats": self.get_stats(),
+                "slow_operations_count": len(self.slow_operations),
+                "slow_threshold_ms": self.slow_threshold_ms,
+                "recent_slow_operations": self.get_slow_operations(5),
+                "error_count": sum(s.error_count for s in self.operation_stats.values()),
+                "recent_errors": self.get_error_traces(5),
+                "snapshot_count": len(self.snapshots),
             }
 
 
@@ -537,11 +536,9 @@ class _NoOpContext:
         pass
 
 
-def profile_function(
-    profiler: PerformanceProfiler,
-    operation_type: OperationType = OperationType.CUSTOM
-):
+def profile_function(profiler: PerformanceProfiler, operation_type: OperationType = OperationType.CUSTOM):
     """Decorator to profile a function."""
+
     def decorator(func):
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):

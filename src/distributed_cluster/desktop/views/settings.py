@@ -135,6 +135,7 @@ class SettingsView(QScrollArea):
 
         # Windows Settings (only on Windows)
         import sys
+
         if sys.platform == "win32":
             windows_group = QGroupBox("Windows Integration")
             windows_layout = QFormLayout(windows_group)
@@ -184,6 +185,7 @@ class SettingsView(QScrollArea):
 
         # Current version
         from ..main import APP_VERSION
+
         version_label = QLabel(f"Current version: {APP_VERSION}")
         version_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 12px;")
         updates_layout.addRow("", version_label)
@@ -348,10 +350,10 @@ class SettingsView(QScrollArea):
 
         # Re-enable button after a short delay
         from PySide6.QtCore import QTimer
-        QTimer.singleShot(2000, lambda: (
-            self.check_updates_btn.setEnabled(True),
-            self.check_updates_btn.setText("Check for Updates")
-        ))
+
+        QTimer.singleShot(
+            2000, lambda: (self.check_updates_btn.setEnabled(True), self.check_updates_btn.setText("Check for Updates"))
+        )
 
     def _save_settings(self):
         """Save current settings"""
@@ -402,6 +404,7 @@ class SettingsView(QScrollArea):
     def _get_default_settings(self) -> dict:
         """Get default settings"""
         import sys
+
         defaults = {
             "server_url": "http://localhost:8765",
             "token": "",
@@ -419,11 +422,13 @@ class SettingsView(QScrollArea):
         }
         # Add Windows-specific defaults
         if sys.platform == "win32":
-            defaults.update({
-                "launch_at_startup": False,
-                "minimize_to_tray": True,
-                "tray_notifications": True,
-            })
+            defaults.update(
+                {
+                    "launch_at_startup": False,
+                    "minimize_to_tray": True,
+                    "tray_notifications": True,
+                }
+            )
         return defaults
 
     def _load_settings(self) -> dict:

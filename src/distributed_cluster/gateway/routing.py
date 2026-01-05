@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class LoadBalancerType(str, Enum):
     """Load balancing algorithms."""
+
     ROUND_ROBIN = "round_robin"
     RANDOM = "random"
     LEAST_CONNECTIONS = "least_connections"
@@ -32,6 +33,7 @@ class LoadBalancerType(str, Enum):
 
 class BackendStatus(str, Enum):
     """Backend health status."""
+
     HEALTHY = "healthy"
     UNHEALTHY = "unhealthy"
     DRAINING = "draining"
@@ -41,6 +43,7 @@ class BackendStatus(str, Enum):
 @dataclass
 class ServiceBackend:
     """Represents an upstream service backend."""
+
     backend_id: str
     host: str
     port: int
@@ -190,9 +193,7 @@ class BackendPool:
         ring: List[Tuple[int, ServiceBackend]] = []
         for backend in backends:
             for i in range(100):  # 100 virtual nodes per backend
-                node_hash = int(hashlib.md5(
-                    f"{backend.backend_id}:{i}".encode()
-                ).hexdigest(), 16)
+                node_hash = int(hashlib.md5(f"{backend.backend_id}:{i}".encode()).hexdigest(), 16)
                 ring.append((node_hash, backend))
 
         ring.sort(key=lambda x: x[0])
@@ -215,6 +216,7 @@ class BackendPool:
             try:
                 # Simple TCP check
                 import socket
+
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(2)
                 result = sock.connect_ex((backend.host, backend.port))
@@ -245,6 +247,7 @@ class BackendPool:
 @dataclass
 class RouteMatch:
     """Result of route matching."""
+
     matched: bool
     route: Optional[Route] = None
     params: Dict[str, str] = field(default_factory=dict)
@@ -254,6 +257,7 @@ class RouteMatch:
 @dataclass
 class RoutingRule:
     """Conditional routing rule."""
+
     name: str
     conditions: List[Dict[str, Any]]
     backend_pool: str
@@ -295,10 +299,9 @@ class RoutingRule:
             param_name = condition.get("name")
             expected = condition.get("value")
             # Parse query string
-            query_params = dict(
-                p.split("=") for p in request.query_string.split("&")
-                if "=" in p
-            ) if request.query_string else {}
+            query_params = (
+                dict(p.split("=") for p in request.query_string.split("&") if "=" in p) if request.query_string else {}
+            )
             return query_params.get(param_name) == expected
 
         return True
@@ -347,6 +350,7 @@ class PathMatcher:
 @dataclass
 class Route:
     """Represents a gateway route."""
+
     route_id: str
     path: str
     methods: List[str] = field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE", "PATCH"])
@@ -393,7 +397,7 @@ class Route:
         path = original_path
 
         if self.strip_prefix and path.startswith(self.strip_prefix):
-            path = path[len(self.strip_prefix):]
+            path = path[len(self.strip_prefix) :]
 
         if self.add_prefix:
             path = self.add_prefix + path
@@ -478,11 +482,7 @@ class Router:
         best_match: Optional[RouteMatch] = None
 
         # Sort routes by priority
-        routes = sorted(
-            [r for r in self._routes.values() if r.enabled],
-            key=lambda r: r.priority,
-            reverse=True
-        )
+        routes = sorted([r for r in self._routes.values() if r.enabled], key=lambda r: r.priority, reverse=True)
 
         for route in routes:
             # Check method

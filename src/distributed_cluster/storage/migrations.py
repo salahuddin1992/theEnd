@@ -473,9 +473,7 @@ class MigrationRunner:
         """الحصول على الإصدار الحالي."""
         try:
             if self.db_type == "sqlite":
-                async with conn.execute(
-                    "SELECT MAX(version) FROM schema_version"
-                ) as cursor:
+                async with conn.execute("SELECT MAX(version) FROM schema_version") as cursor:
                     row = await cursor.fetchone()
                     return row[0] if row and row[0] else 0
             else:
@@ -517,9 +515,7 @@ class MigrationRunner:
 
     async def rollback_migration(self, conn, migration: Migration) -> None:
         """التراجع عن ترحيل واحد."""
-        sql = (
-            migration.down_sqlite if self.db_type == "sqlite" else migration.down_postgresql
-        )
+        sql = migration.down_sqlite if self.db_type == "sqlite" else migration.down_postgresql
 
         if not sql:
             raise ValueError(f"No rollback defined for migration {migration.version}")
@@ -532,16 +528,12 @@ class MigrationRunner:
                 if statement:
                     await conn.execute(statement)
 
-            await conn.execute(
-                "DELETE FROM schema_version WHERE version = ?", (migration.version,)
-            )
+            await conn.execute("DELETE FROM schema_version WHERE version = ?", (migration.version,))
             await conn.commit()
         else:
             async with conn.transaction():
                 await conn.execute(sql)
-                await conn.execute(
-                    "DELETE FROM schema_version WHERE version = $1", migration.version
-                )
+                await conn.execute("DELETE FROM schema_version WHERE version = $1", migration.version)
 
         logger.info(f"Migration {migration.version} rolled back successfully")
 
@@ -621,9 +613,7 @@ async def run_migrations_postgresql(
 
     runner = MigrationRunner("postgresql")
 
-    conn = await asyncpg.connect(
-        host=host, port=port, database=database, user=user, password=password
-    )
+    conn = await asyncpg.connect(host=host, port=port, database=database, user=user, password=password)
 
     try:
         return await runner.migrate(conn, target_version)

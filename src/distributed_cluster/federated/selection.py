@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SelectionResult:
     """Result of client selection."""
+
     selected_clients: List[str]
     selection_scores: Dict[str, float]
     selection_strategy: SelectionStrategy
@@ -184,8 +185,7 @@ class RoundRobinSelector(ClientSelector):
         # Score is inverse of last participation round
         max_round = max(c.last_participation_round for c in sorted_clients) + 1
         scores = {
-            c.client_id: (max_round - c.last_participation_round) / max_round
-            for c in sorted_clients[:num_select]
+            c.client_id: (max_round - c.last_participation_round) / max_round for c in sorted_clients[:num_select]
         }
 
         return SelectionResult(
@@ -261,10 +261,7 @@ class ResourceAwareSelector(ClientSelector):
             )
 
         # Compute scores
-        scores = {
-            c.client_id: self._compute_resource_score(c)
-            for c in available_clients
-        }
+        scores = {c.client_id: self._compute_resource_score(c) for c in available_clients}
 
         # Sort by score (descending)
         sorted_clients = sorted(
@@ -450,10 +447,7 @@ class ContributionBasedSelector(ClientSelector):
             contribution = client.contribution_score
             data_score = np.log10(client.dataset_size + 1) / 4
 
-            score = (
-                self.contribution_weight * contribution
-                + self.data_weight * data_score
-            )
+            score = self.contribution_weight * contribution + self.data_weight * data_score
 
             # Add exploration bonus for new/underrepresented clients
             if client.total_rounds_participated == 0:
@@ -590,14 +584,11 @@ class OortSelector(ClientSelector):
         sys_util = self._compute_system_utility(client)
 
         # Combine utilities
-        utility = (
-            self.statistical_weight * stat_util
-            + self.system_weight * sys_util
-        )
+        utility = self.statistical_weight * stat_util + self.system_weight * sys_util
 
         # Apply exploration bonus
         participation_penalty = 1.0 / (1 + client.total_rounds_participated)
-        utility *= (1 + 0.1 * participation_penalty)
+        utility *= 1 + 0.1 * participation_penalty
 
         return utility
 
@@ -619,10 +610,7 @@ class OortSelector(ClientSelector):
 
         # Update utility based on contribution
         old_utility = self._client_utilities.get(client_id, 1.0)
-        self._client_utilities[client_id] = (
-            self.pacer_decay * old_utility
-            + (1 - self.pacer_decay) * loss_improvement
-        )
+        self._client_utilities[client_id] = self.pacer_decay * old_utility + (1 - self.pacer_decay) * loss_improvement
 
     def select(
         self,
@@ -751,10 +739,7 @@ class AvailabilitySelector(ClientSelector):
             time_since = (now - client.last_heartbeat).total_seconds()
             recency_score = 1.0 / (1 + time_since / 10.0)
 
-            scores[client.client_id] = (
-                0.7 * client.reliability_score
-                + 0.3 * recency_score
-            )
+            scores[client.client_id] = 0.7 * client.reliability_score + 0.3 * recency_score
 
         # Sort by score
         sorted_clients = sorted(

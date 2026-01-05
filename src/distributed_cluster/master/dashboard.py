@@ -285,8 +285,7 @@ def create_dashboard_router(
                 failed_jobs=w.failed_jobs_count,
                 last_heartbeat=w.last_heartbeat.isoformat() if w.last_heartbeat else None,
                 uptime_seconds=(
-                    (datetime.now(timezone.utc) - w.registered_at).total_seconds()
-                    if w.registered_at else None
+                    (datetime.now(timezone.utc) - w.registered_at).total_seconds() if w.registered_at else None
                 ),
                 tags=w.tags,
             )

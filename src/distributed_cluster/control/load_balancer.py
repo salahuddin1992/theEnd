@@ -22,16 +22,18 @@ class LoadDistribution:
         max_jobs: أقصى عدد من المهام المتزامنة
         priority: الأولوية (أعلى = يستلم مهام أولاً)
     """
+
     worker_id: str
     percentage: int = 100  # نسبة الحمل
-    max_jobs: int = 0      # 0 = غير محدود
-    priority: int = 1      # أولوية (1-10)
-    enabled: bool = True   # مفعّل
+    max_jobs: int = 0  # 0 = غير محدود
+    priority: int = 1  # أولوية (1-10)
+    enabled: bool = True  # مفعّل
 
 
 @dataclass
 class ClusterLoad:
     """حالة الحمل للكلاستر"""
+
     total_workers: int
     active_workers: int
     total_jobs: int
@@ -172,10 +174,12 @@ class LoadBalancer:
             # نقل 95% من الحمل للحاسوب الثاني
             await balancer.offload_to("second-pc", percentage=95)
         """
-        return await self.set_distribution({
-            local_id: 100 - percentage,
-            worker_id: percentage,
-        })
+        return await self.set_distribution(
+            {
+                local_id: 100 - percentage,
+                worker_id: percentage,
+            }
+        )
 
     async def offload_to_multiple(
         self,

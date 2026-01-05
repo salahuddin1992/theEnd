@@ -30,6 +30,7 @@ API_VERSION = "v1alpha1"
 
 class ClusterPhase(str, Enum):
     """مرحلة الكلاستر / Cluster phase"""
+
     PENDING = "Pending"
     PROVISIONING = "Provisioning"
     RUNNING = "Running"
@@ -42,6 +43,7 @@ class ClusterPhase(str, Enum):
 
 class WorkerPhase(str, Enum):
     """مرحلة العامل / Worker phase"""
+
     PENDING = "Pending"
     STARTING = "Starting"
     RUNNING = "Running"
@@ -52,6 +54,7 @@ class WorkerPhase(str, Enum):
 
 class JobPhase(str, Enum):
     """مرحلة المهمة / Job phase"""
+
     PENDING = "Pending"
     QUEUED = "Queued"
     RUNNING = "Running"
@@ -66,6 +69,7 @@ class ObjectMeta:
     بيانات وصفية للكائن
     Kubernetes object metadata
     """
+
     name: str
     namespace: str = "default"
     labels: dict[str, str] = field(default_factory=dict)
@@ -99,6 +103,7 @@ class ResourceRequirements:
     متطلبات الموارد
     Resource requirements
     """
+
     cpu: str = "100m"
     memory: str = "128Mi"
     gpu: int = 0
@@ -123,12 +128,14 @@ class ResourceRequirements:
 # Cluster CRD
 # =============================================================================
 
+
 @dataclass
 class ClusterSpec:
     """
     مواصفات الكلاستر
     Cluster specification
     """
+
     # Worker configuration
     replicas: int = 3
     min_replicas: int = 1
@@ -216,6 +223,7 @@ class ClusterStatus:
     حالة الكلاستر
     Cluster status
     """
+
     phase: ClusterPhase = ClusterPhase.PENDING
     ready_workers: int = 0
     total_workers: int = 0
@@ -246,6 +254,7 @@ class ClusterCRD:
     Custom Resource Definition للكلاستر
     Cluster Custom Resource Definition
     """
+
     api_version: str = f"{API_GROUP}/{API_VERSION}"
     kind: str = "DistributedCluster"
     metadata: ObjectMeta = field(default_factory=lambda: ObjectMeta(name="default"))
@@ -369,9 +378,11 @@ class ClusterCRD:
 # Worker CRD
 # =============================================================================
 
+
 @dataclass
 class WorkerSpec:
     """مواصفات العامل"""
+
     cluster_ref: str = ""
     node_selector: dict[str, str] = field(default_factory=dict)
     tolerations: list[dict[str, Any]] = field(default_factory=list)
@@ -391,6 +402,7 @@ class WorkerSpec:
 @dataclass
 class WorkerStatus:
     """حالة العامل"""
+
     phase: WorkerPhase = WorkerPhase.PENDING
     pod_ip: str = ""
     node_name: str = ""
@@ -414,6 +426,7 @@ class WorkerStatus:
 @dataclass
 class WorkerCRD:
     """Worker Custom Resource Definition"""
+
     api_version: str = f"{API_GROUP}/{API_VERSION}"
     kind: str = "ClusterWorker"
     metadata: ObjectMeta = field(default_factory=lambda: ObjectMeta(name="default"))
@@ -434,9 +447,11 @@ class WorkerCRD:
 # Job CRD
 # =============================================================================
 
+
 @dataclass
 class JobSpec:
     """مواصفات المهمة"""
+
     cluster_ref: str = ""
     command: list[str] = field(default_factory=list)
     args: list[str] = field(default_factory=list)
@@ -470,6 +485,7 @@ class JobSpec:
 @dataclass
 class JobStatus:
     """حالة المهمة"""
+
     phase: JobPhase = JobPhase.PENDING
     active: int = 0
     succeeded: int = 0
@@ -493,6 +509,7 @@ class JobStatus:
 @dataclass
 class JobCRD:
     """Job Custom Resource Definition"""
+
     api_version: str = f"{API_GROUP}/{API_VERSION}"
     kind: str = "ClusterJob"
     metadata: ObjectMeta = field(default_factory=lambda: ObjectMeta(name="default"))
@@ -512,6 +529,7 @@ class JobCRD:
 # =============================================================================
 # CRD Manager
 # =============================================================================
+
 
 class CRDManager:
     """
@@ -612,8 +630,14 @@ class CRDManager:
             "metadata": {"name": f"clusterworkers.{API_GROUP}"},
             "spec": {
                 "group": API_GROUP,
-                "versions": [{"name": API_VERSION, "served": True, "storage": True,
-                    "schema": {"openAPIV3Schema": {"type": "object"}}}],
+                "versions": [
+                    {
+                        "name": API_VERSION,
+                        "served": True,
+                        "storage": True,
+                        "schema": {"openAPIV3Schema": {"type": "object"}},
+                    }
+                ],
                 "scope": "Namespaced",
                 "names": {
                     "plural": "clusterworkers",
@@ -632,8 +656,14 @@ class CRDManager:
             "metadata": {"name": f"clusterjobs.{API_GROUP}"},
             "spec": {
                 "group": API_GROUP,
-                "versions": [{"name": API_VERSION, "served": True, "storage": True,
-                    "schema": {"openAPIV3Schema": {"type": "object"}}}],
+                "versions": [
+                    {
+                        "name": API_VERSION,
+                        "served": True,
+                        "storage": True,
+                        "schema": {"openAPIV3Schema": {"type": "object"}},
+                    }
+                ],
                 "scope": "Namespaced",
                 "names": {
                     "plural": "clusterjobs",

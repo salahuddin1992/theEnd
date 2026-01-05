@@ -297,7 +297,7 @@ class WorkerMetricsCollector:
 
                 # Trim history
                 if len(self._history) > self.history_size:
-                    self._history = self._history[-self.history_size:]
+                    self._history = self._history[-self.history_size :]
 
                 # Callback
                 if self._on_metrics:
@@ -378,9 +378,7 @@ class WorkerMetricsCollector:
 
         if job_metrics:
             job_metrics.end_time = datetime.now(timezone.utc)
-            job_metrics.execution_time_seconds = (
-                job_metrics.end_time - job_metrics.start_time
-            ).total_seconds()
+            job_metrics.execution_time_seconds = (job_metrics.end_time - job_metrics.start_time).total_seconds()
             job_metrics.exit_code = exit_code
 
             # Get memory tracker results
@@ -447,32 +445,32 @@ class WorkerMetricsCollector:
             return ""
 
         lines = [
-            '# HELP worker_cpu_percent CPU usage percentage',
-            '# TYPE worker_cpu_percent gauge',
+            "# HELP worker_cpu_percent CPU usage percentage",
+            "# TYPE worker_cpu_percent gauge",
             f'worker_cpu_percent{{worker="{self.worker_id}"}} {metrics.cpu_percent}',
-            '',
-            '# HELP worker_memory_used_mb Memory used in MB',
-            '# TYPE worker_memory_used_mb gauge',
+            "",
+            "# HELP worker_memory_used_mb Memory used in MB",
+            "# TYPE worker_memory_used_mb gauge",
             f'worker_memory_used_mb{{worker="{self.worker_id}"}} {metrics.memory_used_mb:.2f}',
-            '',
-            '# HELP worker_memory_percent Memory usage percentage',
-            '# TYPE worker_memory_percent gauge',
+            "",
+            "# HELP worker_memory_percent Memory usage percentage",
+            "# TYPE worker_memory_percent gauge",
             f'worker_memory_percent{{worker="{self.worker_id}"}} {metrics.memory_percent}',
-            '',
-            '# HELP worker_disk_percent Disk usage percentage',
-            '# TYPE worker_disk_percent gauge',
+            "",
+            "# HELP worker_disk_percent Disk usage percentage",
+            "# TYPE worker_disk_percent gauge",
             f'worker_disk_percent{{worker="{self.worker_id}"}} {metrics.disk_percent}',
-            '',
-            '# HELP worker_jobs_completed_total Total completed jobs',
-            '# TYPE worker_jobs_completed_total counter',
+            "",
+            "# HELP worker_jobs_completed_total Total completed jobs",
+            "# TYPE worker_jobs_completed_total counter",
             f'worker_jobs_completed_total{{worker="{self.worker_id}"}} {metrics.jobs_completed}',
-            '',
-            '# HELP worker_jobs_failed_total Total failed jobs',
-            '# TYPE worker_jobs_failed_total counter',
+            "",
+            "# HELP worker_jobs_failed_total Total failed jobs",
+            "# TYPE worker_jobs_failed_total counter",
             f'worker_jobs_failed_total{{worker="{self.worker_id}"}} {metrics.jobs_failed}',
-            '',
-            '# HELP worker_jobs_active Current active jobs',
-            '# TYPE worker_jobs_active gauge',
+            "",
+            "# HELP worker_jobs_active Current active jobs",
+            "# TYPE worker_jobs_active gauge",
             f'worker_jobs_active{{worker="{self.worker_id}"}} {metrics.jobs_active}',
         ]
 
@@ -555,10 +553,7 @@ class RetryHandler:
             asyncio.TimeoutError,
         )
 
-        return (
-            isinstance(exception, retryable)
-            and self._attempt < self.config.max_retries
-        )
+        return isinstance(exception, retryable) and self._attempt < self.config.max_retries
 
     @property
     def attempts(self) -> int:

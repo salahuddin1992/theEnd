@@ -21,6 +21,7 @@ T = TypeVar("T")
 
 class PoolState(Enum):
     """Pool state."""
+
     INITIALIZING = "initializing"
     RUNNING = "running"
     DRAINING = "draining"
@@ -39,6 +40,7 @@ class PoolExhausted(Exception):
 @dataclass
 class PoolConfig:
     """Configuration for connection pool."""
+
     # Size settings
     min_size: int = 5
     max_size: int = 20
@@ -69,6 +71,7 @@ class PoolConfig:
 @dataclass
 class PoolStats:
     """Statistics for connection pool."""
+
     pool_name: str = ""
     state: PoolState = PoolState.INITIALIZING
 
@@ -123,6 +126,7 @@ class PoolStats:
 @dataclass
 class PooledConnection(Generic[T]):
     """Wrapper for pooled connection with metadata."""
+
     connection: T
     pool_name: str
     created_at: datetime = field(default_factory=datetime.now)
@@ -223,10 +227,7 @@ class PoolManager:
 
     def get_all_stats(self) -> Dict[str, Dict[str, Any]]:
         """Get statistics for all pools."""
-        return {
-            name: pool.stats.to_dict()
-            for name, pool in self._pools.items()
-        }
+        return {name: pool.stats.to_dict() for name, pool in self._pools.items()}
 
 
 class GenericPool(Generic[T]):
@@ -599,9 +600,7 @@ class GenericPool(Generic[T]):
         if len(self._acquire_times) > 1000:
             self._acquire_times = self._acquire_times[-1000:]
 
-        self._stats.avg_acquire_time_ms = (
-            sum(self._acquire_times) / len(self._acquire_times)
-        )
+        self._stats.avg_acquire_time_ms = sum(self._acquire_times) / len(self._acquire_times)
 
     def _record_wait_time(self, start_time: float) -> None:
         """Record wait time."""
@@ -612,9 +611,7 @@ class GenericPool(Generic[T]):
         if len(self._wait_times) > 1000:
             self._wait_times = self._wait_times[-1000:]
 
-        self._stats.avg_wait_time_ms = (
-            sum(self._wait_times) / len(self._wait_times)
-        )
+        self._stats.avg_wait_time_ms = sum(self._wait_times) / len(self._wait_times)
 
         if elapsed_ms > self._stats.max_wait_time_ms:
             self._stats.max_wait_time_ms = elapsed_ms

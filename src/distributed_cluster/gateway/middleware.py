@@ -47,10 +47,7 @@ class MiddlewareChain:
 
     def remove(self, middleware_type: type) -> None:
         """Remove middleware by type."""
-        self._middleware = [
-            m for m in self._middleware
-            if not isinstance(m, middleware_type)
-        ]
+        self._middleware = [m for m in self._middleware if not isinstance(m, middleware_type)]
 
     async def execute(
         self,
@@ -58,6 +55,7 @@ class MiddlewareChain:
         final_handler: Callable,
     ) -> GatewayResponse:
         """Execute middleware chain."""
+
         async def create_chain(index: int) -> Callable:
             if index >= len(self._middleware):
                 return final_handler
@@ -129,12 +127,14 @@ class AuthMiddleware(Middleware):
         """Validate JWT token."""
         try:
             import jwt
+
             return jwt.decode(token, self.jwt_secret, algorithms=["HS256"])
         except ImportError:
             # Fallback: basic validation
             parts = token.split(".")
             if len(parts) == 3:
                 import base64
+
                 payload = parts[1] + "=="  # Add padding
                 return json.loads(base64.b64decode(payload))
             raise ValueError("Invalid token format")
@@ -272,12 +272,8 @@ class CORSMiddleware(Middleware):
     ):
         # Security: default to empty list (no CORS) instead of ["*"]
         self.allowed_origins = allowed_origins or []
-        self.allowed_methods = allowed_methods or [
-            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
-        ]
-        self.allowed_headers = allowed_headers or [
-            "Content-Type", "Authorization", "X-Request-ID"
-        ]
+        self.allowed_methods = allowed_methods or ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+        self.allowed_headers = allowed_headers or ["Content-Type", "Authorization", "X-Request-ID"]
         self.allow_credentials = allow_credentials
         self.max_age = max_age
 
@@ -309,14 +305,8 @@ class CORSMiddleware(Middleware):
         elif origin in self.allowed_origins:
             response.set_header("access-control-allow-origin", origin)
 
-        response.set_header(
-            "access-control-allow-methods",
-            ", ".join(self.allowed_methods)
-        )
-        response.set_header(
-            "access-control-allow-headers",
-            ", ".join(self.allowed_headers)
-        )
+        response.set_header("access-control-allow-methods", ", ".join(self.allowed_methods))
+        response.set_header("access-control-allow-headers", ", ".join(self.allowed_headers))
         response.set_header("access-control-max-age", str(self.max_age))
 
         if self.allow_credentials:
@@ -377,14 +367,9 @@ class TimeoutMiddleware(Middleware):
         next_handler: Callable,
     ) -> GatewayResponse:
         try:
-            return await asyncio.wait_for(
-                next_handler(request),
-                timeout=self.timeout_seconds
-            )
+            return await asyncio.wait_for(next_handler(request), timeout=self.timeout_seconds)
         except asyncio.TimeoutError:
-            return GatewayResponse.gateway_timeout(
-                f"Request timed out after {self.timeout_seconds}s"
-            )
+            return GatewayResponse.gateway_timeout(f"Request timed out after {self.timeout_seconds}s")
 
 
 class RetryMiddleware(Middleware):
@@ -418,7 +403,7 @@ class RetryMiddleware(Middleware):
             last_response = response
 
             if attempt < self.max_retries:
-                delay = self.retry_delay_ms * (2 ** attempt) / 1000
+                delay = self.retry_delay_ms * (2**attempt) / 1000
                 await asyncio.sleep(delay)
 
         return last_response
@@ -468,10 +453,7 @@ class CacheMiddleware(Middleware):
         # Cache successful responses
         if 200 <= response.status_code < 300:
             async with self._lock:
-                self._cache[cache_key] = (
-                    response,
-                    time.time() + self.ttl_seconds
-                )
+                self._cache[cache_key] = (response, time.time() + self.ttl_seconds)
             response.set_header("x-cache", "MISS")
 
         return response
@@ -548,12 +530,10 @@ class MetricsMiddleware(Middleware):
             self._metrics["latency_sum_ms"] += latency_ms
 
             status = str(response.status_code)
-            self._metrics["requests_by_status"][status] = \
-                self._metrics["requests_by_status"].get(status, 0) + 1
+            self._metrics["requests_by_status"][status] = self._metrics["requests_by_status"].get(status, 0) + 1
 
             path = request.path.split("?")[0]
-            self._metrics["requests_by_path"][path] = \
-                self._metrics["requests_by_path"].get(path, 0) + 1
+            self._metrics["requests_by_path"][path] = self._metrics["requests_by_path"].get(path, 0) + 1
 
         return response
 
@@ -562,7 +542,5 @@ class MetricsMiddleware(Middleware):
         total = self._metrics["requests_total"]
         return {
             **self._metrics,
-            "avg_latency_ms": (
-                self._metrics["latency_sum_ms"] / total if total > 0 else 0
-            ),
+            "avg_latency_ms": (self._metrics["latency_sum_ms"] / total if total > 0 else 0),
         }

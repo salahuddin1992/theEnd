@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class FeatureType(str, Enum):
     """Feature data types."""
+
     INT = "int"
     FLOAT = "float"
     STRING = "string"
@@ -34,6 +35,7 @@ class FeatureType(str, Enum):
 
 class FeatureSource(str, Enum):
     """Feature data sources."""
+
     BATCH = "batch"
     STREAMING = "streaming"
     REQUEST = "request"
@@ -43,6 +45,7 @@ class FeatureSource(str, Enum):
 @dataclass
 class Feature:
     """Represents a single feature."""
+
     name: str
     dtype: FeatureType
     description: str = ""
@@ -101,6 +104,7 @@ class Feature:
 @dataclass
 class FeatureGroup:
     """A group of related features."""
+
     name: str
     entity: str
     features: List[Feature]
@@ -130,6 +134,7 @@ class FeatureGroup:
 @dataclass
 class FeatureSet:
     """A set of features for model training/inference."""
+
     name: str
     feature_groups: List[str]  # References to feature groups
     features: List[str]  # feature_group:feature_name format
@@ -143,6 +148,7 @@ class FeatureSet:
 @dataclass
 class FeatureVector:
     """A vector of feature values for an entity."""
+
     entity_id: str
     entity_type: str
     features: Dict[str, Any]
@@ -398,10 +404,7 @@ class OfflineFeatureStore(FeatureStoreBackend):
         # For file-based storage, this is simplified
         # In production, use a time-series database
         results = await self.get_features(entity_type, entity_ids, feature_names)
-        return [
-            fv for fv in results.values()
-            if start_time <= fv.timestamp <= end_time
-        ]
+        return [fv for fv in results.values() if start_time <= fv.timestamp <= end_time]
 
     async def materialize_features(
         self,

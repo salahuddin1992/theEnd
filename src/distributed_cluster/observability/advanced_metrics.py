@@ -206,9 +206,7 @@ class RequestMetricsCollector:
 
             # الحصول على آخر 5 دقائق
             cutoff = datetime.now(timezone.utc) - timedelta(minutes=5)
-            latencies = sorted(
-                m.duration_seconds for m in self._history if m.timestamp >= cutoff
-            )
+            latencies = sorted(m.duration_seconds for m in self._history if m.timestamp >= cutoff)
 
             if not latencies:
                 return 0.0
@@ -302,9 +300,7 @@ class SLOMonitor:
     def __init__(self, request_metrics: RequestMetricsCollector):
         self._slos: Dict[str, SLODefinition] = {}
         self._request_metrics = request_metrics
-        self._history: Dict[str, Deque[Tuple[datetime, float]]] = defaultdict(
-            lambda: deque(maxlen=1000)
-        )
+        self._history: Dict[str, Deque[Tuple[datetime, float]]] = defaultdict(lambda: deque(maxlen=1000))
         self._lock = threading.Lock()
 
     def register_slo(self, slo: SLODefinition) -> None:
@@ -397,9 +393,11 @@ class SLOMonitor:
             else:
                 trend = "stable"
 
-        is_meeting = current_value >= slo.target if slo.slo_type in [
-            SLOType.AVAILABILITY, SLOType.THROUGHPUT
-        ] else current_value <= slo.target
+        is_meeting = (
+            current_value >= slo.target
+            if slo.slo_type in [SLOType.AVAILABILITY, SLOType.THROUGHPUT]
+            else current_value <= slo.target
+        )
 
         return SLOStatus(
             definition=slo,
@@ -464,9 +462,7 @@ class BusinessMetricsCollector:
     """
 
     def __init__(self):
-        self._metrics: Dict[str, Deque[BusinessMetric]] = defaultdict(
-            lambda: deque(maxlen=1000)
-        )
+        self._metrics: Dict[str, Deque[BusinessMetric]] = defaultdict(lambda: deque(maxlen=1000))
         self._counters: Dict[str, SlidingWindowCounter] = defaultdict(SlidingWindowCounter)
         self._lock = threading.Lock()
 
@@ -583,10 +579,7 @@ class MetricsAggregator:
         # SLO metrics
         slo_summary = self.slo_monitor.get_summary()
         for name, slo in slo_summary.get("slos", {}).items():
-            lines.append(
-                f'slo_compliance{{name="{name}",type="{slo["type"]}"}} '
-                f'{slo["compliance"]:.6f} {now_ms}'
-            )
+            lines.append(f'slo_compliance{{name="{name}",type="{slo["type"]}"}} ' f'{slo["compliance"]:.6f} {now_ms}')
 
         # Business metrics
         for name, stats in self.business_metrics.get_summary().items():
@@ -681,9 +674,7 @@ def track_latency(name: str, aggregator: Optional[MetricsAggregator] = None):
             finally:
                 duration = time.time() - start
                 if aggregator:
-                    aggregator.business_metrics.record(
-                        f"{name}_duration_seconds", duration, "seconds"
-                    )
+                    aggregator.business_metrics.record(f"{name}_duration_seconds", duration, "seconds")
 
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -693,9 +684,7 @@ def track_latency(name: str, aggregator: Optional[MetricsAggregator] = None):
             finally:
                 duration = time.time() - start
                 if aggregator:
-                    aggregator.business_metrics.record(
-                        f"{name}_duration_seconds", duration, "seconds"
-                    )
+                    aggregator.business_metrics.record(f"{name}_duration_seconds", duration, "seconds")
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper

@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 class AlertSeverity(str, Enum):
     """شدة التنبيه / Alert severity"""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -36,6 +37,7 @@ class AlertSeverity(str, Enum):
 
 class AlertState(str, Enum):
     """حالة التنبيه / Alert state"""
+
     PENDING = "pending"
     FIRING = "firing"
     RESOLVED = "resolved"
@@ -48,6 +50,7 @@ class Alert:
     تنبيه
     Alert
     """
+
     alert_id: str
     name: str
     severity: AlertSeverity
@@ -95,6 +98,7 @@ class AlertRule:
     قاعدة التنبيه
     Alert rule
     """
+
     name: str
     condition: Callable[[], bool]
     severity: AlertSeverity = AlertSeverity.WARNING
@@ -411,6 +415,7 @@ class AlertManager:
 # Predefined Rules
 # =============================================================================
 
+
 def create_threshold_rule(
     name: str,
     metric_fn: Callable[[], float],
@@ -420,6 +425,7 @@ def create_threshold_rule(
     for_duration: float = 60,
 ) -> AlertRule:
     """إنشاء قاعدة عتبة"""
+
     def condition():
         value = metric_fn()
         if comparison == ">":

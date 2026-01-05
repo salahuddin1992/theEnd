@@ -273,10 +273,7 @@ async def _submit_job_to_node(
     from datetime import datetime, timezone
 
     try:
-        reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(host, port),
-            timeout=10.0
-        )
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=10.0)
 
         # Create job submission message
         job_id = f"job-{uuid.uuid4().hex[:12]}"
@@ -350,15 +347,17 @@ def submit_job(
 
     # Submit job
     with console.status("[bold green]Connecting to mesh node..."):
-        result = asyncio.run(_submit_job_to_node(
-            host=host,
-            port=port,
-            command=command,
-            cpu=cpu,
-            memory=memory,
-            gpu=gpu,
-            timeout=timeout,
-        ))
+        result = asyncio.run(
+            _submit_job_to_node(
+                host=host,
+                port=port,
+                command=command,
+                cpu=cpu,
+                memory=memory,
+                gpu=gpu,
+                timeout=timeout,
+            )
+        )
 
     if result["success"]:
         console.print("[green]✓ Job submitted successfully![/green]")

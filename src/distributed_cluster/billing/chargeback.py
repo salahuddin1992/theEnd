@@ -277,10 +277,7 @@ class ChargebackManager:
         async with self._lock:
             self._budgets[budget.budget_id] = budget
 
-        logger.info(
-            f"Created budget {budget.budget_id}: "
-            f"{entity_type}/{entity_id} = ${amount}/{period.value}"
-        )
+        logger.info(f"Created budget {budget.budget_id}: " f"{entity_type}/{entity_id} = ${amount}/{period.value}")
 
         return budget
 
@@ -458,17 +455,11 @@ class ChargebackManager:
 
         # Get costs from tracker
         if entity_type == "user":
-            costs = await self.cost_tracker.get_user_costs(
-                entity_id, period_start, period_end
-            )
+            costs = await self.cost_tracker.get_user_costs(entity_id, period_start, period_end)
         elif entity_type == "team":
-            costs = await self.cost_tracker.get_team_costs(
-                entity_id, period_start, period_end
-            )
+            costs = await self.cost_tracker.get_team_costs(entity_id, period_start, period_end)
         elif entity_type == "project":
-            costs = await self.cost_tracker.get_project_costs(
-                entity_id, period_start, period_end
-            )
+            costs = await self.cost_tracker.get_project_costs(entity_id, period_start, period_end)
         else:
             costs = {"total_cost": 0.0, "by_category": {}, "currency": "USD"}
 
@@ -495,9 +486,7 @@ class ChargebackManager:
         budget_info = budget.to_dict() if budget else None
 
         # Get entity name
-        entity_name = self._entity_names.get(
-            f"{entity_type}:{entity_id}", entity_id
-        )
+        entity_name = self._entity_names.get(f"{entity_type}:{entity_id}", entity_id)
 
         report = ChargebackReport(
             report_id=str(uuid.uuid4()),
@@ -517,10 +506,7 @@ class ChargebackManager:
         async with self._lock:
             self._reports[report.report_id] = report
 
-        logger.info(
-            f"Generated chargeback report for {entity_type}/{entity_id}: "
-            f"${total_cost:.2f}"
-        )
+        logger.info(f"Generated chargeback report for {entity_type}/{entity_id}: " f"${total_cost:.2f}")
 
         return report
 
@@ -564,17 +550,11 @@ class ChargebackManager:
         start_date = end_date - timedelta(days=30)
 
         if entity_type == "user":
-            costs = await self.cost_tracker.get_user_costs(
-                entity_id, start_date, end_date
-            )
+            costs = await self.cost_tracker.get_user_costs(entity_id, start_date, end_date)
         elif entity_type == "team":
-            costs = await self.cost_tracker.get_team_costs(
-                entity_id, start_date, end_date
-            )
+            costs = await self.cost_tracker.get_team_costs(entity_id, start_date, end_date)
         else:
-            costs = await self.cost_tracker.get_project_costs(
-                entity_id, start_date, end_date
-            )
+            costs = await self.cost_tracker.get_project_costs(entity_id, start_date, end_date)
 
         historical_cost = costs.get("total_cost", 0.0)
         daily_average = historical_cost / 30
@@ -592,9 +572,7 @@ class ChargebackManager:
             "forecast_cost": forecast_cost,
             "currency": costs.get("currency", "USD"),
             "budget_amount": budget.amount if budget else None,
-            "will_exceed_budget": (
-                budget and forecast_cost > budget.remaining if budget else None
-            ),
+            "will_exceed_budget": (budget and forecast_cost > budget.remaining if budget else None),
         }
 
     async def reset_period_budgets(self) -> int:
@@ -623,20 +601,14 @@ class ChargebackManager:
         if period == BudgetPeriod.DAILY:
             return now.replace(hour=0, minute=0, second=0, microsecond=0)
         elif period == BudgetPeriod.WEEKLY:
-            return (now - timedelta(days=now.weekday())).replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
+            return (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
         elif period == BudgetPeriod.MONTHLY:
             return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         elif period == BudgetPeriod.QUARTERLY:
             quarter_month = ((now.month - 1) // 3) * 3 + 1
-            return now.replace(
-                month=quarter_month, day=1, hour=0, minute=0, second=0, microsecond=0
-            )
+            return now.replace(month=quarter_month, day=1, hour=0, minute=0, second=0, microsecond=0)
         else:  # YEARLY
-            return now.replace(
-                month=1, day=1, hour=0, minute=0, second=0, microsecond=0
-            )
+            return now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 
     def _get_period_end(self, period: BudgetPeriod, start: datetime) -> datetime:
         """Get end of period."""

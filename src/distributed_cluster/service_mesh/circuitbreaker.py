@@ -20,6 +20,7 @@ T = TypeVar("T")
 
 class CircuitState(Enum):
     """States of a circuit breaker."""
+
     CLOSED = "closed"  # Normal operation
     OPEN = "open"  # Circuit is open, requests fail fast
     HALF_OPEN = "half_open"  # Testing if service recovered
@@ -28,6 +29,7 @@ class CircuitState(Enum):
 @dataclass
 class CircuitBreakerConfig:
     """Configuration for circuit breaker."""
+
     failure_threshold: int = 5  # Failures before opening
     success_threshold: int = 3  # Successes before closing from half-open
     timeout: float = 30.0  # Seconds before transitioning from open to half-open
@@ -53,6 +55,7 @@ class CircuitBreakerConfig:
 @dataclass
 class CircuitBreakerStats:
     """Statistics for circuit breaker."""
+
     state: CircuitState = CircuitState.CLOSED
     total_calls: int = 0
     successful_calls: int = 0
@@ -328,11 +331,7 @@ class CircuitBreakerRegistry:
                     cls._instance._registry_lock = threading.RLock()
         return cls._instance
 
-    def get_or_create(
-        self,
-        name: str,
-        config: Optional[CircuitBreakerConfig] = None
-    ) -> CircuitBreaker:
+    def get_or_create(self, name: str, config: Optional[CircuitBreakerConfig] = None) -> CircuitBreaker:
         """Get or create a circuit breaker by name."""
         with self._registry_lock:
             if name not in self._breakers:
@@ -357,10 +356,7 @@ class CircuitBreakerRegistry:
     def get_all_stats(self) -> Dict[str, Dict[str, Any]]:
         """Get statistics from all circuit breakers."""
         with self._registry_lock:
-            return {
-                name: breaker.stats.to_dict()
-                for name, breaker in self._breakers.items()
-            }
+            return {name: breaker.stats.to_dict() for name, breaker in self._breakers.items()}
 
     def reset_all(self):
         """Reset all circuit breakers."""
@@ -370,11 +366,10 @@ class CircuitBreakerRegistry:
 
 
 def circuit_breaker(
-    name: Optional[str] = None,
-    config: Optional[CircuitBreakerConfig] = None,
-    fallback: Optional[Callable] = None
+    name: Optional[str] = None, config: Optional[CircuitBreakerConfig] = None, fallback: Optional[Callable] = None
 ):
     """Decorator for applying circuit breaker to a function."""
+
     def decorator(func: Callable) -> Callable:
         cb_name = name or f"{func.__module__}.{func.__qualname__}"
         registry = CircuitBreakerRegistry()
@@ -414,12 +409,7 @@ class Bulkhead:
     Prevents resource exhaustion by limiting parallelism.
     """
 
-    def __init__(
-        self,
-        name: str,
-        max_concurrent: int = 10,
-        max_wait_ms: int = 0
-    ):
+    def __init__(self, name: str, max_concurrent: int = 10, max_wait_ms: int = 0):
         self.name = name
         self.max_concurrent = max_concurrent
         self.max_wait_ms = max_wait_ms
@@ -495,12 +485,7 @@ class RateLimiter:
     Rate limiter using token bucket algorithm.
     """
 
-    def __init__(
-        self,
-        name: str,
-        rate: float,  # Tokens per second
-        capacity: int = 10  # Max tokens
-    ):
+    def __init__(self, name: str, rate: float, capacity: int = 10):  # Tokens per second  # Max tokens
         self.name = name
         self.rate = rate
         self.capacity = capacity

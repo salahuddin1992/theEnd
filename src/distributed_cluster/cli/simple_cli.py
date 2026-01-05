@@ -71,9 +71,7 @@ def start(
     ),
     host: str = typer.Option("0.0.0.0", "--host", "-h", help="Host to bind to"),
     port: int = typer.Option(None, "--port", "-p", help="Port to bind to"),
-    master: str = typer.Option(
-        "localhost:8765", "--master", "-m", help="Master address (for worker)"
-    ),
+    master: str = typer.Option("localhost:8765", "--master", "-m", help="Master address (for worker)"),
     workers: int = typer.Option(1, "--workers", "-w", help="Number of workers to start"),
     config: Optional[Path] = typer.Option(None, "--config", "-c", help="Config file path"),
     detach: bool = typer.Option(False, "--detach", "-d", help="Run in background"),
@@ -105,11 +103,11 @@ def start(
 
 def _start_all(host: str, port: Optional[int], workers: int, config: Optional[Path], detach: bool):
     """Start all services."""
-    console.print(Panel.fit(
-        "[bold cyan]Starting NebulaCompute[/bold cyan]\n"
-        "Master + Worker + Web Dashboard",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]Starting NebulaCompute[/bold cyan]\n" "Master + Worker + Web Dashboard", border_style="cyan"
+        )
+    )
 
     with Progress(
         SpinnerColumn(),
@@ -213,6 +211,7 @@ async def _run_web(host: str, port: int, master_url: str):
     """Run web dashboard."""
     try:
         import uvicorn
+
         from distributed_cluster.web.app import WebDashboard
 
         dashboard = WebDashboard(master_url=master_url)
@@ -255,11 +254,9 @@ def status():
         with httpx.Client(timeout=5) as client:
             stats = client.get(f"{master_url}/stats").json()
 
-        console.print(Panel.fit(
-            "[bold green]NebulaCompute Cluster[/bold green]\n"
-            f"Master: {master_url}",
-            border_style="green"
-        ))
+        console.print(
+            Panel.fit("[bold green]NebulaCompute Cluster[/bold green]\n" f"Master: {master_url}", border_style="green")
+        )
 
         # Resources table
         table = Table(title="Cluster Resources")
@@ -325,8 +322,9 @@ def run(
         nebula run "echo hello" --no-wait
         nebula run "nvidia-smi" --gpu 1
     """
-    import httpx
     import time
+
+    import httpx
 
     master_url = os.environ.get("NEBULA_MASTER", "http://localhost:8765")
 
@@ -505,17 +503,19 @@ def main(
 
     if ctx.invoked_subcommand is None:
         # No command provided, show help
-        console.print(Panel.fit(
-            "[bold cyan]NebulaCompute[/bold cyan]\n"
-            "Distributed Computing Made Simple\n\n"
-            "[dim]Quick Start:[/dim]\n"
-            "  [green]nebula start[/green]     Start the cluster\n"
-            "  [green]nebula status[/green]    Show cluster status\n"
-            "  [green]nebula run[/green]       Run a job\n"
-            "  [green]nebula ai[/green]        AI inference\n\n"
-            "[dim]Use --help for more info[/dim]",
-            border_style="cyan",
-        ))
+        console.print(
+            Panel.fit(
+                "[bold cyan]NebulaCompute[/bold cyan]\n"
+                "Distributed Computing Made Simple\n\n"
+                "[dim]Quick Start:[/dim]\n"
+                "  [green]nebula start[/green]     Start the cluster\n"
+                "  [green]nebula status[/green]    Show cluster status\n"
+                "  [green]nebula run[/green]       Run a job\n"
+                "  [green]nebula ai[/green]        AI inference\n\n"
+                "[dim]Use --help for more info[/dim]",
+                border_style="cyan",
+            )
+        )
 
 
 def cli():

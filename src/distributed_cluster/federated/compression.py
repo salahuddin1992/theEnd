@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CompressionResult:
     """Result of model compression."""
+
     compressed_weights: Dict[str, np.ndarray]
     compression_ratio: float
     original_size_bytes: int
@@ -49,9 +50,7 @@ class CompressionResult:
         """Compression savings as percentage."""
         if self.original_size_bytes == 0:
             return 0.0
-        return (
-            1 - self.compressed_size_bytes / self.original_size_bytes
-        ) * 100
+        return (1 - self.compressed_size_bytes / self.original_size_bytes) * 100
 
 
 # =============================================================================
@@ -171,7 +170,7 @@ class QuantizationCompressor(Compressor):
         super().__init__(**kwargs)
         self.num_bits = num_bits
         self.stochastic = stochastic
-        self.num_levels = 2 ** num_bits
+        self.num_levels = 2**num_bits
 
     def compress(
         self,
@@ -245,9 +244,7 @@ class QuantizationCompressor(Compressor):
             zero_point = zero_points[key]
 
             # Dequantize
-            decompressed[key] = (
-                quantized.astype(np.float32) * scale + zero_point
-            )
+            decompressed[key] = quantized.astype(np.float32) * scale + zero_point
 
         return decompressed
 
@@ -325,9 +322,7 @@ class SparsificationCompressor(Compressor):
 
         # Estimate compressed size (sparse format)
         # Assuming CSR-like format: values + indices
-        compressed_size = int(
-            nonzero_elements * (4 + 4)  # 4 bytes value + 4 bytes index
-        )
+        compressed_size = int(nonzero_elements * (4 + 4))  # 4 bytes value + 4 bytes index
 
         return CompressionResult(
             compressed_weights=compressed,
@@ -423,10 +418,7 @@ class TopKCompressor(Compressor):
                 self._error_feedback[error_key] = weight - compressed[key]
 
         # Compressed size: indices + values
-        compressed_size = sum(
-            idx.nbytes + val.nbytes
-            for idx, val in zip(indices_dict.values(), values_dict.values())
-        )
+        compressed_size = sum(idx.nbytes + val.nbytes for idx, val in zip(indices_dict.values(), values_dict.values()))
 
         return CompressionResult(
             compressed_weights=compressed,
@@ -507,10 +499,7 @@ class RandomKCompressor(Compressor):
             reconstructed[indices] = values * scale
             compressed[key] = reconstructed.reshape(weight.shape)
 
-        compressed_size = sum(
-            idx.nbytes + val.nbytes
-            for idx, val in zip(indices_dict.values(), values_dict.values())
-        )
+        compressed_size = sum(idx.nbytes + val.nbytes for idx, val in zip(indices_dict.values(), values_dict.values()))
 
         return CompressionResult(
             compressed_weights=compressed,
@@ -558,7 +547,7 @@ class GradientCompressor(Compressor):
         self.sparsity = sparsity
         self.num_bits = num_bits
         self.use_error_feedback = error_feedback
-        self.num_levels = 2 ** num_bits
+        self.num_levels = 2**num_bits
 
     def compress(
         self,
@@ -622,10 +611,7 @@ class GradientCompressor(Compressor):
                 self._error_feedback[error_key] = weight - compressed[key]
 
         # Compressed size: indices + quantized values
-        compressed_size = sum(
-            m["indices"].nbytes + m["quantized"].nbytes
-            for m in metadata_per_key.values()
-        )
+        compressed_size = sum(m["indices"].nbytes + m["quantized"].nbytes for m in metadata_per_key.values())
 
         return CompressionResult(
             compressed_weights=compressed,
@@ -687,14 +673,8 @@ class SketchingCompressor(Compressor):
         self.rng = np.random.RandomState(seed)
 
         # Generate hash functions
-        self._hash_params = [
-            (self.rng.randint(1, 2**31 - 1), self.rng.randint(0, 2**31 - 1))
-            for _ in range(num_rows)
-        ]
-        self._sign_params = [
-            (self.rng.randint(1, 2**31 - 1), self.rng.randint(0, 2**31 - 1))
-            for _ in range(num_rows)
-        ]
+        self._hash_params = [(self.rng.randint(1, 2**31 - 1), self.rng.randint(0, 2**31 - 1)) for _ in range(num_rows)]
+        self._sign_params = [(self.rng.randint(1, 2**31 - 1), self.rng.randint(0, 2**31 - 1)) for _ in range(num_rows)]
 
     def _hash(self, idx: int, row: int) -> int:
         """Hash function for column assignment."""

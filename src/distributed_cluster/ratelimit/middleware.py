@@ -83,6 +83,7 @@ class RateLimitMiddleware:
         self.key_func = key_func or get_client_id
 
         from .limiter import RateLimitConfig, RateLimiter
+
         self.config = config or RateLimitConfig()
         self.limiter = RateLimiter(self.config)
 
@@ -206,6 +207,7 @@ def rate_limit(
 
             if not result.allowed:
                 from fastapi import HTTPException
+
                 raise HTTPException(
                     status_code=429,
                     detail={
@@ -304,6 +306,7 @@ class RateLimitGroup:
 
                 if not result.allowed:
                     from fastapi import HTTPException
+
                     raise HTTPException(
                         status_code=429,
                         detail={

@@ -254,6 +254,7 @@ class AWSProvider(CloudProvider):
         if client == "mock":
             # Return mock instance for testing
             import uuid
+
             mock_id = f"i-{uuid.uuid4().hex[:17]}"
             return CloudInstance(
                 instance_id=mock_id,
@@ -274,9 +275,7 @@ class AWSProvider(CloudProvider):
             if not image_id:
                 ssm = await self._get_ssm_client()
                 if ssm != "mock":
-                    response = ssm.get_parameter(
-                        Name="/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
-                    )
+                    response = ssm.get_parameter(Name="/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2")
                     image_id = response["Parameter"]["Value"]
                 else:
                     image_id = "ami-0c55b159cbfafe1f0"  # Fallback
@@ -301,9 +300,8 @@ class AWSProvider(CloudProvider):
 
             if user_data:
                 import base64
-                launch_params["UserData"] = base64.b64encode(
-                    user_data.encode()
-                ).decode()
+
+                launch_params["UserData"] = base64.b64encode(user_data.encode()).decode()
 
             # Add NebulaCompute tags
             all_tags = {
@@ -316,9 +314,7 @@ class AWSProvider(CloudProvider):
             launch_params["TagSpecifications"] = [
                 {
                     "ResourceType": "instance",
-                    "Tags": [
-                        {"Key": k, "Value": v} for k, v in all_tags.items()
-                    ],
+                    "Tags": [{"Key": k, "Value": v} for k, v in all_tags.items()],
                 }
             ]
 
@@ -339,20 +335,15 @@ class AWSProvider(CloudProvider):
 
                 # Wait for spot request to be fulfilled
                 import asyncio
-                spot_request_id = spot_response["SpotInstanceRequests"][0][
-                    "SpotInstanceRequestId"
-                ]
+
+                spot_request_id = spot_response["SpotInstanceRequests"][0]["SpotInstanceRequestId"]
 
                 for _ in range(60):  # Wait up to 5 minutes
-                    spot_status = client.describe_spot_instance_requests(
-                        SpotInstanceRequestIds=[spot_request_id]
-                    )
+                    spot_status = client.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id])
                     status = spot_status["SpotInstanceRequests"][0]["Status"]["Code"]
 
                     if status == "fulfilled":
-                        instance_id = spot_status["SpotInstanceRequests"][0][
-                            "InstanceId"
-                        ]
+                        instance_id = spot_status["SpotInstanceRequests"][0]["InstanceId"]
                         break
                     elif status in ["capacity-not-available", "price-too-low"]:
                         raise RuntimeError(f"Spot request failed: {status}")
@@ -381,6 +372,7 @@ class AWSProvider(CloudProvider):
         """Get or create SSM client for parameter store."""
         try:
             import boto3
+
             return boto3.client(
                 "ssm",
                 aws_access_key_id=self.access_key_id,
@@ -435,10 +427,7 @@ class AWSProvider(CloudProvider):
 
     def _parse_instance(self, instance: Dict) -> CloudInstance:
         """Parse AWS instance data."""
-        tags = {
-            tag["Key"]: tag["Value"]
-            for tag in instance.get("Tags", [])
-        }
+        tags = {tag["Key"]: tag["Value"] for tag in instance.get("Tags", [])}
 
         pricing_type = InstanceType.ON_DEMAND
         if instance.get("InstanceLifecycle") == "spot":
@@ -510,12 +499,8 @@ class GCPProvider(CloudProvider):
                 from google.oauth2 import service_account
 
                 if self.credentials_path:
-                    credentials = service_account.Credentials.from_service_account_file(
-                        self.credentials_path
-                    )
-                    self._instances_client = compute_v1.InstancesClient(
-                        credentials=credentials
-                    )
+                    credentials = service_account.Credentials.from_service_account_file(self.credentials_path)
+                    self._instances_client = compute_v1.InstancesClient(credentials=credentials)
                 else:
                     self._instances_client = compute_v1.InstancesClient()
 
@@ -558,9 +543,7 @@ class GCPProvider(CloudProvider):
                     )
 
                     if filters:
-                        filter_str = " AND ".join(
-                            f"{k}={v}" for k, v in filters.items()
-                        )
+                        filter_str = " AND ".join(f"{k}={v}" for k, v in filters.items())
                         request.filter = filter_str
 
                     for instance in client.list(request=request):
@@ -648,6 +631,7 @@ class GCPProvider(CloudProvider):
 
         if client == "mock":
             import uuid
+
             mock_id = f"nebula-{uuid.uuid4().hex[:8]}"
             specs = self.MACHINE_SPECS.get(instance_type, (2, 4))
             return CloudInstance(
@@ -673,9 +657,7 @@ class GCPProvider(CloudProvider):
 
             # Get the latest image
             images_client = compute_v1.ImagesClient()
-            image = images_client.get_from_family(
-                project=image_project, family=image_family
-            )
+            image = images_client.get_from_family(project=image_project, family=image_family)
 
             # Prepare disk configuration
             disk = compute_v1.AttachedDisk(
@@ -699,9 +681,7 @@ class GCPProvider(CloudProvider):
             )
 
             if subnet:
-                network_interface.subnetwork = (
-                    f"projects/{self.project_id}/regions/{region}/subnetworks/{subnet}"
-                )
+                network_interface.subnetwork = f"projects/{self.project_id}/regions/{region}/subnetworks/{subnet}"
 
             # Prepare labels
             labels = {
@@ -758,6 +738,7 @@ class GCPProvider(CloudProvider):
 
             # Wait for operation to complete
             import asyncio
+
             operations_client = compute_v1.ZoneOperationsClient()
 
             while operation.status != compute_v1.Operation.Status.DONE:
@@ -894,9 +875,11 @@ class GCPProvider(CloudProvider):
             state=instance.status,
             public_ip=public_ip,
             private_ip=private_ip,
-            launch_time=datetime.fromisoformat(
-                instance.creation_timestamp.replace("Z", "+00:00")
-            ) if instance.creation_timestamp else None,
+            launch_time=(
+                datetime.fromisoformat(instance.creation_timestamp.replace("Z", "+00:00"))
+                if instance.creation_timestamp
+                else None
+            ),
             tags=labels,
         )
 
@@ -1043,9 +1026,7 @@ class AzureProvider(CloudProvider):
                             if vm.tags and vm.tags.get(tag_key) != tag_value:
                                 match = False
                         elif key == "status":
-                            instance_view = client.virtual_machines.instance_view(
-                                self.resource_group, vm.name
-                            )
+                            instance_view = client.virtual_machines.instance_view(self.resource_group, vm.name)
                             statuses = [s.code for s in instance_view.statuses]
                             if f"PowerState/{value}" not in statuses:
                                 match = False
@@ -1131,6 +1112,7 @@ class AzureProvider(CloudProvider):
 
         if client == "mock":
             import uuid
+
             mock_id = f"nebula-{uuid.uuid4().hex[:8]}"
             specs = self.VM_SPECS.get(instance_type, (2, 8))
             return CloudInstance(
@@ -1210,17 +1192,15 @@ class AzureProvider(CloudProvider):
                 # Generate random password if neither provided
                 import secrets
                 import string
+
                 chars = string.ascii_letters + string.digits + "!@#$%^&*"
-                os_profile["admin_password"] = "".join(
-                    secrets.choice(chars) for _ in range(16)
-                )
+                os_profile["admin_password"] = "".join(secrets.choice(chars) for _ in range(16))
 
             # Custom data (cloud-init)
             if custom_data:
                 import base64
-                os_profile["custom_data"] = base64.b64encode(
-                    custom_data.encode()
-                ).decode()
+
+                os_profile["custom_data"] = base64.b64encode(custom_data.encode()).decode()
 
             # VM parameters
             vm_params = {
@@ -1291,15 +1271,11 @@ class AzureProvider(CloudProvider):
         """Create network interface for VM."""
         # Get subnet
         try:
-            subnet = network_client.subnets.get(
-                self.resource_group, vnet_name, subnet_name
-            )
+            subnet = network_client.subnets.get(self.resource_group, vnet_name, subnet_name)
         except Exception:
             # Create VNet and subnet if not exists
             await self._ensure_network(network_client, vnet_name, subnet_name, region)
-            subnet = network_client.subnets.get(
-                self.resource_group, vnet_name, subnet_name
-            )
+            subnet = network_client.subnets.get(self.resource_group, vnet_name, subnet_name)
 
         # Create public IP
         public_ip_params = {
@@ -1350,9 +1326,7 @@ class AzureProvider(CloudProvider):
             "address_space": {"address_prefixes": ["10.0.0.0/16"]},
         }
 
-        poller = network_client.virtual_networks.begin_create_or_update(
-            self.resource_group, vnet_name, vnet_params
-        )
+        poller = network_client.virtual_networks.begin_create_or_update(self.resource_group, vnet_name, vnet_params)
         poller.result()
 
         # Create subnet
@@ -1392,14 +1366,10 @@ class AzureProvider(CloudProvider):
             network_client = await self._get_network_client()
             if network_client != "mock":
                 try:
-                    poller = network_client.network_interfaces.begin_delete(
-                        rg, f"{vm_name}-nic"
-                    )
+                    poller = network_client.network_interfaces.begin_delete(rg, f"{vm_name}-nic")
                     poller.result()
 
-                    poller = network_client.public_ip_addresses.begin_delete(
-                        rg, f"{vm_name}-pip"
-                    )
+                    poller = network_client.public_ip_addresses.begin_delete(rg, f"{vm_name}-pip")
                     poller.result()
                 except Exception:
                     pass  # Ignore cleanup errors
@@ -1462,9 +1432,7 @@ class AzureProvider(CloudProvider):
         status = "Unknown"
         if client != "mock":
             try:
-                instance_view = client.virtual_machines.instance_view(
-                    self.resource_group, vm.name
-                )
+                instance_view = client.virtual_machines.instance_view(self.resource_group, vm.name)
                 for s in instance_view.statuses:
                     if s.code.startswith("PowerState/"):
                         status = s.code.replace("PowerState/", "")
@@ -1489,9 +1457,7 @@ class AzureProvider(CloudProvider):
                     if ip_config.public_ip_address:
                         pip_id = ip_config.public_ip_address.id
                         pip_name = pip_id.split("/")[-1]
-                        pip = network_client.public_ip_addresses.get(
-                            self.resource_group, pip_name
-                        )
+                        pip = network_client.public_ip_addresses.get(self.resource_group, pip_name)
                         public_ip = pip.ip_address
             except Exception:
                 pass

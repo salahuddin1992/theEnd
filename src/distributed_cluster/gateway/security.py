@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SecurityConfig:
     """Security configuration."""
+
     # JWT settings
     jwt_enabled: bool = True
     jwt_secret: str = ""
@@ -139,12 +140,8 @@ class JWTValidator(Validator):
         """Decode and validate JWT token."""
         try:
             import jwt
-            return jwt.decode(
-                token,
-                self.secret,
-                algorithms=[self.algorithm],
-                options={"verify_exp": True}
-            )
+
+            return jwt.decode(token, self.secret, algorithms=[self.algorithm], options={"verify_exp": True})
         except ImportError:
             # Fallback: manual validation
             return self._manual_decode(token)
@@ -163,11 +160,7 @@ class JWTValidator(Validator):
         message = f"{parts[0]}.{parts[1]}"
         signature = base64.urlsafe_b64decode(parts[2] + "==")
 
-        expected = hmac.new(
-            self.secret.encode(),
-            message.encode(),
-            hashlib.sha256
-        ).digest()
+        expected = hmac.new(self.secret.encode(), message.encode(), hashlib.sha256).digest()
 
         if not hmac.compare_digest(signature, expected):
             raise ValueError("Invalid signature")
@@ -182,12 +175,7 @@ class JWTValidator(Validator):
     ) -> str:
         """Create a JWT token."""
         now = int(time.time())
-        payload = {
-            "sub": subject,
-            "iat": now,
-            "exp": now + expiry_seconds,
-            **(claims or {})
-        }
+        payload = {"sub": subject, "iat": now, "exp": now + expiry_seconds, **(claims or {})}
 
         if self.issuer:
             payload["iss"] = self.issuer
@@ -196,6 +184,7 @@ class JWTValidator(Validator):
 
         try:
             import jwt
+
             return jwt.encode(payload, self.secret, algorithm=self.algorithm)
         except ImportError:
             return self._manual_encode(payload)
@@ -211,11 +200,7 @@ class JWTValidator(Validator):
         payload_b64 = b64_encode(json.dumps(payload).encode())
 
         message = f"{header_b64}.{payload_b64}"
-        signature = hmac.new(
-            self.secret.encode(),
-            message.encode(),
-            hashlib.sha256
-        ).digest()
+        signature = hmac.new(self.secret.encode(), message.encode(), hashlib.sha256).digest()
         signature_b64 = b64_encode(signature)
 
         return f"{message}.{signature_b64}"
@@ -265,10 +250,7 @@ class APIKeyValidator(Validator):
 
         # Check query parameter
         if not api_key and request.query_string:
-            params = dict(
-                p.split("=") for p in request.query_string.split("&")
-                if "=" in p
-            )
+            params = dict(p.split("=") for p in request.query_string.split("&") if "=" in p)
             api_key = params.get(self.query_param)
 
         if not api_key:
@@ -286,6 +268,7 @@ class APIKeyValidator(Validator):
     def generate_key(self) -> str:
         """Generate a new API key."""
         import secrets
+
         return secrets.token_urlsafe(32)
 
 
@@ -335,7 +318,7 @@ class OAuthValidator(Validator):
                         "token": token,
                         "client_id": self.client_id,
                         "client_secret": self.client_secret,
-                    }
+                    },
                 ) as response:
                     if response.status != 200:
                         return False, None, "Token introspection failed"
@@ -425,10 +408,7 @@ class RateLimiter:
                 self._windows[key] = []
 
             # Remove old entries
-            self._windows[key] = [
-                t for t in self._windows[key]
-                if t > window_start
-            ]
+            self._windows[key] = [t for t in self._windows[key] if t > window_start]
 
             current_count = len(self._windows[key])
             remaining = max(0, self.requests_per_window - current_count - 1)
@@ -464,23 +444,29 @@ class SecurityMiddleware:
     def _initialize(self) -> None:
         """Initialize security components."""
         if self.config.jwt_enabled and self.config.jwt_secret:
-            self._validators.append(JWTValidator(
-                secret=self.config.jwt_secret,
-                algorithm=self.config.jwt_algorithm,
-            ))
+            self._validators.append(
+                JWTValidator(
+                    secret=self.config.jwt_secret,
+                    algorithm=self.config.jwt_algorithm,
+                )
+            )
 
         if self.config.api_key_enabled:
-            self._validators.append(APIKeyValidator(
-                header_name=self.config.api_key_header,
-                query_param=self.config.api_key_query_param,
-            ))
+            self._validators.append(
+                APIKeyValidator(
+                    header_name=self.config.api_key_header,
+                    query_param=self.config.api_key_query_param,
+                )
+            )
 
         if self.config.oauth_enabled:
-            self._validators.append(OAuthValidator(
-                provider_url=self.config.oauth_provider_url,
-                client_id=self.config.oauth_client_id,
-                client_secret=self.config.oauth_client_secret,
-            ))
+            self._validators.append(
+                OAuthValidator(
+                    provider_url=self.config.oauth_provider_url,
+                    client_id=self.config.oauth_client_id,
+                    client_secret=self.config.oauth_client_secret,
+                )
+            )
 
         if self.config.ip_whitelist_enabled:
             self._ip_filter = IPWhitelist(

@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class BrokerConfig:
     """Configuration for message brokers."""
+
     bootstrap_servers: List[str] = field(default_factory=lambda: ["localhost:9092"])
     client_id: str = "nebulacompute-client"
     security_protocol: str = "PLAINTEXT"  # PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL
@@ -48,6 +49,7 @@ class BrokerConfig:
 @dataclass
 class TopicConfig:
     """Configuration for a topic."""
+
     name: str
     num_partitions: int = 8
     replication_factor: int = 3
@@ -104,10 +106,7 @@ class MessageBroker(ABC):
 
     @abstractmethod
     def poll(
-        self,
-        topics: List[str],
-        timeout_ms: int,
-        group_id: Optional[str] = None
+        self, topics: List[str], timeout_ms: int, group_id: Optional[str] = None
     ) -> List[Tuple[str, int, int, Dict]]:
         """Poll for events. Returns list of (topic, partition, offset, event_data)."""
         pass
@@ -149,9 +148,7 @@ class InMemoryBroker(MessageBroker):
             if config.name in self._topics:
                 return False
 
-            self._topics[config.name] = {
-                p: [] for p in range(config.num_partitions)
-            }
+            self._topics[config.name] = {p: [] for p in range(config.num_partitions)}
             self._topic_configs[config.name] = config
             self._offsets[config.name] = {}
             return True
@@ -199,10 +196,7 @@ class InMemoryBroker(MessageBroker):
         return True
 
     def poll(
-        self,
-        topics: List[str],
-        timeout_ms: int,
-        group_id: Optional[str] = None
+        self, topics: List[str], timeout_ms: int, group_id: Optional[str] = None
     ) -> List[Tuple[str, int, int, Dict]]:
         results = []
         group_id = group_id or "default"
@@ -215,9 +209,7 @@ class InMemoryBroker(MessageBroker):
                 if topic not in self._consumer_positions:
                     self._consumer_positions[topic] = {}
                 if group_id not in self._consumer_positions[topic]:
-                    self._consumer_positions[topic][group_id] = {
-                        p: 0 for p in range(len(self._topics[topic]))
-                    }
+                    self._consumer_positions[topic][group_id] = {p: 0 for p in range(len(self._topics[topic]))}
 
                 for partition, messages in self._topics[topic].items():
                     pos = self._consumer_positions[topic][group_id].get(partition, 0)
@@ -313,7 +305,7 @@ class KafkaBroker(MessageBroker):
                     "compression.type": config.compression_type,
                     "min.insync.replicas": str(config.min_insync_replicas),
                     "max.message.bytes": str(config.max_message_bytes),
-                }
+                },
             )
 
             self._admin_client.create_topics([topic])
@@ -346,11 +338,7 @@ class KafkaBroker(MessageBroker):
     def send(self, topic: str, event: Event, key: Optional[str] = None) -> bool:
         """Send an event to Kafka."""
         try:
-            future = self._producer.send(
-                topic,
-                value=event.to_dict(),
-                key=key
-            )
+            future = self._producer.send(topic, value=event.to_dict(), key=key)
             future.get(timeout=10)
             return True
         except Exception as e:
@@ -369,10 +357,7 @@ class KafkaBroker(MessageBroker):
             return False
 
     def poll(
-        self,
-        topics: List[str],
-        timeout_ms: int,
-        group_id: Optional[str] = None
+        self, topics: List[str], timeout_ms: int, group_id: Optional[str] = None
     ) -> List[Tuple[str, int, int, Dict]]:
         """Poll for events from Kafka."""
         try:
@@ -392,12 +377,7 @@ class KafkaBroker(MessageBroker):
 
             results = []
             for message in self._consumer:
-                results.append((
-                    message.topic,
-                    message.partition,
-                    message.offset,
-                    message.value
-                ))
+                results.append((message.topic, message.partition, message.offset, message.value))
 
             return results
 
@@ -412,8 +392,7 @@ class KafkaBroker(MessageBroker):
                 from kafka import OffsetAndMetadata, TopicPartition
 
                 offset_dict = {
-                    TopicPartition(o.topic, o.partition): OffsetAndMetadata(o.offset + 1, o.metadata)
-                    for o in offsets
+                    TopicPartition(o.topic, o.partition): OffsetAndMetadata(o.offset + 1, o.metadata) for o in offsets
                 }
                 self._consumer.commit(offset_dict)
 
@@ -430,10 +409,7 @@ class KafkaBroker(MessageBroker):
                 if partitions:
                     tps = [TopicPartition(topic, p) for p in partitions]
                     committed = self._consumer.committed(tps)
-                    return {
-                        tp.partition: (offset.offset if offset else 0)
-                        for tp, offset in committed.items()
-                    }
+                    return {tp.partition: (offset.offset if offset else 0) for tp, offset in committed.items()}
             return {}
         except Exception as e:
             logger.error(f"Failed to get offsets: {e}")
@@ -492,9 +468,7 @@ class RedisBroker(MessageBroker):
             # We can set max length for retention
             stream_key = f"stream:{config.name}"
             self._redis.xadd(
-                stream_key,
-                {"__init__": "1"},
-                maxlen=config.retention_bytes if config.retention_bytes > 0 else None
+                stream_key, {"__init__": "1"}, maxlen=config.retention_bytes if config.retention_bytes > 0 else None
             )
             return True
         except Exception as e:
@@ -579,10 +553,7 @@ class RedisBroker(MessageBroker):
                 self._consumer_groups[topic].add(group_id)
 
     def poll(
-        self,
-        topics: List[str],
-        timeout_ms: int,
-        group_id: Optional[str] = None
+        self, topics: List[str], timeout_ms: int, group_id: Optional[str] = None
     ) -> List[Tuple[str, int, int, Dict]]:
         """Poll for events from Redis streams."""
         try:
@@ -595,11 +566,7 @@ class RedisBroker(MessageBroker):
                 stream_key = f"stream:{topic}"
 
                 messages = self._redis.xreadgroup(
-                    group_id,
-                    consumer_name,
-                    {stream_key: ">"},
-                    count=100,
-                    block=timeout_ms
+                    group_id, consumer_name, {stream_key: ">"}, count=100, block=timeout_ms
                 )
 
                 if messages:

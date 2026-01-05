@@ -19,11 +19,12 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class QueryType(Enum):
     """Types of queries that can be cached."""
+
     WORKER_STATUS = "worker_status"
     JOB_STATUS = "job_status"
     JOB_LIST = "job_list"
@@ -37,6 +38,7 @@ class QueryType(Enum):
 
 class InvalidationTrigger(Enum):
     """Triggers for cache invalidation."""
+
     TIME_BASED = "time_based"
     EVENT_BASED = "event_based"
     MANUAL = "manual"
@@ -46,6 +48,7 @@ class InvalidationTrigger(Enum):
 @dataclass
 class CachedQuery:
     """Represents a cached query result."""
+
     key: str
     query_type: QueryType
     result: Any
@@ -70,6 +73,7 @@ class CachedQuery:
 @dataclass
 class QueryCacheConfig:
     """Configuration for query cache."""
+
     max_entries: int = 10000
     default_ttl_seconds: int = 60
     worker_status_ttl: int = 5
@@ -99,27 +103,21 @@ class QueryKeyBuilder:
 
     @staticmethod
     def job_list(
-        status: Optional[str] = None,
-        priority: Optional[int] = None,
-        limit: int = 100,
-        offset: int = 0
+        status: Optional[str] = None, priority: Optional[int] = None, limit: int = 100, offset: int = 0
     ) -> str:
         """Build key for job list query."""
         params = f"s={status or 'all'},p={priority or 'all'},l={limit},o={offset}"
         return f"job:list:{hashlib.md5(params.encode()).hexdigest()[:16]}"
 
     @staticmethod
-    def worker_list(
-        status: Optional[str] = None,
-        tags: Optional[List[str]] = None
-    ) -> str:
+    def worker_list(status: Optional[str] = None, tags: Optional[List[str]] = None) -> str:
         """Build key for worker list query."""
-        tag_str = ','.join(sorted(tags)) if tags else 'none'
+        tag_str = ",".join(sorted(tags)) if tags else "none"
         params = f"s={status or 'all'},t={tag_str}"
         return f"worker:list:{hashlib.md5(params.encode()).hexdigest()[:16]}"
 
     @staticmethod
-    def resource_availability(resource_type: str = 'all') -> str:
+    def resource_availability(resource_type: str = "all") -> str:
         """Build key for resource availability query."""
         return f"resource:avail:{resource_type}"
 
@@ -129,7 +127,7 @@ class QueryKeyBuilder:
         return "scheduler:state"
 
     @staticmethod
-    def cluster_metrics(metric_type: str = 'all') -> str:
+    def cluster_metrics(metric_type: str = "all") -> str:
         """Build key for cluster metrics."""
         return f"cluster:metrics:{metric_type}"
 
@@ -139,7 +137,7 @@ class QueryKeyBuilder:
         return f"lease:info:{lease_id}"
 
     @staticmethod
-    def queue_status(queue_name: str = 'default') -> str:
+    def queue_status(queue_name: str = "default") -> str:
         """Build key for queue status."""
         return f"queue:status:{queue_name}"
 
@@ -212,11 +210,7 @@ class QueryCache:
         self._lock = threading.RLock()
         self._cleanup_task: Optional[asyncio.Task] = None
 
-    def get(
-        self,
-        key: str,
-        query_type: Optional[QueryType] = None
-    ) -> Optional[Any]:
+    def get(self, key: str, query_type: Optional[QueryType] = None) -> Optional[Any]:
         """Get a cached query result."""
         with self._lock:
             if key not in self.cache:
@@ -255,7 +249,7 @@ class QueryCache:
         result: Any,
         query_type: QueryType,
         ttl: Optional[int] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Set a query result in cache."""
         with self._lock:
@@ -313,10 +307,7 @@ class QueryCache:
     def invalidate_query_type(self, query_type: QueryType):
         """Invalidate all entries of a specific query type."""
         with self._lock:
-            keys_to_remove = [
-                k for k, v in self.cache.items()
-                if v.query_type == query_type
-            ]
+            keys_to_remove = [k for k, v in self.cache.items() if v.query_type == query_type]
             for key in keys_to_remove:
                 del self.cache[key]
                 self.invalidations += 1
@@ -365,15 +356,13 @@ class QueryCache:
         """Remove expired entries."""
         current_time = time.time()
         with self._lock:
-            expired_keys = [
-                k for k, v in self.cache.items()
-                if v.expires_at < current_time
-            ]
+            expired_keys = [k for k, v in self.cache.items() if v.expires_at < current_time]
             for key in expired_keys:
                 del self.cache[key]
 
     async def start_cleanup_loop(self, interval_seconds: float = 60.0):
         """Start background cleanup loop."""
+
         async def cleanup_loop():
             while True:
                 await asyncio.sleep(interval_seconds)
@@ -397,14 +386,14 @@ class QueryCache:
             hit_rate = self.hits / total if total > 0 else 0
 
             return {
-                'entries': len(self.cache),
-                'max_entries': self.config.max_entries,
-                'hits': self.hits,
-                'misses': self.misses,
-                'hit_rate': hit_rate,
-                'evictions': self.evictions,
-                'invalidations': self.invalidations,
-                'by_type': self._get_stats_by_type(),
+                "entries": len(self.cache),
+                "max_entries": self.config.max_entries,
+                "hits": self.hits,
+                "misses": self.misses,
+                "hit_rate": hit_rate,
+                "evictions": self.evictions,
+                "invalidations": self.invalidations,
+                "by_type": self._get_stats_by_type(),
             }
 
     def _get_stats_by_type(self) -> Dict[str, int]:
@@ -430,7 +419,7 @@ class CachedQueryExecutor:
         query_type: QueryType,
         loader: Callable[[], Any],
         ttl: Optional[int] = None,
-        force_refresh: bool = False
+        force_refresh: bool = False,
     ) -> Any:
         """Execute a query with caching."""
         # Check cache first
@@ -451,13 +440,9 @@ class CachedQueryExecutor:
         return result
 
 
-def cached_query(
-    cache: QueryCache,
-    query_type: QueryType,
-    key_builder: Callable[..., str],
-    ttl: Optional[int] = None
-):
+def cached_query(cache: QueryCache, query_type: QueryType, key_builder: Callable[..., str], ttl: Optional[int] = None):
     """Decorator for caching query results."""
+
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -509,14 +494,14 @@ class BatchQueryCache:
         keys: List[str],
         query_type: QueryType,
         loader: Callable[[List[str]], Dict[str, Any]],
-        ttl: Optional[int] = None
+        ttl: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Get multiple items, loading missing ones in batch."""
         results = {}
         missing_keys = []
 
         # Check cache for each key
-        for key in keys[:self.max_batch_size]:
+        for key in keys[: self.max_batch_size]:
             cached = self.cache.get(key, query_type)
             if cached is not None:
                 results[key] = cached
@@ -560,9 +545,8 @@ class WorkerStatusCache:
         results = {}
         with self.cache._lock:
             for key, cached in self.cache.cache.items():
-                if (cached.query_type == QueryType.WORKER_STATUS and
-                    not cached.is_expired):
-                    worker_id = key.split(':')[-1]
+                if cached.query_type == QueryType.WORKER_STATUS and not cached.is_expired:
+                    worker_id = key.split(":")[-1]
                     results[worker_id] = cached.result
         return results
 
@@ -589,7 +573,7 @@ class JobStatusCache:
         key = self.key_builder.job_status(job_id)
 
         # Track state transition
-        state = status.get('state', 'unknown')
+        state = status.get("state", "unknown")
         self.state_transitions[job_id].append((state, time.time()))
 
         self.cache.set(key, status, QueryType.JOB_STATUS)
@@ -623,7 +607,7 @@ class SchedulerStateCache:
         """Set scheduler state in cache."""
         with self._lock:
             self.snapshot_version += 1
-            state['_version'] = self.snapshot_version
+            state["_version"] = self.snapshot_version
 
         key = self.key_builder.scheduler_state()
         self.cache.set(key, state, QueryType.SCHEDULER_STATE)

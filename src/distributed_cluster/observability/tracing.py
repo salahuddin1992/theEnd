@@ -98,19 +98,23 @@ class Span:
 
     def add_event(self, name: str, attributes: Optional[Dict[str, Any]] = None) -> None:
         """إضافة حدث."""
-        self.events.append(SpanEvent(
-            name=name,
-            timestamp=time.time(),
-            attributes=attributes or {},
-        ))
+        self.events.append(
+            SpanEvent(
+                name=name,
+                timestamp=time.time(),
+                attributes=attributes or {},
+            )
+        )
 
     def add_link(self, trace_id: str, span_id: str, attributes: Optional[Dict[str, Any]] = None) -> None:
         """إضافة رابط."""
-        self.links.append(SpanLink(
-            trace_id=trace_id,
-            span_id=span_id,
-            attributes=attributes or {},
-        ))
+        self.links.append(
+            SpanLink(
+                trace_id=trace_id,
+                span_id=span_id,
+                attributes=attributes or {},
+            )
+        )
 
     def set_status(self, status: SpanStatus, message: str = "") -> None:
         """تعيين حالة الـ Span."""
@@ -274,28 +278,27 @@ class JaegerSpanExporter(SpanExporter):
         # Convert to Jaeger format
         jaeger_spans = []
         for span in spans:
-            jaeger_spans.append({
-                "traceIdLow": int(span.trace_id[:16], 16),
-                "traceIdHigh": int(span.trace_id[16:], 16) if len(span.trace_id) > 16 else 0,
-                "spanId": int(span.span_id, 16),
-                "parentSpanId": int(span.parent_span_id, 16) if span.parent_span_id else 0,
-                "operationName": span.name,
-                "startTime": int(span.start_time * 1e6),  # microseconds
-                "duration": int(span.duration_ms * 1000),  # microseconds
-                "tags": [
-                    {"key": k, "type": "string", "vStr": str(v)}
-                    for k, v in span.attributes.items()
-                ],
-                "logs": [
-                    {
-                        "timestamp": int(e.timestamp * 1e6),
-                        "fields": [
-                            {"key": "event", "type": "string", "vStr": e.name},
-                        ],
-                    }
-                    for e in span.events
-                ],
-            })
+            jaeger_spans.append(
+                {
+                    "traceIdLow": int(span.trace_id[:16], 16),
+                    "traceIdHigh": int(span.trace_id[16:], 16) if len(span.trace_id) > 16 else 0,
+                    "spanId": int(span.span_id, 16),
+                    "parentSpanId": int(span.parent_span_id, 16) if span.parent_span_id else 0,
+                    "operationName": span.name,
+                    "startTime": int(span.start_time * 1e6),  # microseconds
+                    "duration": int(span.duration_ms * 1000),  # microseconds
+                    "tags": [{"key": k, "type": "string", "vStr": str(v)} for k, v in span.attributes.items()],
+                    "logs": [
+                        {
+                            "timestamp": int(e.timestamp * 1e6),
+                            "fields": [
+                                {"key": "event", "type": "string", "vStr": e.name},
+                            ],
+                        }
+                        for e in span.events
+                    ],
+                }
+            )
 
         payload = {
             "process": {
@@ -482,6 +485,7 @@ class Tracer:
 
     async def start_background_flush(self) -> None:
         """بدء التصدير الدوري."""
+
         async def flush_loop():
             while True:
                 await asyncio.sleep(self.flush_interval)
@@ -511,18 +515,23 @@ def traced(
     kind: SpanKind = SpanKind.INTERNAL,
 ):
     """Decorator لتتبع function."""
+
     def decorator(func: Callable):
         span_name = name or func.__name__
 
         if asyncio.iscoroutinefunction(func):
+
             async def async_wrapper(*args, **kwargs):
                 async with tracer.start_async_span(span_name, kind):
                     return await func(*args, **kwargs)
+
             return async_wrapper
         else:
+
             def sync_wrapper(*args, **kwargs):
                 with tracer.start_span(span_name, kind):
                     return func(*args, **kwargs)
+
             return sync_wrapper
 
     return decorator

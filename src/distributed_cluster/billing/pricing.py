@@ -275,10 +275,7 @@ class PricingEngine:
     def set_price(self, price: ResourcePrice) -> None:
         """Set or update a resource price."""
         self._prices[price.resource_type] = price
-        logger.info(
-            f"Updated price for {price.resource_type}: "
-            f"${price.base_price}/{price.unit}"
-        )
+        logger.info(f"Updated price for {price.resource_type}: " f"${price.base_price}/{price.unit}")
 
     def get_price(self, resource_type: str) -> Optional[ResourcePrice]:
         """Get price for a resource type."""
@@ -398,9 +395,7 @@ class PricingEngine:
         total_final_cost = 0.0
 
         for resource_type, quantity in resources.items():
-            cost_info = self.calculate_cost(
-                resource_type, quantity, context, usage_time
-            )
+            cost_info = self.calculate_cost(resource_type, quantity, context, usage_time)
             breakdown.append(cost_info)
             total_base_cost += cost_info["base_cost"]
             total_final_cost += cost_info["final_cost"]
@@ -475,7 +470,4 @@ class PricingEngine:
             )
             self._rules[rid] = rule
 
-        logger.info(
-            f"Imported pricing: {len(self._prices)} prices, "
-            f"{len(self._rules)} rules"
-        )
+        logger.info(f"Imported pricing: {len(self._prices)} prices, " f"{len(self._rules)} rules")

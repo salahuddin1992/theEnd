@@ -609,9 +609,7 @@ def _register_routes(app: FastAPI) -> None:
         state = get_api_state()
 
         # تخزين التوزيع في الحالة
-        state.load_distribution = {
-            d["worker_id"]: d for d in distributions
-        }
+        state.load_distribution = {d["worker_id"]: d for d in distributions}
 
         logger.info(f"Load distribution updated: {distributions}")
 

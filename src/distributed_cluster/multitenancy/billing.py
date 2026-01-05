@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class BillingPeriod(str, Enum):
     """فترة الفوترة"""
+
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -32,6 +33,7 @@ class BillingPeriod(str, Enum):
 
 class ResourceType(str, Enum):
     """نوع المورد"""
+
     CPU = "cpu"
     MEMORY = "memory"
     GPU = "gpu"
@@ -43,6 +45,7 @@ class ResourceType(str, Enum):
 @dataclass
 class ResourcePrice:
     """سعر المورد"""
+
     resource_type: ResourceType
     unit: str  # e.g., "core-hour", "gb-hour", "request"
     price_per_unit: Decimal
@@ -52,6 +55,7 @@ class ResourcePrice:
 @dataclass
 class UsageRecord:
     """سجل الاستخدام"""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     tenant_id: str = ""
     resource_type: ResourceType = ResourceType.CPU
@@ -87,6 +91,7 @@ class UsageRecord:
 @dataclass
 class InvoiceLineItem:
     """بند الفاتورة"""
+
     description: str
     resource_type: ResourceType
     quantity: Decimal
@@ -99,6 +104,7 @@ class InvoiceLineItem:
 @dataclass
 class Invoice:
     """الفاتورة"""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     tenant_id: str = ""
     period_start: datetime = field(default_factory=datetime.utcnow)
@@ -293,24 +299,12 @@ class BillingManager:
     def _set_default_prices(self) -> None:
         """تعيين الأسعار الافتراضية"""
         self._prices = {
-            ResourceType.CPU: ResourcePrice(
-                ResourceType.CPU, "core-hour", Decimal("0.05")
-            ),
-            ResourceType.MEMORY: ResourcePrice(
-                ResourceType.MEMORY, "gb-hour", Decimal("0.01")
-            ),
-            ResourceType.GPU: ResourcePrice(
-                ResourceType.GPU, "gpu-hour", Decimal("0.50")
-            ),
-            ResourceType.STORAGE: ResourcePrice(
-                ResourceType.STORAGE, "gb-month", Decimal("0.10")
-            ),
-            ResourceType.NETWORK_EGRESS: ResourcePrice(
-                ResourceType.NETWORK_EGRESS, "gb", Decimal("0.05")
-            ),
-            ResourceType.JOB_EXECUTION: ResourcePrice(
-                ResourceType.JOB_EXECUTION, "job", Decimal("0.001")
-            ),
+            ResourceType.CPU: ResourcePrice(ResourceType.CPU, "core-hour", Decimal("0.05")),
+            ResourceType.MEMORY: ResourcePrice(ResourceType.MEMORY, "gb-hour", Decimal("0.01")),
+            ResourceType.GPU: ResourcePrice(ResourceType.GPU, "gpu-hour", Decimal("0.50")),
+            ResourceType.STORAGE: ResourcePrice(ResourceType.STORAGE, "gb-month", Decimal("0.10")),
+            ResourceType.NETWORK_EGRESS: ResourcePrice(ResourceType.NETWORK_EGRESS, "gb", Decimal("0.05")),
+            ResourceType.JOB_EXECUTION: ResourcePrice(ResourceType.JOB_EXECUTION, "job", Decimal("0.001")),
         }
 
     def set_price(
@@ -320,9 +314,7 @@ class BillingManager:
         unit: str,
     ) -> None:
         """تعيين سعر"""
-        self._prices[resource_type] = ResourcePrice(
-            resource_type, unit, price_per_unit
-        )
+        self._prices[resource_type] = ResourcePrice(resource_type, unit, price_per_unit)
 
     def get_price(self, resource_type: ResourceType) -> Optional[ResourcePrice]:
         """الحصول على سعر"""
@@ -343,9 +335,7 @@ class BillingManager:
         )
 
         # Get usage records
-        records = await self.usage_tracker.get_usage(
-            tenant_id, period_start, period_end
-        )
+        records = await self.usage_tracker.get_usage(tenant_id, period_start, period_end)
 
         # Group by resource type
         by_type: Dict[ResourceType, List[UsageRecord]] = {}
@@ -372,15 +362,17 @@ class BillingManager:
 
             total = quantity * price.price_per_unit
 
-            invoice.line_items.append(InvoiceLineItem(
-                description=f"{resource_type.value.replace('_', ' ').title()} Usage",
-                resource_type=resource_type,
-                quantity=quantity,
-                unit=price.unit,
-                unit_price=price.price_per_unit,
-                total=total,
-                usage_records=[r.id for r in type_records],
-            ))
+            invoice.line_items.append(
+                InvoiceLineItem(
+                    description=f"{resource_type.value.replace('_', ' ').title()} Usage",
+                    resource_type=resource_type,
+                    quantity=quantity,
+                    unit=price.unit,
+                    unit_price=price.price_per_unit,
+                    total=total,
+                    usage_records=[r.id for r in type_records],
+                )
+            )
 
         invoice.calculate_totals()
         invoice.status = "pending"
@@ -427,9 +419,7 @@ class BillingManager:
         now = datetime.now(timezone.utc)
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-        records = await self.usage_tracker.get_usage(
-            tenant_id, month_start, now
-        )
+        records = await self.usage_tracker.get_usage(tenant_id, month_start, now)
 
         total = Decimal("0")
         for record in records:

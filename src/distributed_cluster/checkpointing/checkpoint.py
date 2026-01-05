@@ -38,6 +38,7 @@ T = TypeVar("T")
 
 class CheckpointState(str, Enum):
     """حالة نقطة الحفظ / Checkpoint state"""
+
     PENDING = "pending"  # قيد الإنشاء
     SAVING = "saving"  # يتم الحفظ
     SAVED = "saved"  # تم الحفظ
@@ -52,6 +53,7 @@ class CheckpointMetadata:
     بيانات وصفية لنقطة الحفظ
     Checkpoint metadata
     """
+
     checkpoint_id: str
     job_id: str
     task_id: Optional[str] = None
@@ -118,6 +120,7 @@ class CheckpointData(Generic[T]):
     بيانات نقطة الحفظ
     Checkpoint data container
     """
+
     # Core state
     state: T
 
@@ -156,6 +159,7 @@ class Checkpoint(Generic[T]):
     نقطة حفظ كاملة
     Complete checkpoint
     """
+
     metadata: CheckpointMetadata
     data: CheckpointData[T]
     state: CheckpointState = CheckpointState.PENDING

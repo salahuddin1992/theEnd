@@ -119,29 +119,33 @@ class GraphQLExecutor:
             operation = self._parse_query(request.query)
 
             if not operation:
-                return GraphQLResponse(errors=[{
-                    "message": "Invalid query",
-                    "code": "PARSE_ERROR",
-                }])
+                return GraphQLResponse(
+                    errors=[
+                        {
+                            "message": "Invalid query",
+                            "code": "PARSE_ERROR",
+                        }
+                    ]
+                )
 
             # Execute based on operation type
             if operation["type"] == "query":
-                data = await self._execute_query(
-                    operation, request.variables or {}, context
-                )
+                data = await self._execute_query(operation, request.variables or {}, context)
                 self._stats["queries_executed"] += 1
 
             elif operation["type"] == "mutation":
-                data = await self._execute_mutation(
-                    operation, request.variables or {}, context
-                )
+                data = await self._execute_mutation(operation, request.variables or {}, context)
                 self._stats["mutations_executed"] += 1
 
             else:
-                return GraphQLResponse(errors=[{
-                    "message": f"Unsupported operation: {operation['type']}",
-                    "code": "UNSUPPORTED_OPERATION",
-                }])
+                return GraphQLResponse(
+                    errors=[
+                        {
+                            "message": f"Unsupported operation: {operation['type']}",
+                            "code": "UNSUPPORTED_OPERATION",
+                        }
+                    ]
+                )
 
             # Update statistics
             execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
@@ -153,10 +157,14 @@ class GraphQLExecutor:
             self._stats["errors_count"] += 1
             logger.error(f"GraphQL execution error: {e}")
 
-            return GraphQLResponse(errors=[{
-                "message": str(e),
-                "code": getattr(e, "code", "INTERNAL_ERROR"),
-            }])
+            return GraphQLResponse(
+                errors=[
+                    {
+                        "message": str(e),
+                        "code": getattr(e, "code", "INTERNAL_ERROR"),
+                    }
+                ]
+            )
 
     def _parse_query(self, query: str) -> Optional[Dict[str, Any]]:
         """Parse GraphQL query string."""
@@ -188,10 +196,10 @@ class GraphQLExecutor:
         import re
 
         # Match field patterns like: fieldName(args) { ... } or fieldName
-        pattern = r'(\w+)\s*(?:\(([^)]*)\))?\s*(?:\{([^}]*)\})?'
+        pattern = r"(\w+)\s*(?:\(([^)]*)\))?\s*(?:\{([^}]*)\})?"
 
         # Find the main body
-        brace_match = re.search(r'\{(.+)\}', query, re.DOTALL)
+        brace_match = re.search(r"\{(.+)\}", query, re.DOTALL)
         if brace_match:
             body = brace_match.group(1)
 
@@ -207,16 +215,18 @@ class GraphQLExecutor:
                 args = {}
                 if args_str:
                     # Parse arguments
-                    for arg_match in re.finditer(r'(\w+)\s*:\s*([^,\)]+)', args_str):
+                    for arg_match in re.finditer(r"(\w+)\s*:\s*([^,\)]+)", args_str):
                         arg_name = arg_match.group(1)
                         arg_value = arg_match.group(2).strip().strip('"')
                         args[arg_name] = arg_value
 
-                fields.append({
-                    "name": field_name,
-                    "args": args,
-                    "subfields": subfields.strip() if subfields else None,
-                })
+                fields.append(
+                    {
+                        "name": field_name,
+                        "args": args,
+                        "subfields": subfields.strip() if subfields else None,
+                    }
+                )
 
         return fields
 
@@ -240,9 +250,7 @@ class GraphQLExecutor:
                 path=[field_name],
             )
 
-            result[field_name] = await self.query_resolver.resolve(
-                field_name, args, context, info
-            )
+            result[field_name] = await self.query_resolver.resolve(field_name, args, context, info)
 
         return result
 
@@ -266,9 +274,7 @@ class GraphQLExecutor:
                 path=[field_name],
             )
 
-            result[field_name] = await self.mutation_resolver.resolve(
-                field_name, args, context, info
-            )
+            result[field_name] = await self.mutation_resolver.resolve(field_name, args, context, info)
 
         return result
 
@@ -297,9 +303,7 @@ class GraphQLExecutor:
         if total == 1:
             self._stats["avg_execution_time_ms"] = execution_time
         else:
-            self._stats["avg_execution_time_ms"] = (
-                (current_avg * (total - 1) + execution_time) / total
-            )
+            self._stats["avg_execution_time_ms"] = (current_avg * (total - 1) + execution_time) / total
 
     async def get_statistics(self) -> Dict[str, Any]:
         """Get executor statistics."""
@@ -351,10 +355,7 @@ class GraphQLServer:
         await self.subscription_manager.start()
         self._running = True
 
-        logger.info(
-            f"GraphQL server starting on "
-            f"http://{self.config.host}:{self.config.port}{self.config.path}"
-        )
+        logger.info(f"GraphQL server starting on " f"http://{self.config.host}:{self.config.port}{self.config.path}")
 
         # In production, integrate with actual HTTP framework (aiohttp, FastAPI, etc.)
         # This is a minimal implementation for demonstration
@@ -489,10 +490,7 @@ class GraphQLServer:
 
         # Clean old entries
         if client_ip in self._request_counts:
-            self._request_counts[client_ip] = [
-                t for t in self._request_counts[client_ip]
-                if t > minute_ago
-            ]
+            self._request_counts[client_ip] = [t for t in self._request_counts[client_ip] if t > minute_ago]
         else:
             self._request_counts[client_ip] = []
 

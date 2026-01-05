@@ -109,17 +109,13 @@ class S3Storage(CheckpointStorage):
             self._s3_client = session.client("s3", **client_kwargs)
 
             # Test connection
-            await self._run_in_executor(
-                self._s3_client.head_bucket, Bucket=self.bucket_name
-            )
+            await self._run_in_executor(self._s3_client.head_bucket, Bucket=self.bucket_name)
 
             self._connected = True
             logger.info(f"S3Storage connected to bucket {self.bucket_name}")
 
         except ImportError:
-            raise ConnectionError(
-                "boto3 required for S3 storage. Install with: pip install boto3"
-            )
+            raise ConnectionError("boto3 required for S3 storage. Install with: pip install boto3")
         except Exception as e:
             raise ConnectionError(f"Failed to connect to S3: {e}")
 
@@ -132,9 +128,7 @@ class S3Storage(CheckpointStorage):
     async def _run_in_executor(self, func, *args, **kwargs):
         """تشغيل دالة boto3 في thread pool"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            self._executor, lambda: func(*args, **kwargs)
-        )
+        return await loop.run_in_executor(self._executor, lambda: func(*args, **kwargs))
 
     # =========================================================================
     # Checkpoint Operations / عمليات نقاط الحفظ
@@ -413,10 +407,12 @@ class S3Storage(CheckpointStorage):
     def get_status(self) -> dict:
         """الحصول على حالة التخزين"""
         status = super().get_status()
-        status.update({
-            "bucket": self.bucket_name,
-            "prefix": self.prefix,
-            "region": self.region,
-            "encryption": self.server_side_encryption,
-        })
+        status.update(
+            {
+                "bucket": self.bucket_name,
+                "prefix": self.prefix,
+                "region": self.region,
+                "encryption": self.server_side_encryption,
+            }
+        )
         return status

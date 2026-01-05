@@ -21,14 +21,16 @@ logger = logging.getLogger(__name__)
 
 class CircuitState(Enum):
     """Circuit breaker states."""
-    CLOSED = "closed"      # Normal operation
-    OPEN = "open"          # Failing, reject requests
+
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"  # Failing, reject requests
     HALF_OPEN = "half_open"  # Testing if recovered
 
 
 @dataclass
 class HTTPClientConfig:
     """Configuration for HTTP connection pool."""
+
     # Connection settings
     max_connections: int = 100
     max_connections_per_host: int = 10
@@ -40,9 +42,7 @@ class HTTPClientConfig:
     max_retries: int = 3
     retry_delay: float = 1.0
     retry_backoff: float = 2.0
-    retry_statuses: List[int] = field(
-        default_factory=lambda: [429, 500, 502, 503, 504]
-    )
+    retry_statuses: List[int] = field(default_factory=lambda: [429, 500, 502, 503, 504])
 
     # Circuit breaker
     circuit_failure_threshold: int = 5
@@ -57,6 +57,7 @@ class HTTPClientConfig:
 @dataclass
 class CircuitBreaker:
     """Circuit breaker for HTTP endpoints."""
+
     state: CircuitState = CircuitState.CLOSED
     failures: int = 0
     last_failure: Optional[datetime] = None
@@ -236,9 +237,7 @@ class HTTPConnectionPool:
                 # Check if should retry based on status
                 if response.status_code in self.config.retry_statuses:
                     if attempt < self.config.max_retries:
-                        delay = self.config.retry_delay * (
-                            self.config.retry_backoff ** attempt
-                        )
+                        delay = self.config.retry_delay * (self.config.retry_backoff**attempt)
                         logger.warning(
                             "Retrying %s %s after %s status (attempt %d)",
                             method,
@@ -258,9 +257,7 @@ class HTTPConnectionPool:
                 self._error_count += 1
 
                 if attempt < self.config.max_retries:
-                    delay = self.config.retry_delay * (
-                        self.config.retry_backoff ** attempt
-                    )
+                    delay = self.config.retry_delay * (self.config.retry_backoff**attempt)
                     logger.warning(
                         "Retrying %s %s after error: %s (attempt %d)",
                         method,
@@ -334,10 +331,7 @@ class HTTPConnectionPool:
         return {
             "total_requests": self._request_count,
             "total_errors": self._error_count,
-            "error_rate": (
-                self._error_count / self._request_count
-                if self._request_count else 0
-            ),
+            "error_rate": (self._error_count / self._request_count if self._request_count else 0),
             "avg_request_time_ms": avg_time * 1000,
             "circuits": {
                 host: {
@@ -352,6 +346,7 @@ class HTTPConnectionPool:
 @dataclass
 class HTTPResponse:
     """HTTP response wrapper."""
+
     status_code: int
     headers: Dict[str, str]
     content: bytes
@@ -365,6 +360,7 @@ class HTTPResponse:
     def json(self) -> Any:
         """Parse response as JSON."""
         import json
+
         return json.loads(self.content)
 
     @property

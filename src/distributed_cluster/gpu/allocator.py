@@ -221,22 +221,22 @@ class GPUAllocator:
 
                 if self.enable_preemption:
                     # Try preemption
-                    selected_gpus = await self._try_preemption(
-                        requirements, priority
-                    )
+                    selected_gpus = await self._try_preemption(requirements, priority)
 
                 if not selected_gpus:
                     self._stats["failed_allocations"] += 1
                     # Add to pending queue
                     if len(self._pending_requests) < self.max_pending_requests:
-                        self._pending_requests.append({
-                            "job_id": job_id,
-                            "requirements": requirements,
-                            "strategy": strategy,
-                            "priority": priority,
-                            "metadata": metadata,
-                            "timestamp": datetime.now(timezone.utc),
-                        })
+                        self._pending_requests.append(
+                            {
+                                "job_id": job_id,
+                                "requirements": requirements,
+                                "strategy": strategy,
+                                "priority": priority,
+                                "metadata": metadata,
+                                "timestamp": datetime.now(timezone.utc),
+                            }
+                        )
                     return None
 
             # Allocate slices on selected GPUs
@@ -276,10 +276,7 @@ class GPUAllocator:
             self._stats["successful_allocations"] += 1
             self._stats["strategy_usage"][strategy.value] += 1
 
-            logger.info(
-                f"Allocated {len(slices)} GPU slice(s) for job {job_id} "
-                f"on GPUs {allocation.gpu_indices}"
-            )
+            logger.info(f"Allocated {len(slices)} GPU slice(s) for job {job_id} " f"on GPUs {allocation.gpu_indices}")
 
             return allocation
 
@@ -528,10 +525,7 @@ class GPUAllocator:
             for gpu_slice in allocation.slices:
                 await self.sharing_manager.release_slice(gpu_slice.job_id)
 
-            logger.info(
-                f"Released GPU allocation for job {job_id} "
-                f"(GPUs: {allocation.gpu_indices})"
-            )
+            logger.info(f"Released GPU allocation for job {job_id} " f"(GPUs: {allocation.gpu_indices})")
 
             # Process pending requests
             await self._process_pending()
@@ -544,9 +538,7 @@ class GPUAllocator:
             return
 
         # Sort by priority and timestamp
-        self._pending_requests.sort(
-            key=lambda x: (-x["priority"], x["timestamp"])
-        )
+        self._pending_requests.sort(key=lambda x: (-x["priority"], x["timestamp"]))
 
         # Try to allocate pending requests
         still_pending = []

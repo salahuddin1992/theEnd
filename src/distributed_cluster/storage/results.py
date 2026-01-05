@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class StorageBackend(str, Enum):
     """Backend storage types."""
+
     SQLITE = "sqlite"
     POSTGRESQL = "postgresql"
     FILE = "file"
@@ -29,6 +30,7 @@ class StorageBackend(str, Enum):
 @dataclass
 class JobResult:
     """نتيجة مهمة."""
+
     job_id: str
     status: str
     exit_code: int = 0
@@ -76,8 +78,7 @@ class JobResult:
             execution_time_seconds=data.get("execution_time_seconds", 0.0),
             worker_id=data.get("worker_id"),
             created_at=(
-                datetime.fromisoformat(data["created_at"])
-                if data.get("created_at") else datetime.now(timezone.utc)
+                datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.now(timezone.utc)
             ),
         )
 
@@ -129,7 +130,8 @@ class ResultStorage:
         db_path = self.storage_path / "results.db"
         self._db = await aiosqlite.connect(str(db_path))
 
-        await self._db.execute("""
+        await self._db.execute(
+            """
             CREATE TABLE IF NOT EXISTS job_results (
                 job_id TEXT PRIMARY KEY,
                 status TEXT NOT NULL,
@@ -145,15 +147,20 @@ class ResultStorage:
                 worker_id TEXT,
                 created_at TEXT NOT NULL
             )
-        """)
+        """
+        )
 
-        await self._db.execute("""
+        await self._db.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_status ON job_results(status)
-        """)
+        """
+        )
 
-        await self._db.execute("""
+        await self._db.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_created ON job_results(created_at)
-        """)
+        """
+        )
 
         await self._db.commit()
 
@@ -161,9 +168,11 @@ class ResultStorage:
         """تهيئة PostgreSQL."""
         try:
             import asyncpg
+
             self._db = await asyncpg.connect(self.connection_string)
 
-            await self._db.execute("""
+            await self._db.execute(
+                """
                 CREATE TABLE IF NOT EXISTS job_results (
                     job_id TEXT PRIMARY KEY,
                     status TEXT NOT NULL,
@@ -179,7 +188,8 @@ class ResultStorage:
                     worker_id TEXT,
                     created_at TIMESTAMP NOT NULL DEFAULT NOW()
                 )
-            """)
+            """
+            )
         except ImportError:
             logger.warning("asyncpg not installed, falling back to file storage")
             self.backend = StorageBackend.FILE
@@ -247,12 +257,19 @@ class ResultStorage:
                 completed_at = EXCLUDED.completed_at,
                 execution_time_seconds = EXCLUDED.execution_time_seconds
             """,
-            result.job_id, result.status, result.exit_code,
-            result.stdout, result.stderr,
-            json.dumps(result.output_data), json.dumps(result.artifacts),
+            result.job_id,
+            result.status,
+            result.exit_code,
+            result.stdout,
+            result.stderr,
+            json.dumps(result.output_data),
+            json.dumps(result.artifacts),
             json.dumps(result.metrics),
-            result.started_at, result.completed_at,
-            result.execution_time_seconds, result.worker_id, result.created_at,
+            result.started_at,
+            result.completed_at,
+            result.execution_time_seconds,
+            result.worker_id,
+            result.created_at,
         )
 
     async def _store_file(self, result: JobResult) -> None:
@@ -446,7 +463,7 @@ class ResultStorage:
 
         # Sort and paginate
         results.sort(key=lambda r: r.created_at, reverse=True)
-        return results[offset:offset + limit]
+        return results[offset : offset + limit]
 
     async def cleanup_old_results(self) -> int:
         """
@@ -484,14 +501,16 @@ class ResultStorage:
     async def get_stats(self) -> Dict[str, Any]:
         """إحصائيات التخزين."""
         if self.backend == StorageBackend.SQLITE:
-            cursor = await self._db.execute("""
+            cursor = await self._db.execute(
+                """
                 SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                     SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
                     AVG(execution_time_seconds) as avg_time
                 FROM job_results
-            """)
+            """
+            )
             row = await cursor.fetchone()
 
             return {

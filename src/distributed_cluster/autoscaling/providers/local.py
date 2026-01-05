@@ -202,10 +202,7 @@ class LocalProvider(CloudProvider):
             instances = [i for i in instances if i.state == state]
 
         if tags:
-            instances = [
-                i for i in instances
-                if all(i.tags.get(k) == v for k, v in tags.items())
-            ]
+            instances = [i for i in instances if all(i.tags.get(k) == v for k, v in tags.items())]
 
         return instances
 
@@ -242,10 +239,7 @@ class LocalProvider(CloudProvider):
 
     async def get_worker_count(self) -> int:
         """الحصول على عدد العمال الحاليين"""
-        return len([
-            i for i in self._local_instances.values()
-            if i.state == InstanceState.RUNNING
-        ])
+        return len([i for i in self._local_instances.values() if i.state == InstanceState.RUNNING])
 
     def _register_worker(self, instance_id: str) -> None:
         """
@@ -283,18 +277,17 @@ class LocalProvider(CloudProvider):
     def get_status(self) -> dict[str, Any]:
         """الحصول على حالة المزود"""
         status = super().get_status()
-        status.update({
-            "provider_type": "local",
-            "simulate_delay": self.simulate_delay,
-            "stats": self._stats,
-            "instances": {
-                "total": len(self._local_instances),
-                "running": len([
-                    i for i in self._local_instances.values()
-                    if i.state == InstanceState.RUNNING
-                ]),
-            },
-        })
+        status.update(
+            {
+                "provider_type": "local",
+                "simulate_delay": self.simulate_delay,
+                "stats": self._stats,
+                "instances": {
+                    "total": len(self._local_instances),
+                    "running": len([i for i in self._local_instances.values() if i.state == InstanceState.RUNNING]),
+                },
+            }
+        )
         return status
 
 

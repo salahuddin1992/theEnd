@@ -28,9 +28,11 @@ from .titlebar import FluentIcons
 # بيانات عنصر الشريط الجانبي
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class SidebarItem:
     """Data for a sidebar navigation item"""
+
     id: str
     label: str
     icon: str = ""  # Fluent Icon unicode or path
@@ -43,6 +45,7 @@ class SidebarItem:
 @dataclass
 class SidebarGroup:
     """Group of sidebar items"""
+
     label: str
     items: List[SidebarItem] = field(default_factory=list)
     collapsed: bool = False
@@ -52,6 +55,7 @@ class SidebarGroup:
 # NAVIGATION ITEM WIDGET
 # عنصر التنقل
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class NavItem(QWidget):
     """
@@ -133,13 +137,15 @@ class NavItem(QWidget):
         colors = FluentDesignSystem().colors
 
         # Set icon as text (Fluent Icons font)
-        self._icon_label.setStyleSheet(f"""
+        self._icon_label.setStyleSheet(
+            f"""
             QLabel {{
                 font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
                 font-size: 16px;
                 color: {colors.text_primary if self._active else colors.text_secondary};
             }}
-        """)
+        """
+        )
         self._icon_label.setText(self._item.icon)
 
     def _update_badge(self):
@@ -149,7 +155,8 @@ class NavItem(QWidget):
 
         colors = FluentDesignSystem().colors
         self._badge_label.setText(self._item.badge)
-        self._badge_label.setStyleSheet(f"""
+        self._badge_label.setStyleSheet(
+            f"""
             QLabel {{
                 background-color: {colors.accent};
                 color: #FFFFFF;
@@ -159,7 +166,8 @@ class NavItem(QWidget):
                 border-radius: 8px;
                 min-width: 16px;
             }}
-        """)
+        """
+        )
 
     def set_active(self, active: bool):
         """Set active state"""
@@ -202,20 +210,24 @@ class NavItem(QWidget):
 
         text_color = colors.text_primary if self._active else colors.text_secondary
 
-        self._text_label.setStyleSheet(f"""
+        self._text_label.setStyleSheet(
+            f"""
             QLabel {{
                 color: {text_color};
                 font-size: 14px;
                 font-weight: {'600' if self._active else '400'};
             }}
-        """)
+        """
+        )
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             NavItem {{
                 background-color: {bg};
                 border-radius: 8px;
             }}
-        """)
+        """
+        )
 
     def paintEvent(self, event):
         """Custom paint for active indicator"""
@@ -230,12 +242,7 @@ class NavItem(QWidget):
         colors = FluentDesignSystem().colors
 
         # Draw active indicator pill on left side
-        indicator_rect = QRect(
-            4,
-            (self.height() - self._indicator_width) // 2,
-            3,
-            self._indicator_width
-        )
+        indicator_rect = QRect(4, (self.height() - self._indicator_width) // 2, 3, self._indicator_width)
 
         painter.setBrush(QColor(colors.accent))
         painter.setPen(Qt.NoPen)
@@ -273,6 +280,7 @@ class NavItem(QWidget):
 # رأس الشريط الجانبي
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SidebarHeader(QWidget):
     """
     Sidebar header with logo and toggle button.
@@ -302,25 +310,29 @@ class SidebarHeader(QWidget):
         # Logo/Icon
         self._logo_label = QLabel()
         self._logo_label.setFixedSize(24, 24)
-        self._logo_label.setStyleSheet(f"""
+        self._logo_label.setStyleSheet(
+            f"""
             QLabel {{
                 font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
                 font-size: 18px;
                 color: {colors.accent};
             }}
-        """)
-        self._logo_label.setText("\uE90F")  # Constellation icon
+        """
+        )
+        self._logo_label.setText("\ue90f")  # Constellation icon
         layout.addWidget(self._logo_label)
 
         # Title
         self._title_label = QLabel(self._title)
-        self._title_label.setStyleSheet(f"""
+        self._title_label.setStyleSheet(
+            f"""
             QLabel {{
                 color: {colors.text_primary};
                 font-size: 14px;
                 font-weight: 600;
             }}
-        """)
+        """
+        )
         layout.addWidget(self._title_label, 1)
 
         # Toggle button
@@ -328,7 +340,8 @@ class SidebarHeader(QWidget):
         self._toggle_btn.setFixedSize(32, 32)
         self._toggle_btn.setCursor(Qt.PointingHandCursor)
         self._toggle_btn.clicked.connect(self.toggle_clicked.emit)
-        self._toggle_btn.setStyleSheet(f"""
+        self._toggle_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: transparent;
                 border: none;
@@ -340,8 +353,9 @@ class SidebarHeader(QWidget):
             QPushButton:hover {{
                 background-color: {colors.fill_subtle};
             }}
-        """)
-        self._toggle_btn.setText("\uE700")  # Hamburger menu
+        """
+        )
+        self._toggle_btn.setText("\ue700")  # Hamburger menu
         layout.addWidget(self._toggle_btn)
 
     def set_expanded(self, expanded: bool):
@@ -350,15 +364,16 @@ class SidebarHeader(QWidget):
         self._title_label.setVisible(expanded)
 
         if expanded:
-            self._toggle_btn.setText("\uE700")  # Hamburger
+            self._toggle_btn.setText("\ue700")  # Hamburger
         else:
-            self._toggle_btn.setText("\uE76C")  # Forward arrow
+            self._toggle_btn.setText("\ue76c")  # Forward arrow
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONNECTION STATUS WIDGET
 # حالة الاتصال
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class ConnectionStatus(QWidget):
     """
@@ -391,12 +406,14 @@ class ConnectionStatus(QWidget):
 
         # Status text
         self._status_text = QLabel("Disconnected")
-        self._status_text.setStyleSheet(f"""
+        self._status_text.setStyleSheet(
+            f"""
             QLabel {{
                 color: {colors.text_secondary};
                 font-size: 12px;
             }}
-        """)
+        """
+        )
         layout.addWidget(self._status_text, 1)
 
     def _update_status_dot(self):
@@ -404,12 +421,14 @@ class ConnectionStatus(QWidget):
         colors = FluentDesignSystem().colors
         color = colors.status_running if self._connected else colors.text_disabled
 
-        self._status_dot.setStyleSheet(f"""
+        self._status_dot.setStyleSheet(
+            f"""
             QLabel {{
                 background-color: {color};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
 
     def set_connected(self, connected: bool, server_name: str = ""):
         """Update connection status"""
@@ -433,6 +452,7 @@ class ConnectionStatus(QWidget):
 # FLUENT SIDEBAR
 # الشريط الجانبي بتصميم Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentSidebar(QWidget):
     """
@@ -481,12 +501,14 @@ class FluentSidebar(QWidget):
         self.setFixedWidth(self._expanded_width)
         self.setMinimumHeight(400)
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             #fluent_sidebar {{
                 background-color: {colors.bg_mica_alt};
                 border-right: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         # Main layout
         main_layout = QVBoxLayout(self)

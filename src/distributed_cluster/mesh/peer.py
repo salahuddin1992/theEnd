@@ -35,7 +35,7 @@ class Peer:
     resources: ResourceSpec
     state: str = "active"
     tags: Set[str] = field(default_factory=set)
-    last_seen: datetime = field(default_factory=datetime.utcnow)
+    last_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     latency_ms: float = 0.0
     jobs_running: int = 0
     connection_failures: int = 0
@@ -192,7 +192,6 @@ class PeerConnection:
             "messages_sent": self.messages_sent,
             "messages_received": self.messages_received,
             "uptime_seconds": (
-                (datetime.now(timezone.utc) - self.connected_at).total_seconds()
-                if self.connected_at else 0
+                (datetime.now(timezone.utc) - self.connected_at).total_seconds() if self.connected_at else 0
             ),
         }

@@ -207,9 +207,7 @@ class MemoryCacheBackend(CacheBackend):
 
     async def cleanup_expired(self) -> int:
         async with self._lock:
-            expired_keys = [
-                k for k, v in self._cache.items() if v.is_expired
-            ]
+            expired_keys = [k for k, v in self._cache.items() if v.is_expired]
             for key in expired_keys:
                 del self._cache[key]
             return len(expired_keys)
@@ -227,6 +225,7 @@ class RedisCacheBackend(CacheBackend):
         if self._redis is None:
             try:
                 import redis.asyncio as aioredis
+
                 self._redis = await aioredis.from_url(self.redis_url)
             except ImportError:
                 raise ImportError("redis package is required for Redis cache backend")
@@ -360,8 +359,7 @@ class LLMCache:
         if self.config.include_config_in_hash and config:
             # Include only deterministic parameters
             data["config"] = {
-                k: v for k, v in sorted(config.items())
-                if k not in ("stream", "seed")  # Exclude non-deterministic
+                k: v for k, v in sorted(config.items()) if k not in ("stream", "seed")  # Exclude non-deterministic
             }
 
         content = json.dumps(data, sort_keys=True)

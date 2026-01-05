@@ -20,26 +20,31 @@ T = TypeVar("T")
 
 class CacheError(Exception):
     """Base exception for cache errors."""
+
     pass
 
 
 class CacheKeyError(CacheError):
     """Error for invalid cache keys."""
+
     pass
 
 
 class CacheSerializationError(CacheError):
     """Error during serialization/deserialization."""
+
     pass
 
 
 class CacheConnectionError(CacheError):
     """Error connecting to cache backend."""
+
     pass
 
 
 class SerializationType(Enum):
     """Serialization formats."""
+
     JSON = "json"
     PICKLE = "pickle"
     MSGPACK = "msgpack"
@@ -48,6 +53,7 @@ class SerializationType(Enum):
 @dataclass
 class CacheConfig:
     """Configuration for the cache."""
+
     max_size: int = 10000
     default_ttl_seconds: int = 3600
     serialization: SerializationType = SerializationType.JSON
@@ -77,6 +83,7 @@ class CacheConfig:
 @dataclass
 class CacheEntry(Generic[T]):
     """Represents a cache entry."""
+
     key: str
     value: T
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -112,6 +119,7 @@ class CacheEntry(Generic[T]):
 @dataclass
 class CacheStats:
     """Cache statistics."""
+
     hits: int = 0
     misses: int = 0
     sets: int = 0
@@ -206,7 +214,7 @@ class Serializer:
         self,
         serialization_type: SerializationType = SerializationType.JSON,
         compression: bool = False,
-        compression_threshold: int = 1024
+        compression_threshold: int = 1024,
     ):
         self.serialization_type = serialization_type
         self.compression = compression
@@ -222,6 +230,7 @@ class Serializer:
             elif self.serialization_type == SerializationType.MSGPACK:
                 try:
                     import msgpack
+
                     data = msgpack.packb(value, use_bin_type=True)
                 except ImportError:
                     raise CacheSerializationError("msgpack not installed")
@@ -230,6 +239,7 @@ class Serializer:
 
             if self.compression and len(data) >= self.compression_threshold:
                 import zlib
+
                 compressed = zlib.compress(data)
                 # Prefix with marker
                 return b"\x00\x01" + compressed
@@ -252,6 +262,7 @@ class Serializer:
             if marker == b"\x00\x01":
                 # Compressed
                 import zlib
+
                 payload = zlib.decompress(payload)
             elif marker != b"\x00\x00":
                 # Legacy format without marker
@@ -264,6 +275,7 @@ class Serializer:
             elif self.serialization_type == SerializationType.MSGPACK:
                 try:
                     import msgpack
+
                     return msgpack.unpackb(payload, raw=False)
                 except ImportError:
                     raise CacheSerializationError("msgpack not installed")
@@ -281,9 +293,7 @@ class Cache(ABC):
         self.config = config or CacheConfig()
         self.stats = CacheStats()
         self.serializer = Serializer(
-            self.config.serialization,
-            self.config.compression,
-            self.config.compression_threshold
+            self.config.serialization, self.config.compression, self.config.compression_threshold
         )
 
     def _make_key(self, key: str) -> str:
@@ -310,13 +320,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def set(
-        self,
-        key: str,
-        value: Any,
-        ttl: Optional[int] = None,
-        **kwargs
-    ) -> bool:
+    def set(self, key: str, value: Any, ttl: Optional[int] = None, **kwargs) -> bool:
         """Set a value in cache."""
         pass
 
@@ -344,11 +348,7 @@ class Cache(ABC):
         """Get multiple values at once."""
         return {key: self.get(key) for key in keys}
 
-    def set_many(
-        self,
-        mapping: Dict[str, Any],
-        ttl: Optional[int] = None
-    ) -> Dict[str, bool]:
+    def set_many(self, mapping: Dict[str, Any], ttl: Optional[int] = None) -> Dict[str, bool]:
         """Set multiple values at once."""
         return {key: self.set(key, value, ttl) for key, value in mapping.items()}
 
@@ -356,12 +356,7 @@ class Cache(ABC):
         """Delete multiple keys. Returns count of deleted keys."""
         return sum(1 for key in keys if self.delete(key))
 
-    def get_or_set(
-        self,
-        key: str,
-        default_fn: Callable[[], Any],
-        ttl: Optional[int] = None
-    ) -> Any:
+    def get_or_set(self, key: str, default_fn: Callable[[], Any], ttl: Optional[int] = None) -> Any:
         """Get a value or set it using the default function if not found."""
         value = self.get(key)
         if value is None:
@@ -401,13 +396,7 @@ class Cache(ABC):
 class CacheRegion:
     """A named region within a cache with its own configuration."""
 
-    def __init__(
-        self,
-        name: str,
-        cache: Cache,
-        ttl: Optional[int] = None,
-        key_prefix: Optional[str] = None
-    ):
+    def __init__(self, name: str, cache: Cache, ttl: Optional[int] = None, key_prefix: Optional[str] = None):
         self.name = name
         self.cache = cache
         self.ttl = ttl
@@ -458,12 +447,7 @@ class CacheManager:
             raise CacheError(f"Cache '{name}' not found")
         return self._caches[name]
 
-    def create_region(
-        self,
-        name: str,
-        cache_name: Optional[str] = None,
-        ttl: Optional[int] = None
-    ) -> CacheRegion:
+    def create_region(self, name: str, cache_name: Optional[str] = None, ttl: Optional[int] = None) -> CacheRegion:
         """Create a cache region."""
         cache = self.get_cache(cache_name)
         region = CacheRegion(name, cache, ttl)

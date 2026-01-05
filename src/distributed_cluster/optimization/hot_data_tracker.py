@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class HotLevel(Enum):
     """Classification levels for data hotness."""
+
     COLD = 0
     COOL = 1
     WARM = 2
@@ -30,6 +31,7 @@ class HotLevel(Enum):
 
 class AccessEventType(Enum):
     """Types of access events."""
+
     READ = "read"
     WRITE = "write"
     DELETE = "delete"
@@ -39,6 +41,7 @@ class AccessEventType(Enum):
 @dataclass
 class AccessEvent:
     """Represents a single access event."""
+
     key: str
     event_type: AccessEventType
     timestamp: float
@@ -49,6 +52,7 @@ class AccessEvent:
 @dataclass
 class KeyMetrics:
     """Metrics for a single key."""
+
     key: str
     access_count: int = 0
     read_count: int = 0
@@ -78,22 +82,23 @@ class KeyMetrics:
     def idle_seconds(self) -> float:
         """Get time since last access."""
         if self.last_access is None:
-            return float('inf')
+            return float("inf")
         return time.time() - self.last_access
 
 
 @dataclass
 class HotDataConfig:
     """Configuration for hot data tracking."""
-    window_seconds: float = 3600.0      # Time window for analysis
-    decay_factor: float = 0.9           # Decay factor per interval
+
+    window_seconds: float = 3600.0  # Time window for analysis
+    decay_factor: float = 0.9  # Decay factor per interval
     decay_interval_seconds: float = 60.0  # Decay interval
-    hot_threshold: float = 0.7          # Score threshold for HOT
-    critical_threshold: float = 0.9     # Score threshold for CRITICAL
-    min_accesses: int = 5               # Minimum accesses to consider
-    frequency_weight: float = 0.6       # Weight for frequency in score
-    recency_weight: float = 0.4         # Weight for recency in score
-    max_tracked_keys: int = 100000      # Maximum keys to track
+    hot_threshold: float = 0.7  # Score threshold for HOT
+    critical_threshold: float = 0.9  # Score threshold for CRITICAL
+    min_accesses: int = 5  # Minimum accesses to consider
+    frequency_weight: float = 0.6  # Weight for frequency in score
+    recency_weight: float = 0.4  # Weight for recency in score
+    max_tracked_keys: int = 100000  # Maximum keys to track
 
 
 class FrequencyCounter:
@@ -123,10 +128,7 @@ class FrequencyCounter:
     def estimate(self, key: str) -> int:
         """Estimate the count for a key."""
         with self._lock:
-            return min(
-                self.counters[i][self._hash(key, i)]
-                for i in range(self.depth)
-            )
+            return min(self.counters[i][self._hash(key, i)] for i in range(self.depth))
 
     def decay(self, factor: float):
         """Apply decay to all counters."""
@@ -206,9 +208,7 @@ class HotDataTracker:
         self.key_metrics: Dict[str, KeyMetrics] = {}
 
         # Hot keys by level
-        self.hot_keys: Dict[HotLevel, Set[str]] = {
-            level: set() for level in HotLevel
-        }
+        self.hot_keys: Dict[HotLevel, Set[str]] = {level: set() for level in HotLevel}
 
         # Access history for pattern analysis
         self.recent_accesses: deque = deque(maxlen=10000)
@@ -233,11 +233,7 @@ class HotDataTracker:
         self._last_decay_time = time.time()
 
     def record_access(
-        self,
-        key: str,
-        event_type: AccessEventType = AccessEventType.READ,
-        latency_ms: float = 0.0,
-        value_size: int = 0
+        self, key: str, event_type: AccessEventType = AccessEventType.READ, latency_ms: float = 0.0, value_size: int = 0
     ):
         """Record an access event."""
         current_time = time.time()
@@ -273,13 +269,15 @@ class HotDataTracker:
                 metrics.write_count += 1
 
             # Record for pattern analysis
-            self.recent_accesses.append(AccessEvent(
-                key=key,
-                event_type=event_type,
-                timestamp=current_time,
-                latency_ms=latency_ms,
-                value_size=value_size,
-            ))
+            self.recent_accesses.append(
+                AccessEvent(
+                    key=key,
+                    event_type=event_type,
+                    timestamp=current_time,
+                    latency_ms=latency_ms,
+                    value_size=value_size,
+                )
+            )
 
             # Update scores and classification
             self._update_key_score(key, metrics)
@@ -288,10 +286,11 @@ class HotDataTracker:
         """Update score and classification for a key."""
         # Calculate frequency score
         freq = self.frequency_counter.estimate(key)
-        max_freq = max(
-            self.frequency_counter.estimate(k)
-            for k in list(self.key_metrics.keys())[:100]
-        ) if self.key_metrics else 1
+        max_freq = (
+            max(self.frequency_counter.estimate(k) for k in list(self.key_metrics.keys())[:100])
+            if self.key_metrics
+            else 1
+        )
         metrics.frequency_score = freq / max_freq if max_freq > 0 else 0
 
         # Calculate recency score
@@ -299,8 +298,7 @@ class HotDataTracker:
 
         # Calculate combined score
         metrics.combined_score = (
-            self.config.frequency_weight * metrics.frequency_score +
-            self.config.recency_weight * metrics.recency_score
+            self.config.frequency_weight * metrics.frequency_score + self.config.recency_weight * metrics.recency_score
         )
 
         # Determine hot level
@@ -358,11 +356,7 @@ class HotDataTracker:
         cold_keys = list(self.hot_keys[HotLevel.COLD])
 
         # Sort by score and remove lowest
-        cold_keys_with_scores = [
-            (k, self.key_metrics[k].combined_score)
-            for k in cold_keys
-            if k in self.key_metrics
-        ]
+        cold_keys_with_scores = [(k, self.key_metrics[k].combined_score) for k in cold_keys if k in self.key_metrics]
         cold_keys_with_scores.sort(key=lambda x: x[1])
 
         # Remove bottom 20%
@@ -453,9 +447,7 @@ class HotDataTracker:
             return result
 
     def get_hot_keys_with_scores(
-        self,
-        min_level: HotLevel = HotLevel.WARM,
-        limit: int = 100
+        self, min_level: HotLevel = HotLevel.WARM, limit: int = 100
     ) -> List[Tuple[str, float, HotLevel]]:
         """Get hot keys with their scores, sorted by score."""
         with self._lock:
@@ -485,37 +477,28 @@ class HotDataTracker:
         """Check if a key is hot."""
         return self.get_hot_level(key).value >= HotLevel.HOT.value
 
-    def register_hot_key_callback(
-        self,
-        callback: Callable[[str, HotLevel], None]
-    ):
+    def register_hot_key_callback(self, callback: Callable[[str, HotLevel], None]):
         """Register a callback for hot key changes."""
         self.hot_key_callbacks.append(callback)
 
-    def register_threshold_callback(
-        self,
-        callback: Callable[[float, float], None]
-    ):
+    def register_threshold_callback(self, callback: Callable[[float, float], None]):
         """Register a callback for threshold changes."""
         self.threshold_callbacks.append(callback)
 
     def get_stats(self) -> Dict[str, Any]:
         """Get tracking statistics."""
         with self._lock:
-            level_counts = {
-                level.name: len(keys)
-                for level, keys in self.hot_keys.items()
-            }
+            level_counts = {level.name: len(keys) for level, keys in self.hot_keys.items()}
 
             return {
-                'total_accesses': self.total_accesses,
-                'tracked_keys': len(self.key_metrics),
-                'max_tracked_keys': self.config.max_tracked_keys,
-                'hot_threshold': self.current_hot_threshold,
-                'critical_threshold': self.current_critical_threshold,
-                'keys_by_level': level_counts,
-                'keys_promoted': self.keys_promoted,
-                'keys_demoted': self.keys_demoted,
+                "total_accesses": self.total_accesses,
+                "tracked_keys": len(self.key_metrics),
+                "max_tracked_keys": self.config.max_tracked_keys,
+                "hot_threshold": self.current_hot_threshold,
+                "critical_threshold": self.current_critical_threshold,
+                "keys_by_level": level_counts,
+                "keys_promoted": self.keys_promoted,
+                "keys_demoted": self.keys_demoted,
             }
 
     def get_access_pattern_insights(self) -> Dict[str, Any]:
@@ -531,10 +514,7 @@ class HotDataTracker:
 
             # Calculate inter-arrival times
             if len(accesses) >= 2:
-                iats = [
-                    accesses[i].timestamp - accesses[i-1].timestamp
-                    for i in range(1, len(accesses))
-                ]
+                iats = [accesses[i].timestamp - accesses[i - 1].timestamp for i in range(1, len(accesses))]
                 avg_iat = statistics.mean(iats)
                 iat_std = statistics.stdev(iats) if len(iats) > 1 else 0
             else:
@@ -547,12 +527,12 @@ class HotDataTracker:
             top_keys = sorted(key_counts.items(), key=lambda x: x[1], reverse=True)[:10]
 
             return {
-                'read_write_ratio': read_count / (write_count + 1),
-                'avg_inter_arrival_ms': avg_iat * 1000,
-                'iat_coefficient_of_variation': iat_std / (avg_iat + 0.001),
-                'unique_keys_accessed': len(key_counts),
-                'top_accessed_keys': top_keys,
-                'access_burstiness': 'high' if iat_std / (avg_iat + 0.001) > 1.5 else 'normal',
+                "read_write_ratio": read_count / (write_count + 1),
+                "avg_inter_arrival_ms": avg_iat * 1000,
+                "iat_coefficient_of_variation": iat_std / (avg_iat + 0.001),
+                "unique_keys_accessed": len(key_counts),
+                "top_accessed_keys": top_keys,
+                "access_burstiness": "high" if iat_std / (avg_iat + 0.001) > 1.5 else "normal",
             }
 
 
@@ -611,10 +591,7 @@ class HotDataReplicator:
         """Remove replicas of a key."""
         self.replicated_keys.discard(key)
 
-    def register_replication_callback(
-        self,
-        callback: Callable[[str, List[str]], Any]
-    ):
+    def register_replication_callback(self, callback: Callable[[str, List[str]], Any]):
         """Register a callback for replication events."""
         self.replication_callbacks.append(callback)
 

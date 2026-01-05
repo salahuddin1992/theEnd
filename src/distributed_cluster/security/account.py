@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 class PasswordStrength(str, Enum):
     """Password strength levels."""
+
     VERY_WEAK = "very_weak"
     WEAK = "weak"
     FAIR = "fair"
@@ -44,6 +45,7 @@ class PasswordStrength(str, Enum):
 
 class AccountStatus(str, Enum):
     """Account status."""
+
     ACTIVE = "active"
     LOCKED = "locked"
     SUSPENDED = "suspended"
@@ -55,6 +57,7 @@ class AccountStatus(str, Enum):
 @dataclass
 class PasswordPolicy:
     """Password policy configuration."""
+
     # Length requirements
     min_length: int = 12
     max_length: int = 128
@@ -94,6 +97,7 @@ class PasswordPolicy:
 @dataclass
 class PasswordValidationResult:
     """Result of password validation."""
+
     valid: bool
     strength: PasswordStrength
     score: int  # 0-100
@@ -115,6 +119,7 @@ class PasswordValidationResult:
 @dataclass
 class PasswordHash:
     """Stored password hash."""
+
     hash: str
     salt: str
     algorithm: str = "pbkdf2_sha256"
@@ -143,6 +148,7 @@ class PasswordHash:
 @dataclass
 class AccountSecurityInfo:
     """Account security information."""
+
     user_id: str
     status: AccountStatus = AccountStatus.ACTIVE
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -263,10 +269,7 @@ class PasswordHasher:
 
     def needs_rehash(self, stored_hash: PasswordHash) -> bool:
         """Check if password needs to be rehashed (algorithm/iterations changed)."""
-        return (
-            stored_hash.algorithm != self.algorithm or
-            stored_hash.iterations < self.iterations
-        )
+        return stored_hash.algorithm != self.algorithm or stored_hash.iterations < self.iterations
 
 
 class PasswordValidator:
@@ -274,15 +277,36 @@ class PasswordValidator:
 
     # Common weak passwords to check against
     COMMON_PASSWORDS = {
-        "password", "123456", "12345678", "qwerty", "abc123",
-        "monkey", "master", "dragon", "111111", "baseball",
-        "iloveyou", "trustno1", "sunshine", "princess", "welcome",
-        "password1", "password123", "admin", "letmein", "login",
+        "password",
+        "123456",
+        "12345678",
+        "qwerty",
+        "abc123",
+        "monkey",
+        "master",
+        "dragon",
+        "111111",
+        "baseball",
+        "iloveyou",
+        "trustno1",
+        "sunshine",
+        "princess",
+        "welcome",
+        "password1",
+        "password123",
+        "admin",
+        "letmein",
+        "login",
     }
 
     KEYBOARD_SEQUENCES = [
-        "qwerty", "asdfgh", "zxcvbn", "qwertyuiop",
-        "asdfghjkl", "zxcvbnm", "1234567890",
+        "qwerty",
+        "asdfgh",
+        "zxcvbn",
+        "qwertyuiop",
+        "asdfghjkl",
+        "zxcvbnm",
+        "1234567890",
     ]
 
     def __init__(self, policy: Optional[PasswordPolicy] = None):
@@ -375,8 +399,8 @@ class PasswordValidator:
 
             # Numeric sequences
             for i in range(len(password) - 2):
-                if password[i:i+3].isdigit():
-                    chars = [int(c) for c in password[i:i+3]]
+                if password[i : i + 3].isdigit():
+                    chars = [int(c) for c in password[i : i + 3]]
                     if chars[1] - chars[0] == chars[2] - chars[1] == 1:
                         warnings.append("Password contains a numeric sequence")
                         score -= 5
@@ -385,7 +409,7 @@ class PasswordValidator:
         # Repeated characters
         if self.policy.forbid_repeated_chars:
             for i in range(len(password) - self.policy.forbid_repeated_chars + 1):
-                if len(set(password[i:i + self.policy.forbid_repeated_chars])) == 1:
+                if len(set(password[i : i + self.policy.forbid_repeated_chars])) == 1:
                     errors.append(
                         f"Password cannot have {self.policy.forbid_repeated_chars}+ "
                         f"consecutive identical characters"
@@ -589,8 +613,7 @@ class AccountSecurityManager:
             min_age = timedelta(hours=self.policy.min_password_age_hours)
             if datetime.now(timezone.utc) - account.password_changed_at < min_age:
                 error_msg = (
-                    f"Cannot change password within {self.policy.min_password_age_hours} "
-                    f"hours of last change"
+                    f"Cannot change password within {self.policy.min_password_age_hours} " f"hours of last change"
                 )
                 return False, error_msg, None
 
@@ -612,7 +635,7 @@ class AccountSecurityManager:
         # Update password history
         account.password_history.append(new_hash.to_storage_format())
         if len(account.password_history) > self.policy.history_size:
-            account.password_history = account.password_history[-self.policy.history_size:]
+            account.password_history = account.password_history[-self.policy.history_size :]
 
         # Update account
         account.password_hash = new_hash
@@ -680,7 +703,7 @@ class AccountSecurityManager:
             if account.failed_login_count >= self.max_failed_attempts:
                 lockout_minutes = self.lockout_duration_minutes
                 if self.progressive_lockout:
-                    lockout_minutes *= (account.lockout_count + 1)
+                    lockout_minutes *= account.lockout_count + 1
 
                 account.locked_until = datetime.now(timezone.utc) + timedelta(minutes=lockout_minutes)
                 account.status = AccountStatus.LOCKED
@@ -688,8 +711,7 @@ class AccountSecurityManager:
 
                 self.store.save(account)
                 error_msg = (
-                    f"Account locked due to too many failed attempts. "
-                    f"Try again in {lockout_minutes} minutes"
+                    f"Account locked due to too many failed attempts. " f"Try again in {lockout_minutes} minutes"
                 )
                 return False, error_msg, None
 

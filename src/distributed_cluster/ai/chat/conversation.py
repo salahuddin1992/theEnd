@@ -199,12 +199,10 @@ class Conversation:
             conversation_id=data.get("conversation_id", str(uuid.uuid4())),
             title=data.get("title"),
             created_at=(
-                datetime.fromisoformat(data["created_at"])
-                if "created_at" in data else datetime.now(timezone.utc)
+                datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(timezone.utc)
             ),
             updated_at=(
-                datetime.fromisoformat(data["updated_at"])
-                if "updated_at" in data else datetime.now(timezone.utc)
+                datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.now(timezone.utc)
             ),
             system_prompt=data.get("system_prompt"),
             model=data.get("model", "llama3.2"),

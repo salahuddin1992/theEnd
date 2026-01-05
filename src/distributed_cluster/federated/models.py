@@ -30,6 +30,7 @@ import numpy as np
 
 class ClientStatus(str, Enum):
     """Status of a federated learning client."""
+
     IDLE = "idle"
     SELECTED = "selected"
     TRAINING = "training"
@@ -41,6 +42,7 @@ class ClientStatus(str, Enum):
 
 class RoundStatus(str, Enum):
     """Status of a federated learning round."""
+
     PENDING = "pending"
     CLIENT_SELECTION = "client_selection"
     DISTRIBUTING = "distributing"
@@ -52,6 +54,7 @@ class RoundStatus(str, Enum):
 
 class AggregationStrategy(str, Enum):
     """Aggregation strategy for model updates."""
+
     FEDAVG = "fedavg"  # Federated Averaging
     FEDPROX = "fedprox"  # FedProx with proximal term
     FEDYOGI = "fedyogi"  # FedYogi adaptive optimizer
@@ -66,6 +69,7 @@ class AggregationStrategy(str, Enum):
 
 class SelectionStrategy(str, Enum):
     """Client selection strategy."""
+
     RANDOM = "random"
     ROUND_ROBIN = "round_robin"
     RESOURCE_AWARE = "resource_aware"
@@ -77,6 +81,7 @@ class SelectionStrategy(str, Enum):
 
 class PrivacyMechanism(str, Enum):
     """Privacy mechanism for federated learning."""
+
     NONE = "none"
     DIFFERENTIAL_PRIVACY = "differential_privacy"
     SECURE_AGGREGATION = "secure_aggregation"
@@ -86,6 +91,7 @@ class PrivacyMechanism(str, Enum):
 
 class CompressionMethod(str, Enum):
     """Model compression method for communication efficiency."""
+
     NONE = "none"
     QUANTIZATION = "quantization"
     SPARSIFICATION = "sparsification"
@@ -107,6 +113,7 @@ class ModelWeights:
 
     حاوية أوزان النموذج للتعلم الموحد.
     """
+
     weights: Dict[str, np.ndarray]
     version: int = 0
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -155,6 +162,7 @@ class ClientConfig:
 
     إعدادات عميل التعلم الموحد.
     """
+
     client_id: str
     local_epochs: int = 1
     local_batch_size: int = 32
@@ -190,6 +198,7 @@ class ClientInfo:
 
     معلومات عميل التعلم الموحد.
     """
+
     client_id: str
     worker_id: str
     status: ClientStatus = ClientStatus.IDLE
@@ -242,6 +251,7 @@ class ClientUpdate:
 
     تحديث النموذج من عميل التعلم الموحد.
     """
+
     client_id: str
     round_number: int
     model_weights: ModelWeights
@@ -277,6 +287,7 @@ class RoundConfig:
 
     إعدادات جولة التعلم الموحد.
     """
+
     round_number: int
     min_clients: int = 2
     max_clients: int = 100
@@ -314,6 +325,7 @@ class RoundResult:
 
     نتيجة جولة التعلم الموحد.
     """
+
     round_number: int
     status: RoundStatus
     global_model: Optional[ModelWeights] = None
@@ -375,6 +387,7 @@ class PrivacyConfig:
 
     إعدادات الخصوصية للتعلم الموحد.
     """
+
     mechanism: PrivacyMechanism = PrivacyMechanism.NONE
     epsilon: float = 1.0  # DP privacy budget
     delta: float = 1e-5  # DP failure probability
@@ -402,6 +415,7 @@ class CompressionConfig:
 
     إعدادات الضغط لكفاءة الاتصال.
     """
+
     method: CompressionMethod = CompressionMethod.NONE
     compression_ratio: float = 0.1  # Keep top 10%
     quantization_bits: int = 8  # For quantization
@@ -425,6 +439,7 @@ class FederatedConfig:
 
     الإعدادات الكاملة للتعلم الموحد.
     """
+
     job_id: str
     model_name: str
     total_rounds: int
@@ -488,12 +503,8 @@ class FederatedConfig:
             job_id=data.get("job_id", ""),
             model_name=data["model_name"],
             total_rounds=data["total_rounds"],
-            aggregation_strategy=AggregationStrategy(
-                data.get("aggregation_strategy", "fedavg")
-            ),
-            selection_strategy=SelectionStrategy(
-                data.get("selection_strategy", "random")
-            ),
+            aggregation_strategy=AggregationStrategy(data.get("aggregation_strategy", "fedavg")),
+            selection_strategy=SelectionStrategy(data.get("selection_strategy", "random")),
             min_clients=data.get("min_clients", 2),
             max_clients=data.get("max_clients", 100),
             client_fraction=data.get("client_fraction", 0.1),
@@ -521,6 +532,7 @@ class FederatedMetrics:
 
     مقاييس التدريب للتعلم الموحد.
     """
+
     job_id: str
     current_round: int = 0
     total_rounds: int = 0

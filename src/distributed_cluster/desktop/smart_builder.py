@@ -71,6 +71,7 @@ class InstallerType(Enum):
 @dataclass
 class BuildConfig:
     """Build configuration"""
+
     name: str = "NebulaCompute"
     version: str = "1.0.0"
     description: str = "Distributed Computing System"
@@ -126,16 +127,14 @@ class SmartBuilder:
         """Detect available build tools"""
         # Check PyInstaller
         try:
-            subprocess.run([sys.executable, "-m", "PyInstaller", "--version"],
-                         capture_output=True, check=True)
+            subprocess.run([sys.executable, "-m", "PyInstaller", "--version"], capture_output=True, check=True)
             self._available_compilers["pyinstaller"] = True
         except Exception:
             self._available_compilers["pyinstaller"] = False
 
         # Check Nuitka
         try:
-            subprocess.run([sys.executable, "-m", "nuitka", "--version"],
-                         capture_output=True, check=True)
+            subprocess.run([sys.executable, "-m", "nuitka", "--version"], capture_output=True, check=True)
             self._available_compilers["nuitka"] = True
         except Exception:
             self._available_compilers["nuitka"] = False
@@ -143,6 +142,7 @@ class SmartBuilder:
         # Check cx_Freeze
         try:
             import cx_Freeze  # noqa: F401
+
             self._available_compilers["cx_freeze"] = True
         except ImportError:
             self._available_compilers["cx_freeze"] = False
@@ -164,8 +164,7 @@ class SmartBuilder:
         """Get version from git tags"""
         try:
             result = subprocess.run(
-                ["git", "describe", "--tags", "--always"],
-                capture_output=True, text=True, cwd=self.project_root
+                ["git", "describe", "--tags", "--always"], capture_output=True, text=True, cwd=self.project_root
             )
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -177,8 +176,7 @@ class SmartBuilder:
         """Get short git commit hash"""
         try:
             result = subprocess.run(
-                ["git", "rev-parse", "--short", "HEAD"],
-                capture_output=True, text=True, cwd=self.project_root
+                ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=self.project_root
             )
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -215,7 +213,7 @@ class SmartBuilder:
 
             # Create gradient background
             width, height = 600, 400
-            img = Image.new('RGBA', (width, height))
+            img = Image.new("RGBA", (width, height))
 
             for y in range(height):
                 r = int(30 + (y / height) * 20)
@@ -235,16 +233,21 @@ class SmartBuilder:
                 font_small = font_large
 
             # Title
-            draw.text((width // 2, height // 3), config.name,
-                     fill=(255, 255, 255, 255), anchor="mm", font=font_large)
+            draw.text((width // 2, height // 3), config.name, fill=(255, 255, 255, 255), anchor="mm", font=font_large)
 
             # Version
-            draw.text((width // 2, height // 2), f"v{config.version}",
-                     fill=(200, 200, 200, 255), anchor="mm", font=font_small)
+            draw.text(
+                (width // 2, height // 2), f"v{config.version}", fill=(200, 200, 200, 255), anchor="mm", font=font_small
+            )
 
             # Loading text
-            draw.text((width // 2, height * 2 // 3), "جاري التحميل... Loading...",
-                     fill=(150, 150, 200, 255), anchor="mm", font=font_small)
+            draw.text(
+                (width // 2, height * 2 // 3),
+                "جاري التحميل... Loading...",
+                fill=(150, 150, 200, 255),
+                anchor="mm",
+                font=font_small,
+            )
 
             img.save(splash_path)
             print(f"   ✅ Created splash screen: {splash_path}")
@@ -266,7 +269,7 @@ class SmartBuilder:
 
         version_tuple = tuple(int(p) if p.isdigit() else 0 for p in version_parts[:4])
 
-        version_content = f'''# UTF-8
+        version_content = f"""# UTF-8
 VSVersionInfo(
     ffi=FixedFileInfo(
         filevers={version_tuple},
@@ -297,7 +300,7 @@ VSVersionInfo(
         VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
     ]
 )
-'''
+"""
         version_path.write_text(version_content)
         return version_path
 
@@ -547,7 +550,9 @@ def check_updates_on_startup(current_version: str):
         data_sep = ";" if self.platform == "windows" else ":"
 
         options = [
-            sys.executable, "-m", "PyInstaller",
+            sys.executable,
+            "-m",
+            "PyInstaller",
             f"--name={config.name}",
             "--clean",
             "--noconfirm",
@@ -598,26 +603,45 @@ def check_updates_on_startup(current_version: str):
         # Hidden imports
         hidden_imports = [
             # PySide6 / Qt
-            "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets",
-            "PySide6.QtCharts", "PySide6.QtNetwork", "PySide6.QtSvg",
+            "PySide6.QtCore",
+            "PySide6.QtGui",
+            "PySide6.QtWidgets",
+            "PySide6.QtCharts",
+            "PySide6.QtNetwork",
+            "PySide6.QtSvg",
             # Async
-            "qasync", "asyncio",
+            "qasync",
+            "asyncio",
             # HTTP & Network
-            "httpx", "websockets",
+            "httpx",
+            "websockets",
             # Project modules
-            "distributed_cluster.desktop", "distributed_cluster.models",
+            "distributed_cluster.desktop",
+            "distributed_cluster.models",
             "distributed_cluster.core",
             # Standard library
-            "json", "ssl", "certifi",
+            "json",
+            "ssl",
+            "certifi",
             # Required for pkg_resources (fixes jaraco error)
-            "jaraco", "jaraco.text", "jaraco.functools", "jaraco.context",
-            "jaraco.classes", "jaraco.collections",
-            "pkg_resources", "pkg_resources.extern",
+            "jaraco",
+            "jaraco.text",
+            "jaraco.functools",
+            "jaraco.context",
+            "jaraco.classes",
+            "jaraco.collections",
+            "pkg_resources",
+            "pkg_resources.extern",
             # More dependencies that may be needed
-            "importlib_metadata", "importlib_resources",
-            "packaging", "packaging.version", "packaging.specifiers",
-            "packaging.requirements", "packaging.markers",
-            "zipp", "more_itertools",
+            "importlib_metadata",
+            "importlib_resources",
+            "packaging",
+            "packaging.version",
+            "packaging.specifiers",
+            "packaging.requirements",
+            "packaging.markers",
+            "zipp",
+            "more_itertools",
         ] + config.hidden_imports
 
         for imp in hidden_imports:
@@ -625,8 +649,15 @@ def check_updates_on_startup(current_version: str):
 
         # Excludes (removed setuptools - it's needed!)
         excludes = [
-            "tkinter", "matplotlib", "numpy", "pandas", "scipy",
-            "PIL", "IPython", "jupyter", "pytest",
+            "tkinter",
+            "matplotlib",
+            "numpy",
+            "pandas",
+            "scipy",
+            "PIL",
+            "IPython",
+            "jupyter",
+            "pytest",
         ] + config.excludes
 
         for exc in excludes:
@@ -641,12 +672,14 @@ def check_updates_on_startup(current_version: str):
             options.append("--upx-dir=/usr/bin")
 
         # Paths
-        options.extend([
-            f"--distpath={self.dist_path}",
-            f"--workpath={self.build_path}",
-            f"--specpath={self.project_root}",
-            f"--paths={self.src_path}",
-        ])
+        options.extend(
+            [
+                f"--distpath={self.dist_path}",
+                f"--workpath={self.build_path}",
+                f"--specpath={self.project_root}",
+                f"--paths={self.src_path}",
+            ]
+        )
 
         # Entry point
         entry = self.desktop_path / config.entry_point
@@ -667,7 +700,9 @@ def check_updates_on_startup(current_version: str):
         print("\n🔨 Building with Nuitka (this may take a while)...")
 
         options = [
-            sys.executable, "-m", "nuitka",
+            sys.executable,
+            "-m",
+            "nuitka",
             f"--output-filename={config.name}",
             "--standalone",
             "--assume-yes-for-downloads",
@@ -710,10 +745,12 @@ def check_updates_on_startup(current_version: str):
             options.append("--deployment")
 
         # Plugins
-        options.extend([
-            "--enable-plugin=pyside6",
-            "--include-package=distributed_cluster",
-        ])
+        options.extend(
+            [
+                "--enable-plugin=pyside6",
+                "--include-package=distributed_cluster",
+            ]
+        )
 
         # Include data
         web_path = self.src_path / "distributed_cluster" / "web"
@@ -723,9 +760,11 @@ def check_updates_on_startup(current_version: str):
             options.append(f"--include-data-dir={web_path / 'static'}=distributed_cluster/web/static")
 
         # Output
-        options.extend([
-            f"--output-dir={self.dist_path}",
-        ])
+        options.extend(
+            [
+                f"--output-dir={self.dist_path}",
+            ]
+        )
 
         # Entry point
         entry = self.desktop_path / config.entry_point
@@ -745,7 +784,7 @@ def check_updates_on_startup(current_version: str):
         print("\n📦 Creating MSI installer...")
 
         # WiX XML template
-        wix_template = f'''<?xml version="1.0" encoding="UTF-8"?>
+        wix_template = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product Id="*" Name="{config.name}" Language="1033"
              Version="{config.version}" Manufacturer="{config.author}"
@@ -788,7 +827,7 @@ def check_updates_on_startup(current_version: str):
         </DirectoryRef>
     </Product>
 </Wix>
-'''
+"""
 
         wix_path = self.build_path / f"{config.name}.wxs"
         wix_path.write_text(wix_template)
@@ -804,7 +843,7 @@ def check_updates_on_startup(current_version: str):
         """Create NSIS installer"""
         print("\n📦 Creating NSIS installer...")
 
-        nsis_script = f'''; {config.name} Installer
+        nsis_script = f"""; {config.name} Installer
 ; Generated by SmartBuilder
 
 !include "MUI2.nsh"
@@ -892,15 +931,14 @@ Section "Uninstall"
 
     DeleteRegKey HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{config.name}"
 SectionEnd
-'''
+"""
 
         nsis_path = self.build_path / f"{config.name}.nsi"
         nsis_path.write_text(nsis_script)
 
         # Try to build if NSIS is available
         try:
-            result = subprocess.run(["makensis", str(nsis_path)],
-                                   capture_output=True, cwd=self.build_path)
+            result = subprocess.run(["makensis", str(nsis_path)], capture_output=True, cwd=self.build_path)
             if result.returncode == 0:
                 print(f"   ✅ Created installer: {config.name}_Setup_{config.version}.exe")
         except FileNotFoundError:
@@ -918,24 +956,28 @@ SectionEnd
 
         # AppRun script
         apprun = appdir / "AppRun"
-        apprun.write_text(f'''#!/bin/bash
+        apprun.write_text(
+            f"""#!/bin/bash
 SELF=$(readlink -f "$0")
 HERE=${{SELF%/*}}
 export PATH="${{HERE}}/usr/bin:${{PATH}}"
 exec "${{HERE}}/usr/bin/{config.name}" "$@"
-''')
+"""
+        )
         # nosec B103 - AppRun script needs 755 permissions
         os.chmod(apprun, 0o755)
 
         # Desktop file
         desktop = appdir / f"{config.name}.desktop"
-        desktop.write_text(f'''[Desktop Entry]
+        desktop.write_text(
+            f"""[Desktop Entry]
 Name={config.name}
 Exec={config.name}
 Icon={config.name.lower()}
 Type=Application
 Categories=Development;Utility;
-''')
+"""
+        )
 
         # Copy executable
         usr_bin = appdir / "usr" / "bin"
@@ -963,8 +1005,7 @@ Categories=Development;Utility;
 
         # Build AppImage
         output = self.dist_path / f"{config.name}-{config.version}-x86_64.AppImage"
-        result = subprocess.run([str(appimagetool), str(appdir), str(output)],
-                               capture_output=True, cwd=self.build_path)
+        result = subprocess.run([str(appimagetool), str(appdir), str(output)], capture_output=True, cwd=self.build_path)
 
         if result.returncode == 0:
             print(f"   ✅ Created: {output}")
@@ -992,7 +1033,8 @@ Categories=Development;Utility;
         # Get size
         size = exe_path.stat().st_size // 1024
 
-        control.write_text(f'''Package: {pkg_name}
+        control.write_text(
+            f"""Package: {pkg_name}
 Version: {config.version}
 Section: utils
 Priority: optional
@@ -1002,7 +1044,8 @@ Maintainer: {config.author}
 Description: {config.description}
  NebulaCompute Desktop - Distributed Computing Management
  نظام إدارة الحوسبة الموزعة
-''')
+"""
+        )
 
         # Copy executable
         shutil.copy2(exe_path, pkg_dir / "usr" / "bin" / pkg_name)
@@ -1011,7 +1054,8 @@ Description: {config.description}
 
         # Desktop file
         desktop = pkg_dir / "usr" / "share" / "applications" / f"{pkg_name}.desktop"
-        desktop.write_text(f'''[Desktop Entry]
+        desktop.write_text(
+            f"""[Desktop Entry]
 Name={config.name}
 Comment={config.description}
 Exec={pkg_name}
@@ -1019,12 +1063,12 @@ Icon={pkg_name}
 Terminal=false
 Type=Application
 Categories=Development;Utility;
-''')
+"""
+        )
 
         # Build package
         output = self.dist_path / f"{pkg_name}_{config.version}_amd64.deb"
-        result = subprocess.run(["dpkg-deb", "--build", str(pkg_dir), str(output)],
-                               capture_output=True)
+        result = subprocess.run(["dpkg-deb", "--build", str(pkg_dir), str(output)], capture_output=True)
 
         if result.returncode == 0:
             print(f"   ✅ Created: {output}")
@@ -1151,19 +1195,25 @@ Examples:
   python smart_builder.py build --installer appimage         # Linux AppImage
   python smart_builder.py release --version 2.0.0            # Full release
   python smart_builder.py clean                              # Clean artifacts
-        """
+        """,
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command")
 
     # Build command
     build_parser = subparsers.add_parser("build", help="Build executable")
-    build_parser.add_argument("--compiler", choices=["auto", "pyinstaller", "nuitka"],
-                             default="auto", help="Compiler to use")
-    build_parser.add_argument("--optimize", choices=["none", "basic", "balanced", "max", "extreme"],
-                             default="balanced", help="Optimization level")
-    build_parser.add_argument("--installer", choices=["none", "nsis", "msi", "appimage", "deb"],
-                             default="none", help="Create installer")
+    build_parser.add_argument(
+        "--compiler", choices=["auto", "pyinstaller", "nuitka"], default="auto", help="Compiler to use"
+    )
+    build_parser.add_argument(
+        "--optimize",
+        choices=["none", "basic", "balanced", "max", "extreme"],
+        default="balanced",
+        help="Optimization level",
+    )
+    build_parser.add_argument(
+        "--installer", choices=["none", "nsis", "msi", "appimage", "deb"], default="none", help="Create installer"
+    )
     build_parser.add_argument("--console", action="store_true", help="Show console window")
     build_parser.add_argument("--no-updater", action="store_true", help="Disable auto-updater")
     build_parser.add_argument("--no-splash", action="store_true", help="Disable splash screen")

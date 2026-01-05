@@ -27,6 +27,7 @@ DISCOVERY_MAGIC = b"NEBULA"
 @dataclass
 class BroadcastMessage:
     """رسالة البث."""
+
     message_type: str  # "announce", "discover", "response"
     service_type: str  # "master", "worker"
     name: str
@@ -37,15 +38,17 @@ class BroadcastMessage:
 
     def to_bytes(self) -> bytes:
         """تحويل إلى بايتات."""
-        data = json.dumps({
-            "type": self.message_type,
-            "service": self.service_type,
-            "name": self.name,
-            "host": self.host,
-            "port": self.port,
-            "props": self.properties,
-            "ts": self.timestamp,
-        }).encode()
+        data = json.dumps(
+            {
+                "type": self.message_type,
+                "service": self.service_type,
+                "name": self.name,
+                "host": self.host,
+                "port": self.port,
+                "props": self.properties,
+                "ts": self.timestamp,
+            }
+        ).encode()
         return DISCOVERY_MAGIC + data
 
     @classmethod
@@ -55,7 +58,7 @@ class BroadcastMessage:
             return None
 
         try:
-            payload = json.loads(data[len(DISCOVERY_MAGIC):].decode())
+            payload = json.loads(data[len(DISCOVERY_MAGIC) :].decode())
             return cls(
                 message_type=payload["type"],
                 service_type=payload["service"],
@@ -116,16 +119,8 @@ class BroadcastDiscovery:
 
         # Join multicast group
         try:
-            mreq = struct.pack(
-                "4sl",
-                socket.inet_aton(MULTICAST_GROUP),
-                socket.INADDR_ANY
-            )
-            self._socket.setsockopt(
-                socket.IPPROTO_IP,
-                socket.IP_ADD_MEMBERSHIP,
-                mreq
-            )
+            mreq = struct.pack("4sl", socket.inet_aton(MULTICAST_GROUP), socket.INADDR_ANY)
+            self._socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
         except Exception as e:
             logger.warning(f"Could not join multicast group: {e}")
 
@@ -277,10 +272,7 @@ class BroadcastDiscovery:
             key = f"{message.service_type}:{message.host}:{message.port}"
 
             if key not in self._discovered:
-                logger.info(
-                    f"Discovered {message.service_type}: "
-                    f"{message.name} at {message.host}:{message.port}"
-                )
+                logger.info(f"Discovered {message.service_type}: " f"{message.name} at {message.host}:{message.port}")
 
             self._discovered[key] = message
 

@@ -240,10 +240,7 @@ class AutoScalingManager:
         self._on_scale_down: list[Callable[[AutoScalingEvent], None]] = []
         self._on_error: list[Callable[[AutoScalingEvent], None]] = []
 
-        logger.info(
-            f"AutoScalingManager initialized: policy={policy.name}, "
-            f"provider={provider.__class__.__name__}"
-        )
+        logger.info(f"AutoScalingManager initialized: policy={policy.name}, " f"provider={provider.__class__.__name__}")
 
     # =========================================================================
     # Lifecycle / دورة الحياة
@@ -276,10 +273,12 @@ class AutoScalingManager:
         self._task = asyncio.create_task(self._scaling_loop())
         self.state.status = AutoScalingStatus.RUNNING
 
-        self._add_event(AutoScalingEvent(
-            event_type="info",
-            reason="Auto-scaling started",
-        ))
+        self._add_event(
+            AutoScalingEvent(
+                event_type="info",
+                reason="Auto-scaling started",
+            )
+        )
 
         logger.info("AutoScalingManager started")
 
@@ -306,10 +305,12 @@ class AutoScalingManager:
         except Exception as e:
             logger.error(f"Error disconnecting from provider: {e}")
 
-        self._add_event(AutoScalingEvent(
-            event_type="info",
-            reason="Auto-scaling stopped",
-        ))
+        self._add_event(
+            AutoScalingEvent(
+                event_type="info",
+                reason="Auto-scaling stopped",
+            )
+        )
 
         logger.info("AutoScalingManager stopped")
 
@@ -380,9 +381,7 @@ class AutoScalingManager:
 
             # تقييم السياسة
             try:
-                decision = await self.policy.evaluate(
-                    metrics, current_workers, self.metrics_collector
-                )
+                decision = await self.policy.evaluate(metrics, current_workers, self.metrics_collector)
             except Exception as e:
                 logger.error(f"Policy evaluation failed: {e}")
                 return
@@ -641,7 +640,7 @@ class AutoScalingManager:
         """إضافة حدث للسجل / Add event to log"""
         self._events.append(event)
         if len(self._events) > self._max_events:
-            self._events = self._events[-self._max_events:]
+            self._events = self._events[-self._max_events :]
 
     # =========================================================================
     # Manual Scaling / التوسع اليدوي
@@ -852,18 +851,13 @@ def create_autoscaler(
         policy = QueueBasedPolicy(
             min_workers=min_workers,
             max_workers=max_workers,
-            **{k: v for k, v in kwargs.items() if k.startswith("queue_") or k.startswith("scale_")}
+            **{k: v for k, v in kwargs.items() if k.startswith("queue_") or k.startswith("scale_")},
         )
     elif policy_type == "resource-based":
         resource_kwargs = {
-            k: v for k, v in kwargs.items()
-            if k.startswith("cpu_") or k.startswith("memory_") or k.startswith("gpu_")
+            k: v for k, v in kwargs.items() if k.startswith("cpu_") or k.startswith("memory_") or k.startswith("gpu_")
         }
-        policy = ResourceBasedPolicy(
-            min_workers=min_workers,
-            max_workers=max_workers,
-            **resource_kwargs
-        )
+        policy = ResourceBasedPolicy(min_workers=min_workers, max_workers=max_workers, **resource_kwargs)
     elif policy_type == "aggressive":
         policy = PolicyTemplates.aggressive()
     elif policy_type == "conservative":

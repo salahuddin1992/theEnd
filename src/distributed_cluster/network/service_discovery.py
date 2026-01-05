@@ -162,10 +162,7 @@ class InMemoryBackend(ServiceDiscoveryBackend):
                 self._services[instance.service_name] = {}
 
             self._services[instance.service_name][instance.id] = instance
-            logger.info(
-                f"Registered service: {instance.service_name}/{instance.id} "
-                f"at {instance.address}"
-            )
+            logger.info(f"Registered service: {instance.service_name}/{instance.id} " f"at {instance.address}")
             return True
 
     async def deregister(self, service_name: str, instance_id: str) -> bool:
@@ -206,10 +203,7 @@ class InMemoryBackend(ServiceDiscoveryBackend):
 
             # Filter by tags
             if tags:
-                instances = [
-                    i for i in instances
-                    if all(t in i.tags for t in tags)
-                ]
+                instances = [i for i in instances if all(t in i.tags for t in tags)]
 
             return instances
 
@@ -712,11 +706,13 @@ class ServiceRegistry:
 
         if strategy == "random":
             import random
+
             return random.choice(instances)
         elif strategy == "first":
             return instances[0]
         elif strategy == "weighted":
             import random
+
             weights = [i.weight for i in instances]
             return random.choices(instances, weights=weights, k=1)[0]
         else:

@@ -161,17 +161,13 @@ class AWSProvider(CloudProvider):
             self._ec2_resource = session.resource("ec2")
 
             # اختبار الاتصال
-            await self._run_in_executor(
-                self._ec2_client.describe_instances, MaxResults=5
-            )
+            await self._run_in_executor(self._ec2_client.describe_instances, MaxResults=5)
 
             self._connected = True
             logger.info(f"Connected to AWS EC2 in region {self.region}")
 
         except ImportError:
-            raise ProvisioningError(
-                "boto3 is required for AWS provider. Install it with: pip install boto3"
-            )
+            raise ProvisioningError("boto3 is required for AWS provider. Install it with: pip install boto3")
         except Exception as e:
             raise ProvisioningError(f"Failed to connect to AWS: {e}")
 
@@ -185,9 +181,7 @@ class AWSProvider(CloudProvider):
     async def _run_in_executor(self, func, *args, **kwargs):
         """تشغيل دالة boto3 في thread pool"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            self._executor, lambda: func(*args, **kwargs)
-        )
+        return await loop.run_in_executor(self._executor, lambda: func(*args, **kwargs))
 
     async def provision_workers(
         self,
@@ -224,9 +218,7 @@ class AWSProvider(CloudProvider):
                 "InstanceType": instance_type,
                 "MinCount": count,
                 "MaxCount": count,
-                "TagSpecifications": [
-                    {"ResourceType": "instance", "Tags": aws_tags}
-                ],
+                "TagSpecifications": [{"ResourceType": "instance", "Tags": aws_tags}],
             }
 
             if self.key_name:
@@ -243,9 +235,8 @@ class AWSProvider(CloudProvider):
 
             if self.user_data:
                 import base64
-                run_kwargs["UserData"] = base64.b64encode(
-                    self.user_data.encode()
-                ).decode()
+
+                run_kwargs["UserData"] = base64.b64encode(self.user_data.encode()).decode()
 
             # Spot instances
             if self.spot_enabled:
@@ -253,30 +244,24 @@ class AWSProvider(CloudProvider):
                     "MarketType": "spot",
                     "SpotOptions": {
                         "SpotInstanceType": "one-time",
-                    }
+                    },
                 }
                 if self.spot_max_price:
                     run_kwargs["InstanceMarketOptions"]["SpotOptions"]["MaxPrice"] = self.spot_max_price
 
             # إنشاء الـ instances
-            response = await self._run_in_executor(
-                self._ec2_client.run_instances, **run_kwargs
-            )
+            response = await self._run_in_executor(self._ec2_client.run_instances, **run_kwargs)
 
             instance_ids = [inst["InstanceId"] for inst in response["Instances"]]
 
-            logger.info(
-                f"[AWS] Provisioned {len(instance_ids)} instances: {instance_ids}"
-            )
+            logger.info(f"[AWS] Provisioned {len(instance_ids)} instances: {instance_ids}")
 
             # تحديث الذاكرة المحلية
             for inst in response["Instances"]:
                 self._instances[inst["InstanceId"]] = InstanceInfo(
                     instance_id=inst["InstanceId"],
                     provider="aws",
-                    state=AWS_STATE_MAP.get(
-                        inst["State"]["Name"], InstanceState.UNKNOWN
-                    ),
+                    state=AWS_STATE_MAP.get(inst["State"]["Name"], InstanceState.UNKNOWN),
                     instance_type=inst["InstanceType"],
                     zone=inst.get("Placement", {}).get("AvailabilityZone", ""),
                     private_ip=inst.get("PrivateIpAddress"),
@@ -303,9 +288,7 @@ class AWSProvider(CloudProvider):
             return 0
 
         try:
-            response = await self._run_in_executor(
-                self._ec2_client.terminate_instances, InstanceIds=instance_ids
-            )
+            response = await self._run_in_executor(self._ec2_client.terminate_instances, InstanceIds=instance_ids)
 
             terminated = len(response.get("TerminatingInstances", []))
 
@@ -345,26 +328,19 @@ class AWSProvider(CloudProvider):
                 for key, value in tags.items():
                     filters.append({"Name": f"tag:{key}", "Values": [value]})
 
-            response = await self._run_in_executor(
-                self._ec2_client.describe_instances, Filters=filters
-            )
+            response = await self._run_in_executor(self._ec2_client.describe_instances, Filters=filters)
 
             instances: list[InstanceInfo] = []
 
             for reservation in response.get("Reservations", []):
                 for inst in reservation.get("Instances", []):
                     # تحويل tags إلى dict
-                    inst_tags = {
-                        t["Key"]: t["Value"]
-                        for t in inst.get("Tags", [])
-                    }
+                    inst_tags = {t["Key"]: t["Value"] for t in inst.get("Tags", [])}
 
                     instance_info = InstanceInfo(
                         instance_id=inst["InstanceId"],
                         provider="aws",
-                        state=AWS_STATE_MAP.get(
-                            inst["State"]["Name"], InstanceState.UNKNOWN
-                        ),
+                        state=AWS_STATE_MAP.get(inst["State"]["Name"], InstanceState.UNKNOWN),
                         instance_type=inst["InstanceType"],
                         zone=inst.get("Placement", {}).get("AvailabilityZone", ""),
                         private_ip=inst.get("PrivateIpAddress"),
@@ -388,23 +364,16 @@ class AWSProvider(CloudProvider):
             return None
 
         try:
-            response = await self._run_in_executor(
-                self._ec2_client.describe_instances, InstanceIds=[instance_id]
-            )
+            response = await self._run_in_executor(self._ec2_client.describe_instances, InstanceIds=[instance_id])
 
             for reservation in response.get("Reservations", []):
                 for inst in reservation.get("Instances", []):
-                    inst_tags = {
-                        t["Key"]: t["Value"]
-                        for t in inst.get("Tags", [])
-                    }
+                    inst_tags = {t["Key"]: t["Value"] for t in inst.get("Tags", [])}
 
                     return InstanceInfo(
                         instance_id=inst["InstanceId"],
                         provider="aws",
-                        state=AWS_STATE_MAP.get(
-                            inst["State"]["Name"], InstanceState.UNKNOWN
-                        ),
+                        state=AWS_STATE_MAP.get(inst["State"]["Name"], InstanceState.UNKNOWN),
                         instance_type=inst["InstanceType"],
                         zone=inst.get("Placement", {}).get("AvailabilityZone", ""),
                         private_ip=inst.get("PrivateIpAddress"),
@@ -447,12 +416,14 @@ class AWSProvider(CloudProvider):
     def get_status(self) -> dict[str, Any]:
         """الحصول على حالة المزود"""
         status = super().get_status()
-        status.update({
-            "provider_type": "aws",
-            "region": self.region,
-            "instance_type": self.instance_type,
-            "ami_id": self.ami_id,
-            "spot_enabled": self.spot_enabled,
-            "estimated_cost_per_hour": self.config.cost_per_hour,
-        })
+        status.update(
+            {
+                "provider_type": "aws",
+                "region": self.region,
+                "instance_type": self.instance_type,
+                "ami_id": self.ami_id,
+                "spot_enabled": self.spot_enabled,
+                "estimated_cost_per_hour": self.config.cost_per_hour,
+            }
+        )
         return status

@@ -20,18 +20,18 @@ import subprocess
 import sys
 
 # Fix Unicode encoding issues on Windows
-if sys.platform == 'win32':
-        try:
-                    # Try to set UTF-8 encoding for stdout/stderr
-                    if hasattr(sys.stdout, 'reconfigure'):
-                                    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-                                    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-                    else:
-                                    # Python < 3.7 fallback
-                                    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-                                    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-        except Exception:
-                    pass  # Ignore if reconfiguration fails
+if sys.platform == "win32":
+    try:
+        # Try to set UTF-8 encoding for stdout/stderr
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        else:
+            # Python < 3.7 fallback
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+    except Exception:
+        pass  # Ignore if reconfiguration fails
 from pathlib import Path
 
 
@@ -52,6 +52,7 @@ def clean_build():
     def handle_remove_error(func, path, exc_info):
         """Handle permission errors on Windows (for Python < 3.12)"""
         import stat
+
         if isinstance(exc_info[1], PermissionError):
             try:
                 os.chmod(path, stat.S_IWRITE)
@@ -64,6 +65,7 @@ def clean_build():
     def handle_remove_exc(func, path, exc):
         """Handle permission errors on Windows (for Python >= 3.12)"""
         import stat
+
         if isinstance(exc, PermissionError):
             try:
                 os.chmod(path, stat.S_IWRITE)
@@ -112,34 +114,78 @@ def create_icon_if_missing():
         print("📦 Creating placeholder icon...")
         # Create a simple 16x16 ICO file (minimal valid ICO)
         # This is a minimal valid ICO file with a 16x16 1-bit icon
-        ico_data = bytes([
-            0x00, 0x00,  # Reserved
-            0x01, 0x00,  # Type (1 = ICO)
-            0x01, 0x00,  # Number of images
-            # Image entry
-            0x10,        # Width (16)
-            0x10,        # Height (16)
-            0x00,        # Colors (0 = no palette)
-            0x00,        # Reserved
-            0x01, 0x00,  # Color planes
-            0x20, 0x00,  # Bits per pixel (32)
-            0x68, 0x04, 0x00, 0x00,  # Size of image data
-            0x16, 0x00, 0x00, 0x00,  # Offset to image data
-        ])
+        ico_data = bytes(
+            [
+                0x00,
+                0x00,  # Reserved
+                0x01,
+                0x00,  # Type (1 = ICO)
+                0x01,
+                0x00,  # Number of images
+                # Image entry
+                0x10,  # Width (16)
+                0x10,  # Height (16)
+                0x00,  # Colors (0 = no palette)
+                0x00,  # Reserved
+                0x01,
+                0x00,  # Color planes
+                0x20,
+                0x00,  # Bits per pixel (32)
+                0x68,
+                0x04,
+                0x00,
+                0x00,  # Size of image data
+                0x16,
+                0x00,
+                0x00,
+                0x00,  # Offset to image data
+            ]
+        )
         # Add minimal BITMAPINFOHEADER and pixel data for 16x16 RGBA
-        bmp_header = bytes([
-            0x28, 0x00, 0x00, 0x00,  # Header size (40)
-            0x10, 0x00, 0x00, 0x00,  # Width (16)
-            0x20, 0x00, 0x00, 0x00,  # Height (32, doubled for AND mask)
-            0x01, 0x00,              # Planes
-            0x20, 0x00,              # Bits per pixel (32)
-            0x00, 0x00, 0x00, 0x00,  # Compression
-            0x00, 0x04, 0x00, 0x00,  # Image size
-            0x00, 0x00, 0x00, 0x00,  # X pixels per meter
-            0x00, 0x00, 0x00, 0x00,  # Y pixels per meter
-            0x00, 0x00, 0x00, 0x00,  # Colors used
-            0x00, 0x00, 0x00, 0x00,  # Important colors
-        ])
+        bmp_header = bytes(
+            [
+                0x28,
+                0x00,
+                0x00,
+                0x00,  # Header size (40)
+                0x10,
+                0x00,
+                0x00,
+                0x00,  # Width (16)
+                0x20,
+                0x00,
+                0x00,
+                0x00,  # Height (32, doubled for AND mask)
+                0x01,
+                0x00,  # Planes
+                0x20,
+                0x00,  # Bits per pixel (32)
+                0x00,
+                0x00,
+                0x00,
+                0x00,  # Compression
+                0x00,
+                0x04,
+                0x00,
+                0x00,  # Image size
+                0x00,
+                0x00,
+                0x00,
+                0x00,  # X pixels per meter
+                0x00,
+                0x00,
+                0x00,
+                0x00,  # Y pixels per meter
+                0x00,
+                0x00,
+                0x00,
+                0x00,  # Colors used
+                0x00,
+                0x00,
+                0x00,
+                0x00,  # Important colors
+            ]
+        )
         # Blue/purple gradient pixel data (16x16 BGRA, bottom-up)
         pixels = []
         for y in range(16):
@@ -147,13 +193,13 @@ def create_icon_if_missing():
                 # Create a nice gradient
                 b = int((x / 15) * 200 + 55)  # Blue
                 g = int((y / 15) * 100 + 50)  # Green
-                r = int(150)                   # Red
-                a = 255                        # Alpha
+                r = int(150)  # Red
+                a = 255  # Alpha
                 pixels.extend([b, g, r, a])
         # AND mask (16x16 bits = 64 bytes, all zeros = fully opaque)
         and_mask = bytes([0x00] * 64)
 
-        with open(icon_path, 'wb') as f:
+        with open(icon_path, "wb") as f:
             f.write(ico_data)
             f.write(bmp_header)
             f.write(bytes(pixels))
@@ -194,10 +240,10 @@ def build_exe(mode="full"):
     options = [
         "pyinstaller",
         "--name=NebulaCompute",
-        "--windowed",      # No console window (GUI app)
-        "--onefile",       # Single executable file
-        "--clean",         # Clean PyInstaller cache
-        "--noconfirm",     # Don't ask for confirmation
+        "--windowed",  # No console window (GUI app)
+        "--onefile",  # Single executable file
+        "--clean",  # Clean PyInstaller cache
+        "--noconfirm",  # Don't ask for confirmation
     ]
 
     # Add runtime hook if exists
@@ -229,7 +275,7 @@ def build_exe(mode="full"):
     # Config files
     config_path = project_root / "config"
     if config_path.exists():
-        options.append(f'--add-data={config_path}{data_sep}config')
+        options.append(f"--add-data={config_path}{data_sep}config")
         print("   ✓ Config files")
 
     # ============ Hidden Imports ============
@@ -244,11 +290,9 @@ def build_exe(mode="full"):
         "PySide6.QtNetwork",
         "PySide6.QtSvg",
         "PySide6.QtSvgWidgets",
-
         # Async
         "qasync",
         "asyncio",
-
         # HTTP & WebSocket
         "httpx",
         "httpx._transports",
@@ -257,18 +301,15 @@ def build_exe(mode="full"):
         "websockets.client",
         "websockets.legacy",
         "websockets.legacy.client",
-
         # Distributed Cluster modules
         "distributed_cluster",
         "distributed_cluster.desktop",
         "distributed_cluster.desktop.main",
         "distributed_cluster.desktop.main_window",
         "distributed_cluster.desktop.app_entry",
-
         # Desktop API
         "distributed_cluster.desktop.api",
         "distributed_cluster.desktop.api.client",
-
         # Desktop Views (ALL views must be explicitly listed)
         "distributed_cluster.desktop.views",
         "distributed_cluster.desktop.views.dashboard",
@@ -283,7 +324,6 @@ def build_exe(mode="full"):
         "distributed_cluster.desktop.views.script_editor",
         "distributed_cluster.desktop.views.plugin_manager",
         "distributed_cluster.desktop.views.powershell_console",
-
         # Desktop Widgets (ALL widgets must be explicitly listed)
         "distributed_cluster.desktop.widgets",
         "distributed_cluster.desktop.widgets.sidebar",
@@ -295,13 +335,11 @@ def build_exe(mode="full"):
         "distributed_cluster.desktop.widgets.charts",
         "distributed_cluster.desktop.widgets.stat_card",
         "distributed_cluster.desktop.widgets.data_table",
-
         # Desktop Resources (styles, themes, icons)
         "distributed_cluster.desktop.resources",
         "distributed_cluster.desktop.resources.styles",
         "distributed_cluster.desktop.resources.themes",
         "distributed_cluster.desktop.resources.icon",
-
         # Desktop UI components
         "distributed_cluster.desktop.ui",
         "distributed_cluster.desktop.ui.main_window",
@@ -319,14 +357,12 @@ def build_exe(mode="full"):
         "distributed_cluster.desktop.ui.views",
         "distributed_cluster.desktop.ui.views.jobs",
         "distributed_cluster.desktop.ui.views.logs",
-
         # Windows-specific modules (for Windows 11 integration)
         "ctypes",
         "ctypes.wintypes",
         "winreg",
         "subprocess",
         "platform",
-
         # Core models
         "distributed_cluster.models",
         "distributed_cluster.models.job",
@@ -334,7 +370,6 @@ def build_exe(mode="full"):
         "distributed_cluster.models.resources",
         "distributed_cluster.core",
         "distributed_cluster.core.config",
-
         # Standard library
         "json",
         "datetime",
@@ -346,11 +381,9 @@ def build_exe(mode="full"):
         "threading",
         "queue",
         "collections",
-
         # SSL/TLS
         "ssl",
         "certifi",
-
         # Other utilities
         "anyio",
         "anyio._backends",
@@ -358,7 +391,6 @@ def build_exe(mode="full"):
         "sniffio",
         "h11",
         "httpcore",
-
         # Required for pkg_resources (fixes jaraco error)
         "jaraco",
         "jaraco.text",
@@ -368,7 +400,6 @@ def build_exe(mode="full"):
         "jaraco.collections",
         "pkg_resources",
         "pkg_resources.extern",
-
         # More dependencies
         "importlib_metadata",
         "importlib_resources",
@@ -383,24 +414,25 @@ def build_exe(mode="full"):
 
     if mode == "full":
         # Add more imports for full mode
-        hidden_imports.extend([
-            # Web server (if running embedded)
-            "distributed_cluster.web",
-            "distributed_cluster.web.app",
-            "distributed_cluster.master",
-            "distributed_cluster.master.state",
-            # Note: distributed_cluster.master.api removed to avoid cryptography deps
-            # Note: distributed_cluster.scheduler removed to avoid heavy deps
-            # Note: distributed_cluster.security removed to avoid cryptography deps
-            # Note: distributed_cluster.ai removed to avoid heavy deps
-
-            # FastAPI (for embedded server)
-            "fastapi",
-            "starlette",
-            "uvicorn",
-            "jinja2",
-            "pydantic",
-        ])
+        hidden_imports.extend(
+            [
+                # Web server (if running embedded)
+                "distributed_cluster.web",
+                "distributed_cluster.web.app",
+                "distributed_cluster.master",
+                "distributed_cluster.master.state",
+                # Note: distributed_cluster.master.api removed to avoid cryptography deps
+                # Note: distributed_cluster.scheduler removed to avoid heavy deps
+                # Note: distributed_cluster.security removed to avoid cryptography deps
+                # Note: distributed_cluster.ai removed to avoid heavy deps
+                # FastAPI (for embedded server)
+                "fastapi",
+                "starlette",
+                "uvicorn",
+                "jinja2",
+                "pydantic",
+            ]
+        )
 
     for imp in hidden_imports:
         options.append(f"--hidden-import={imp}")
@@ -463,11 +495,13 @@ def build_exe(mode="full"):
     print(f"   ✓ Excluding {len(exclude_modules)} modules")
 
     # ============ Output Paths ============
-    options.extend([
-        f'--distpath={project_root / "dist"}',
-        f'--workpath={project_root / "build"}',
-        f"--specpath={project_root}",
-    ])
+    options.extend(
+        [
+            f'--distpath={project_root / "dist"}',
+            f'--workpath={project_root / "build"}',
+            f"--specpath={project_root}",
+        ]
+    )
 
     # Add paths
     options.append(f"--paths={src_path}")
@@ -517,7 +551,7 @@ def create_installer_script():
     """Create NSIS installer script for Windows"""
     project_root = get_project_root()
 
-    nsis_script = '''
+    nsis_script = """
 ; NebulaCompute Desktop Installer
 ; NSIS Installer Script
 
@@ -582,7 +616,7 @@ Section "Uninstall"
 
     DeleteRegKey HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NebulaCompute"
 SectionEnd
-'''
+"""
 
     nsis_path = project_root / "installer.nsi"
     with open(nsis_path, "w") as f:
@@ -604,21 +638,30 @@ Examples:
   python build_exe.py --mode minimal   # Build minimal version
   python build_exe.py --clean          # Clean build artifacts
   python build_exe.py --installer      # Create Windows installer script
-        """
+        """,
     )
     parser.add_argument("--clean", action="store_true", help="Clean build artifacts only")
     parser.add_argument("--installer", action="store_true", help="Create NSIS installer script")
-    parser.add_argument("--mode", choices=["full", "minimal", "standard", "ultra"], default="full",
-                        help="Build mode: full (all features) or minimal (basic)")
+    parser.add_argument(
+        "--mode",
+        choices=["full", "minimal", "standard", "ultra"],
+        default="full",
+        help="Build mode: full (all features) or minimal (basic)",
+    )
     # CI/CD arguments (for GitHub Actions compatibility)
-    parser.add_argument("--type", choices=["debug", "release", "release-optimized", "profile"],
-                        default="release", help="Build type (for CI)")
-    parser.add_argument("--platform", choices=["windows", "linux", "macos"],
-                        default=None, help="Target platform (for CI)")
-    parser.add_argument("--arch", choices=["x64", "arm64", "universal"],
-                        default="x64", help="Target architecture (for CI)")
-    parser.add_argument("--version", type=str, default=None,
-                        help="Version string (for CI)")
+    parser.add_argument(
+        "--type",
+        choices=["debug", "release", "release-optimized", "profile"],
+        default="release",
+        help="Build type (for CI)",
+    )
+    parser.add_argument(
+        "--platform", choices=["windows", "linux", "macos"], default=None, help="Target platform (for CI)"
+    )
+    parser.add_argument(
+        "--arch", choices=["x64", "arm64", "universal"], default="x64", help="Target architecture (for CI)"
+    )
+    parser.add_argument("--version", type=str, default=None, help="Version string (for CI)")
     args = parser.parse_args()
 
     if args.clean:

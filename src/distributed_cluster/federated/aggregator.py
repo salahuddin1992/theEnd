@@ -275,12 +275,8 @@ class FedAdamAggregator(FedAdaptiveAggregator):
 
         # Initialize momentum if needed
         if "m" not in self._state:
-            self._state["m"] = {
-                k: np.zeros_like(v) for k, v in global_weights.weights.items()
-            }
-            self._state["v"] = {
-                k: np.zeros_like(v) for k, v in global_weights.weights.items()
-            }
+            self._state["m"] = {k: np.zeros_like(v) for k, v in global_weights.weights.items()}
+            self._state["v"] = {k: np.zeros_like(v) for k, v in global_weights.weights.items()}
             self._state["t"] = 0
 
         self._state["t"] += 1
@@ -295,24 +291,17 @@ class FedAdamAggregator(FedAdaptiveAggregator):
             g = pseudo_grad[key]
 
             # Update biased first moment estimate
-            self._state["m"][key] = (
-                self.beta1 * self._state["m"][key] + (1 - self.beta1) * g
-            )
+            self._state["m"][key] = self.beta1 * self._state["m"][key] + (1 - self.beta1) * g
 
             # Update biased second moment estimate
-            self._state["v"][key] = (
-                self.beta2 * self._state["v"][key] + (1 - self.beta2) * (g ** 2)
-            )
+            self._state["v"][key] = self.beta2 * self._state["v"][key] + (1 - self.beta2) * (g**2)
 
             # Bias correction
-            m_hat = self._state["m"][key] / (1 - self.beta1 ** t)
-            v_hat = self._state["v"][key] / (1 - self.beta2 ** t)
+            m_hat = self._state["m"][key] / (1 - self.beta1**t)
+            v_hat = self._state["v"][key] / (1 - self.beta2**t)
 
             # Update parameters
-            aggregated[key] = (
-                global_weights.weights[key]
-                - self.server_lr * m_hat / (np.sqrt(v_hat) + self.epsilon)
-            )
+            aggregated[key] = global_weights.weights[key] - self.server_lr * m_hat / (np.sqrt(v_hat) + self.epsilon)
 
         return ModelWeights(
             weights=aggregated,
@@ -340,13 +329,8 @@ class FedYogiAggregator(FedAdaptiveAggregator):
 
         # Initialize state if needed
         if "m" not in self._state:
-            self._state["m"] = {
-                k: np.zeros_like(v) for k, v in global_weights.weights.items()
-            }
-            self._state["v"] = {
-                k: self.tau ** 2 * np.ones_like(v)
-                for k, v in global_weights.weights.items()
-            }
+            self._state["m"] = {k: np.zeros_like(v) for k, v in global_weights.weights.items()}
+            self._state["v"] = {k: self.tau**2 * np.ones_like(v) for k, v in global_weights.weights.items()}
             self._state["t"] = 0
 
         self._state["t"] += 1
@@ -360,24 +344,16 @@ class FedYogiAggregator(FedAdaptiveAggregator):
             g = pseudo_grad[key]
 
             # Update first moment
-            self._state["m"][key] = (
-                self.beta1 * self._state["m"][key] + (1 - self.beta1) * g
-            )
+            self._state["m"][key] = self.beta1 * self._state["m"][key] + (1 - self.beta1) * g
 
             # Yogi update for second moment (key difference from Adam)
-            g_squared = g ** 2
+            g_squared = g**2
             sign = np.sign(g_squared - self._state["v"][key])
-            self._state["v"][key] = (
-                self._state["v"][key]
-                + (1 - self.beta2) * sign * g_squared
-            )
+            self._state["v"][key] = self._state["v"][key] + (1 - self.beta2) * sign * g_squared
 
             # Update parameters
-            aggregated[key] = (
-                global_weights.weights[key]
-                - self.server_lr
-                * self._state["m"][key]
-                / (np.sqrt(self._state["v"][key]) + self.epsilon)
+            aggregated[key] = global_weights.weights[key] - self.server_lr * self._state["m"][key] / (
+                np.sqrt(self._state["v"][key]) + self.epsilon
             )
 
         return ModelWeights(
@@ -394,6 +370,7 @@ class FedYogiAggregator(FedAdaptiveAggregator):
 @dataclass
 class ScaffoldState:
     """State for SCAFFOLD aggregator."""
+
     server_control: Dict[str, np.ndarray]
     client_controls: Dict[str, Dict[str, np.ndarray]]
 
@@ -427,9 +404,7 @@ class ScaffoldAggregator(Aggregator):
 
         # Initialize control variates if needed
         if "server_control" not in self._state:
-            self._state["server_control"] = {
-                k: np.zeros_like(v) for k, v in global_weights.weights.items()
-            }
+            self._state["server_control"] = {k: np.zeros_like(v) for k, v in global_weights.weights.items()}
             self._state["client_controls"] = {}
 
         num_clients = len(client_updates)
@@ -503,11 +478,9 @@ class MedianAggregator(Aggregator):
             aggregated = {}
             for key in global_weights.weights.keys():
                 # Stack all client weights
-                stacked = np.stack([
-                    u.model_weights.weights[key]
-                    for u in client_updates
-                    if key in u.model_weights.weights
-                ])
+                stacked = np.stack(
+                    [u.model_weights.weights[key] for u in client_updates if key in u.model_weights.weights]
+                )
                 # Take coordinate-wise median
                 aggregated[key] = np.median(stacked, axis=0)
 
@@ -560,16 +533,12 @@ class TrimmedMeanAggregator(Aggregator):
         aggregated = {}
         for key in global_weights.weights.keys():
             # Stack all client weights
-            stacked = np.stack([
-                u.model_weights.weights[key]
-                for u in client_updates
-                if key in u.model_weights.weights
-            ])
+            stacked = np.stack([u.model_weights.weights[key] for u in client_updates if key in u.model_weights.weights])
 
             if trim_count > 0:
                 # Sort along client axis and trim extremes
                 sorted_weights = np.sort(stacked, axis=0)
-                trimmed = sorted_weights[trim_count:n_clients - trim_count]
+                trimmed = sorted_weights[trim_count : n_clients - trim_count]
                 aggregated[key] = np.mean(trimmed, axis=0)
             else:
                 aggregated[key] = np.mean(stacked, axis=0)
@@ -616,10 +585,7 @@ class KrumAggregator(Aggregator):
     ) -> np.ndarray:
         """Compute pairwise distances between client updates."""
         n = len(client_updates)
-        flat_weights = [
-            self._flatten_weights(u.model_weights.weights)
-            for u in client_updates
-        ]
+        flat_weights = [self._flatten_weights(u.model_weights.weights) for u in client_updates]
 
         distances = np.zeros((n, n))
         for i in range(n):
@@ -670,7 +636,7 @@ class KrumAggregator(Aggregator):
         for i in range(n):
             sorted_dists = np.sort(distances[i])
             # Exclude self (distance 0) and sum closest neighbors
-            score = np.sum(sorted_dists[1:n_neighbors + 1])
+            score = np.sum(sorted_dists[1 : n_neighbors + 1])
             scores.append(score)
 
         if self.multi_krum:

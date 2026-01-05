@@ -132,9 +132,7 @@ class SlackWebhook(WebhookProvider):
             EventType.SYSTEM_ERROR,
         ):
             return self.COLORS["error"]
-        elif event.event_type in (
-            EventType.ALERT_FIRED,
-        ):
+        elif event.event_type in (EventType.ALERT_FIRED,):
             return self.COLORS["critical"]
         elif event.event_type in (
             EventType.SYSTEM_WARNING,
@@ -185,33 +183,39 @@ class SlackWebhook(WebhookProvider):
         blocks = []
 
         # Header
-        blocks.append({
-            "type": "header",
-            "text": {
-                "type": "plain_text",
-                "text": f"{emoji} {title}",
-                "emoji": True,
-            },
-        })
+        blocks.append(
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": f"{emoji} {title}",
+                    "emoji": True,
+                },
+            }
+        )
 
         # Description
         description = self._get_description(event)
         if description:
-            blocks.append({
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": description,
-                },
-            })
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": description,
+                    },
+                }
+            )
 
         # Fields
         fields = self._build_fields(event)
         if fields:
-            blocks.append({
-                "type": "section",
-                "fields": fields,
-            })
+            blocks.append(
+                {
+                    "type": "section",
+                    "fields": fields,
+                }
+            )
 
         # Divider
         blocks.append({"type": "divider"})
@@ -219,18 +223,20 @@ class SlackWebhook(WebhookProvider):
         # Footer
         if self.include_footer:
             timestamp = int(event.timestamp.timestamp())
-            blocks.append({
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": (
-                            f"Source: *{event.source}* | Event ID: `{event.event_id[:8]}` | "
-                            f"<!date^{timestamp}^{{date_short_pretty}} at {{time}}|{event.timestamp.isoformat()}>"
-                        ),
-                    },
-                ],
-            })
+            blocks.append(
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": (
+                                f"Source: *{event.source}* | Event ID: `{event.event_id[:8]}` | "
+                                f"<!date^{timestamp}^{{date_short_pretty}} at {{time}}|{event.timestamp.isoformat()}>"
+                            ),
+                        },
+                    ],
+                }
+            )
 
         return blocks
 
@@ -273,10 +279,12 @@ class SlackWebhook(WebhookProvider):
                 value = data[key]
                 if isinstance(value, float):
                     value = f"{value:.2f}"
-                fields.append({
-                    "type": "mrkdwn",
-                    "text": f"*{label}:*\n{value}",
-                })
+                fields.append(
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*{label}:*\n{value}",
+                    }
+                )
 
         return fields[:10]  # Slack limit
 
@@ -284,6 +292,7 @@ class SlackWebhook(WebhookProvider):
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def create_slack_provider(
     channel: Optional[str] = None,

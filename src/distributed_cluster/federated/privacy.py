@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PrivacyBudget:
     """Track privacy budget consumption."""
+
     epsilon_spent: float = 0.0
     delta_spent: float = 0.0
     queries: int = 0
@@ -51,10 +52,7 @@ class PrivacyBudget:
 
     @property
     def is_exhausted(self) -> bool:
-        return (
-            self.epsilon_spent >= self.max_epsilon
-            or self.delta_spent >= self.max_delta
-        )
+        return self.epsilon_spent >= self.max_epsilon or self.delta_spent >= self.max_delta
 
     def consume(self, epsilon: float, delta: float) -> bool:
         """Consume privacy budget. Returns False if budget exhausted."""
@@ -109,11 +107,7 @@ class PrivacyAccountant:
         if target_epsilon <= 0:
             return float("inf")
 
-        noise_mult = (
-            np.sqrt(2 * num_steps * np.log(1.25 / self.total_delta))
-            / target_epsilon
-            / sample_rate
-        )
+        noise_mult = np.sqrt(2 * num_steps * np.log(1.25 / self.total_delta)) / target_epsilon / sample_rate
 
         return noise_mult
 
@@ -132,10 +126,7 @@ class PrivacyAccountant:
             return float("inf")
 
         # RDP-based accounting (simplified)
-        epsilon = (
-            np.sqrt(2 * num_steps * np.log(1.25 / self.total_delta))
-            / (noise_multiplier * sample_rate)
-        )
+        epsilon = np.sqrt(2 * num_steps * np.log(1.25 / self.total_delta)) / (noise_multiplier * sample_rate)
 
         return epsilon
 
@@ -179,9 +170,7 @@ class DifferentialPrivacy:
         # Compute noise multiplier if not provided
         if noise_multiplier is None:
             # Standard Gaussian mechanism
-            self.noise_multiplier = (
-                np.sqrt(2 * np.log(1.25 / delta)) / epsilon
-            )
+            self.noise_multiplier = np.sqrt(2 * np.log(1.25 / delta)) / epsilon
         else:
             self.noise_multiplier = noise_multiplier
 
@@ -202,9 +191,7 @@ class DifferentialPrivacy:
         قص التدرجات لتحديد معيار L2.
         """
         # Compute total L2 norm
-        total_norm = np.sqrt(
-            sum(np.sum(g ** 2) for g in gradients.values())
-        )
+        total_norm = np.sqrt(sum(np.sum(g**2) for g in gradients.values()))
 
         # Clip if necessary
         if total_norm > self.clip_norm:
@@ -279,6 +266,7 @@ class DifferentialPrivacy:
 @dataclass
 class SecretShare:
     """A secret share for secure aggregation."""
+
     owner_id: str
     recipient_id: str
     share: Dict[str, np.ndarray]
@@ -374,10 +362,7 @@ class SecureAggregation:
             )
 
         # Add mask to weights
-        masked_weights = {
-            k: v + total_mask[k]
-            for k, v in weights.items()
-        }
+        masked_weights = {k: v + total_mask[k] for k, v in weights.items()}
 
         return shares, masked_weights
 
@@ -399,10 +384,7 @@ class SecureAggregation:
             Aggregated weights
         """
         if len(masked_updates) < self.threshold:
-            raise ValueError(
-                f"Not enough updates for secure aggregation: "
-                f"{len(masked_updates)} < {self.threshold}"
-            )
+            raise ValueError(f"Not enough updates for secure aggregation: " f"{len(masked_updates)} < {self.threshold}")
 
         # Start with sum of masked updates
         active_clients = {client_id for client_id, _ in masked_updates}

@@ -22,13 +22,15 @@ T = TypeVar("T")
 
 class CacheLevel(Enum):
     """Cache hierarchy levels."""
-    L1_MEMORY = "l1_memory"      # In-process memory (fastest)
-    L2_LOCAL = "l2_local"        # Local disk/Redis
+
+    L1_MEMORY = "l1_memory"  # In-process memory (fastest)
+    L2_LOCAL = "l2_local"  # Local disk/Redis
     L3_DISTRIBUTED = "l3_distributed"  # Distributed cache cluster
 
 
 class SerializationFormat(Enum):
     """Serialization formats for cache values."""
+
     PICKLE = "pickle"
     JSON = "json"
     MSGPACK = "msgpack"
@@ -37,6 +39,7 @@ class SerializationFormat(Enum):
 @dataclass
 class CacheConfig:
     """Configuration for the cache system."""
+
     # Memory cache settings
     memory_max_size: int = 10000
     memory_ttl_seconds: int = 300
@@ -68,6 +71,7 @@ class CacheConfig:
 @dataclass
 class CacheStats:
     """Cache performance statistics."""
+
     hits: int = 0
     misses: int = 0
     writes: int = 0
@@ -112,6 +116,7 @@ class CacheStats:
 @dataclass
 class CacheEntry(Generic[T]):
     """A cached entry with metadata."""
+
     key: str
     value: T
     created_at: datetime
@@ -202,6 +207,7 @@ class CacheManager:
         """Initialize cache backends."""
         if self.config.redis_url:
             from .backends import RedisBackend
+
             self._redis_backend = RedisBackend(
                 url=self.config.redis_url,
                 prefix=self.config.redis_prefix,
@@ -210,6 +216,7 @@ class CacheManager:
 
         if self.config.distributed_nodes:
             from .distributed import DistributedCache
+
             self._distributed_backend = DistributedCache(
                 nodes=self.config.distributed_nodes,
                 replication_factor=self.config.replication_factor,
@@ -233,6 +240,7 @@ class CacheManager:
 
         if self.config.compression_enabled and len(data) > self.config.compression_threshold:
             import zlib
+
             data = zlib.compress(data)
 
         return data
@@ -242,6 +250,7 @@ class CacheManager:
         try:
             # Try decompression first
             import zlib
+
             data = zlib.decompress(data)
         except zlib.error:
             pass  # Not compressed
@@ -417,10 +426,7 @@ class CacheManager:
     async def delete_by_tag(self, tag: str) -> int:
         """Delete all entries with a specific tag."""
         deleted = 0
-        keys_to_delete = [
-            key for key, entry in self._cache.items()
-            if tag in entry.tags
-        ]
+        keys_to_delete = [key for key, entry in self._cache.items() if tag in entry.tags]
 
         for key in keys_to_delete:
             if await self.delete(key):
@@ -549,6 +555,7 @@ class CacheManager:
             async def get_user(user_id: int):
                 return await db.fetch_user(user_id)
         """
+
         def decorator(func: Callable) -> Callable:
             async def wrapper(*args, **kwargs):
                 # Generate cache key
@@ -566,6 +573,7 @@ class CacheManager:
                 return result
 
             return wrapper
+
         return decorator
 
     async def warm(

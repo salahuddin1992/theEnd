@@ -54,7 +54,8 @@ class SQLiteAuditBackend(AuditBackend):
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
 
         async with aiosqlite.connect(self.db_path) as conn:
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS audit_events (
                     event_id TEXT PRIMARY KEY,
                     timestamp TEXT NOT NULL,
@@ -71,27 +72,36 @@ class SQLiteAuditBackend(AuditBackend):
                     error_message TEXT,
                     correlation_id TEXT
                 )
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_timestamp
                 ON audit_events(timestamp)
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_action
                 ON audit_events(action)
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_actor
                 ON audit_events(actor_id)
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_resource
                 ON audit_events(resource_type, resource_id)
-            """)
+            """
+            )
 
             await conn.commit()
 
@@ -111,28 +121,31 @@ class SQLiteAuditBackend(AuditBackend):
         async with self._lock:
             conn = await self._get_conn()
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 INSERT INTO audit_events
                 (event_id, timestamp, action, result, actor_id, actor_type,
                  actor_role, actor_ip, resource_type, resource_id, resource_name,
                  details, error_message, correlation_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                event.event_id,
-                event.timestamp.isoformat(),
-                event.action.value if isinstance(event.action, AuditAction) else event.action,
-                event.result.value if isinstance(event.result, AuditResult) else event.result,
-                event.actor_id,
-                event.actor_type,
-                event.actor_role,
-                event.actor_ip,
-                event.resource_type,
-                event.resource_id,
-                event.resource_name,
-                json.dumps(event.details),
-                event.error_message,
-                event.correlation_id,
-            ))
+            """,
+                (
+                    event.event_id,
+                    event.timestamp.isoformat(),
+                    event.action.value if isinstance(event.action, AuditAction) else event.action,
+                    event.result.value if isinstance(event.result, AuditResult) else event.result,
+                    event.actor_id,
+                    event.actor_type,
+                    event.actor_role,
+                    event.actor_ip,
+                    event.resource_type,
+                    event.resource_id,
+                    event.resource_name,
+                    json.dumps(event.details),
+                    event.error_message,
+                    event.correlation_id,
+                ),
+            )
 
             await conn.commit()
 
@@ -268,10 +281,7 @@ class SQLiteAuditBackend(AuditBackend):
 
         async with self._lock:
             conn = await self._get_conn()
-            cursor = await conn.execute(
-                "DELETE FROM audit_events WHERE timestamp < ?",
-                (cutoff.isoformat(),)
-            )
+            cursor = await conn.execute("DELETE FROM audit_events WHERE timestamp < ?", (cutoff.isoformat(),))
             deleted = cursor.rowcount
             await conn.commit()
 
@@ -332,7 +342,8 @@ class PostgreSQLAuditBackend(AuditBackend):
         )
 
         async with self._pool.acquire() as conn:
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS audit_events (
                     event_id TEXT PRIMARY KEY,
                     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -349,40 +360,52 @@ class PostgreSQLAuditBackend(AuditBackend):
                     error_message TEXT,
                     correlation_id TEXT
                 )
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_timestamp
                 ON audit_events(timestamp)
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_action
                 ON audit_events(action)
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_actor
                 ON audit_events(actor_id)
-            """)
+            """
+            )
 
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_resource
                 ON audit_events(resource_type, resource_id)
-            """)
+            """
+            )
 
             # Partitioning hint
-            await conn.execute("""
+            await conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_audit_timestamp_action
                 ON audit_events(timestamp, action)
-            """)
+            """
+            )
 
         logger.info(f"PostgreSQL audit backend initialized at {self.host}:{self.port}/{self.database}")
 
     async def log(self, event: AuditEvent) -> None:
         """تسجيل حدث."""
         async with self._pool.acquire() as conn:
-            await conn.execute("""
+            await conn.execute(
+                """
                 INSERT INTO audit_events
                 (event_id, timestamp, action, result, actor_id, actor_type,
                  actor_role, actor_ip, resource_type, resource_id, resource_name,
@@ -573,45 +596,62 @@ class PostgreSQLAuditBackend(AuditBackend):
             # Total events
             total = await conn.fetchval(
                 "SELECT COUNT(*) FROM audit_events WHERE timestamp BETWEEN $1 AND $2",
-                start_time, end_time,
+                start_time,
+                end_time,
             )
 
             # Events by action
-            by_action = await conn.fetch("""
+            by_action = await conn.fetch(
+                """
                 SELECT action, COUNT(*) as count
                 FROM audit_events
                 WHERE timestamp BETWEEN $1 AND $2
                 GROUP BY action
                 ORDER BY count DESC
-            """, start_time, end_time)
+            """,
+                start_time,
+                end_time,
+            )
 
             # Events by result
-            by_result = await conn.fetch("""
+            by_result = await conn.fetch(
+                """
                 SELECT result, COUNT(*) as count
                 FROM audit_events
                 WHERE timestamp BETWEEN $1 AND $2
                 GROUP BY result
-            """, start_time, end_time)
+            """,
+                start_time,
+                end_time,
+            )
 
             # Top actors
-            top_actors = await conn.fetch("""
+            top_actors = await conn.fetch(
+                """
                 SELECT actor_id, actor_type, COUNT(*) as count
                 FROM audit_events
                 WHERE timestamp BETWEEN $1 AND $2 AND actor_id IS NOT NULL
                 GROUP BY actor_id, actor_type
                 ORDER BY count DESC
                 LIMIT 10
-            """, start_time, end_time)
+            """,
+                start_time,
+                end_time,
+            )
 
             # Failed actions
-            failures = await conn.fetch("""
+            failures = await conn.fetch(
+                """
                 SELECT action, COUNT(*) as count
                 FROM audit_events
                 WHERE timestamp BETWEEN $1 AND $2 AND result IN ('failure', 'denied', 'error')
                 GROUP BY action
                 ORDER BY count DESC
                 LIMIT 10
-            """, start_time, end_time)
+            """,
+                start_time,
+                end_time,
+            )
 
         return {
             "period": {
@@ -622,13 +662,9 @@ class PostgreSQLAuditBackend(AuditBackend):
             "by_action": {row["action"]: row["count"] for row in by_action},
             "by_result": {row["result"]: row["count"] for row in by_result},
             "top_actors": [
-                {"id": row["actor_id"], "type": row["actor_type"], "count": row["count"]}
-                for row in top_actors
+                {"id": row["actor_id"], "type": row["actor_type"], "count": row["count"]} for row in top_actors
             ],
-            "top_failures": [
-                {"action": row["action"], "count": row["count"]}
-                for row in failures
-            ],
+            "top_failures": [{"action": row["action"], "count": row["count"]} for row in failures],
         }
 
 

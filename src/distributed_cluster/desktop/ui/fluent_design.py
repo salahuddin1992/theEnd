@@ -28,6 +28,7 @@ try:
     if platform.system() == "Windows":
         import ctypes  # noqa: F401
         from ctypes import wintypes  # noqa: F401
+
         HAS_WIN32 = True
     else:
         HAS_WIN32 = False
@@ -40,9 +41,11 @@ except ImportError:
 # نظام ألوان Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentAccentColor(Enum):
     """Windows 11 accent colors"""
-    DEFAULT = "#0078D4"      # Windows Blue
+
+    DEFAULT = "#0078D4"  # Windows Blue
     PURPLE = "#744DA9"
     RED = "#E81123"
     ORANGE = "#FF8C00"
@@ -58,6 +61,7 @@ class FluentColors:
     Complete Fluent Design color palette.
     لوحة ألوان Fluent الكاملة
     """
+
     # Accent colors
     accent: str = "#0078D4"
     accent_light_1: str = "#429CE3"
@@ -165,6 +169,7 @@ class FluentColors:
 # نظام الخطوط
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class FluentTypography:
     """Fluent Design typography specifications"""
@@ -177,7 +182,7 @@ class FluentTypography:
     font_family_icon: str = "Segoe Fluent Icons"
 
     # Display styles
-    display: Tuple[int, int] = (68, 92)    # size, line-height
+    display: Tuple[int, int] = (68, 92)  # size, line-height
     title_large: Tuple[int, int] = (40, 52)
     title: Tuple[int, int] = (28, 36)
     subtitle: Tuple[int, int] = (20, 28)
@@ -224,9 +229,11 @@ class FluentTypography:
 # نظام المسافات والارتفاعات
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class FluentSpacing:
     """Fluent Design spacing tokens"""
+
     xxs: int = 2
     xs: int = 4
     s: int = 8
@@ -240,6 +247,7 @@ class FluentSpacing:
 @dataclass
 class FluentCorners:
     """Fluent Design corner radius tokens"""
+
     none: int = 0
     small: int = 4
     medium: int = 8
@@ -281,6 +289,7 @@ class FluentElevation:
 # تأثير Mica
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class MicaEffect(QObject):
     """
     Windows 11 Mica material effect.
@@ -315,20 +324,14 @@ class MicaEffect(QObject):
             # Enable dark mode
             value = ctypes.c_int(1)
             ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                self.DWMWA_USE_IMMERSIVE_DARK_MODE,
-                ctypes.byref(value),
-                ctypes.sizeof(value)
+                hwnd, self.DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(value), ctypes.sizeof(value)
             )
 
             # Set backdrop type (2 = Mica, 3 = Mica Alt, 4 = Acrylic)
             backdrop_type = 3 if mica_alt else 2
             value = ctypes.c_int(backdrop_type)
             ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                self.DWMWA_SYSTEMBACKDROP_TYPE,
-                ctypes.byref(value),
-                ctypes.sizeof(value)
+                hwnd, self.DWMWA_SYSTEMBACKDROP_TYPE, ctypes.byref(value), ctypes.sizeof(value)
             )
 
             self._enabled = True
@@ -341,14 +344,16 @@ class MicaEffect(QObject):
 
     def _apply_fallback(self):
         """Apply fallback gradient when Mica not available"""
-        self._window.setStyleSheet("""
+        self._window.setStyleSheet(
+            """
             background: qlineargradient(
                 x1:0, y1:0, x2:1, y2:1,
                 stop:0 #1a1a2e,
                 stop:0.5 #16213e,
                 stop:1 #0f3460
             );
-        """)
+        """
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -356,17 +361,21 @@ class MicaEffect(QObject):
 # تأثير Acrylic
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class AcrylicEffect(QWidget):
     """
     Windows 11 Acrylic blur effect.
     تأثير Acrylic (الضبابية) من Windows 11
     """
 
-    def __init__(self, parent: QWidget = None,
-                 tint_color: QColor = None,
-                 tint_opacity: float = 0.7,
-                 blur_amount: int = 30,
-                 noise_opacity: float = 0.02):
+    def __init__(
+        self,
+        parent: QWidget = None,
+        tint_color: QColor = None,
+        tint_opacity: float = 0.7,
+        blur_amount: int = 30,
+        noise_opacity: float = 0.02,
+    ):
         super().__init__(parent)
 
         self._tint_color = tint_color or QColor(32, 32, 32)
@@ -383,6 +392,7 @@ class AcrylicEffect(QWidget):
         image = QImage(size, size, QImage.Format_ARGB32)
 
         import random
+
         for x in range(size):
             for y in range(size):
                 noise = random.randint(0, 255)
@@ -415,6 +425,7 @@ class AcrylicEffect(QWidget):
 # تأثير Reveal (الإضاءة)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class RevealEffect(QObject):
     """
     Windows Fluent Design Reveal highlight effect.
@@ -423,10 +434,9 @@ class RevealEffect(QObject):
     Creates a lighting effect that follows the mouse cursor.
     """
 
-    def __init__(self, widget: QWidget,
-                 border_radius: int = 8,
-                 light_color: QColor = None,
-                 border_light_color: QColor = None):
+    def __init__(
+        self, widget: QWidget, border_radius: int = 8, light_color: QColor = None, border_light_color: QColor = None
+    ):
         super().__init__(widget)
 
         self._widget = widget
@@ -507,9 +517,7 @@ class RevealEffect(QObject):
 
             pen = QPen(QBrush(border_gradient), 1)
             painter.setPen(pen)
-            painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1),
-                                   self._border_radius - 1,
-                                   self._border_radius - 1)
+            painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1), self._border_radius - 1, self._border_radius - 1)
 
         painter.restore()
 
@@ -519,8 +527,10 @@ class RevealEffect(QObject):
 # نظام السمات والتصميم
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentTheme(Enum):
     """Available themes"""
+
     DARK = "dark"
     LIGHT = "light"
     SYSTEM = "system"

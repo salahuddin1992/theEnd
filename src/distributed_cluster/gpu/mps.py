@@ -57,14 +57,10 @@ class MPSConfig:
         }
 
         if self.default_active_thread_percentage < 100:
-            env["CUDA_MPS_ACTIVE_THREAD_PERCENTAGE"] = str(
-                self.default_active_thread_percentage
-            )
+            env["CUDA_MPS_ACTIVE_THREAD_PERCENTAGE"] = str(self.default_active_thread_percentage)
 
         if self.default_pinned_device_memory_limit:
-            env["CUDA_MPS_PINNED_DEVICE_MEM_LIMIT"] = (
-                self.default_pinned_device_memory_limit
-            )
+            env["CUDA_MPS_PINNED_DEVICE_MEM_LIMIT"] = self.default_pinned_device_memory_limit
 
         return env
 
@@ -360,14 +356,9 @@ class MPSManager:
             active_thread_percentage = max(1, min(100, active_thread_percentage))
 
             # Check total thread allocation
-            total_threads = sum(
-                s.active_thread_percentage for s in self._sessions.values()
-            )
+            total_threads = sum(s.active_thread_percentage for s in self._sessions.values())
             if total_threads + active_thread_percentage > 100:
-                logger.warning(
-                    f"Thread percentage exceeds 100%: "
-                    f"{total_threads} + {active_thread_percentage}"
-                )
+                logger.warning(f"Thread percentage exceeds 100%: " f"{total_threads} + {active_thread_percentage}")
                 # Allow oversubscription with warning
 
             session = MPSSession(
@@ -380,10 +371,7 @@ class MPSManager:
             )
 
             self._sessions[session_id] = session
-            logger.info(
-                f"Created MPS session {session_id} for job {job_id} "
-                f"({active_thread_percentage}% threads)"
-            )
+            logger.info(f"Created MPS session {session_id} for job {job_id} " f"({active_thread_percentage}% threads)")
 
             return session
 
@@ -438,9 +426,7 @@ class MPSManager:
             "status": self._status.value,
             "gpu_index": self.config.gpu_index,
             "sessions": len(self._sessions),
-            "total_thread_percentage": sum(
-                s.active_thread_percentage for s in self._sessions.values()
-            ),
+            "total_thread_percentage": sum(s.active_thread_percentage for s in self._sessions.values()),
             "mps_available": self._mps_available,
         }
 
@@ -480,9 +466,7 @@ class MPSManager:
         cleaned = []
         async with self._lock:
             dead_sessions = [
-                session_id
-                for session_id, session in self._sessions.items()
-                if session.pid and not session.is_active
+                session_id for session_id, session in self._sessions.items() if session.pid and not session.is_active
             ]
 
             for session_id in dead_sessions:

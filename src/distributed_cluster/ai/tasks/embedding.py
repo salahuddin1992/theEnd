@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EmbeddingConfig:
     """إعدادات التضمين."""
+
     batch_size: int = 32
     normalize: bool = True
     truncate: bool = True
@@ -68,7 +69,7 @@ class EmbeddingTask:
 
             # Process in batches
             for i in range(0, total, config.batch_size):
-                batch = texts[i:i + config.batch_size]
+                batch = texts[i : i + config.batch_size]
                 progress = 20 + (70 * (i + len(batch)) / total)
                 task.update_progress(progress, f"Embedding batch {i//config.batch_size + 1}")
 
@@ -114,7 +115,7 @@ class EmbeddingTask:
             # Use actual provider
             embeddings = []
             for text in texts:
-                if hasattr(self.provider, 'embed'):
+                if hasattr(self.provider, "embed"):
                     emb = await self.provider.embed(text, model=model)
                     embeddings.append(emb)
                 else:

@@ -17,6 +17,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="pynvml")
 try:
     # Try nvidia-ml-py first (the new package name)
     import pynvml
+
     NVML_AVAILABLE = True
 except ImportError:
     NVML_AVAILABLE = False

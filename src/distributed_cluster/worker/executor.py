@@ -45,26 +45,26 @@ class ShellType(str, Enum):
     """أنواع الـ Shell المدعومة."""
 
     # Windows Shells
-    CMD = "cmd"                    # Windows Command Prompt
-    POWERSHELL = "powershell"      # Windows PowerShell 5.1
-    POWERSHELL_7 = "pwsh"          # PowerShell 7 (Cross-platform)
+    CMD = "cmd"  # Windows Command Prompt
+    POWERSHELL = "powershell"  # Windows PowerShell 5.1
+    POWERSHELL_7 = "pwsh"  # PowerShell 7 (Cross-platform)
 
     # Linux/Unix Shells
-    BASH = "bash"                  # Bash shell
-    SH = "sh"                      # POSIX shell
-    ZSH = "zsh"                    # Z shell
+    BASH = "bash"  # Bash shell
+    SH = "sh"  # POSIX shell
+    ZSH = "zsh"  # Z shell
 
     # WSL Distributions
-    WSL = "wsl"                    # Default WSL
-    WSL_UBUNTU = "ubuntu"          # Ubuntu via WSL
-    WSL_DEBIAN = "debian"          # Debian via WSL
-    WSL_KALI = "kali"              # Kali Linux via WSL
+    WSL = "wsl"  # Default WSL
+    WSL_UBUNTU = "ubuntu"  # Ubuntu via WSL
+    WSL_DEBIAN = "debian"  # Debian via WSL
+    WSL_KALI = "kali"  # Kali Linux via WSL
 
     # Git Bash
-    GIT_BASH = "git-bash"          # Git Bash (MINGW)
+    GIT_BASH = "git-bash"  # Git Bash (MINGW)
 
     # Auto-detect
-    AUTO = "auto"                  # تلقائي - يختار الأفضل
+    AUTO = "auto"  # تلقائي - يختار الأفضل
 
 
 @dataclass
@@ -802,8 +802,10 @@ class JobExecutor:
                 shell_path,
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy", "Bypass",
-                "-Command", ps_command,
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                ps_command,
             ]
 
         elif shell_type == ShellType.POWERSHELL_7:
@@ -814,8 +816,10 @@ class JobExecutor:
                 shell_path,
                 "-NoProfile",
                 "-NonInteractive",
-                "-ExecutionPolicy", "Bypass",
-                "-Command", ps_command,
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                ps_command,
             ]
 
         elif shell_type in (ShellType.WSL, ShellType.WSL_UBUNTU, ShellType.WSL_DEBIAN, ShellType.WSL_KALI):

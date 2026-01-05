@@ -698,9 +698,7 @@ class DataLocationTracker:
             if worker_scores:
                 max_score = max(worker_scores.values())
                 if max_score > 0:
-                    worker_scores = {
-                        w: s / max_score for w, s in worker_scores.items()
-                    }
+                    worker_scores = {w: s / max_score for w, s in worker_scores.items()}
 
             # Sort and return top N
             sorted_workers = sorted(
@@ -788,10 +786,7 @@ class DataLocationTracker:
 
             total_size = sum(b.size_bytes for b in self._blocks.values())
 
-            type_counts = {
-                dtype.value: len(bids)
-                for dtype, bids in self._type_blocks.items()
-            }
+            type_counts = {dtype.value: len(bids) for dtype, bids in self._type_blocks.items()}
 
             return {
                 **self._stats,
@@ -800,9 +795,7 @@ class DataLocationTracker:
                 "total_workers": total_workers,
                 "total_size_bytes": total_size,
                 "type_counts": type_counts,
-                "hit_rate": (
-                    self._stats["hits"] / max(self._stats["lookups"], 1)
-                ),
+                "hit_rate": (self._stats["hits"] / max(self._stats["lookups"], 1)),
             }
 
     # ==================== Event Callbacks ====================

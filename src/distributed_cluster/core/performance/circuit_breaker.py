@@ -89,15 +89,9 @@ class CircuitBreakerStats:
             "failed_requests": self.failed_requests,
             "rejected_requests": self.rejected_requests,
             "timeout_requests": self.timeout_requests,
-            "success_rate": (
-                self.successful_requests / self.total_requests
-                if self.total_requests > 0
-                else 0.0
-            ),
+            "success_rate": (self.successful_requests / self.total_requests if self.total_requests > 0 else 0.0),
             "state_changes": self.state_changes,
-            "last_state_change": (
-                self.last_state_change.isoformat() if self.last_state_change else None
-            ),
+            "last_state_change": (self.last_state_change.isoformat() if self.last_state_change else None),
             "last_failure": self.last_failure.isoformat() if self.last_failure else None,
             "last_success": self.last_success.isoformat() if self.last_success else None,
         }
@@ -115,10 +109,7 @@ class CircuitOpenError(CircuitBreakerError):
     def __init__(self, circuit_name: str, reset_time: float):
         self.circuit_name = circuit_name
         self.reset_time = reset_time
-        super().__init__(
-            f"Circuit '{circuit_name}' is open. "
-            f"Will attempt reset in {reset_time:.1f} seconds."
-        )
+        super().__init__(f"Circuit '{circuit_name}' is open. " f"Will attempt reset in {reset_time:.1f} seconds.")
 
 
 T = TypeVar("T")
@@ -398,12 +389,14 @@ class CircuitBreaker(Generic[T]):
         """استخدام كـ decorator."""
 
         if asyncio.iscoroutinefunction(func):
+
             @wraps(func)
             async def async_wrapper(*args, **kwargs):
                 return await self.call(func, *args, **kwargs)
 
             return async_wrapper
         else:
+
             @wraps(func)
             def sync_wrapper(*args, **kwargs):
                 return self.call_sync(func, *args, **kwargs)
@@ -525,12 +518,14 @@ def circuit_breaker(
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         if asyncio.iscoroutinefunction(func):
+
             @wraps(func)
             async def async_wrapper(*args, **kwargs):
                 return await cb.call(func, *args, fallback=fallback, **kwargs)
 
             return async_wrapper
         else:
+
             @wraps(func)
             def sync_wrapper(*args, **kwargs):
                 return cb.call_sync(func, *args, fallback=fallback, **kwargs)
@@ -673,7 +668,7 @@ class Retry:
         """حساب وقت الانتظار."""
         import random
 
-        delay = self.config.base_delay * (self.config.exponential_base ** attempt)
+        delay = self.config.base_delay * (self.config.exponential_base**attempt)
         delay = min(delay, self.config.max_delay)
 
         # Add jitter
@@ -714,9 +709,7 @@ class Retry:
         def decorator(func: Callable[..., T]) -> Callable[..., T]:
             @wraps(func)
             async def wrapper(*args, **kwargs):
-                return await self.execute(
-                    func, *args, retryable_exceptions=retryable_exceptions, **kwargs
-                )
+                return await self.execute(func, *args, retryable_exceptions=retryable_exceptions, **kwargs)
 
             return wrapper
 
@@ -742,9 +735,7 @@ def retry(
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await retryer.execute(
-                func, *args, retryable_exceptions=retryable_exceptions, **kwargs
-            )
+            return await retryer.execute(func, *args, retryable_exceptions=retryable_exceptions, **kwargs)
 
         return wrapper
 

@@ -21,6 +21,7 @@ class OpenAPISpec:
     مواصفات OpenAPI
     OpenAPI Specification
     """
+
     title: str = "NebulaCompute API"
     description: str = ""
     version: str = "1.0.0"
@@ -48,7 +49,8 @@ class OpenAPISpec:
                     "url": "https://opensource.org/licenses/MIT",
                 },
             },
-            "servers": self.servers or [
+            "servers": self.servers
+            or [
                 {"url": "http://localhost:8765", "description": "Local development"},
                 {"url": "https://api.nebulacompute.io", "description": "Production"},
             ],
@@ -66,6 +68,7 @@ class OpenAPISpec:
         """تحويل لـ YAML"""
         try:
             import yaml
+
             return yaml.dump(self.to_dict(), allow_unicode=True, default_flow_style=False)
         except ImportError:
             raise RuntimeError("PyYAML is required for YAML output")
@@ -434,16 +437,9 @@ def _generate_paths() -> Dict[str, Any]:
                     {
                         "name": "status",
                         "in": "query",
-                        "schema": {
-                            "type": "array",
-                            "items": {"$ref": "#/components/schemas/JobStatus"}
-                        }
+                        "schema": {"type": "array", "items": {"$ref": "#/components/schemas/JobStatus"}},
                     },
-                    {
-                        "name": "priority",
-                        "in": "query",
-                        "schema": {"$ref": "#/components/schemas/JobPriority"}
-                    },
+                    {"name": "priority", "in": "query", "schema": {"$ref": "#/components/schemas/JobPriority"}},
                     {"name": "worker_id", "in": "query", "schema": {"type": "string"}},
                 ],
                 "responses": {
@@ -458,7 +454,7 @@ def _generate_paths() -> Dict[str, Any]:
                                             "properties": {
                                                 "items": {
                                                     "type": "array",
-                                                    "items": {"$ref": "#/components/schemas/Job"}
+                                                    "items": {"$ref": "#/components/schemas/Job"},
                                                 }
                                             }
                                         },

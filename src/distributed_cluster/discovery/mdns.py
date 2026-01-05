@@ -25,6 +25,7 @@ WORKER_SERVICE = "_nebula-worker._tcp.local."
 @dataclass
 class ServiceInfo:
     """معلومات الخدمة المكتشفة."""
+
     name: str
     service_type: str
     host: str
@@ -136,10 +137,12 @@ class MDNSDiscovery:
 
             # Create service info
             props = properties or {}
-            props.update({
-                "version": "1.0.0",
-                "hostname": socket.gethostname(),
-            })
+            props.update(
+                {
+                    "version": "1.0.0",
+                    "hostname": socket.gethostname(),
+                }
+            )
 
             self._service_info = ZeroconfServiceInfo(
                 service_type,

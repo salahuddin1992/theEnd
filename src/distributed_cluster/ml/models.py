@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ModelFramework(str, Enum):
     """Supported ML frameworks."""
+
     PYTORCH = "pytorch"
     TENSORFLOW = "tensorflow"
     SKLEARN = "sklearn"
@@ -32,6 +33,7 @@ class ModelFramework(str, Enum):
 
 class ModelState(str, Enum):
     """Model lifecycle states."""
+
     DRAFT = "draft"
     TRAINING = "training"
     VALIDATING = "validating"
@@ -44,6 +46,7 @@ class ModelState(str, Enum):
 @dataclass
 class ModelMetadata:
     """Model metadata and documentation."""
+
     name: str
     description: str = ""
     author: str = ""
@@ -97,6 +100,7 @@ class ModelMetadata:
 @dataclass
 class ModelConfig:
     """Model configuration for inference."""
+
     batch_size: int = 32
     max_batch_size: int = 128
     timeout_ms: int = 5000
@@ -136,6 +140,7 @@ class ModelConfig:
 @dataclass
 class ModelVersion:
     """Represents a specific version of a model."""
+
     version_id: str
     model_id: str
     version_number: int
@@ -181,6 +186,7 @@ class ModelVersion:
 @dataclass
 class PredictionResult:
     """Result of a model prediction."""
+
     request_id: str
     model_id: str
     version_id: str
@@ -269,6 +275,7 @@ class Model:
         """Load PyTorch model."""
         try:
             import torch
+
             self._model = torch.jit.load(str(path / "model.pt"))
             self._model.eval()
         except ImportError:
@@ -278,6 +285,7 @@ class Model:
         """Load TensorFlow model."""
         try:
             import tensorflow as tf
+
             self._model = tf.saved_model.load(str(path))
         except ImportError:
             raise ImportError("TensorFlow is required for loading TensorFlow models")
@@ -286,9 +294,11 @@ class Model:
         """Load scikit-learn model."""
         try:
             import joblib
+
             self._model = joblib.load(path / "model.joblib")
         except ImportError:
             import pickle
+
             with open(path / "model.pkl", "rb") as f:
                 self._model = pickle.load(f)
 
@@ -296,6 +306,7 @@ class Model:
         """Load ONNX model."""
         try:
             import onnxruntime as ort
+
             self._model = ort.InferenceSession(str(path / "model.onnx"))
         except ImportError:
             raise ImportError("ONNX Runtime is required for loading ONNX models")
@@ -304,6 +315,7 @@ class Model:
         """Load XGBoost model."""
         try:
             import xgboost as xgb
+
             self._model = xgb.Booster()
             self._model.load_model(str(path / "model.xgb"))
         except ImportError:
@@ -313,6 +325,7 @@ class Model:
         """Load LightGBM model."""
         try:
             import lightgbm as lgb
+
             self._model = lgb.Booster(model_file=str(path / "model.lgb"))
         except ImportError:
             raise ImportError("LightGBM is required for loading LightGBM models")
@@ -320,6 +333,7 @@ class Model:
     def _load_custom(self, path: Path) -> None:
         """Load custom model."""
         import pickle
+
         with open(path / "model.pkl", "rb") as f:
             self._model = pickle.load(f)
 
@@ -364,6 +378,7 @@ class Model:
 
         if framework == ModelFramework.PYTORCH:
             import torch
+
             with torch.no_grad():
                 if isinstance(inputs, list):
                     inputs = torch.tensor(inputs)
@@ -372,6 +387,7 @@ class Model:
 
         elif framework == ModelFramework.TENSORFLOW:
             import numpy as np
+
             if isinstance(inputs, list):
                 inputs = np.array(inputs)
             outputs = self._model(inputs)
@@ -382,6 +398,7 @@ class Model:
 
         elif framework == ModelFramework.ONNX:
             import numpy as np
+
             input_name = self._model.get_inputs()[0].name
             if isinstance(inputs, list):
                 inputs = np.array(inputs, dtype=np.float32)
@@ -391,6 +408,7 @@ class Model:
         elif framework == ModelFramework.XGBOOST:
             import numpy as np
             import xgboost as xgb
+
             if isinstance(inputs, list):
                 inputs = np.array(inputs)
             dmatrix = xgb.DMatrix(inputs)
@@ -398,6 +416,7 @@ class Model:
 
         elif framework == ModelFramework.LIGHTGBM:
             import numpy as np
+
             if isinstance(inputs, list):
                 inputs = np.array(inputs)
             return self._model.predict(inputs).tolist()

@@ -25,6 +25,7 @@ from ..titlebar import FluentIcons
 # WORKER CARD
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class WorkerCard(QFrame):
     """
     Individual worker status card.
@@ -60,7 +61,8 @@ class WorkerCard(QFrame):
         }
         accent = status_colors.get(status, colors.text_disabled)
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card_default};
                 border: 1px solid {colors.stroke_surface};
@@ -70,7 +72,8 @@ class WorkerCard(QFrame):
                 background-color: {colors.bg_card_secondary};
                 border-color: {accent};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
@@ -82,33 +85,39 @@ class WorkerCard(QFrame):
         # Status indicator
         status_dot = QLabel()
         status_dot.setFixedSize(10, 10)
-        status_dot.setStyleSheet(f"""
+        status_dot.setStyleSheet(
+            f"""
             background-color: {accent};
             border-radius: 5px;
-        """)
+        """
+        )
         header.addWidget(status_dot)
 
         # Worker name
         name_label = QLabel(self._data.get("name", "Unknown"))
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 16px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(name_label)
 
         header.addStretch()
 
         # Status badge
         status_badge = QLabel(status.title())
-        status_badge.setStyleSheet(f"""
+        status_badge.setStyleSheet(
+            f"""
             background-color: {accent}30;
             color: {accent};
             font-size: 11px;
             font-weight: 600;
             padding: 4px 8px;
             border-radius: 4px;
-        """)
+        """
+        )
         header.addWidget(status_badge)
 
         layout.addLayout(header)
@@ -123,28 +132,16 @@ class WorkerCard(QFrame):
         resources_layout.setSpacing(16)
 
         # CPU
-        cpu_widget = self._create_resource_meter(
-            "CPU",
-            self._data.get("cpu_percent", 0),
-            colors.accent
-        )
+        cpu_widget = self._create_resource_meter("CPU", self._data.get("cpu_percent", 0), colors.accent)
         resources_layout.addWidget(cpu_widget)
 
         # Memory
-        mem_widget = self._create_resource_meter(
-            "Memory",
-            self._data.get("memory_percent", 0),
-            colors.success
-        )
+        mem_widget = self._create_resource_meter("Memory", self._data.get("memory_percent", 0), colors.success)
         resources_layout.addWidget(mem_widget)
 
         # GPU (if available)
         if self._data.get("gpu_count", 0) > 0:
-            gpu_widget = self._create_resource_meter(
-                "GPU",
-                self._data.get("gpu_percent", 0),
-                colors.warning
-            )
+            gpu_widget = self._create_resource_meter("GPU", self._data.get("gpu_percent", 0), colors.warning)
             resources_layout.addWidget(gpu_widget)
 
         resources_layout.addStretch()
@@ -226,6 +223,7 @@ class WorkerCard(QFrame):
 # WORKER DETAILS DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class WorkerDetailsPanel(QFrame):
     """
     Worker details panel.
@@ -243,12 +241,14 @@ class WorkerDetailsPanel(QFrame):
         colors = FluentDesignSystem().colors
 
         self.setMinimumWidth(400)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card_default};
                 border-left: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -258,11 +258,13 @@ class WorkerDetailsPanel(QFrame):
         header = QHBoxLayout()
 
         self._title = QLabel("Worker Details")
-        self._title.setStyleSheet(f"""
+        self._title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 20px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(self._title)
 
         header.addStretch()
@@ -355,6 +357,7 @@ class WorkerDetailsPanel(QFrame):
 # FLUENT WORKERS VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentWorkersView(QWidget):
     """
     Complete workers management view.
@@ -389,29 +392,35 @@ class FluentWorkersView(QWidget):
         header = QHBoxLayout()
 
         title = QLabel("Workers")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(title)
 
         header.addStretch()
 
         # Stats
         self._online_label = QLabel("0 online")
-        self._online_label.setStyleSheet(f"""
+        self._online_label.setStyleSheet(
+            f"""
             color: {colors.success};
             font-size: 14px;
             font-weight: 500;
-        """)
+        """
+        )
         header.addWidget(self._online_label)
 
         self._total_label = QLabel("• 0 total")
-        self._total_label.setStyleSheet(f"""
+        self._total_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 14px;
-        """)
+        """
+        )
         header.addWidget(self._total_label)
 
         # Refresh button

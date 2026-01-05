@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class GatewayStatus(str, Enum):
     """Gateway status."""
+
     STARTING = "starting"
     RUNNING = "running"
     STOPPING = "stopping"
@@ -32,6 +33,7 @@ class GatewayStatus(str, Enum):
 @dataclass
 class ProxyConfig:
     """Proxy configuration for upstream services."""
+
     timeout_seconds: float = 30.0
     connect_timeout_seconds: float = 5.0
     read_timeout_seconds: float = 30.0
@@ -50,6 +52,7 @@ class ProxyConfig:
 @dataclass
 class GatewayConfig:
     """API Gateway configuration."""
+
     name: str = "api-gateway"
     host: str = "0.0.0.0"
     port: int = 8080
@@ -100,6 +103,7 @@ class GatewayConfig:
 @dataclass
 class GatewayRequest:
     """Represents an incoming gateway request."""
+
     request_id: str
     method: str
     path: str
@@ -162,12 +166,7 @@ class GatewayRequest:
 
     @classmethod
     def create(
-        cls,
-        method: str,
-        path: str,
-        headers: Optional[Dict[str, str]] = None,
-        body: bytes = b"",
-        **kwargs
+        cls, method: str, path: str, headers: Optional[Dict[str, str]] = None, body: bytes = b"", **kwargs
     ) -> GatewayRequest:
         """Factory method to create a request."""
         return cls(
@@ -176,13 +175,14 @@ class GatewayRequest:
             path=path,
             headers={k.lower(): v for k, v in (headers or {}).items()},
             body=body,
-            **kwargs
+            **kwargs,
         )
 
 
 @dataclass
 class GatewayResponse:
     """Represents a gateway response."""
+
     status_code: int = 200
     headers: Dict[str, str] = field(default_factory=dict)
     body: bytes = b""
@@ -524,15 +524,13 @@ class APIGateway:
 
     def list_routes(self) -> List[Dict[str, str]]:
         """List all registered routes."""
-        return [
-            {"path": path, "upstream": upstream}
-            for path, upstream, _ in self._routes
-        ]
+        return [{"path": path, "upstream": upstream} for path, upstream, _ in self._routes]
 
 
 @dataclass
 class GatewayStats:
     """Gateway statistics."""
+
     total_requests: int = 0
     successful_requests: int = 0
     client_errors: int = 0

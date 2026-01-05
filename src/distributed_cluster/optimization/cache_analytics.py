@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class MetricType(Enum):
     """Types of cache metrics."""
+
     HIT_RATE = "hit_rate"
     MISS_RATE = "miss_rate"
     LATENCY = "latency"
@@ -33,6 +34,7 @@ class MetricType(Enum):
 
 class AnomalyType(Enum):
     """Types of cache anomalies."""
+
     HIT_RATE_DROP = "hit_rate_drop"
     LATENCY_SPIKE = "latency_spike"
     EVICTION_SURGE = "eviction_surge"
@@ -44,6 +46,7 @@ class AnomalyType(Enum):
 
 class TimeGranularity(Enum):
     """Time granularities for analytics."""
+
     SECOND = 1
     MINUTE = 60
     HOUR = 3600
@@ -53,6 +56,7 @@ class TimeGranularity(Enum):
 @dataclass
 class CacheEvent:
     """Represents a single cache event."""
+
     timestamp: float
     event_type: str  # 'hit', 'miss', 'write', 'delete', 'evict'
     key: str
@@ -64,6 +68,7 @@ class CacheEvent:
 @dataclass
 class TimeSeriesPoint:
     """A point in a time series."""
+
     timestamp: datetime
     value: float
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -72,6 +77,7 @@ class TimeSeriesPoint:
 @dataclass
 class CacheAnomaly:
     """Detected cache anomaly."""
+
     anomaly_type: AnomalyType
     timestamp: datetime
     severity: float  # 0-1
@@ -84,6 +90,7 @@ class CacheAnomaly:
 @dataclass
 class KeyAnalytics:
     """Analytics for a specific cache key."""
+
     key: str
     hit_count: int = 0
     miss_count: int = 0
@@ -97,6 +104,7 @@ class KeyAnalytics:
 @dataclass
 class AnalyticsReport:
     """Comprehensive cache analytics report."""
+
     period_start: datetime
     period_end: datetime
     total_operations: int
@@ -139,25 +147,19 @@ class TimeSeriesBuffer:
             if self.points and self.points[-1].timestamp == bucket_dt:
                 # Update existing bucket (running average)
                 last = self.points[-1]
-                count = last.metadata.get('count', 1)
+                count = last.metadata.get("count", 1)
                 new_count = count + 1
                 new_value = (last.value * count + value) / new_count
                 last.value = new_value
-                last.metadata['count'] = new_count
-                last.metadata['max'] = max(last.metadata.get('max', value), value)
-                last.metadata['min'] = min(last.metadata.get('min', value), value)
+                last.metadata["count"] = new_count
+                last.metadata["max"] = max(last.metadata.get("max", value), value)
+                last.metadata["min"] = min(last.metadata.get("min", value), value)
             else:
-                self.points.append(TimeSeriesPoint(
-                    timestamp=bucket_dt,
-                    value=value,
-                    metadata={'count': 1, 'max': value, 'min': value}
-                ))
+                self.points.append(
+                    TimeSeriesPoint(timestamp=bucket_dt, value=value, metadata={"count": 1, "max": value, "min": value})
+                )
 
-    def get_range(
-        self,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None
-    ) -> List[TimeSeriesPoint]:
+    def get_range(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> List[TimeSeriesPoint]:
         """Get points in a time range."""
         with self._lock:
             points = list(self.points)
@@ -201,11 +203,11 @@ class AccessPatternAnalyzer:
 
             stats = self.key_stats[key]
 
-            if event.event_type == 'hit':
+            if event.event_type == "hit":
                 stats.hit_count += 1
-            elif event.event_type == 'miss':
+            elif event.event_type == "miss":
                 stats.miss_count += 1
-            elif event.event_type == 'write':
+            elif event.event_type == "write":
                 stats.write_count += 1
 
             stats.total_latency_ms += event.latency_ms
@@ -213,9 +215,7 @@ class AccessPatternAnalyzer:
 
             if event.value_size > 0:
                 count = stats.hit_count + stats.miss_count + stats.write_count
-                stats.avg_value_size = (
-                    (stats.avg_value_size * (count - 1) + event.value_size) / count
-                )
+                stats.avg_value_size = (stats.avg_value_size * (count - 1) + event.value_size) / count
 
             # Track inter-arrival time
             if self.access_sequence:
@@ -268,11 +268,7 @@ class AccessPatternAnalyzer:
     def get_hot_keys(self, count: int = 20) -> List[Tuple[str, int]]:
         """Get the most frequently accessed keys."""
         with self._lock:
-            sorted_keys = sorted(
-                self.key_stats.items(),
-                key=lambda x: x[1].hit_count + x[1].miss_count,
-                reverse=True
-            )
+            sorted_keys = sorted(self.key_stats.items(), key=lambda x: x[1].hit_count + x[1].miss_count, reverse=True)
             return [(k, v.hit_count + v.miss_count) for k, v in sorted_keys[:count]]
 
     def get_slow_keys(self, count: int = 20) -> List[Tuple[str, float]]:
@@ -296,7 +292,7 @@ class AnomalyDetector:
         self,
         hit_rate_threshold: float = 0.7,
         latency_threshold_ms: float = 100.0,
-        eviction_rate_threshold: float = 100.0  # per minute
+        eviction_rate_threshold: float = 100.0,  # per minute
     ):
         self.hit_rate_threshold = hit_rate_threshold
         self.latency_threshold_ms = latency_threshold_ms
@@ -312,12 +308,7 @@ class AnomalyDetector:
 
         self._lock = threading.Lock()
 
-    def record_metrics(
-        self,
-        hit_rate: float,
-        latency_ms: float,
-        evictions: int
-    ):
+    def record_metrics(self, hit_rate: float, latency_ms: float, evictions: int):
         """Record current metrics for baseline calculation."""
         with self._lock:
             self.hit_rate_history.append(hit_rate)
@@ -331,11 +322,7 @@ class AnomalyDetector:
             self.key_access_counts[key].append(current_time)
 
     def detect_anomalies(
-        self,
-        current_hit_rate: float,
-        current_latency: float,
-        current_evictions: int,
-        memory_percent: float = 0.0
+        self, current_hit_rate: float, current_latency: float, current_evictions: int, memory_percent: float = 0.0
     ) -> List[CacheAnomaly]:
         """Detect anomalies based on current metrics."""
         anomalies = []
@@ -346,66 +333,76 @@ class AnomalyDetector:
                 baseline = statistics.mean(list(self.hit_rate_history)[-100:])
                 if current_hit_rate < baseline * 0.8 and current_hit_rate < self.hit_rate_threshold:
                     severity = min(1.0, (baseline - current_hit_rate) / baseline)
-                    anomalies.append(CacheAnomaly(
-                        anomaly_type=AnomalyType.HIT_RATE_DROP,
-                        timestamp=datetime.now(),
-                        severity=severity,
-                        description=f"Hit rate dropped from {baseline:.2%} to {current_hit_rate:.2%}",
-                        metrics={'baseline': baseline, 'current': current_hit_rate},
-                        recommended_action="Consider increasing cache size or reviewing eviction policy"
-                    ))
+                    anomalies.append(
+                        CacheAnomaly(
+                            anomaly_type=AnomalyType.HIT_RATE_DROP,
+                            timestamp=datetime.now(),
+                            severity=severity,
+                            description=f"Hit rate dropped from {baseline:.2%} to {current_hit_rate:.2%}",
+                            metrics={"baseline": baseline, "current": current_hit_rate},
+                            recommended_action="Consider increasing cache size or reviewing eviction policy",
+                        )
+                    )
 
             # Latency spike
             if len(self.latency_history) >= 10:
                 baseline = statistics.mean(list(self.latency_history)[-100:])
                 if current_latency > baseline * 2 and current_latency > self.latency_threshold_ms:
                     severity = min(1.0, (current_latency - baseline) / baseline)
-                    anomalies.append(CacheAnomaly(
-                        anomaly_type=AnomalyType.LATENCY_SPIKE,
-                        timestamp=datetime.now(),
-                        severity=severity,
-                        description=f"Latency spiked from {baseline:.2f}ms to {current_latency:.2f}ms",
-                        metrics={'baseline': baseline, 'current': current_latency},
-                        recommended_action="Check for memory pressure or GC activity"
-                    ))
+                    anomalies.append(
+                        CacheAnomaly(
+                            anomaly_type=AnomalyType.LATENCY_SPIKE,
+                            timestamp=datetime.now(),
+                            severity=severity,
+                            description=f"Latency spiked from {baseline:.2f}ms to {current_latency:.2f}ms",
+                            metrics={"baseline": baseline, "current": current_latency},
+                            recommended_action="Check for memory pressure or GC activity",
+                        )
+                    )
 
             # Eviction surge
             if len(self.eviction_history) >= 10:
                 baseline = statistics.mean(list(self.eviction_history)[-100:])
                 if current_evictions > baseline * 3 and current_evictions > self.eviction_rate_threshold:
                     severity = min(1.0, (current_evictions - baseline) / (baseline + 1))
-                    anomalies.append(CacheAnomaly(
-                        anomaly_type=AnomalyType.EVICTION_SURGE,
-                        timestamp=datetime.now(),
-                        severity=severity,
-                        description=f"Evictions surged from {baseline:.1f} to {current_evictions}",
-                        metrics={'baseline': baseline, 'current': current_evictions},
-                        recommended_action="Consider increasing cache size or adjusting TTL"
-                    ))
+                    anomalies.append(
+                        CacheAnomaly(
+                            anomaly_type=AnomalyType.EVICTION_SURGE,
+                            timestamp=datetime.now(),
+                            severity=severity,
+                            description=f"Evictions surged from {baseline:.1f} to {current_evictions}",
+                            metrics={"baseline": baseline, "current": current_evictions},
+                            recommended_action="Consider increasing cache size or adjusting TTL",
+                        )
+                    )
 
             # Memory pressure
             if memory_percent > 90:
                 severity = min(1.0, (memory_percent - 90) / 10)
-                anomalies.append(CacheAnomaly(
-                    anomaly_type=AnomalyType.MEMORY_PRESSURE,
-                    timestamp=datetime.now(),
-                    severity=severity,
-                    description=f"Cache memory usage at {memory_percent:.1f}%",
-                    metrics={'memory_percent': memory_percent},
-                    recommended_action="Consider enabling compression or reducing cache size"
-                ))
+                anomalies.append(
+                    CacheAnomaly(
+                        anomaly_type=AnomalyType.MEMORY_PRESSURE,
+                        timestamp=datetime.now(),
+                        severity=severity,
+                        description=f"Cache memory usage at {memory_percent:.1f}%",
+                        metrics={"memory_percent": memory_percent},
+                        recommended_action="Consider enabling compression or reducing cache size",
+                    )
+                )
 
             # Hot key detection
             hot_keys = self._detect_hot_keys()
             if hot_keys:
-                anomalies.append(CacheAnomaly(
-                    anomaly_type=AnomalyType.HOT_KEY,
-                    timestamp=datetime.now(),
-                    severity=0.5,
-                    description=f"Detected {len(hot_keys)} hot keys consuming disproportionate resources",
-                    affected_keys=hot_keys,
-                    recommended_action="Consider separate caching tier for hot keys"
-                ))
+                anomalies.append(
+                    CacheAnomaly(
+                        anomaly_type=AnomalyType.HOT_KEY,
+                        timestamp=datetime.now(),
+                        severity=0.5,
+                        description=f"Detected {len(hot_keys)} hot keys consuming disproportionate resources",
+                        affected_keys=hot_keys,
+                        recommended_action="Consider separate caching tier for hot keys",
+                    )
+                )
 
         return anomalies
 
@@ -441,11 +438,7 @@ class CacheAnalytics:
     into cache performance and behavior.
     """
 
-    def __init__(
-        self,
-        enable_detailed_tracking: bool = True,
-        anomaly_detection_enabled: bool = True
-    ):
+    def __init__(self, enable_detailed_tracking: bool = True, anomaly_detection_enabled: bool = True):
         self.enable_detailed_tracking = enable_detailed_tracking
         self.anomaly_detection_enabled = anomaly_detection_enabled
 
@@ -481,27 +474,21 @@ class CacheAnalytics:
 
     def record_hit(self, key: str, latency_ms: float, value_size: int = 0):
         """Record a cache hit."""
-        self._record_event('hit', key, latency_ms, value_size)
+        self._record_event("hit", key, latency_ms, value_size)
 
     def record_miss(self, key: str, latency_ms: float):
         """Record a cache miss."""
-        self._record_event('miss', key, latency_ms, 0)
+        self._record_event("miss", key, latency_ms, 0)
 
     def record_write(self, key: str, latency_ms: float, value_size: int):
         """Record a cache write."""
-        self._record_event('write', key, latency_ms, value_size)
+        self._record_event("write", key, latency_ms, value_size)
 
     def record_eviction(self, key: str):
         """Record a cache eviction."""
-        self._record_event('evict', key, 0, 0)
+        self._record_event("evict", key, 0, 0)
 
-    def _record_event(
-        self,
-        event_type: str,
-        key: str,
-        latency_ms: float,
-        value_size: int
-    ):
+    def _record_event(self, event_type: str, key: str, latency_ms: float, value_size: int):
         """Record a cache event."""
         current_time = time.time()
 
@@ -515,13 +502,13 @@ class CacheAnalytics:
 
         with self._lock:
             # Update counters
-            if event_type == 'hit':
+            if event_type == "hit":
                 self.current_hits += 1
-            elif event_type == 'miss':
+            elif event_type == "miss":
                 self.current_misses += 1
-            elif event_type == 'write':
+            elif event_type == "write":
                 self.current_writes += 1
-            elif event_type == 'evict':
+            elif event_type == "evict":
                 self.current_evictions += 1
 
             self.latencies.append(latency_ms)
@@ -556,9 +543,7 @@ class CacheAnalytics:
 
             # Record for anomaly baseline
             self.anomaly_detector.record_metrics(
-                hit_rate=hit_rate,
-                latency_ms=avg_latency,
-                evictions=self.current_evictions
+                hit_rate=hit_rate, latency_ms=avg_latency, evictions=self.current_evictions
             )
 
             # Reset counters
@@ -587,7 +572,7 @@ class CacheAnalytics:
             current_hit_rate=hit_rate,
             current_latency=avg_latency,
             current_evictions=self.current_evictions,
-            memory_percent=memory_percent
+            memory_percent=memory_percent,
         )
 
         for anomaly in anomalies:
@@ -612,22 +597,19 @@ class CacheAnalytics:
                 avg_latency = p95_latency = p99_latency = 0
 
             return {
-                'hit_rate': hit_rate,
-                'miss_rate': 1 - hit_rate,
-                'hits': self.current_hits,
-                'misses': self.current_misses,
-                'writes': self.current_writes,
-                'evictions': self.current_evictions,
-                'avg_latency_ms': avg_latency,
-                'p95_latency_ms': p95_latency,
-                'p99_latency_ms': p99_latency,
+                "hit_rate": hit_rate,
+                "miss_rate": 1 - hit_rate,
+                "hits": self.current_hits,
+                "misses": self.current_misses,
+                "writes": self.current_writes,
+                "evictions": self.current_evictions,
+                "avg_latency_ms": avg_latency,
+                "p95_latency_ms": p95_latency,
+                "p99_latency_ms": p99_latency,
             }
 
     def get_time_series(
-        self,
-        metric: MetricType,
-        start: Optional[datetime] = None,
-        end: Optional[datetime] = None
+        self, metric: MetricType, start: Optional[datetime] = None, end: Optional[datetime] = None
     ) -> List[TimeSeriesPoint]:
         """Get time series data for a metric."""
         series_map = {
@@ -660,10 +642,7 @@ class CacheAnalytics:
         """Classify a key's access pattern."""
         return self.pattern_analyzer.classify_key(key)
 
-    def generate_report(
-        self,
-        period_hours: float = 24.0
-    ) -> AnalyticsReport:
+    def generate_report(self, period_hours: float = 24.0) -> AnalyticsReport:
         """Generate a comprehensive analytics report."""
         end_time = datetime.now()
         start_time = end_time - timedelta(hours=period_hours)
@@ -684,10 +663,7 @@ class CacheAnalytics:
 
         # Calculate latency percentiles from event log
         with self._lock:
-            recent_events = [
-                e for e in self.event_log
-                if datetime.fromtimestamp(e.timestamp) >= start_time
-            ]
+            recent_events = [e for e in self.event_log if datetime.fromtimestamp(e.timestamp) >= start_time]
 
         event_latencies = [e.latency_ms for e in recent_events if e.latency_ms > 0]
         if event_latencies:
@@ -702,15 +678,10 @@ class CacheAnalytics:
         slow_keys = self.get_slow_keys(10)
 
         # Get recent anomalies
-        recent_anomalies = [
-            a for a in self.anomalies
-            if a.timestamp >= start_time
-        ]
+        recent_anomalies = [a for a in self.anomalies if a.timestamp >= start_time]
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(
-            avg_hit_rate, avg_latency, total_evictions, hot_keys
-        )
+        recommendations = self._generate_recommendations(avg_hit_rate, avg_latency, total_evictions, hot_keys)
 
         return AnalyticsReport(
             period_start=start_time,
@@ -732,46 +703,30 @@ class CacheAnalytics:
         )
 
     def _generate_recommendations(
-        self,
-        hit_rate: float,
-        avg_latency: float,
-        evictions: int,
-        hot_keys: List[Tuple[str, int]]
+        self, hit_rate: float, avg_latency: float, evictions: int, hot_keys: List[Tuple[str, int]]
     ) -> List[str]:
         """Generate optimization recommendations."""
         recommendations = []
 
         if hit_rate < 0.8:
-            recommendations.append(
-                "Hit rate is below 80%. Consider increasing cache size or adjusting TTL."
-            )
+            recommendations.append("Hit rate is below 80%. Consider increasing cache size or adjusting TTL.")
 
         if hit_rate < 0.5:
-            recommendations.append(
-                "Very low hit rate. Review cache key generation strategy."
-            )
+            recommendations.append("Very low hit rate. Review cache key generation strategy.")
 
         if avg_latency > 50:
-            recommendations.append(
-                "Average latency is high. Consider enabling compression or reducing value sizes."
-            )
+            recommendations.append("Average latency is high. Consider enabling compression or reducing value sizes.")
 
         if avg_latency > 100:
-            recommendations.append(
-                "Critical latency issues. Review cache backend performance."
-            )
+            recommendations.append("Critical latency issues. Review cache backend performance.")
 
         if evictions > 1000:
-            recommendations.append(
-                "High eviction rate. Cache size may be too small for workload."
-            )
+            recommendations.append("High eviction rate. Cache size may be too small for workload.")
 
         if hot_keys and len(hot_keys) > 0:
             top_key, top_count = hot_keys[0]
             if top_count > 10000:
-                recommendations.append(
-                    f"Hot key detected ({top_key}). Consider dedicated caching or replication."
-                )
+                recommendations.append(f"Hot key detected ({top_key}). Consider dedicated caching or replication.")
 
         return recommendations
 
@@ -783,21 +738,21 @@ class CacheAnalytics:
         recent_anomalies = list(self.anomalies)[-5:]
 
         return {
-            'current_metrics': current,
-            'hit_rate_trend': self.hit_rate_series.get_average(window_seconds=300),
-            'latency_trend': self.latency_series.get_average(window_seconds=300),
-            'throughput_trend': self.throughput_series.get_average(window_seconds=300),
-            'hot_keys': hot_keys,
-            'slow_keys': slow_keys,
-            'recent_anomalies': [
+            "current_metrics": current,
+            "hit_rate_trend": self.hit_rate_series.get_average(window_seconds=300),
+            "latency_trend": self.latency_series.get_average(window_seconds=300),
+            "throughput_trend": self.throughput_series.get_average(window_seconds=300),
+            "hot_keys": hot_keys,
+            "slow_keys": slow_keys,
+            "recent_anomalies": [
                 {
-                    'type': a.anomaly_type.value,
-                    'timestamp': a.timestamp.isoformat(),
-                    'severity': a.severity,
-                    'description': a.description,
+                    "type": a.anomaly_type.value,
+                    "timestamp": a.timestamp.isoformat(),
+                    "severity": a.severity,
+                    "description": a.description,
                 }
                 for a in recent_anomalies
             ],
-            'tracked_keys_count': len(self.pattern_analyzer.key_stats),
-            'total_events_logged': len(self.event_log),
+            "tracked_keys_count": len(self.pattern_analyzer.key_stats),
+            "total_events_logged": len(self.event_log),
         }

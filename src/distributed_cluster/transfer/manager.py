@@ -26,6 +26,7 @@ MAX_CONCURRENT_TRANSFERS = 5
 
 class TransferStatus(str, Enum):
     """حالة النقل."""
+
     PENDING = "pending"
     UPLOADING = "uploading"
     DOWNLOADING = "downloading"
@@ -36,6 +37,7 @@ class TransferStatus(str, Enum):
 
 class TransferDirection(str, Enum):
     """اتجاه النقل."""
+
     UPLOAD = "upload"  # To cluster
     DOWNLOAD = "download"  # From cluster
     WORKER_TO_WORKER = "worker_to_worker"
@@ -44,6 +46,7 @@ class TransferDirection(str, Enum):
 @dataclass
 class TransferInfo:
     """معلومات النقل."""
+
     transfer_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     filename: str = ""
     file_size: int = 0
@@ -160,9 +163,7 @@ class FileTransferManager:
         self._transfers[transfer.transfer_id] = transfer
 
         # Start transfer
-        task = asyncio.create_task(
-            self._do_upload(transfer, file_path, on_progress)
-        )
+        task = asyncio.create_task(self._do_upload(transfer, file_path, on_progress))
         self._active_transfers[transfer.transfer_id] = task
 
         return transfer
@@ -198,9 +199,7 @@ class FileTransferManager:
         self._transfers[transfer.transfer_id] = transfer
 
         # Start transfer
-        task = asyncio.create_task(
-            self._do_download(transfer, local_path, on_progress)
-        )
+        task = asyncio.create_task(self._do_download(transfer, local_path, on_progress))
         self._active_transfers[transfer.transfer_id] = task
 
         return transfer
@@ -389,6 +388,7 @@ class FileTransferManager:
 
         try:
             import aiofiles
+
             async with aiofiles.open(file_path, "rb") as f:
                 while True:
                     chunk = await f.read(8192)

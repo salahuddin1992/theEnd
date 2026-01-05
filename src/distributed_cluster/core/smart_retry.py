@@ -327,10 +327,7 @@ class RetryBudget:
         """Refill tokens based on elapsed time."""
         now = time.monotonic()
         elapsed = now - self._last_refill
-        self._tokens = min(
-            self.max_tokens,
-            self._tokens + elapsed * self.refill_rate
-        )
+        self._tokens = min(self.max_tokens, self._tokens + elapsed * self.refill_rate)
         self._last_refill = now
 
     @property
@@ -499,9 +496,7 @@ class SmartRetryManager:
     def _get_circuit_breaker(self, operation_name: str) -> CircuitBreaker:
         """Get or create circuit breaker for an operation."""
         if operation_name not in self._circuit_breakers:
-            self._circuit_breakers[operation_name] = CircuitBreaker(
-                **self._circuit_breaker_config
-            )
+            self._circuit_breakers[operation_name] = CircuitBreaker(**self._circuit_breaker_config)
         return self._circuit_breakers[operation_name]
 
     def _get_operation_stats(self, operation_name: str) -> RetryStats:
@@ -517,8 +512,7 @@ class SmartRetryManager:
     ) -> float:
         """Calculate delay for the given attempt."""
         calculator = self._backoff_calculators.get(
-            config.strategy,
-            self._backoff_calculators[BackoffStrategy.EXPONENTIAL]
+            config.strategy, self._backoff_calculators[BackoffStrategy.EXPONENTIAL]
         )
 
         delay = calculator.calculate(
@@ -616,8 +610,7 @@ class SmartRetryManager:
 
                 # Update exception stats
                 exc_type = type(e).__name__
-                self._stats.exceptions_by_type[exc_type] = \
-                    self._stats.exceptions_by_type.get(exc_type, 0) + 1
+                self._stats.exceptions_by_type[exc_type] = self._stats.exceptions_by_type.get(exc_type, 0) + 1
 
                 # Check if we should retry this exception
                 if not cfg.should_retry_exception(e):
@@ -640,10 +633,7 @@ class SmartRetryManager:
                 context.total_delay_seconds += delay
 
                 # Log and callback
-                logger.debug(
-                    f"Retry {attempt}/{cfg.max_attempts} for {op_name} "
-                    f"after {delay:.2f}s delay: {e}"
-                )
+                logger.debug(f"Retry {attempt}/{cfg.max_attempts} for {op_name} " f"after {delay:.2f}s delay: {e}")
 
                 if cfg.on_retry:
                     cfg.on_retry(context)
@@ -669,8 +659,9 @@ class SmartRetryManager:
         self._stats.successful_operations += 1
         self._stats.total_retries += context.attempt - 1
         self._stats.total_delay_seconds += context.total_delay_seconds
-        self._stats.operations_by_outcome[RetryOutcome.SUCCESS.value] = \
+        self._stats.operations_by_outcome[RetryOutcome.SUCCESS.value] = (
             self._stats.operations_by_outcome.get(RetryOutcome.SUCCESS.value, 0) + 1
+        )
 
         op_stats = self._get_operation_stats(operation_name)
         op_stats.total_operations += 1
@@ -683,8 +674,9 @@ class SmartRetryManager:
         self._stats.failed_operations += 1
         self._stats.total_retries += context.attempt - 1
         self._stats.total_delay_seconds += context.total_delay_seconds
-        self._stats.operations_by_outcome[RetryOutcome.FAILURE.value] = \
+        self._stats.operations_by_outcome[RetryOutcome.FAILURE.value] = (
             self._stats.operations_by_outcome.get(RetryOutcome.FAILURE.value, 0) + 1
+        )
 
         op_stats = self._get_operation_stats(operation_name)
         op_stats.total_operations += 1
@@ -693,8 +685,7 @@ class SmartRetryManager:
 
     def _record_outcome(self, operation_name: str, outcome: RetryOutcome) -> None:
         """Record a non-execution outcome."""
-        self._stats.operations_by_outcome[outcome.value] = \
-            self._stats.operations_by_outcome.get(outcome.value, 0) + 1
+        self._stats.operations_by_outcome[outcome.value] = self._stats.operations_by_outcome.get(outcome.value, 0) + 1
 
     def retry(
         self,
@@ -712,6 +703,7 @@ class SmartRetryManager:
             async def my_function():
                 ...
         """
+
         def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
             @functools.wraps(func)
             async def wrapper(*args, **kwargs) -> T:
@@ -732,16 +724,14 @@ class SmartRetryManager:
                 )
 
             return wrapper
+
         return decorator
 
     def get_stats(self) -> Dict[str, Any]:
         """Get comprehensive retry statistics."""
         return {
             "global": self._stats.to_dict(),
-            "by_operation": {
-                name: stats.to_dict()
-                for name, stats in self._stats_by_operation.items()
-            },
+            "by_operation": {name: stats.to_dict() for name, stats in self._stats_by_operation.items()},
             "circuit_breakers": {
                 name: {
                     "state": cb.state.value,
@@ -774,16 +764,19 @@ class SmartRetryManager:
 
 class RetryError(Exception):
     """Base exception for retry errors."""
+
     pass
 
 
 class CircuitBreakerOpenError(RetryError):
     """Raised when circuit breaker is open."""
+
     pass
 
 
 class RetryBudgetExhaustedError(RetryError):
     """Raised when retry budget is exhausted."""
+
     pass
 
 

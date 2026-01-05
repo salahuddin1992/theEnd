@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional
 
 class NotificationType(str, Enum):
     """Types of notifications."""
+
     # System notifications
     SYSTEM_ALERT = "system.alert"
     SYSTEM_UPDATE = "system.update"
@@ -56,6 +57,7 @@ class NotificationType(str, Enum):
 
 class NotificationPriority(str, Enum):
     """Notification priority levels."""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -65,6 +67,7 @@ class NotificationPriority(str, Enum):
 
 class NotificationStatus(str, Enum):
     """Notification delivery status."""
+
     PENDING = "pending"
     QUEUED = "queued"
     SENDING = "sending"
@@ -78,6 +81,7 @@ class NotificationStatus(str, Enum):
 @dataclass
 class NotificationMetadata:
     """Additional notification metadata."""
+
     source: str = ""
     source_id: str = ""
     category: str = ""
@@ -136,6 +140,7 @@ class Notification:
             data={"job_id": "job-456", "duration": 3600}
         )
     """
+
     notification_id: str
     notification_type: NotificationType
     recipient_id: str
@@ -171,12 +176,7 @@ class Notification:
 
     @classmethod
     def create(
-        cls,
-        notification_type: NotificationType,
-        recipient_id: str,
-        title: str,
-        body: str,
-        **kwargs
+        cls, notification_type: NotificationType, recipient_id: str, title: str, body: str, **kwargs
     ) -> Notification:
         """Factory method to create a notification."""
         return cls(
@@ -185,7 +185,7 @@ class Notification:
             recipient_id=recipient_id,
             title=title,
             body=body,
-            **kwargs
+            **kwargs,
         )
 
     def mark_sent(self, channel: Optional[str] = None) -> None:
@@ -224,8 +224,12 @@ class Notification:
         """Check if notification should be sent."""
         if self.is_expired():
             return False
-        if self.status in (NotificationStatus.SENT, NotificationStatus.DELIVERED,
-                          NotificationStatus.READ, NotificationStatus.CANCELLED):
+        if self.status in (
+            NotificationStatus.SENT,
+            NotificationStatus.DELIVERED,
+            NotificationStatus.READ,
+            NotificationStatus.CANCELLED,
+        ):
             return False
         if self.scheduled_at and datetime.now(timezone.utc) < self.scheduled_at:
             return False
@@ -288,6 +292,7 @@ class Notification:
 @dataclass
 class NotificationBatch:
     """A batch of notifications for bulk operations."""
+
     batch_id: str
     notifications: List[Notification]
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -309,10 +314,10 @@ class NotificationBatch:
 
     def update_stats(self) -> None:
         """Update batch statistics."""
-        self.sent = sum(1 for n in self.notifications
-                       if n.status in (NotificationStatus.SENT, NotificationStatus.DELIVERED))
-        self.failed = sum(1 for n in self.notifications
-                         if n.status == NotificationStatus.FAILED)
+        self.sent = sum(
+            1 for n in self.notifications if n.status in (NotificationStatus.SENT, NotificationStatus.DELIVERED)
+        )
+        self.failed = sum(1 for n in self.notifications if n.status == NotificationStatus.FAILED)
 
     @property
     def progress(self) -> float:

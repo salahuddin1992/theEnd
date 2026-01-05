@@ -31,20 +31,23 @@ logger = logging.getLogger(__name__)
 # DNS Server - خادم الأسماء
 # ==========================================
 
+
 class DNSRecordType(str, Enum):
     """أنواع سجلات DNS."""
-    A = "A"           # IPv4 address
-    AAAA = "AAAA"     # IPv6 address
-    CNAME = "CNAME"   # Canonical name
-    TXT = "TXT"       # Text record
-    SRV = "SRV"       # Service record
-    PTR = "PTR"       # Pointer (reverse DNS)
-    PEER = "PEER"     # Custom peer record
+
+    A = "A"  # IPv4 address
+    AAAA = "AAAA"  # IPv6 address
+    CNAME = "CNAME"  # Canonical name
+    TXT = "TXT"  # Text record
+    SRV = "SRV"  # Service record
+    PTR = "PTR"  # Pointer (reverse DNS)
+    PEER = "PEER"  # Custom peer record
 
 
 @dataclass
 class DNSRecord:
     """سجل DNS."""
+
     name: str
     record_type: DNSRecordType
     value: str
@@ -110,45 +113,55 @@ class NebulaNetworkRegistry:
             full_name = name
 
         # A record for IP
-        self._add_record(DNSRecord(
-            name=full_name,
-            record_type=DNSRecordType.A,
-            value=ip_address,
-            metadata={"peer_id": peer_id},
-        ))
+        self._add_record(
+            DNSRecord(
+                name=full_name,
+                record_type=DNSRecordType.A,
+                value=ip_address,
+                metadata={"peer_id": peer_id},
+            )
+        )
 
         # SRV record for main service
-        self._add_record(DNSRecord(
-            name=f"_nebula._tcp.{full_name}",
-            record_type=DNSRecordType.SRV,
-            value=full_name,
-            port=port,
-            priority=10,
-        ))
+        self._add_record(
+            DNSRecord(
+                name=f"_nebula._tcp.{full_name}",
+                record_type=DNSRecordType.SRV,
+                value=full_name,
+                port=port,
+                priority=10,
+            )
+        )
 
         # Register additional services
         if services:
             for service_name, service_port in services.items():
-                self._add_record(DNSRecord(
-                    name=f"_{service_name}._tcp.{full_name}",
-                    record_type=DNSRecordType.SRV,
-                    value=full_name,
-                    port=service_port,
-                    priority=10,
-                ))
+                self._add_record(
+                    DNSRecord(
+                        name=f"_{service_name}._tcp.{full_name}",
+                        record_type=DNSRecordType.SRV,
+                        value=full_name,
+                        port=service_port,
+                        priority=10,
+                    )
+                )
 
         # PEER record with full info
-        self._add_record(DNSRecord(
-            name=full_name,
-            record_type=DNSRecordType.PEER,
-            value=json.dumps({
-                "peer_id": peer_id,
-                "ip": ip_address,
-                "port": port,
-                "services": services or {},
-                **(metadata or {}),
-            }),
-        ))
+        self._add_record(
+            DNSRecord(
+                name=full_name,
+                record_type=DNSRecordType.PEER,
+                value=json.dumps(
+                    {
+                        "peer_id": peer_id,
+                        "ip": ip_address,
+                        "port": port,
+                        "services": services or {},
+                        **(metadata or {}),
+                    }
+                ),
+            )
+        )
 
         # Reverse DNS
         self.reverse_records[ip_address] = full_name
@@ -303,7 +316,7 @@ class DNSProtocol(asyncio.DatagramProtocol):
                 length = data[pos]
                 pos += 1
                 if pos + length <= len(data):
-                    name_parts.append(data[pos:pos+length].decode('utf-8', errors='ignore'))
+                    name_parts.append(data[pos : pos + length].decode("utf-8", errors="ignore"))
                     pos += length
 
             if name_parts:
@@ -324,29 +337,29 @@ class DNSProtocol(asyncio.DatagramProtocol):
         # Transaction ID + Flags + Questions + Answers + Authority + Additional
         response = bytearray()
         response.extend(query_id)  # Transaction ID
-        response.extend(b'\x81\x80')  # Flags: Standard response, no error
-        response.extend(b'\x00\x01')  # Questions: 1
-        response.extend(b'\x00\x01')  # Answers: 1
-        response.extend(b'\x00\x00')  # Authority: 0
-        response.extend(b'\x00\x00')  # Additional: 0
+        response.extend(b"\x81\x80")  # Flags: Standard response, no error
+        response.extend(b"\x00\x01")  # Questions: 1
+        response.extend(b"\x00\x01")  # Answers: 1
+        response.extend(b"\x00\x00")  # Authority: 0
+        response.extend(b"\x00\x00")  # Additional: 0
 
         # Question section
-        for part in name.split('.'):
+        for part in name.split("."):
             response.append(len(part))
             response.extend(part.encode())
         response.append(0)
-        response.extend(b'\x00\x01')  # Type: A
-        response.extend(b'\x00\x01')  # Class: IN
+        response.extend(b"\x00\x01")  # Type: A
+        response.extend(b"\x00\x01")  # Class: IN
 
         # Answer section
-        response.extend(b'\xc0\x0c')  # Pointer to name
-        response.extend(b'\x00\x01')  # Type: A
-        response.extend(b'\x00\x01')  # Class: IN
-        response.extend(b'\x00\x00\x01\x2c')  # TTL: 300
-        response.extend(b'\x00\x04')  # Data length: 4
+        response.extend(b"\xc0\x0c")  # Pointer to name
+        response.extend(b"\x00\x01")  # Type: A
+        response.extend(b"\x00\x01")  # Class: IN
+        response.extend(b"\x00\x00\x01\x2c")  # TTL: 300
+        response.extend(b"\x00\x04")  # Data length: 4
 
         # IP address
-        for octet in ip.split('.'):
+        for octet in ip.split("."):
             response.append(int(octet))
 
         return bytes(response)
@@ -356,9 +369,11 @@ class DNSProtocol(asyncio.DatagramProtocol):
 # Router - الراوتر
 # ==========================================
 
+
 @dataclass
 class Route:
     """مسار شبكي."""
+
     destination: str  # IP or CIDR
     gateway: str  # Next hop
     interface: str = "default"
@@ -383,7 +398,7 @@ class NetworkRouter:
         self.my_id = my_id
         self.routes: List[Route] = []
         self.nat_table: Dict[str, str] = {}  # internal -> external
-        self.connections: Dict[str, 'NetworkRouter'] = {}  # peer_id -> router
+        self.connections: Dict[str, "NetworkRouter"] = {}  # peer_id -> router
 
         # Statistics
         self.packets_routed = 0
@@ -441,7 +456,7 @@ class NetworkRouter:
         """ترجمة عنوان عبر NAT."""
         return self.nat_table.get(internal, internal)
 
-    def connect_router(self, peer_id: str, router: 'NetworkRouter') -> None:
+    def connect_router(self, peer_id: str, router: "NetworkRouter") -> None:
         """ربط براوتر آخر."""
         self.connections[peer_id] = router
         # Exchange routes
@@ -468,9 +483,11 @@ class NetworkRouter:
 # Relay Server - سيرفر الترحيل
 # ==========================================
 
+
 @dataclass
 class RelaySession:
     """جلسة ترحيل."""
+
     session_id: str
     peer_a: str
     peer_b: str
@@ -603,9 +620,11 @@ class RelayServer:
 # Network Node - عقدة الشبكة الكاملة
 # ==========================================
 
+
 @dataclass
 class NodeIdentity:
     """هوية العقدة."""
+
     node_id: str
     name: str
     public_key: str = ""
@@ -613,7 +632,7 @@ class NodeIdentity:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def generate(cls, name: str) -> 'NodeIdentity':
+    def generate(cls, name: str) -> "NodeIdentity":
         """إنشاء هوية جديدة."""
         node_id = str(uuid.uuid4())[:8]
         # Simplified public key (in production, use proper crypto)
@@ -736,6 +755,7 @@ class NetworkNode:
         # Local IPs
         try:
             import psutil
+
             for interface, addrs in psutil.net_if_addrs().items():
                 for addr in addrs:
                     if addr.family == socket.AF_INET and not addr.address.startswith("127."):
@@ -746,6 +766,7 @@ class NetworkNode:
         # Public IP
         try:
             import aiohttp
+
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
                 async with session.get("https://api.ipify.org") as resp:
                     if resp.status == 200:
@@ -840,6 +861,7 @@ class NetworkNode:
 # Full Network Stack Manager
 # ==========================================
 
+
 class NetworkStackManager:
     """
     مدير مكدس الشبكة الكامل.
@@ -866,11 +888,13 @@ class NetworkStackManager:
 
         # Sync peers
         if p2p_manager:
-            p2p_manager.on_connected(lambda conn: self.node.register_peer(
-                conn.peer_id,
-                conn.peer_info.device.hostname if conn.peer_info else conn.peer_id,
-                conn.peer_info.public_ip if conn.peer_info else "",
-            ))
+            p2p_manager.on_connected(
+                lambda conn: self.node.register_peer(
+                    conn.peer_id,
+                    conn.peer_info.device.hostname if conn.peer_info else conn.peer_id,
+                    conn.peer_info.public_ip if conn.peer_info else "",
+                )
+            )
             p2p_manager.on_disconnected(lambda peer_id: self.node.unregister_peer(peer_id))
 
     async def start(self) -> None:

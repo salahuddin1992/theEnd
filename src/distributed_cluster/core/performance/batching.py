@@ -41,6 +41,7 @@ class BatchConfig:
     إعدادات التجميع
     Batch configuration
     """
+
     # Size
     max_batch_size: int = 100
     min_batch_size: int = 1
@@ -146,9 +147,7 @@ class BatchProcessor(Generic[T, R]):
         تقديم عناصر متعددة
         Submit multiple items
         """
-        futures = await asyncio.gather(
-            *[self.submit(item) for item in items]
-        )
+        futures = await asyncio.gather(*[self.submit(item) for item in items])
         return list(futures)
 
     async def _flush(self) -> None:
@@ -183,9 +182,7 @@ class BatchProcessor(Generic[T, R]):
             self._stats["items_processed"] += len(items)
             self._stats["batches_processed"] += 1
             self._stats["total_wait_time"] += process_time
-            self._stats["average_batch_size"] = (
-                self._stats["items_processed"] / self._stats["batches_processed"]
-            )
+            self._stats["average_batch_size"] = self._stats["items_processed"] / self._stats["batches_processed"]
 
             # Set results
             for future, result in zip(futures, results):
@@ -225,6 +222,7 @@ class BatchProcessor(Generic[T, R]):
 # Utility Functions / دوال مساعدة
 # =============================================================================
 
+
 def batch_items(
     items: list[T],
     batch_size: int,
@@ -241,7 +239,7 @@ def batch_items(
         دفعات من العناصر
     """
     for i in range(0, len(items), batch_size):
-        yield items[i:i + batch_size]
+        yield items[i : i + batch_size]
 
 
 async def process_in_batches(
@@ -272,9 +270,7 @@ async def process_in_batches(
         async with semaphore:
             return await processor(batch)
 
-    batch_results = await asyncio.gather(
-        *[process_batch(batch) for batch in batches]
-    )
+    batch_results = await asyncio.gather(*[process_batch(batch) for batch in batches])
 
     for batch_result in batch_results:
         results.extend(batch_result)

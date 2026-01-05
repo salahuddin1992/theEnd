@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class PluginHook(str, Enum):
     """Available plugin hooks."""
+
     # Lifecycle hooks
     ON_LOAD = "on_load"
     ON_UNLOAD = "on_unload"
@@ -55,6 +56,7 @@ class PluginHook(str, Enum):
 @dataclass
 class PluginConfig:
     """Plugin configuration."""
+
     name: str
     enabled: bool = True
     priority: int = 0
@@ -80,6 +82,7 @@ class PluginConfig:
 @dataclass
 class PluginContext:
     """Context passed to plugin hooks."""
+
     gateway: APIGateway
     request: Optional[GatewayRequest] = None
     response: Optional[GatewayResponse] = None
@@ -239,9 +242,7 @@ class PluginManager:
         self.gateway = gateway
         self._plugins: Dict[str, Plugin] = {}
         self._plugin_configs: Dict[str, PluginConfig] = {}
-        self._hook_handlers: Dict[PluginHook, List[Plugin]] = {
-            hook: [] for hook in PluginHook
-        }
+        self._hook_handlers: Dict[PluginHook, List[Plugin]] = {hook: [] for hook in PluginHook}
 
     def load_plugin(
         self,
@@ -264,9 +265,7 @@ class PluginManager:
 
         try:
             # Load plugin
-            asyncio.get_event_loop().run_until_complete(
-                plugin.on_load(self.gateway)
-            )
+            asyncio.get_event_loop().run_until_complete(plugin.on_load(self.gateway))
 
             self._plugins[name] = plugin
             self._plugin_configs[name] = config
@@ -278,8 +277,7 @@ class PluginManager:
             # Sort by priority
             for hook in PluginHook:
                 self._hook_handlers[hook].sort(
-                    key=lambda p: self._plugin_configs.get(p.name, PluginConfig(name=p.name)).priority,
-                    reverse=True
+                    key=lambda p: self._plugin_configs.get(p.name, PluginConfig(name=p.name)).priority, reverse=True
                 )
 
             logger.info(f"Loaded plugin: {name} v{plugin.version}")
@@ -297,18 +295,13 @@ class PluginManager:
         plugin = self._plugins[name]
 
         try:
-            asyncio.get_event_loop().run_until_complete(
-                plugin.on_unload()
-            )
+            asyncio.get_event_loop().run_until_complete(plugin.on_unload())
         except Exception as e:
             logger.error(f"Error unloading plugin {name}: {e}")
 
         # Remove from hooks
         for hook in PluginHook:
-            self._hook_handlers[hook] = [
-                p for p in self._hook_handlers[hook]
-                if p.name != name
-            ]
+            self._hook_handlers[hook] = [p for p in self._hook_handlers[hook] if p.name != name]
 
         del self._plugins[name]
         del self._plugin_configs[name]
@@ -378,10 +371,7 @@ class PluginManager:
                 continue
 
             try:
-                spec = importlib.util.spec_from_file_location(
-                    file.stem,
-                    file
-                )
+                spec = importlib.util.spec_from_file_location(file.stem, file)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
 
@@ -414,6 +404,7 @@ class PluginManager:
 
 # Built-in Plugins
 
+
 class LoggingPlugin(Plugin):
     """Built-in logging plugin."""
 
@@ -430,10 +421,7 @@ class LoggingPlugin(Plugin):
         return None
 
     async def post_response(self, ctx: PluginContext) -> None:
-        logger.info(
-            f"Response: {ctx.request.method} {ctx.request.path} "
-            f"-> {ctx.response.status_code}"
-        )
+        logger.info(f"Response: {ctx.request.method} {ctx.request.path} " f"-> {ctx.response.status_code}")
 
 
 class MetricsPlugin(Plugin):
@@ -458,6 +446,7 @@ class MetricsPlugin(Plugin):
 
     async def pre_request(self, ctx: PluginContext) -> Optional[GatewayResponse]:
         import time
+
         self._request_times[ctx.request.request_id] = time.time()
         return None
 
@@ -467,12 +456,10 @@ class MetricsPlugin(Plugin):
         self._metrics["requests_total"] += 1
 
         path = ctx.request.path
-        self._metrics["requests_by_path"][path] = \
-            self._metrics["requests_by_path"].get(path, 0) + 1
+        self._metrics["requests_by_path"][path] = self._metrics["requests_by_path"].get(path, 0) + 1
 
         status = str(ctx.response.status_code)
-        self._metrics["requests_by_status"][status] = \
-            self._metrics["requests_by_status"].get(status, 0) + 1
+        self._metrics["requests_by_status"][status] = self._metrics["requests_by_status"].get(status, 0) + 1
 
         start_time = self._request_times.pop(ctx.request.request_id, None)
         if start_time:
@@ -485,7 +472,8 @@ class MetricsPlugin(Plugin):
             **self._metrics,
             "avg_latency_ms": (
                 self._metrics["latency_sum_ms"] / self._metrics["requests_total"]
-                if self._metrics["requests_total"] > 0 else 0
+                if self._metrics["requests_total"] > 0
+                else 0
             ),
         }
 
@@ -506,8 +494,10 @@ class HealthCheckPlugin(Plugin):
 
     async def pre_request(self, ctx: PluginContext) -> Optional[GatewayResponse]:
         if ctx.request.path == self.path:
-            return GatewayResponse.ok({
-                "status": "healthy",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+            return GatewayResponse.ok(
+                {
+                    "status": "healthy",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+            )
         return None

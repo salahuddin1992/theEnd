@@ -157,15 +157,11 @@ class GCPProvider(CloudProvider):
             # إعداد credentials إذا تم توفير مسار
             credentials = None
             if self.credentials_path:
-                credentials = service_account.Credentials.from_service_account_file(
-                    self.credentials_path
-                )
+                credentials = service_account.Credentials.from_service_account_file(self.credentials_path)
 
             # إنشاء clients
             self._instances_client = compute_v1.InstancesClient(credentials=credentials)
-            self._zone_operations_client = compute_v1.ZoneOperationsClient(
-                credentials=credentials
-            )
+            self._zone_operations_client = compute_v1.ZoneOperationsClient(credentials=credentials)
 
             # اختبار الاتصال
             await self._run_in_executor(
@@ -195,9 +191,7 @@ class GCPProvider(CloudProvider):
     async def _run_in_executor(self, func, *args, **kwargs):
         """تشغيل دالة في thread pool"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            self._executor, lambda: func(*args, **kwargs)
-        )
+        return await loop.run_in_executor(self._executor, lambda: func(*args, **kwargs))
 
     async def _wait_for_operation(self, operation) -> None:
         """انتظار اكتمال عملية GCP"""
@@ -240,10 +234,7 @@ class GCPProvider(CloudProvider):
         merged_labels = self._merge_labels(labels)
 
         # تنظيف التسميات (GCP يتطلب أحرف صغيرة)
-        gcp_labels = {
-            k.lower().replace("-", "_"): v.lower().replace("-", "_")
-            for k, v in merged_labels.items()
-        }
+        gcp_labels = {k.lower().replace("-", "_"): v.lower().replace("-", "_") for k, v in merged_labels.items()}
         gcp_labels["managed_by"] = "distributed_cluster"
         gcp_labels["autoscaling"] = "true"
 
@@ -276,9 +267,7 @@ class GCPProvider(CloudProvider):
                 network_interface.network = f"global/networks/{self.network}"
 
                 if self.subnetwork:
-                    network_interface.subnetwork = (
-                        f"regions/{zone.rsplit('-', 1)[0]}/subnetworks/{self.subnetwork}"
-                    )
+                    network_interface.subnetwork = f"regions/{zone.rsplit('-', 1)[0]}/subnetworks/{self.subnetwork}"
 
                 # External IP
                 access_config = compute_v1.AccessConfig()
@@ -296,9 +285,7 @@ class GCPProvider(CloudProvider):
                 if self.service_account:
                     sa = compute_v1.ServiceAccount()
                     sa.email = self.service_account
-                    sa.scopes = [
-                        "https://www.googleapis.com/auth/cloud-platform"
-                    ]
+                    sa.scopes = ["https://www.googleapis.com/auth/cloud-platform"]
                     instance.service_accounts = [sa]
 
                 # Preemptible
@@ -431,9 +418,11 @@ class GCPProvider(CloudProvider):
                     zone=inst.zone.split("/")[-1],
                     private_ip=private_ip,
                     public_ip=public_ip,
-                    created_at=datetime.fromisoformat(
-                        inst.creation_timestamp.replace("Z", "+00:00")
-                    ) if inst.creation_timestamp else None,
+                    created_at=(
+                        datetime.fromisoformat(inst.creation_timestamp.replace("Z", "+00:00"))
+                        if inst.creation_timestamp
+                        else None
+                    ),
                     labels=dict(inst.labels) if inst.labels else {},
                 )
 
@@ -474,9 +463,11 @@ class GCPProvider(CloudProvider):
                 zone=inst.zone.split("/")[-1],
                 private_ip=private_ip,
                 public_ip=public_ip,
-                created_at=datetime.fromisoformat(
-                    inst.creation_timestamp.replace("Z", "+00:00")
-                ) if inst.creation_timestamp else None,
+                created_at=(
+                    datetime.fromisoformat(inst.creation_timestamp.replace("Z", "+00:00"))
+                    if inst.creation_timestamp
+                    else None
+                ),
                 labels=dict(inst.labels) if inst.labels else {},
             )
 
@@ -511,12 +502,14 @@ class GCPProvider(CloudProvider):
     def get_status(self) -> dict[str, Any]:
         """الحصول على حالة المزود"""
         status = super().get_status()
-        status.update({
-            "provider_type": "gcp",
-            "project": self.project,
-            "zone": self.zone,
-            "machine_type": self.machine_type,
-            "preemptible": self.preemptible,
-            "estimated_cost_per_hour": self.config.cost_per_hour,
-        })
+        status.update(
+            {
+                "provider_type": "gcp",
+                "project": self.project,
+                "zone": self.zone,
+                "machine_type": self.machine_type,
+                "preemptible": self.preemptible,
+                "estimated_cost_per_hour": self.config.cost_per_hour,
+            }
+        )
         return status

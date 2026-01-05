@@ -44,6 +44,7 @@ class CacheStats:
     إحصائيات الذاكرة المؤقتة
     Cache statistics
     """
+
     # Hit/Miss
     cache_hits: int = 0
     cache_misses: int = 0
@@ -99,6 +100,7 @@ class ModelCacheConfig:
     إعدادات ذاكرة التخزين المؤقت
     Cache configuration
     """
+
     # Memory limits
     max_memory_mb: int = 16384  # 16 GB
     max_gpu_memory_mb: int = 8192  # 8 GB
@@ -317,9 +319,7 @@ class ModelCache:
                 # Update stats
                 self._stats.models_loaded += 1
                 self._stats.total_load_time_seconds += load_time
-                self._stats.average_load_time_seconds = (
-                    self._stats.total_load_time_seconds / self._stats.models_loaded
-                )
+                self._stats.average_load_time_seconds = self._stats.total_load_time_seconds / self._stats.models_loaded
                 self._update_memory_stats()
 
                 # Callbacks
@@ -497,9 +497,7 @@ class ModelCache:
 
         # Sort by priority
         if preload_config.priority_order:
-            priority_map = {
-                mid: i for i, mid in enumerate(preload_config.priority_order)
-            }
+            priority_map = {mid: i for i, mid in enumerate(preload_config.priority_order)}
             models = sorted(
                 models,
                 key=lambda m: priority_map.get(m.model_id, len(priority_map)),

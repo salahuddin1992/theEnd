@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class ScheduleType(str, Enum):
     """نوع الجدولة / Schedule type"""
+
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -39,6 +40,7 @@ class ScheduleType(str, Enum):
 
 class RetentionUnit(str, Enum):
     """وحدة الاحتفاظ / Retention unit"""
+
     HOURS = "hours"
     DAYS = "days"
     WEEKS = "weeks"
@@ -55,6 +57,7 @@ class RetentionPolicy:
     تحدد مدة الاحتفاظ بالنسخ الاحتياطية.
     Defines how long to keep backups.
     """
+
     # Keep last N full backups
     keep_full_count: int = 7
 
@@ -125,6 +128,7 @@ class ScheduleConfig:
     إعدادات الجدولة
     Schedule Configuration
     """
+
     schedule_type: ScheduleType = ScheduleType.DAILY
     snapshot_type: SnapshotType = SnapshotType.FULL
 
@@ -222,6 +226,7 @@ class ScheduledBackup:
     نسخة احتياطية مجدولة
     Scheduled Backup Job
     """
+
     job_id: str
     config: ScheduleConfig
     retention_policy: RetentionPolicy
@@ -448,10 +453,7 @@ class BackupScheduler:
 
     def get_next_scheduled(self) -> Optional[ScheduledBackup]:
         """الحصول على المهمة التالية المجدولة"""
-        enabled_jobs = [
-            j for j in self._jobs.values()
-            if j.config.enabled and j.next_run
-        ]
+        enabled_jobs = [j for j in self._jobs.values() if j.config.enabled and j.next_run]
 
         if not enabled_jobs:
             return None
@@ -462,6 +464,7 @@ class BackupScheduler:
 # =============================================================================
 # Preset Schedules
 # =============================================================================
+
 
 def create_hourly_schedule(
     snapshot_type: SnapshotType = SnapshotType.INCREMENTAL,

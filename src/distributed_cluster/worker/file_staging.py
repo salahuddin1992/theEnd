@@ -124,9 +124,7 @@ class FileStager:
 
     async def _calculate_checksum_async(self, file_path: Path, algorithm: str = "sha256") -> str:
         """حساب checksum لملف بشكل async."""
-        return await asyncio.get_running_loop().run_in_executor(
-            None, self._calculate_checksum, file_path, algorithm
-        )
+        return await asyncio.get_running_loop().run_in_executor(None, self._calculate_checksum, file_path, algorithm)
 
     async def stage_inputs(
         self,
@@ -181,9 +179,7 @@ class FileStager:
                 target.parent.mkdir(parents=True, exist_ok=True)
 
                 # Copy file
-                await asyncio.get_running_loop().run_in_executor(
-                    None, shutil.copy2, source, target
-                )
+                await asyncio.get_running_loop().run_in_executor(None, shutil.copy2, source, target)
 
                 # Calculate checksum
                 source_checksum = ""
@@ -198,12 +194,14 @@ class FileStager:
                             duration_seconds=time.monotonic() - start_time,
                         )
 
-                staged_files.append(StagedFile(
-                    source_path=str(source),
-                    target_path=str(target),
-                    size_bytes=file_size,
-                    checksum=source_checksum,
-                ))
+                staged_files.append(
+                    StagedFile(
+                        source_path=str(source),
+                        target_path=str(target),
+                        size_bytes=file_size,
+                        checksum=source_checksum,
+                    )
+                )
                 total_size += file_size
 
                 logger.debug(f"Staged {source_path} -> {target_name} ({file_size} bytes)")
@@ -271,12 +269,14 @@ class FileStager:
                     file_size = match.stat().st_size
                     checksum = await self._calculate_checksum_async(match)
 
-                    collected_files.append(CollectedArtifact(
-                        source_path=str(match.relative_to(job_dir)),
-                        pattern=pattern,
-                        size_bytes=file_size,
-                        checksum=checksum,
-                    ))
+                    collected_files.append(
+                        CollectedArtifact(
+                            source_path=str(match.relative_to(job_dir)),
+                            pattern=pattern,
+                            size_bytes=file_size,
+                            checksum=checksum,
+                        )
+                    )
                     total_size += file_size
 
             # Create archive if requested
@@ -349,9 +349,7 @@ class FileStager:
 
         try:
             if job_dir.exists():
-                await asyncio.get_running_loop().run_in_executor(
-                    None, shutil.rmtree, job_dir
-                )
+                await asyncio.get_running_loop().run_in_executor(None, shutil.rmtree, job_dir)
                 logger.debug(f"Cleaned up job directory: {job_id}")
                 return True
             return False
@@ -385,11 +383,13 @@ class FileStager:
         for file_path in job_dir.rglob("*"):
             if file_path.is_file():
                 stat = file_path.stat()
-                files.append({
-                    "path": str(file_path.relative_to(job_dir)),
-                    "size": stat.st_size,
-                    "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                })
+                files.append(
+                    {
+                        "path": str(file_path.relative_to(job_dir)),
+                        "size": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                    }
+                )
 
         return files
 
@@ -430,9 +430,7 @@ class StreamingFileTransfer:
                 bytes_received += len(chunk)
 
         if expected_size and bytes_received != expected_size:
-            raise ValueError(
-                f"Size mismatch: expected {expected_size}, received {bytes_received}"
-            )
+            raise ValueError(f"Size mismatch: expected {expected_size}, received {bytes_received}")
 
         return bytes_received, hash_func.hexdigest()
 

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DistributedRateLimitResult:
     """Result of distributed rate limit check."""
+
     allowed: bool
     limit: int
     remaining: int
@@ -175,12 +176,8 @@ class RedisRateLimiter(DistributedRateLimiter):
             await self._redis.ping()
 
             # Register Lua scripts
-            self._scripts["sliding_window"] = self._redis.register_script(
-                self.SLIDING_WINDOW_SCRIPT
-            )
-            self._scripts["token_bucket"] = self._redis.register_script(
-                self.TOKEN_BUCKET_SCRIPT
-            )
+            self._scripts["sliding_window"] = self._redis.register_script(self.SLIDING_WINDOW_SCRIPT)
+            self._scripts["token_bucket"] = self._redis.register_script(self.TOKEN_BUCKET_SCRIPT)
 
             self._connected = True
             logger.info("RedisRateLimiter connected to %s", self.redis_url)

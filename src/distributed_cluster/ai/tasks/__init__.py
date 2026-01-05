@@ -7,16 +7,11 @@ Includes task splitting for distributed prompt execution.
 """
 
 # Core task management
-from .manager import AITaskManager, AITask, AITaskStatus, AITaskType
-
-# Distributed execution tasks
-from .inference import DistributedInferenceTask
-from .training import DistributedTrainingTask
-from .embedding import EmbeddingTask
-
 # Builtin task definitions
 from .builtin_tasks import (
     AITask as AITaskDefinition,
+)
+from .builtin_tasks import (
     AITaskCategory,
     AITaskRegistry,
     BuiltinTasks,
@@ -25,6 +20,11 @@ from .builtin_tasks import (
     TaskResult,
     get_builtin_tasks,
 )
+from .embedding import EmbeddingTask
+
+# Distributed execution tasks
+from .inference import DistributedInferenceTask
+from .manager import AITask, AITaskManager, AITaskStatus, AITaskType
 
 # Task splitting for distributed execution
 from .task_splitter import (
@@ -38,6 +38,7 @@ from .task_splitter import (
     TextChunker,
     WorkerInfo,
 )
+from .training import DistributedTrainingTask
 
 __all__ = [
     # Core

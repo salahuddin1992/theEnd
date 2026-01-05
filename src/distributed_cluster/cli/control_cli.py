@@ -31,6 +31,7 @@ console = Console()
 # أوامر التنفيذ
 # =============================================================================
 
+
 @app.command("run")
 def run_command(
     command: str = typer.Argument(..., help="الأمر للتنفيذ"),
@@ -289,6 +290,7 @@ def load_status(
 # أوامر Workers
 # =============================================================================
 
+
 @app.command("workers")
 def list_workers(
     master: str = typer.Option("http://localhost:8765", "--master", "-m"),
@@ -315,7 +317,7 @@ def list_workers(
                 status = "🟢 متصل" if w.get("status") == "online" else "🔴 غير متصل"
                 resources = w.get("resources", {})
                 cpu = f"{resources.get('cpu_cores', '?')} cores"
-                ram = f"{resources.get('memory_total_gb', '?'):.1f} GB" if resources.get('memory_total_gb') else "?"
+                ram = f"{resources.get('memory_total_gb', '?'):.1f} GB" if resources.get("memory_total_gb") else "?"
                 gpu = resources.get("gpu_count", 0)
                 gpu_str = f"{gpu} GPU" if gpu else "-"
 
@@ -337,12 +339,14 @@ def cluster_status(
         response = httpx.get(f"{master}/api/status", timeout=10)
         if response.status_code == 200:
             data = response.json()
-            console.print(Panel(
-                f"[green]✓[/] الكلاستر متصل\n"
-                f"Workers: {data.get('workers_count', 0)}\n"
-                f"Jobs: {data.get('jobs_count', 0)}",
-                title="حالة الكلاستر"
-            ))
+            console.print(
+                Panel(
+                    f"[green]✓[/] الكلاستر متصل\n"
+                    f"Workers: {data.get('workers_count', 0)}\n"
+                    f"Jobs: {data.get('jobs_count', 0)}",
+                    title="حالة الكلاستر",
+                )
+            )
         else:
             console.print(f"[red]✗[/] فشل الاتصال: HTTP {response.status_code}")
     except Exception as e:
@@ -352,6 +356,7 @@ def cluster_status(
 # =============================================================================
 # الأمر السريع الواحد
 # =============================================================================
+
 
 @app.command("quick")
 def quick_command(
@@ -382,6 +387,7 @@ def quick_command(
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def _print_result(result) -> None:
     """طباعة نتيجة التنفيذ"""

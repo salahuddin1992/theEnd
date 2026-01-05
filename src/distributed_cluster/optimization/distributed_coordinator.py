@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class NodeStatus(Enum):
     """Status of a cache node."""
+
     ONLINE = "online"
     OFFLINE = "offline"
     JOINING = "joining"
@@ -32,6 +33,7 @@ class NodeStatus(Enum):
 
 class ReplicationStrategy(Enum):
     """Replication strategies."""
+
     NONE = "none"
     SYNC = "sync"
     ASYNC = "async"
@@ -40,6 +42,7 @@ class ReplicationStrategy(Enum):
 
 class ConsistencyLevel(Enum):
     """Consistency levels for operations."""
+
     ONE = 1
     QUORUM = 2
     ALL = 3
@@ -50,6 +53,7 @@ class ConsistencyLevel(Enum):
 @dataclass
 class CacheNode:
     """Represents a cache node in the cluster."""
+
     node_id: str
     host: str
     port: int
@@ -75,6 +79,7 @@ class CacheNode:
 @dataclass
 class Partition:
     """Represents a partition in the cache cluster."""
+
     partition_id: int
     primary_node: str
     replica_nodes: List[str] = field(default_factory=list)
@@ -86,6 +91,7 @@ class Partition:
 @dataclass
 class ReplicationEvent:
     """Event for cache replication."""
+
     event_id: str
     key: str
     operation: str  # 'set', 'delete', 'invalidate'
@@ -130,10 +136,7 @@ class ConsistentHash:
                 return
 
             # Remove virtual nodes
-            self.ring = [
-                (h, n) for h, n in self.ring
-                if n != node_id
-            ]
+            self.ring = [(h, n) for h, n in self.ring if n != node_id]
 
             del self.nodes[node_id]
             logger.info(f"Removed node {node_id} from hash ring")
@@ -188,16 +191,13 @@ class ConsistentHash:
                 return (0, 0)
 
             # Find all virtual nodes for this node
-            node_hashes = sorted([
-                h for h, n in self.ring
-                if n == node_id
-            ])
+            node_hashes = sorted([h for h, n in self.ring if n == node_id])
 
             if not node_hashes:
                 return (0, 0)
 
             # Estimate keys based on ring coverage
-            ring_size = 2 ** 128  # MD5 produces 128-bit hashes
+            ring_size = 2**128  # MD5 produces 128-bit hashes
             coverage = 0
 
             for i, h in enumerate(node_hashes):
@@ -226,7 +226,7 @@ class ReplicationManager:
         self,
         strategy: ReplicationStrategy = ReplicationStrategy.ASYNC,
         replication_factor: int = 2,
-        consistency: ConsistencyLevel = ConsistencyLevel.ONE
+        consistency: ConsistencyLevel = ConsistencyLevel.ONE,
     ):
         self.strategy = strategy
         self.replication_factor = replication_factor
@@ -250,11 +250,7 @@ class ReplicationManager:
         self._running = False
         self._replication_task: Optional[asyncio.Task] = None
 
-    def register_handler(
-        self,
-        node_id: str,
-        handler: Callable[[ReplicationEvent, str], bool]
-    ):
+    def register_handler(self, node_id: str, handler: Callable[[ReplicationEvent, str], bool]):
         """Register a replication handler for a node."""
         self.replication_handlers[node_id] = handler
 
@@ -264,11 +260,7 @@ class ReplicationManager:
             for node_id in target_nodes:
                 self.pending_queue.append((event, node_id))
 
-    async def replicate_sync(
-        self,
-        event: ReplicationEvent,
-        target_nodes: List[str]
-    ) -> int:
+    async def replicate_sync(self, event: ReplicationEvent, target_nodes: List[str]) -> int:
         """Synchronously replicate to nodes."""
         success_count = 0
 
@@ -283,11 +275,7 @@ class ReplicationManager:
 
         return success_count
 
-    async def replicate_quorum(
-        self,
-        event: ReplicationEvent,
-        target_nodes: List[str]
-    ) -> bool:
+    async def replicate_quorum(self, event: ReplicationEvent, target_nodes: List[str]) -> bool:
         """Replicate with quorum consistency."""
         required = len(target_nodes) // 2 + 1
         success_count = await self.replicate_sync(event, target_nodes)
@@ -354,14 +342,14 @@ class ReplicationManager:
         """Get replication statistics."""
         with self._lock:
             return {
-                'strategy': self.strategy.value,
-                'replication_factor': self.replication_factor,
-                'consistency': self.consistency.value,
-                'pending_count': len(self.pending_queue),
-                'in_progress_count': len(self.in_progress),
-                'replicated_count': self.replicated_count,
-                'failed_count': self.failed_count,
-                'lag_ms': self.lag_ms,
+                "strategy": self.strategy.value,
+                "replication_factor": self.replication_factor,
+                "consistency": self.consistency.value,
+                "pending_count": len(self.pending_queue),
+                "in_progress_count": len(self.in_progress),
+                "replicated_count": self.replicated_count,
+                "failed_count": self.failed_count,
+                "lag_ms": self.lag_ms,
             }
 
 
@@ -385,12 +373,7 @@ class PartitionManager:
         key_hash = int(hashlib.md5(key.encode()).hexdigest(), 16)
         return key_hash % self.num_partitions
 
-    def assign_partition(
-        self,
-        partition_id: int,
-        primary_node: str,
-        replica_nodes: List[str]
-    ):
+    def assign_partition(self, partition_id: int, primary_node: str, replica_nodes: List[str]):
         """Assign a partition to nodes."""
         with self._lock:
             partition = self.partitions[partition_id]
@@ -454,16 +437,13 @@ class PartitionManager:
     def get_stats(self) -> Dict[str, Any]:
         """Get partition statistics."""
         with self._lock:
-            node_counts = {
-                node_id: len(partitions)
-                for node_id, partitions in self.node_partitions.items()
-            }
+            node_counts = {node_id: len(partitions) for node_id, partitions in self.node_partitions.items()}
 
             return {
-                'num_partitions': self.num_partitions,
-                'partitions_per_node': node_counts,
-                'total_keys': sum(p.key_count for p in self.partitions.values()),
-                'total_size_bytes': sum(p.size_bytes for p in self.partitions.values()),
+                "num_partitions": self.num_partitions,
+                "partitions_per_node": node_counts,
+                "total_keys": sum(p.key_count for p in self.partitions.values()),
+                "total_size_bytes": sum(p.size_bytes for p in self.partitions.values()),
             }
 
 
@@ -479,7 +459,7 @@ class DistributedCacheCoordinator:
         replication_factor: int = 2,
         replication_strategy: ReplicationStrategy = ReplicationStrategy.ASYNC,
         consistency_level: ConsistencyLevel = ConsistencyLevel.ONE,
-        num_partitions: int = 256
+        num_partitions: int = 256,
     ):
         self.node_id = node_id
         self.replication_factor = replication_factor
@@ -487,9 +467,7 @@ class DistributedCacheCoordinator:
         # Components
         self.hash_ring = ConsistentHash()
         self.replication_manager = ReplicationManager(
-            strategy=replication_strategy,
-            replication_factor=replication_factor,
-            consistency=consistency_level
+            strategy=replication_strategy, replication_factor=replication_factor, consistency=consistency_level
         )
         self.partition_manager = PartitionManager(num_partitions)
 
@@ -506,13 +484,7 @@ class DistributedCacheCoordinator:
         self._running = False
         self._heartbeat_task: Optional[asyncio.Task] = None
 
-    def initialize_local_node(
-        self,
-        host: str,
-        port: int,
-        capacity_mb: int = 1024,
-        zone: str = "default"
-    ):
+    def initialize_local_node(self, host: str, port: int, capacity_mb: int = 1024, zone: str = "default"):
         """Initialize the local node."""
         self.local_node = CacheNode(
             node_id=self.node_id,
@@ -596,12 +568,7 @@ class DistributedCacheCoordinator:
         primary = self.get_primary_node(key)
         return primary == self.node_id
 
-    async def coordinate_write(
-        self,
-        key: str,
-        value: bytes,
-        ttl_seconds: Optional[int] = None
-    ) -> bool:
+    async def coordinate_write(self, key: str, value: bytes, ttl_seconds: Optional[int] = None) -> bool:
         """Coordinate a write operation across nodes."""
         nodes = self.get_nodes_for_key(key)
         if not nodes:
@@ -610,7 +577,7 @@ class DistributedCacheCoordinator:
         event = ReplicationEvent(
             event_id=f"{key}:{time.time()}",
             key=key,
-            operation='set',
+            operation="set",
             value=value,
             source_node=self.node_id,
             ttl_seconds=ttl_seconds,
@@ -635,7 +602,7 @@ class DistributedCacheCoordinator:
         event = ReplicationEvent(
             event_id=f"{key}:{time.time()}",
             key=key,
-            operation='delete',
+            operation="delete",
             source_node=self.node_id,
         )
 
@@ -658,10 +625,7 @@ class DistributedCacheCoordinator:
         """Register a callback for node changes."""
         self.node_change_callbacks.append(callback)
 
-    def register_rebalance_callback(
-        self,
-        callback: Callable[[Dict[int, Tuple[str, List[str]]]], None]
-    ):
+    def register_rebalance_callback(self, callback: Callable[[Dict[int, Tuple[str, List[str]]]], None]):
         """Register a callback for rebalance events."""
         self.rebalance_callbacks.append(callback)
 
@@ -671,9 +635,7 @@ class DistributedCacheCoordinator:
             return
 
         self._running = True
-        self._heartbeat_task = asyncio.create_task(
-            self._heartbeat_loop(interval_seconds)
-        )
+        self._heartbeat_task = asyncio.create_task(self._heartbeat_loop(interval_seconds))
         await self.replication_manager.start_replication_loop()
         logger.info("Coordinator heartbeat started")
 
@@ -722,32 +684,29 @@ class DistributedCacheCoordinator:
     def get_cluster_stats(self) -> Dict[str, Any]:
         """Get cluster statistics."""
         with self._lock:
-            online_nodes = sum(
-                1 for n in self.nodes.values()
-                if n.status == NodeStatus.ONLINE
-            )
+            online_nodes = sum(1 for n in self.nodes.values() if n.status == NodeStatus.ONLINE)
 
             total_capacity = sum(n.capacity_mb for n in self.nodes.values())
             total_used = sum(n.used_mb for n in self.nodes.values())
 
             return {
-                'node_id': self.node_id,
-                'total_nodes': len(self.nodes),
-                'online_nodes': online_nodes,
-                'replication_factor': self.replication_factor,
-                'total_capacity_mb': total_capacity,
-                'total_used_mb': total_used,
-                'cluster_utilization': total_used / total_capacity if total_capacity > 0 else 0,
-                'partition_stats': self.partition_manager.get_stats(),
-                'replication_stats': self.replication_manager.get_stats(),
-                'nodes': [
+                "node_id": self.node_id,
+                "total_nodes": len(self.nodes),
+                "online_nodes": online_nodes,
+                "replication_factor": self.replication_factor,
+                "total_capacity_mb": total_capacity,
+                "total_used_mb": total_used,
+                "cluster_utilization": total_used / total_capacity if total_capacity > 0 else 0,
+                "partition_stats": self.partition_manager.get_stats(),
+                "replication_stats": self.replication_manager.get_stats(),
+                "nodes": [
                     {
-                        'node_id': n.node_id,
-                        'status': n.status.value,
-                        'host': n.host,
-                        'port': n.port,
-                        'zone': n.zone,
-                        'utilization': n.utilization,
+                        "node_id": n.node_id,
+                        "status": n.status.value,
+                        "host": n.host,
+                        "port": n.port,
+                        "zone": n.zone,
+                        "utilization": n.utilization,
                     }
                     for n in self.nodes.values()
                 ],

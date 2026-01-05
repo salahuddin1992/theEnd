@@ -110,9 +110,7 @@ class ShellProcess(QProcess):
         """Check if executable exists"""
         try:
             result = subprocess.run(
-                ["which" if platform.system() != "Windows" else "where", name],
-                capture_output=True,
-                text=True
+                ["which" if platform.system() != "Windows" else "where", name], capture_output=True, text=True
             )
             return result.returncode == 0
         except (OSError, subprocess.SubprocessError):
@@ -129,12 +127,12 @@ class ShellProcess(QProcess):
 
     def _on_stdout(self):
         """Handle stdout data"""
-        data = self.readAllStandardOutput().data().decode('utf-8', errors='replace')
+        data = self.readAllStandardOutput().data().decode("utf-8", errors="replace")
         self.output_received.emit(data)
 
     def _on_stderr(self):
         """Handle stderr data"""
-        data = self.readAllStandardError().data().decode('utf-8', errors='replace')
+        data = self.readAllStandardError().data().decode("utf-8", errors="replace")
         self.error_received.emit(data)
 
     def _on_finished(self, exit_code: int, exit_status):
@@ -194,23 +192,27 @@ class PowerShellConsoleView(QWidget):
     def _create_toolbar(self) -> QFrame:
         """Create the toolbar"""
         toolbar = QFrame()
-        toolbar.setStyleSheet(f"""
+        toolbar.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border-bottom: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(toolbar)
         layout.setContentsMargins(16, 8, 16, 8)
 
         # Title with shell icon
         title = QLabel("💻 Terminal")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         layout.addWidget(title)
 
         layout.addSpacing(24)
@@ -222,7 +224,8 @@ class PowerShellConsoleView(QWidget):
 
         self.shell_combo = QComboBox()
         self.shell_combo.addItems(["Auto", "PowerShell", "Bash", "CMD"])
-        self.shell_combo.setStyleSheet(f"""
+        self.shell_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -238,7 +241,8 @@ class PowerShellConsoleView(QWidget):
                 image: none;
                 border: none;
             }}
-        """)
+        """
+        )
         self.shell_combo.currentTextChanged.connect(self._on_shell_changed)
         layout.addWidget(self.shell_combo)
 
@@ -250,11 +254,13 @@ class PowerShellConsoleView(QWidget):
         layout.addWidget(dir_label)
 
         self.cwd_label = QLabel(str(Path.home()))
-        self.cwd_label.setStyleSheet(f"""
+        self.cwd_label.setStyleSheet(
+            f"""
             color: {COLORS['text_secondary']};
             font-family: monospace;
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(self.cwd_label)
 
         layout.addStretch()
@@ -282,7 +288,8 @@ class PowerShellConsoleView(QWidget):
 
         # Kill button
         kill_btn = QPushButton("⏹️ Kill")
-        kill_btn.setStyleSheet(f"""
+        kill_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['danger']};
                 color: white;
@@ -294,7 +301,8 @@ class PowerShellConsoleView(QWidget):
             QPushButton:hover {{
                 background-color: #c62828;
             }}
-        """)
+        """
+        )
         kill_btn.clicked.connect(self._kill_process)
         layout.addWidget(kill_btn)
 
@@ -319,7 +327,8 @@ class PowerShellConsoleView(QWidget):
         self.console_tabs = QTabWidget()
         self.console_tabs.setTabsClosable(True)
         self.console_tabs.tabCloseRequested.connect(self._close_tab)
-        self.console_tabs.setStyleSheet(f"""
+        self.console_tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: none;
                 background-color: #1a1a1a;
@@ -340,7 +349,8 @@ class PowerShellConsoleView(QWidget):
                 image: none;
                 subcontrol-position: right;
             }}
-        """)
+        """
+        )
 
         # Create first terminal tab
         terminal_widget = self._create_terminal_widget()
@@ -360,7 +370,8 @@ class PowerShellConsoleView(QWidget):
         # Output area
         output = QPlainTextEdit()
         output.setReadOnly(True)
-        output.setStyleSheet(f"""
+        output.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: #1a1a1a;
                 color: #00ff00;
@@ -369,7 +380,8 @@ class PowerShellConsoleView(QWidget):
                 font-size: 13px;
                 selection-background-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         output.setMaximumBlockCount(10000)  # Limit buffer size
 
         # Welcome message
@@ -380,27 +392,32 @@ class PowerShellConsoleView(QWidget):
 
         # Input area
         input_frame = QFrame()
-        input_frame.setStyleSheet(f"""
+        input_frame.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: #0d0d0d;
                 border-top: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
         input_layout = QHBoxLayout(input_frame)
         input_layout.setContentsMargins(8, 4, 8, 4)
 
         # Prompt
         prompt = QLabel("❯")
-        prompt.setStyleSheet(f"""
+        prompt.setStyleSheet(
+            f"""
             color: {COLORS['primary']};
             font-size: 14px;
             font-weight: bold;
-        """)
+        """
+        )
         input_layout.addWidget(prompt)
 
         # Input field
         input_field = QLineEdit()
-        input_field.setStyleSheet("""
+        input_field.setStyleSheet(
+            """
             QLineEdit {
                 background-color: transparent;
                 color: #00ff00;
@@ -409,7 +426,8 @@ class PowerShellConsoleView(QWidget):
                 font-size: 13px;
                 padding: 8px;
             }
-        """)
+        """
+        )
         input_field.setPlaceholderText("Enter command...")
         input_field.returnPressed.connect(lambda: self._execute_command(input_field, output))
 
@@ -449,12 +467,14 @@ class PowerShellConsoleView(QWidget):
     def _create_side_panel(self) -> QWidget:
         """Create the side panel with quick commands"""
         panel = QWidget()
-        panel.setStyleSheet(f"""
+        panel.setStyleSheet(
+            f"""
             QWidget {{
                 background-color: {COLORS['bg_dark']};
                 border-left: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -462,7 +482,8 @@ class PowerShellConsoleView(QWidget):
 
         # Tabs for different panels
         side_tabs = QTabWidget()
-        side_tabs.setStyleSheet(f"""
+        side_tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: none;
                 background-color: {COLORS['bg_dark']};
@@ -478,7 +499,8 @@ class PowerShellConsoleView(QWidget):
                 color: {COLORS['text_primary']};
                 border-bottom: 2px solid {COLORS['primary']};
             }}
-        """)
+        """
+        )
 
         # Quick commands tab
         quick_widget = self._create_quick_commands_panel()
@@ -505,15 +527,18 @@ class PowerShellConsoleView(QWidget):
 
         # Section: System
         sys_label = QLabel("🖥️ System")
-        sys_label.setStyleSheet(f"""
+        sys_label.setStyleSheet(
+            f"""
             color: {COLORS['text_muted']};
             font-size: 11px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(sys_label)
 
         self.quick_commands = QListWidget()
-        self.quick_commands.setStyleSheet(f"""
+        self.quick_commands.setStyleSheet(
+            f"""
             QListWidget {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -530,7 +555,8 @@ class PowerShellConsoleView(QWidget):
             QListWidget::item:selected {{
                 background-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         self.quick_commands.itemDoubleClicked.connect(self._on_quick_command_clicked)
         layout.addWidget(self.quick_commands)
 
@@ -544,7 +570,8 @@ class PowerShellConsoleView(QWidget):
         layout.setSpacing(8)
 
         self.history_list = QListWidget()
-        self.history_list.setStyleSheet(f"""
+        self.history_list.setStyleSheet(
+            f"""
             QListWidget {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -559,13 +586,15 @@ class PowerShellConsoleView(QWidget):
             QListWidget::item:selected {{
                 background-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         self.history_list.itemDoubleClicked.connect(self._on_history_item_clicked)
         layout.addWidget(self.history_list)
 
         # Clear history button
         clear_btn = QPushButton("Clear History")
-        clear_btn.setStyleSheet(f"""
+        clear_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['bg_light']};
                 color: {COLORS['text_secondary']};
@@ -577,7 +606,8 @@ class PowerShellConsoleView(QWidget):
                 background-color: {COLORS['danger']};
                 color: white;
             }}
-        """)
+        """
+        )
         clear_btn.clicked.connect(self._clear_history)
         layout.addWidget(clear_btn)
 
@@ -591,7 +621,8 @@ class PowerShellConsoleView(QWidget):
         layout.setSpacing(8)
 
         self.snippets_list = QListWidget()
-        self.snippets_list.setStyleSheet(f"""
+        self.snippets_list.setStyleSheet(
+            f"""
             QListWidget {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -605,7 +636,8 @@ class PowerShellConsoleView(QWidget):
             QListWidget::item:selected {{
                 background-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         self.snippets_list.itemDoubleClicked.connect(self._on_snippet_clicked)
 
         # Add default snippets
@@ -727,7 +759,7 @@ Type 'help' for available commands.
     def _on_output(self, data: str):
         """Handle output from process"""
         current_widget = self.console_tabs.currentWidget()
-        if current_widget and hasattr(current_widget, 'output'):
+        if current_widget and hasattr(current_widget, "output"):
             current_widget.output.appendPlainText(data.rstrip())
 
             # Update current directory if changed
@@ -737,11 +769,9 @@ Type 'help' for available commands.
     def _on_error(self, data: str):
         """Handle error from process"""
         current_widget = self.console_tabs.currentWidget()
-        if current_widget and hasattr(current_widget, 'output'):
+        if current_widget and hasattr(current_widget, "output"):
             # Show errors in red (using HTML)
-            current_widget.output.appendHtml(
-                f'<span style="color: #ff6b6b;">{data.rstrip()}</span>'
-            )
+            current_widget.output.appendHtml(f'<span style="color: #ff6b6b;">{data.rstrip()}</span>')
 
     def _show_help(self, output: QPlainTextEdit):
         """Show help message"""
@@ -787,14 +817,14 @@ Tips:
         self._start_shell()
 
         current_widget = self.console_tabs.currentWidget()
-        if current_widget and hasattr(current_widget, 'output'):
+        if current_widget and hasattr(current_widget, "output"):
             current_widget.output.clear()
             current_widget.output.setPlainText(self._get_welcome_message())
 
     def _clear_console(self):
         """Clear the current console"""
         current_widget = self.console_tabs.currentWidget()
-        if current_widget and hasattr(current_widget, 'output'):
+        if current_widget and hasattr(current_widget, "output"):
             current_widget.output.clear()
 
     def _kill_process(self):
@@ -820,18 +850,15 @@ Tips:
         command = item.data(Qt.UserRole)
         if command:
             current_widget = self.console_tabs.currentWidget()
-            if current_widget and hasattr(current_widget, 'input_field'):
+            if current_widget and hasattr(current_widget, "input_field"):
                 current_widget.input_field.setText(command)
-                self._execute_command(
-                    current_widget.input_field,
-                    current_widget.output
-                )
+                self._execute_command(current_widget.input_field, current_widget.output)
 
     def _on_history_item_clicked(self, item: QListWidgetItem):
         """Use a command from history"""
         command = item.text()
         current_widget = self.console_tabs.currentWidget()
-        if current_widget and hasattr(current_widget, 'input_field'):
+        if current_widget and hasattr(current_widget, "input_field"):
             current_widget.input_field.setText(command)
             current_widget.input_field.setFocus()
 
@@ -840,12 +867,9 @@ Tips:
         command = item.data(Qt.UserRole)
         if command:
             current_widget = self.console_tabs.currentWidget()
-            if current_widget and hasattr(current_widget, 'input_field'):
+            if current_widget and hasattr(current_widget, "input_field"):
                 current_widget.input_field.setText(command)
-                self._execute_command(
-                    current_widget.input_field,
-                    current_widget.output
-                )
+                self._execute_command(current_widget.input_field, current_widget.output)
 
     def _update_history_list(self):
         """Update the history list widget"""

@@ -101,7 +101,7 @@ class InMemoryDataLoader(DataLoader):
             self.rng.shuffle(indices)
 
         for i in range(0, len(indices), self.batch_size):
-            batch_indices = indices[i:i + self.batch_size]
+            batch_indices = indices[i : i + self.batch_size]
             yield self.data[batch_indices], self.labels[batch_indices]
 
 
@@ -294,6 +294,7 @@ class SimpleNeuralNetwork(LocalModel):
 @dataclass
 class TrainingResult:
     """Result of local training."""
+
     loss: float
     num_samples: int
     training_time: float
@@ -415,10 +416,7 @@ class FederatedClient:
         num_samples = 0
         num_batches = 0
 
-        logger.debug(
-            f"Client {self.client_id} starting local training: "
-            f"epochs={epochs}, lr={lr}"
-        )
+        logger.debug(f"Client {self.client_id} starting local training: " f"epochs={epochs}, lr={lr}")
 
         for epoch in range(epochs):
             epoch_loss = 0.0
@@ -467,10 +465,7 @@ class FederatedClient:
         self._training_history.append(result)
         self._status = ClientStatus.COMPLETED
 
-        logger.debug(
-            f"Client {self.client_id} completed training: "
-            f"loss={avg_loss:.4f}, samples={num_samples}"
-        )
+        logger.debug(f"Client {self.client_id} completed training: " f"loss={avg_loss:.4f}, samples={num_samples}")
 
         return result
 
@@ -490,10 +485,7 @@ class FederatedClient:
                 value = value * self.privacy_config.clip_norm / norm
 
             # Add Gaussian noise
-            noise_scale = (
-                self.privacy_config.clip_norm
-                * self.privacy_config.noise_multiplier
-            )
+            noise_scale = self.privacy_config.clip_norm * self.privacy_config.noise_multiplier
             noise = np.random.normal(0, noise_scale, value.shape)
             noisy_weights[key] = value + noise
 
@@ -583,15 +575,9 @@ class FederatedClient:
             "current_round": self._current_round,
             "total_rounds": len(self._training_history),
             "total_samples_trained": self._total_samples_trained,
-            "average_loss": (
-                np.mean([r.loss for r in self._training_history])
-                if self._training_history
-                else None
-            ),
+            "average_loss": (np.mean([r.loss for r in self._training_history]) if self._training_history else None),
             "average_training_time": (
-                np.mean([r.training_time for r in self._training_history])
-                if self._training_history
-                else None
+                np.mean([r.training_time for r in self._training_history]) if self._training_history else None
             ),
         }
 
@@ -634,10 +620,7 @@ class ClientManager:
 
     async def get_available_clients(self) -> List[FederatedClient]:
         """Get all available clients."""
-        return [
-            c for c in self._clients.values()
-            if c.status == ClientStatus.IDLE
-        ]
+        return [c for c in self._clients.values() if c.status == ClientStatus.IDLE]
 
     async def get_all_clients(self) -> List[FederatedClient]:
         """Get all registered clients."""
@@ -733,10 +716,7 @@ def partition_data_iid(
 
     client_indices = np.array_split(indices, num_clients)
 
-    return [
-        (data[idx], labels[idx])
-        for idx in client_indices
-    ]
+    return [(data[idx], labels[idx]) for idx in client_indices]
 
 
 def partition_data_non_iid(
@@ -771,19 +751,14 @@ def partition_data_non_iid(
     # Create shards
     num_shards = num_clients * num_shards_per_client
     shard_size = len(data) // num_shards
-    shards = [
-        sorted_indices[i * shard_size:(i + 1) * shard_size]
-        for i in range(num_shards)
-    ]
+    shards = [sorted_indices[i * shard_size : (i + 1) * shard_size] for i in range(num_shards)]
 
     # Assign shards to clients
     rng.shuffle(shards)
 
     client_data = []
     for i in range(num_clients):
-        client_indices = np.concatenate(
-            shards[i * num_shards_per_client:(i + 1) * num_shards_per_client]
-        )
+        client_indices = np.concatenate(shards[i * num_shards_per_client : (i + 1) * num_shards_per_client])
         rng.shuffle(client_indices)
         client_data.append((data[client_indices], labels[client_indices]))
 

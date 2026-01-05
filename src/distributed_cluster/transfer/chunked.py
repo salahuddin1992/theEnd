@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ChunkInfo:
     """معلومات الجزء."""
+
     index: int
     offset: int
     size: int
@@ -30,6 +31,7 @@ class ChunkInfo:
 @dataclass
 class ChunkedTransferState:
     """حالة النقل المقسم."""
+
     transfer_id: str
     filename: str
     total_size: int
@@ -171,6 +173,7 @@ class ChunkedTransfer:
 
         try:
             import aiofiles
+
             async with aiofiles.open(file_path, "rb") as f:
                 await f.seek(offset)
                 return await f.read(self.chunk_size)
@@ -212,6 +215,7 @@ class ChunkedTransfer:
         # Write chunk
         try:
             import aiofiles
+
             async with aiofiles.open(file_path, "r+b") as f:
                 await f.seek(chunk_info.offset)
                 await f.write(data)
@@ -300,6 +304,7 @@ class ChunkedTransfer:
 
         try:
             import aiofiles
+
             async with aiofiles.open(state_path, "w") as f:
                 await f.write(json.dumps(state.to_dict(), indent=2))
         except ImportError:
@@ -315,6 +320,7 @@ class ChunkedTransfer:
 
         try:
             import aiofiles
+
             async with aiofiles.open(state_path, "r") as f:
                 data = json.loads(await f.read())
         except ImportError:
@@ -329,6 +335,7 @@ class ChunkedTransfer:
 
         try:
             import aiofiles
+
             async with aiofiles.open(file_path, "rb") as f:
                 while True:
                     chunk = await f.read(8192)

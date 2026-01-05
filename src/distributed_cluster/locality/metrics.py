@@ -99,7 +99,7 @@ class LocalityMetrics:
             "window_end": self.window_end.isoformat() if self.window_end else None,
             "total_blocks": self.total_blocks,
             "total_size_bytes": self.total_size_bytes,
-            "total_size_gb": self.total_size_bytes / (1024 ** 3),
+            "total_size_gb": self.total_size_bytes / (1024**3),
             "blocks_by_type": self.blocks_by_type,
             "total_replicas": self.total_replicas,
             "primary_replicas": self.primary_replicas,
@@ -161,7 +161,7 @@ class WorkerDataMetrics:
             "worker_id": self.worker_id,
             "total_blocks": self.total_blocks,
             "total_size_bytes": self.total_size_bytes,
-            "total_size_gb": self.total_size_bytes / (1024 ** 3),
+            "total_size_gb": self.total_size_bytes / (1024**3),
             "primary_blocks": self.primary_blocks,
             "replica_blocks": self.replica_blocks,
             "blocks_by_type": self.blocks_by_type,
@@ -328,22 +328,14 @@ class LocalityMetricsCollector:
 
         # Scheduling metrics
         metrics.scheduling_decisions = self._scheduling_decisions
-        metrics.perfect_locality_decisions = self._locality_decisions.get(
-            LocalityLevel.NODE_LOCAL.value, 0
-        )
-        metrics.rack_local_decisions = self._locality_decisions.get(
-            LocalityLevel.RACK_LOCAL.value, 0
-        )
-        metrics.remote_decisions = self._locality_decisions.get(
-            LocalityLevel.REMOTE.value, 0
-        )
+        metrics.perfect_locality_decisions = self._locality_decisions.get(LocalityLevel.NODE_LOCAL.value, 0)
+        metrics.rack_local_decisions = self._locality_decisions.get(LocalityLevel.RACK_LOCAL.value, 0)
+        metrics.remote_decisions = self._locality_decisions.get(LocalityLevel.REMOTE.value, 0)
 
         # Transfer metrics
         metrics.total_transfers = self._transfer_count
         if self._transfer_count > 0:
-            metrics.avg_transfer_time_seconds = (
-                self._transfer_time_total / self._transfer_count
-            )
+            metrics.avg_transfer_time_seconds = self._transfer_time_total / self._transfer_count
         metrics.total_bytes_transferred = self._transfer_bytes
 
         metrics.window_end = datetime.now(timezone.utc)
@@ -403,9 +395,7 @@ class LocalityMetricsCollector:
         # For now, we'll use estimates based on total counts
 
         if metrics.workers_with_data > 0:
-            metrics.avg_blocks_per_worker = (
-                metrics.total_blocks / metrics.workers_with_data
-            )
+            metrics.avg_blocks_per_worker = metrics.total_blocks / metrics.workers_with_data
 
         # Would need actual per-worker counts for variance
         # This is a placeholder
@@ -457,9 +447,7 @@ class LocalityMetricsCollector:
         metrics.decisions_by_locality = dict(self._locality_decisions)
 
         if self._locality_scores:
-            metrics.avg_locality_score = sum(self._locality_scores) / len(
-                self._locality_scores
-            )
+            metrics.avg_locality_score = sum(self._locality_scores) / len(self._locality_scores)
             metrics.min_locality_score = min(self._locality_scores)
             metrics.max_locality_score = max(self._locality_scores)
 
@@ -477,20 +465,14 @@ class LocalityMetricsCollector:
             "avg_locality_score": scheduling.avg_locality_score,
             "data_distribution": {
                 "total_blocks": current.total_blocks if current else 0,
-                "total_size_gb": (
-                    current.total_size_bytes / (1024 ** 3) if current else 0
-                ),
+                "total_size_gb": (current.total_size_bytes / (1024**3) if current else 0),
                 "workers": current.workers_with_data if current else 0,
                 "replica_health": current.replica_health_rate if current else 0.0,
             },
             "scheduling": {
                 "decisions": scheduling.total_decisions,
-                "perfect_locality": self._locality_decisions.get(
-                    LocalityLevel.NODE_LOCAL.value, 0
-                ),
-                "rack_local": self._locality_decisions.get(
-                    LocalityLevel.RACK_LOCAL.value, 0
-                ),
+                "perfect_locality": self._locality_decisions.get(LocalityLevel.NODE_LOCAL.value, 0),
+                "rack_local": self._locality_decisions.get(LocalityLevel.RACK_LOCAL.value, 0),
                 "remote": self._locality_decisions.get(LocalityLevel.REMOTE.value, 0),
             },
             "transfers": {
@@ -522,9 +504,7 @@ class LocalityMetricsCollector:
 
         # Simple trend analysis
         first_half = sum(values[: len(values) // 2]) / (len(values) // 2)
-        second_half = sum(values[len(values) // 2 :]) / (
-            len(values) - len(values) // 2
-        )
+        second_half = sum(values[len(values) // 2 :]) / (len(values) - len(values) // 2)
 
         change = (second_half - first_half) / max(first_half, 0.001)
 
@@ -603,9 +583,7 @@ class LocalityDashboard:
                 {
                     "timestamp": m.window_start.isoformat(),
                     "locality_rate": m.locality_rate,
-                    "transfer_rate": (
-                        m.total_transfers / max(m.scheduling_decisions, 1)
-                    ),
+                    "transfer_rate": (m.total_transfers / max(m.scheduling_decisions, 1)),
                 }
             )
 
