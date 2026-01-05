@@ -687,10 +687,13 @@ class CertificateAuthority:
             cert = x509.load_pem_x509_certificate(cert_pem, default_backend())
 
             # Check validity period
+            # Note: cryptography returns naive datetimes, so we add UTC timezone for comparison
             now = datetime.now(timezone.utc)
-            if now < cert.not_valid_before:
+            cert_not_valid_before = cert.not_valid_before.replace(tzinfo=timezone.utc)
+            cert_not_valid_after = cert.not_valid_after.replace(tzinfo=timezone.utc)
+            if now < cert_not_valid_before:
                 return False, "Certificate not yet valid", None
-            if now > cert.not_valid_after:
+            if now > cert_not_valid_after:
                 return False, "Certificate expired", None
 
             # Verify signature
