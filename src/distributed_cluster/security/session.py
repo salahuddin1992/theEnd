@@ -187,13 +187,13 @@ class Session:
 
     session_id: str
     user_id: str
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=24))
-    last_activity: datetime = field(default_factory=datetime.utcnow)
+    last_activity: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     status: SessionStatus = SessionStatus.ACTIVE
 
     # Authentication state
-    authenticated_at: datetime = field(default_factory=datetime.utcnow)
+    authenticated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     mfa_verified: bool = False
     mfa_verified_at: Optional[datetime] = None
 
