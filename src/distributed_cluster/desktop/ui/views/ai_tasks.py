@@ -628,8 +628,6 @@ class ExecutionResultsPanel(QFrame):
 
     def update_progress(self, progress: float, status: str, completed: int = 0, total: int = 0):
         """Update progress display"""
-        colors = FluentDesignSystem().colors
-
         self._progress_label.setText(f"التقدم: {progress:.0f}%")
 
         # Update progress bar
