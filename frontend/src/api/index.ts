@@ -1,10 +1,11 @@
-import axios from 'axios'
+import apiClient from './client'
 import type { Worker, Job, ClusterStats } from '../store'
 
-const api = axios.create({
-  baseURL: '/api',
-  timeout: 30000,
-})
+// Re-export error utilities
+export * from './errors'
+export { apiClient }
+
+const api = apiClient
 
 // Stats
 export const fetchStats = async (): Promise<ClusterStats> => {

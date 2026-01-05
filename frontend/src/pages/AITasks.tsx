@@ -17,7 +17,6 @@ import {
   GraduationCap,
   Database,
   Sparkles,
-  Server,
   CheckCircle,
   Clock,
   XCircle,

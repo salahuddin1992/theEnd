@@ -1,38 +1,21 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useStore } from '../store'
-import { fetchWorkers, drainWorker, undrainWorker } from '../api'
-import WorkerCard from '../components/WorkerCard'
-import { Server, RefreshCw, Search } from 'lucide-react'
 import { useState } from 'react'
-import clsx from 'clsx'
+import { useStore } from '../store'
+import { useWorkers, useDrainWorker, useUndrainWorker } from '../hooks/useApi'
+import WorkerCard from '../components/WorkerCard'
+import { InlineError } from '../components/ErrorFallback'
+import { SkeletonWorkerCard } from '../components/Skeleton'
+import { Server, RefreshCw, Search } from 'lucide-react'
 
 export default function Workers() {
   const { workers: realtimeWorkers } = useStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const queryClient = useQueryClient()
 
-  const { data: apiWorkers, isLoading, refetch } = useQuery({
-    queryKey: ['workers'],
-    queryFn: fetchWorkers,
-    refetchInterval: 10000,
-  })
+  const { data: apiWorkers, isLoading, error, refetch } = useWorkers()
+  const drainMutation = useDrainWorker()
+  const undrainMutation = useUndrainWorker()
 
   const workers = realtimeWorkers.length > 0 ? realtimeWorkers : (apiWorkers || [])
-
-  const drainMutation = useMutation({
-    mutationFn: drainWorker,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workers'] })
-    },
-  })
-
-  const undrainMutation = useMutation({
-    mutationFn: undrainWorker,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workers'] })
-    },
-  })
 
   // Filter workers
   const filteredWorkers = workers.filter((worker) => {
@@ -63,9 +46,10 @@ export default function Workers() {
         </div>
         <button
           onClick={() => refetch()}
-          className="btn-secondary flex items-center gap-2"
+          disabled={isLoading}
+          className="btn-secondary flex items-center gap-2 disabled:opacity-50"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
@@ -115,10 +99,22 @@ export default function Workers() {
         </select>
       </div>
 
+      {/* Error State */}
+      {error && (
+        <div className="mb-6">
+          <InlineError
+            message="Failed to load workers"
+            onRetry={() => refetch()}
+          />
+        </div>
+      )}
+
       {/* Workers Grid */}
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <RefreshCw className="w-8 h-8 text-nebula-500 animate-spin" />
+      {isLoading && workers.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonWorkerCard key={i} />
+          ))}
         </div>
       ) : filteredWorkers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
