@@ -75,7 +75,10 @@ class JobResult:
             completed_at=datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else None,
             execution_time_seconds=data.get("execution_time_seconds", 0.0),
             worker_id=data.get("worker_id"),
-            created_at=datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.now(timezone.utc),
+            created_at=(
+                datetime.fromisoformat(data["created_at"])
+                if data.get("created_at") else datetime.now(timezone.utc)
+            ),
         )
 
 

@@ -156,7 +156,10 @@ class ModelMetadata:
             versions.append(
                 ModelVersion(
                     version=v.get("version", "1.0"),
-                    created_at=datetime.fromisoformat(v["created_at"]) if "created_at" in v else datetime.now(timezone.utc),
+                    created_at=(
+                        datetime.fromisoformat(v["created_at"])
+                        if "created_at" in v else datetime.now(timezone.utc)
+                    ),
                     size_bytes=v.get("size_bytes", 0),
                     checksum=v.get("checksum", ""),
                     quantization=v.get("quantization"),
@@ -180,8 +183,14 @@ class ModelMetadata:
             tags=data.get("tags", []),
             category=data.get("category", "general"),
             language=data.get("language", ["en"]),
-            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(timezone.utc),
-            updated_at=datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.now(timezone.utc),
+            created_at=(
+                datetime.fromisoformat(data["created_at"])
+                if "created_at" in data else datetime.now(timezone.utc)
+            ),
+            updated_at=(
+                datetime.fromisoformat(data["updated_at"])
+                if "updated_at" in data else datetime.now(timezone.utc)
+            ),
             download_count=data.get("download_count", 0),
             usage_count=data.get("usage_count", 0),
         )

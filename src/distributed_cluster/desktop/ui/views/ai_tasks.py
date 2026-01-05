@@ -11,26 +11,20 @@ Features:
 
 from __future__ import annotations
 
-import asyncio
 import json
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from PySide6.QtCore import Qt, Signal, QThread, QTimer
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (
     QComboBox,
-    QDialog,
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QPlainTextEdit,
     QScrollArea,
-    QSplitter,
     QStackedWidget,
     QTabWidget,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
     QCheckBox,
@@ -43,7 +37,6 @@ from ..components import (
     FluentButton,
     FluentCard,
     FluentInput,
-    FluentProgressRing,
     FluentToggle,
 )
 from ..fluent_design import FluentDesignSystem
@@ -638,7 +631,7 @@ class ExecutionResultsPanel(QFrame):
         # Update status badge
         if status == "completed":
             self._status_badge.setText("مكتمل ✓")
-            self._status_badge.setStyleSheet(f"""
+            self._status_badge.setStyleSheet("""
                 background-color: #10b981;
                 color: white;
                 padding: 4px 12px;
@@ -646,7 +639,7 @@ class ExecutionResultsPanel(QFrame):
             """)
         elif status == "failed":
             self._status_badge.setText("فشل ✗")
-            self._status_badge.setStyleSheet(f"""
+            self._status_badge.setStyleSheet("""
                 background-color: #ef4444;
                 color: white;
                 padding: 4px 12px;
