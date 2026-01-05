@@ -1,33 +1,25 @@
-import { useQuery } from '@tanstack/react-query'
+import { ErrorBoundary } from 'react-error-boundary'
 import { useStore } from '../store'
-import { fetchStats, fetchMetricsHistory } from '../api'
+import { useStats, useMetricsHistory } from '../hooks/useApi'
 import StatCard from '../components/StatCard'
 import ResourceChart from '../components/ResourceChart'
+import { ErrorFallback, InlineError } from '../components/ErrorFallback'
+import { SkeletonStatCard, SkeletonChart } from '../components/Skeleton'
 import {
   Server,
-  Briefcase,
-  Cpu,
-  HardDrive,
   Activity,
   CheckCircle,
   XCircle,
   Clock,
+  Cpu,
+  HardDrive,
 } from 'lucide-react'
 
 export default function Dashboard() {
   const { stats: realtimeStats, workers, jobs } = useStore()
 
-  const { data: stats } = useQuery({
-    queryKey: ['stats'],
-    queryFn: fetchStats,
-    refetchInterval: 5000,
-  })
-
-  const { data: metricsHistory } = useQuery({
-    queryKey: ['metrics-history'],
-    queryFn: () => fetchMetricsHistory('1h'),
-    refetchInterval: 30000,
-  })
+  const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useStats()
+  const { data: metricsHistory, isLoading: metricsLoading, error: metricsError, refetch: refetchMetrics } = useMetricsHistory('1h')
 
   const currentStats = realtimeStats || stats
 
@@ -47,76 +39,107 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Active Workers"
-          value={currentStats?.active_workers || workers.filter((w) => w.status !== 'offline').length}
-          subtitle={`${currentStats?.total_workers || workers.length} total`}
-          icon={Server}
-          color="blue"
-        />
-        <StatCard
-          title="Running Jobs"
-          value={currentStats?.running_jobs || runningJobs}
-          subtitle={`${currentStats?.pending_jobs || pendingJobs} pending`}
-          icon={Activity}
-          color="yellow"
-        />
-        <StatCard
-          title="Completed Jobs"
-          value={currentStats?.completed_jobs || completedJobs}
-          icon={CheckCircle}
-          color="green"
-        />
-        <StatCard
-          title="Failed Jobs"
-          value={currentStats?.failed_jobs || failedJobs}
-          icon={XCircle}
-          color="red"
-        />
-      </div>
-
-      {/* Resource Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard
-          title="CPU Usage"
-          value={`${((currentStats?.used_cpu_cores || 0) / (currentStats?.total_cpu_cores || 1) * 100).toFixed(1)}%`}
-          subtitle={`${currentStats?.used_cpu_cores || 0} / ${currentStats?.total_cpu_cores || 0} cores`}
-          icon={Cpu}
-          color="purple"
-        />
-        <StatCard
-          title="Memory Usage"
-          value={`${((currentStats?.used_memory_gb || 0) / (currentStats?.total_memory_gb || 1) * 100).toFixed(1)}%`}
-          subtitle={`${currentStats?.used_memory_gb || 0} / ${currentStats?.total_memory_gb || 0} GB`}
-          icon={HardDrive}
-          color="green"
-        />
-        <StatCard
-          title="GPU Usage"
-          value={`${currentStats?.used_gpu || 0} / ${currentStats?.total_gpu || 0}`}
-          subtitle="GPUs in use"
-          icon={Activity}
-          color="yellow"
-        />
-      </div>
-
-      {/* Charts */}
-      {metricsHistory && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <ResourceChart
-            data={metricsHistory.cpu}
-            title="CPU Usage Over Time"
-            color="#8B5CF6"
+      {/* Stats Grid with Error Handling */}
+      {statsError ? (
+        <div className="mb-8">
+          <InlineError
+            message="Failed to load cluster stats"
+            onRetry={() => refetchStats()}
           />
-          <ResourceChart
-            data={metricsHistory.memory}
-            title="Memory Usage Over Time"
-            color="#10B981"
+        </div>
+      ) : statsLoading && !currentStats ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonStatCard key={i} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            title="Active Workers"
+            value={currentStats?.active_workers || workers.filter((w) => w.status !== 'offline').length}
+            subtitle={`${currentStats?.total_workers || workers.length} total`}
+            icon={Server}
+            color="blue"
+          />
+          <StatCard
+            title="Running Jobs"
+            value={currentStats?.running_jobs || runningJobs}
+            subtitle={`${currentStats?.pending_jobs || pendingJobs} pending`}
+            icon={Activity}
+            color="yellow"
+          />
+          <StatCard
+            title="Completed Jobs"
+            value={currentStats?.completed_jobs || completedJobs}
+            icon={CheckCircle}
+            color="green"
+          />
+          <StatCard
+            title="Failed Jobs"
+            value={currentStats?.failed_jobs || failedJobs}
+            icon={XCircle}
+            color="red"
           />
         </div>
       )}
+
+      {/* Resource Stats */}
+      {currentStats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <StatCard
+            title="CPU Usage"
+            value={`${((currentStats.used_cpu_cores || 0) / (currentStats.total_cpu_cores || 1) * 100).toFixed(1)}%`}
+            subtitle={`${currentStats.used_cpu_cores || 0} / ${currentStats.total_cpu_cores || 0} cores`}
+            icon={Cpu}
+            color="purple"
+          />
+          <StatCard
+            title="Memory Usage"
+            value={`${((currentStats.used_memory_gb || 0) / (currentStats.total_memory_gb || 1) * 100).toFixed(1)}%`}
+            subtitle={`${currentStats.used_memory_gb || 0} / ${currentStats.total_memory_gb || 0} GB`}
+            icon={HardDrive}
+            color="green"
+          />
+          <StatCard
+            title="GPU Usage"
+            value={`${currentStats.used_gpu || 0} / ${currentStats.total_gpu || 0}`}
+            subtitle="GPUs in use"
+            icon={Activity}
+            color="yellow"
+          />
+        </div>
+      )}
+
+      {/* Charts with Error Boundary */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        {metricsError ? (
+          <div className="mb-8">
+            <InlineError
+              message="Failed to load metrics history"
+              onRetry={() => refetchMetrics()}
+            />
+          </div>
+        ) : metricsLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <SkeletonChart height={250} />
+            <SkeletonChart height={250} />
+          </div>
+        ) : metricsHistory ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <ResourceChart
+              data={metricsHistory.cpu}
+              title="CPU Usage Over Time"
+              color="#8B5CF6"
+            />
+            <ResourceChart
+              data={metricsHistory.memory}
+              title="Memory Usage Over Time"
+              color="#10B981"
+            />
+          </div>
+        ) : null}
+      </ErrorBoundary>
 
       {/* Quick Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

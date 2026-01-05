@@ -1,13 +1,9 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import {
-  Moon,
   Sun,
   Server,
   Bell,
-  Shield,
-  Database,
-  Wifi,
   Globe,
   Save,
 } from 'lucide-react'
