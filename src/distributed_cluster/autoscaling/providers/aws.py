@@ -27,7 +27,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from distributed_cluster.autoscaling.providers.base import (
@@ -280,7 +280,7 @@ class AWSProvider(CloudProvider):
                     instance_type=inst["InstanceType"],
                     zone=inst.get("Placement", {}).get("AvailabilityZone", ""),
                     private_ip=inst.get("PrivateIpAddress"),
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
                     tags=merged_tags,
                     labels=merged_labels,
                 )

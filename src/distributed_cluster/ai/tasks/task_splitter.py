@@ -21,7 +21,7 @@ import re
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Tuple
 
@@ -668,7 +668,7 @@ class DistributedPromptExecutor:
         async with self._semaphore:
             try:
                 result = await executor_fn(prompt)
-                chunk.processed_at = datetime.utcnow()
+                chunk.processed_at = datetime.now(timezone.utc)
                 return result
             except Exception as e:
                 logger.error(f"Chunk {chunk.index} failed: {e}")

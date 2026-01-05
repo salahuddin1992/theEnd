@@ -11,7 +11,7 @@ like priority boosting and resource allocation.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -93,7 +93,7 @@ class PriorityBoost:
         """Check if boost is still active."""
         if self.reverted:
             return False
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and datetime.now(timezone.utc) > self.expires_at:
             return False
         return True
 
@@ -136,7 +136,7 @@ class EnforcementRule:
         if not self.enabled:
             return False
         if self.last_triggered:
-            elapsed = (datetime.utcnow() - self.last_triggered).total_seconds()
+            elapsed = (datetime.now(timezone.utc) - self.last_triggered).total_seconds()
             if elapsed < self.cooldown_seconds:
                 return False
         return True
@@ -267,7 +267,7 @@ class SLAEnforcer:
             action = await self._execute_rule(rule, sla, evaluation)
             if action:
                 actions_taken.append(action)
-                rule.last_triggered = datetime.utcnow()
+                rule.last_triggered = datetime.now(timezone.utc)
 
         return actions_taken
 
@@ -355,7 +355,7 @@ class SLAEnforcer:
                 boosted_priority=current_priority + boost_amount,
                 reason=f"SLA at risk: {evaluation.sla_name}",
                 sla_id=action.sla_id,
-                expires_at=datetime.utcnow() + timedelta(seconds=self.boost_duration),
+                expires_at=datetime.now(timezone.utc) + timedelta(seconds=self.boost_duration),
             )
 
             # Apply boost (would use job manager)
@@ -467,7 +467,7 @@ class SLAEnforcer:
             boosted_priority=boost_amount,
             reason=reason,
             sla_id=sla_id or "manual",
-            expires_at=datetime.utcnow() + timedelta(
+            expires_at=datetime.now(timezone.utc) + timedelta(
                 seconds=duration_seconds or self.boost_duration
             ),
         )

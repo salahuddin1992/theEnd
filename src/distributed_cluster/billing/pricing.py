@@ -10,7 +10,7 @@ for resources and services.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -153,7 +153,7 @@ class PricingRule:
         if not self.enabled:
             return False
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if self.valid_from and now < self.valid_from:
             return False
         if self.valid_until and now > self.valid_until:
@@ -443,7 +443,7 @@ class PricingEngine:
             "prices": {rt: p.to_dict() for rt, p in self._prices.items()},
             "rules": {rid: r.to_dict() for rid, r in self._rules.items()},
             "default_currency": self.default_currency,
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def import_pricing(self, config: Dict[str, Any]) -> None:

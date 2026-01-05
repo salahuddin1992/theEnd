@@ -20,7 +20,7 @@ import pickle
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -550,7 +550,7 @@ class DistributedTrainer:
                 worker.current_step = step
                 worker.loss = loss
                 worker.samples_processed += samples
-                worker.last_heartbeat = datetime.utcnow()
+                worker.last_heartbeat = datetime.now(timezone.utc)
 
                 if metrics:
                     worker.throughput = metrics.get("throughput", 0)

@@ -21,7 +21,7 @@ import asyncio
 import logging
 from collections import OrderedDict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from threading import Lock
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -295,7 +295,7 @@ class ModelCache:
             await self._ensure_capacity(model_id, spec)
 
             # Load the model
-            start_time = datetime.utcnow()
+            start_time = datetime.now(timezone.utc)
 
             model_info = await asyncio.wait_for(
                 self.loader.load(model_id, spec),
@@ -303,9 +303,9 @@ class ModelCache:
             )
 
             if model_info:
-                load_time = (datetime.utcnow() - start_time).total_seconds()
+                load_time = (datetime.now(timezone.utc) - start_time).total_seconds()
                 model_info.load_time_seconds = load_time
-                model_info.loaded_at = datetime.utcnow()
+                model_info.loaded_at = datetime.now(timezone.utc)
                 model_info.state = ModelState.LOADED
 
                 # Add to cache

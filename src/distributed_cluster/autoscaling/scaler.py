@@ -26,7 +26,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -360,7 +360,7 @@ class AutoScalingManager:
         Evaluate metrics and execute scaling
         """
         async with self._lock:
-            self.state.last_evaluation = datetime.utcnow()
+            self.state.last_evaluation = datetime.now(timezone.utc)
 
             # جمع المقاييس
             try:
@@ -446,10 +446,10 @@ class AutoScalingManager:
             event.actual_count = len(worker_ids)
             event.worker_ids = worker_ids
             event.success = True
-            event.completed_at = datetime.utcnow()
+            event.completed_at = datetime.now(timezone.utc)
 
             # تحديث الحالة
-            self.state.last_scale_up = datetime.utcnow()
+            self.state.last_scale_up = datetime.now(timezone.utc)
             self.state.total_scale_ups += 1
             self.state.total_workers_provisioned += len(worker_ids)
             self.state.target_worker_count = self.state.current_worker_count + len(worker_ids)
@@ -466,7 +466,7 @@ class AutoScalingManager:
         except Exception as e:
             event.success = False
             event.error_message = str(e)
-            event.completed_at = datetime.utcnow()
+            event.completed_at = datetime.now(timezone.utc)
             logger.error(f"Scale UP failed: {e}")
 
             for callback in self._on_error:
@@ -532,10 +532,10 @@ class AutoScalingManager:
             event.actual_count = terminated
             event.worker_ids = terminable[:terminated]
             event.success = True
-            event.completed_at = datetime.utcnow()
+            event.completed_at = datetime.now(timezone.utc)
 
             # تحديث الحالة
-            self.state.last_scale_down = datetime.utcnow()
+            self.state.last_scale_down = datetime.now(timezone.utc)
             self.state.total_scale_downs += 1
             self.state.total_workers_terminated += terminated
             self.state.target_worker_count = self.state.current_worker_count - terminated
@@ -552,7 +552,7 @@ class AutoScalingManager:
         except Exception as e:
             event.success = False
             event.error_message = str(e)
-            event.completed_at = datetime.utcnow()
+            event.completed_at = datetime.now(timezone.utc)
             logger.error(f"Scale DOWN failed: {e}")
 
             for callback in self._on_error:
@@ -585,9 +585,9 @@ class AutoScalingManager:
 
         # انتظار انتهاء المهام
         timeout = self.config.drain_timeout_seconds
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
-        while (datetime.utcnow() - start_time).total_seconds() < timeout:
+        while (datetime.now(timezone.utc) - start_time).total_seconds() < timeout:
             all_drained = True
 
             for worker_id in worker_ids:
@@ -617,7 +617,7 @@ class AutoScalingManager:
 
     def _in_cooldown(self) -> bool:
         """هل في فترة تهدئة؟ / Is in cooldown period?"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # تهدئة بعد التوسع
         if self.state.last_scale_up:

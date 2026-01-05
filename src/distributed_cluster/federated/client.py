@@ -19,7 +19,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 import numpy as np
@@ -372,7 +372,7 @@ class FederatedClient:
             dataset_size=self.dataset_size,
             last_participation_round=self._current_round,
             total_rounds_participated=len(self._training_history),
-            last_heartbeat=datetime.utcnow(),
+            last_heartbeat=datetime.now(timezone.utc),
         )
 
     async def receive_model(self, weights: ModelWeights) -> None:

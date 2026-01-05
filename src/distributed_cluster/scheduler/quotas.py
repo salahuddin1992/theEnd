@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -116,7 +116,7 @@ class Quota:
             self.limits[metric].limit = limit
         else:
             self.limits[metric] = QuotaLimit(metric=metric, limit=limit)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def can_submit_job(self, job: Job) -> tuple[bool, str]:
         """هل يمكن إرسال مهمة؟"""
@@ -423,7 +423,7 @@ class QuotaManager:
 
     def _check_rate_limits(self, quota: Quota) -> tuple[bool, str]:
         """التحقق من حدود المعدل."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         scope_id = quota.scope_id
 
         # Hourly limit
@@ -474,7 +474,7 @@ class QuotaManager:
                     quota.confirm_job_started(job)
 
                     # Record rate limit
-                    now = datetime.utcnow()
+                    now = datetime.now(timezone.utc)
                     self._hourly_jobs[quota.scope_id].append(now)
                     self._daily_jobs[quota.scope_id].append(now)
                     return

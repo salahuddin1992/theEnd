@@ -13,7 +13,7 @@ import logging
 import os
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
@@ -272,7 +272,7 @@ class FileTransferManager:
         async with self._semaphore:
             try:
                 transfer.status = TransferStatus.UPLOADING
-                transfer.started_at = datetime.utcnow()
+                transfer.started_at = datetime.now(timezone.utc)
 
                 start_time = asyncio.get_event_loop().time()
 
@@ -296,7 +296,7 @@ class FileTransferManager:
                     await asyncio.sleep(0.01)
 
                 transfer.status = TransferStatus.COMPLETED
-                transfer.completed_at = datetime.utcnow()
+                transfer.completed_at = datetime.now(timezone.utc)
                 transfer.checksum_verified = True
 
                 logger.info(f"Upload completed: {transfer.filename}")
@@ -320,7 +320,7 @@ class FileTransferManager:
         async with self._semaphore:
             try:
                 transfer.status = TransferStatus.DOWNLOADING
-                transfer.started_at = datetime.utcnow()
+                transfer.started_at = datetime.now(timezone.utc)
 
                 # In real implementation, would stream from source
                 # For simulation, create a test file
@@ -345,7 +345,7 @@ class FileTransferManager:
                         await asyncio.sleep(0.01)
 
                 transfer.status = TransferStatus.COMPLETED
-                transfer.completed_at = datetime.utcnow()
+                transfer.completed_at = datetime.now(timezone.utc)
 
                 logger.info(f"Download completed: {transfer.filename}")
 

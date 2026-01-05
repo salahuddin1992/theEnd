@@ -19,7 +19,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
@@ -102,9 +102,9 @@ class TemplateEngine:
 
     def _register_default_functions(self) -> None:
         """تسجيل الدوال الافتراضية"""
-        self._functions["now"] = lambda: datetime.utcnow()
-        self._functions["today"] = lambda: datetime.utcnow().date()
-        self._functions["timestamp"] = lambda: datetime.utcnow().isoformat()
+        self._functions["now"] = lambda: datetime.now(timezone.utc)
+        self._functions["today"] = lambda: datetime.now(timezone.utc).date()
+        self._functions["timestamp"] = lambda: datetime.now(timezone.utc).isoformat()
         self._functions["uuid"] = lambda: str(__import__("uuid").uuid4())
 
     # =========================================================================

@@ -11,7 +11,7 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
@@ -90,7 +90,7 @@ class TokenInfo:
 
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() >= self.expires_at
+        return datetime.now(timezone.utc) >= self.expires_at
 
     def to_dict(self) -> Dict[str, Any]:
         return {

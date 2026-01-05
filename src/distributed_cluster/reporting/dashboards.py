@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -150,14 +150,14 @@ class Dashboard:
     def add_widget(self, widget: Widget) -> None:
         """إضافة أداة"""
         self.widgets.append(widget)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def remove_widget(self, widget_id: str) -> bool:
         """إزالة أداة"""
         for i, widget in enumerate(self.widgets):
             if widget.id == widget_id:
                 del self.widgets[i]
-                self.updated_at = datetime.utcnow()
+                self.updated_at = datetime.now(timezone.utc)
                 return True
         return False
 
@@ -284,7 +284,7 @@ class DashboardManager:
             if hasattr(dashboard, key):
                 setattr(dashboard, key, value)
 
-        dashboard.updated_at = datetime.utcnow()
+        dashboard.updated_at = datetime.now(timezone.utc)
 
         if self.storage:
             await self.storage.save_dashboard(dashboard)
@@ -339,7 +339,7 @@ class DashboardManager:
             if hasattr(widget, key):
                 setattr(widget, key, value)
 
-        dashboard.updated_at = datetime.utcnow()
+        dashboard.updated_at = datetime.now(timezone.utc)
 
         if self.storage:
             await self.storage.save_dashboard(dashboard)

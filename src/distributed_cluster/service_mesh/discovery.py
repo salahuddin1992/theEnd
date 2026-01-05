@@ -8,7 +8,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -99,7 +99,7 @@ class ServiceRegistry:
 
             self._services[instance.service_name][instance.instance_id] = instance
             instance.status = ServiceStatus.HEALTHY
-            instance.last_heartbeat = datetime.utcnow()
+            instance.last_heartbeat = datetime.now(timezone.utc)
 
             logger.info(f"Registered instance {instance.instance_id} for service {instance.service_name}")
 
@@ -155,7 +155,7 @@ class ServiceRegistry:
         with self._lock:
             instance = self.get_instance(service_name, instance_id)
             if instance:
-                instance.last_heartbeat = datetime.utcnow()
+                instance.last_heartbeat = datetime.now(timezone.utc)
                 instance.status = ServiceStatus.HEALTHY
                 return True
             return False

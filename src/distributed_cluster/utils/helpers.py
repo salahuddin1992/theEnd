@@ -538,6 +538,21 @@ def hash_string(s: str, algorithm: str = "sha256") -> str:
 # =============================================================================
 
 
+def utc_now() -> datetime:
+    """
+    الحصول على الوقت الحالي بتوقيت UTC (بديل datetime.utcnow() المهملة)
+    Get current UTC time (replacement for deprecated datetime.utcnow())
+
+    Returns:
+        Timezone-aware datetime in UTC
+
+    Note:
+        datetime.utcnow() is deprecated in Python 3.12+.
+        Use this function instead for timezone-aware UTC datetime.
+    """
+    return datetime.now(timezone.utc)
+
+
 def get_timestamp() -> str:
     """
     الحصول على الطابع الزمني الحالي بصيغة ISO

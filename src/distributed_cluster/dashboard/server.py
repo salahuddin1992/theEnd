@@ -19,7 +19,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -99,7 +99,7 @@ class DashboardServer:
         )
 
         self._running = True
-        self._started_at = datetime.utcnow()
+        self._started_at = datetime.now(timezone.utc)
 
         logger.info(
             f"Dashboard server started at http://{self.config.host}:{self.config.port}"
@@ -279,7 +279,7 @@ class DashboardServer:
         """معالج الصحة"""
         return {
             "status": "healthy" if self.health.is_healthy() else "unhealthy",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     async def _handle_status(self) -> dict[str, Any]:
@@ -288,7 +288,7 @@ class DashboardServer:
             "status": "running",
             "started_at": self._started_at.isoformat() if self._started_at else None,
             "uptime_seconds": (
-                (datetime.utcnow() - self._started_at).total_seconds()
+                (datetime.now(timezone.utc) - self._started_at).total_seconds()
                 if self._started_at else 0
             ),
             "health": self.health.get_status(),

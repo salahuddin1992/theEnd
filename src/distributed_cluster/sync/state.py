@@ -16,7 +16,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
@@ -80,7 +80,7 @@ class StateDelta:
             value=data.get("value"),
             old_value=data.get("old_value"),
             version=data.get("version", 0),
-            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.utcnow(),
+            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.now(timezone.utc),
             node_id=data.get("node_id", ""),
             checksum=data.get("checksum", ""),
         )
@@ -128,7 +128,7 @@ class StateSnapshot:
             snapshot_id=d.get("snapshot_id", str(uuid.uuid4())),
             node_id=d.get("node_id", ""),
             version=d.get("version", 0),
-            timestamp=datetime.fromisoformat(d["timestamp"]) if "timestamp" in d else datetime.utcnow(),
+            timestamp=datetime.fromisoformat(d["timestamp"]) if "timestamp" in d else datetime.now(timezone.utc),
             data=d.get("data", {}),
             checksum=d.get("checksum", ""),
             size_bytes=d.get("size_bytes", 0),
@@ -467,7 +467,7 @@ class StateSync:
             "node_id": self.node_id,
             "version": self._version,
             "checksum": self.checksum,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "state": self._state.copy(),
         }
 

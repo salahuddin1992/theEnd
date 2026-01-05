@@ -9,7 +9,7 @@ Implements query and mutation resolvers.
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -241,8 +241,8 @@ class QueryResolver:
         metrics_service = self.services.get("metrics")
         if not metrics_service:
             return [
-                {"name": "cpu_usage", "value": 45.5, "timestamp": datetime.utcnow().isoformat()},
-                {"name": "memory_usage", "value": 62.3, "timestamp": datetime.utcnow().isoformat()},
+                {"name": "cpu_usage", "value": 45.5, "timestamp": datetime.now(timezone.utc).isoformat()},
+                {"name": "memory_usage", "value": 62.3, "timestamp": datetime.now(timezone.utc).isoformat()},
             ]
 
         metrics = await metrics_service.get_metrics(names=names, since=since)
@@ -282,7 +282,7 @@ class QueryResolver:
             "status": getattr(job, "status", "PENDING"),
             "priority": getattr(job, "priority", "NORMAL"),
             "progress": getattr(job, "progress", 0),
-            "createdAt": getattr(job, "created_at", datetime.utcnow()).isoformat(),
+            "createdAt": getattr(job, "created_at", datetime.now(timezone.utc)).isoformat(),
             "startedAt": getattr(job, "started_at", None),
             "completedAt": getattr(job, "completed_at", None),
             "cpuRequested": getattr(job, "cpu_requested", 1),
@@ -334,7 +334,7 @@ class QueryResolver:
         return {
             "name": getattr(metric, "name", "unknown"),
             "value": getattr(metric, "value", 0),
-            "timestamp": getattr(metric, "timestamp", datetime.utcnow()).isoformat(),
+            "timestamp": getattr(metric, "timestamp", datetime.now(timezone.utc)).isoformat(),
         }
 
     def _format_sla(self, sla: Any) -> Dict[str, Any]:
@@ -358,7 +358,7 @@ class QueryResolver:
             "status": "RUNNING",
             "priority": "NORMAL",
             "progress": 50.0,
-            "createdAt": datetime.utcnow().isoformat(),
+            "createdAt": datetime.now(timezone.utc).isoformat(),
             "cpuRequested": 2.0,
             "memoryRequested": 4096,
             "gpuRequested": 0,
@@ -399,7 +399,7 @@ class QueryResolver:
             "memoryUsed": 40960,
             "memoryUtilization": 50.0,
             "uptime": 86400,
-            "startedAt": datetime.utcnow().isoformat(),
+            "startedAt": datetime.now(timezone.utc).isoformat(),
         }
 
 
@@ -483,7 +483,7 @@ class MutationResolver:
                 "name": input_data.get("name", "New Job"),
                 "status": "PENDING",
                 "priority": input_data.get("priority", "NORMAL"),
-                "createdAt": datetime.utcnow().isoformat(),
+                "createdAt": datetime.now(timezone.utc).isoformat(),
             }
 
         job = await job_manager.submit_job(
@@ -658,7 +658,7 @@ class MutationResolver:
             "name": getattr(job, "name", "Unknown"),
             "status": getattr(job, "status", "PENDING"),
             "priority": getattr(job, "priority", "NORMAL"),
-            "createdAt": getattr(job, "created_at", datetime.utcnow()).isoformat(),
+            "createdAt": getattr(job, "created_at", datetime.now(timezone.utc)).isoformat(),
         }
 
     def _format_worker(self, worker: Any) -> Dict[str, Any]:

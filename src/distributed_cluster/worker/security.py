@@ -18,7 +18,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
 from fastapi import HTTPException, Request
@@ -59,7 +59,7 @@ class APIKey:
     def is_expired(self) -> bool:
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     def has_permission(self, permission: str) -> bool:
         return permission in self.permissions or "*" in self.permissions
@@ -349,7 +349,7 @@ class AuditLogger:
     ) -> None:
         """تسجيل حدث."""
         entry = AuditLogEntry(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             event_type=event_type,
             client_ip=client_ip,
             api_key_id=api_key_id,

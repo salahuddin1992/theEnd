@@ -13,7 +13,7 @@ import logging
 import shutil
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -187,7 +187,7 @@ class TrainingJob:
     def elapsed_time(self) -> float:
         if not self.started_at:
             return 0.0
-        end = self.completed_at or datetime.utcnow()
+        end = self.completed_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -493,7 +493,7 @@ class TrainingPipeline:
             raise ValueError(f"Job not found: {job_id}")
 
         job.status = TrainingJobStatus.RUNNING
-        job.started_at = datetime.utcnow()
+        job.started_at = datetime.now(timezone.utc)
 
         config = job.config
         best_metric = float("inf") if config.early_stopping_mode == "min" else float("-inf")
@@ -583,7 +583,7 @@ class TrainingPipeline:
                     break
 
             job.status = TrainingJobStatus.COMPLETED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
             if config.distributed:
                 trainer.cleanup()
@@ -593,7 +593,7 @@ class TrainingPipeline:
         except Exception as e:
             job.status = TrainingJobStatus.FAILED
             job.error = str(e)
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
             logger.error(f"Training job failed: {job_id}, error: {e}")
 
         return job
@@ -683,7 +683,7 @@ class TrainingPipeline:
         job = self._jobs.get(job_id)
         if job:
             job.status = TrainingJobStatus.CANCELLED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
     def get_best_checkpoint(self, job_id: str) -> Optional[Checkpoint]:
         """Get the best checkpoint for a job."""

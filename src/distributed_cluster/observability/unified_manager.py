@@ -20,7 +20,7 @@ import json
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -192,7 +192,7 @@ class UnifiedObservabilityManager:
             return
 
         with self._lock:
-            self._start_time = datetime.utcnow()
+            self._start_time = datetime.now(timezone.utc)
             self._status = ObservabilityStatus.RUNNING
 
         # Initialize logging
@@ -477,7 +477,7 @@ class UnifiedObservabilityManager:
         """الحصول على حالة النظام."""
         uptime = 0.0
         if self._start_time:
-            uptime = (datetime.utcnow() - self._start_time).total_seconds()
+            uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
 
         # Get health status
         health = HealthStatus.UNKNOWN

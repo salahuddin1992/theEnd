@@ -5,7 +5,7 @@ Database Integration Tests
 Tests for SQLite database persistence.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -67,7 +67,7 @@ class TestWorkerPersistence:
         """Test updating worker heartbeat."""
         await database.save_worker(sample_worker)
 
-        new_time = datetime.utcnow() + timedelta(minutes=5)
+        new_time = datetime.now(timezone.utc) + timedelta(minutes=5)
         new_status = WorkerStatus.BUSY
 
         updated = await database.update_worker_heartbeat(sample_worker.worker_id, new_time, new_status)
@@ -100,7 +100,7 @@ class TestJobPersistence:
             job_id="test-job-1",
             submission=sample_job_submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
         await database.save_job(job)
@@ -122,7 +122,7 @@ class TestJobPersistence:
                 job_id=f"test-job-{i}",
                 submission=sample_job_submission,
                 status=status,
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
             )
             await database.save_job(job)
 
@@ -142,7 +142,7 @@ class TestJobPersistence:
                 submission=sample_job_submission,
                 status=JobStatus.RUNNING,
                 assigned_worker=worker_id if i < 2 else "worker-2",
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
             )
             await database.save_job(job)
 
@@ -157,12 +157,12 @@ class TestJobPersistence:
             job_id="test-job-1",
             submission=sample_job_submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         await database.save_job(job)
 
         # Update to running
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         updated = await database.update_job_status(
             job.job_id, JobStatus.RUNNING, started_at=now, assigned_worker="worker-1"
         )
@@ -187,8 +187,8 @@ class TestJobPersistence:
             submission=sample_job_submission,
             status=JobStatus.COMPLETED,
             result=result,
-            created_at=datetime.utcnow(),
-            completed_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            completed_at=datetime.now(timezone.utc),
         )
         await database.save_job(job)
 
@@ -206,7 +206,7 @@ class TestEventPersistence:
         """Test saving and retrieving events."""
         event = Event(
             event_type=EventType.JOB_SUBMITTED,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="test",
             data={"job_name": "test-job"},
             message="Job submitted for testing",
@@ -223,7 +223,7 @@ class TestEventPersistence:
 
     async def test_events_ordered_by_timestamp(self, database: SQLiteDatabase):
         """Test that events are ordered by timestamp descending."""
-        base_time = datetime.utcnow()
+        base_time = datetime.now(timezone.utc)
 
         for i in range(5):
             event = Event(
@@ -247,7 +247,7 @@ class TestEventPersistence:
         for i in range(20):
             event = Event(
                 event_type=EventType.JOB_COMPLETED,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 source="test",
                 data={},
                 job_id=f"job-{i}",

@@ -15,7 +15,7 @@ import logging
 import threading
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
 from distributed_cluster.models.events import Event, EventType
@@ -45,7 +45,7 @@ class Lease:
         """هل انتهت صلاحية الـ lease؟"""
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
 
 class ClusterState:
@@ -152,7 +152,7 @@ class ClusterState:
 
         يُستدعى دورياً.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         timeout = timedelta(seconds=self.heartbeat_timeout_seconds)
         offline_workers = []
 
@@ -233,7 +233,7 @@ class ClusterState:
                 lease_id=lease_id,
                 job_id=job_id,
                 worker_id=worker_id,
-                expires_at=datetime.utcnow() + timedelta(minutes=5),
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
             )
             self._leases[lease_id] = lease
 

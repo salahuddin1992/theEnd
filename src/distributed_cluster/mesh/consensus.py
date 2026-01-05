@@ -10,7 +10,7 @@ Consensus & Leader Election - التوافق وانتخاب القائد
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Optional, Set
 
@@ -75,7 +75,7 @@ class LeaderElection:
             current_leader=None,
             term=0,
             voted_for=None,
-            last_heartbeat=datetime.utcnow(),
+            last_heartbeat=datetime.now(timezone.utc),
             election_timeout=election_timeout,
         )
 
@@ -114,7 +114,7 @@ class LeaderElection:
             try:
                 if self.state.state != ConsensusState.LEADER:
                     # التحقق من timeout
-                    elapsed = (datetime.utcnow() - self.state.last_heartbeat).total_seconds()
+                    elapsed = (datetime.now(timezone.utc) - self.state.last_heartbeat).total_seconds()
                     if elapsed > self.election_timeout:
                         await self._start_election()
 
@@ -247,7 +247,7 @@ class LeaderElection:
                 self.state.state = ConsensusState.FOLLOWER
                 self.state.current_leader = message.data.get("leader_id")
                 self.state.term = term
-                self.state.last_heartbeat = datetime.utcnow()
+                self.state.last_heartbeat = datetime.now(timezone.utc)
                 self._election_in_progress = False
                 self.node._emit("new_leader", {"leader_id": self.state.current_leader})
 
@@ -257,7 +257,7 @@ class LeaderElection:
             if term >= self.state.term:
                 self.state.current_leader = leader_id
                 self.state.term = term
-                self.state.last_heartbeat = datetime.utcnow()
+                self.state.last_heartbeat = datetime.now(timezone.utc)
                 if self.state.state != ConsensusState.LEADER:
                     self.state.state = ConsensusState.FOLLOWER
 

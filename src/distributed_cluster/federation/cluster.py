@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
@@ -284,7 +284,7 @@ class FederatedCluster:
             await self._ping()
             self._connected = True
             self.info.status = ClusterStatus.HEALTHY
-            self.info.last_seen = datetime.utcnow()
+            self.info.last_seen = datetime.now(timezone.utc)
 
             logger.info(f"Connected to cluster {self.info.cluster_id}")
             return True
@@ -327,7 +327,7 @@ class FederatedCluster:
             else:
                 self.info.status = ClusterStatus.UNHEALTHY
 
-            self.info.last_heartbeat = datetime.utcnow()
+            self.info.last_heartbeat = datetime.now(timezone.utc)
             return self.info.status
 
         except Exception as e:

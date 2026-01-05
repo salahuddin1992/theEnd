@@ -285,7 +285,7 @@ class WorkflowEngine:
 
         version = await self._create_version(workflow, definition, changelog, updated_by)
         workflow.current_version_id = version.version_id
-        workflow.updated_at = datetime.utcnow()
+        workflow.updated_at = datetime.now(timezone.utc)
 
         logger.info(f"Updated workflow {workflow_id} to version {version.version_number}")
         return version
@@ -352,7 +352,7 @@ class WorkflowEngine:
             trigger=trigger,
             triggered_by=triggered_by,
             input_params=merged_params,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
         )
 
         workflow.runs.append(run)
@@ -487,7 +487,7 @@ class WorkflowEngine:
         # Cancel the DAG
         await self.dag_executor.cancel_dag(run.dag_id)
         run.status = DAGStatus.CANCELLED
-        run.completed_at = datetime.utcnow()
+        run.completed_at = datetime.now(timezone.utc)
 
         logger.info(f"Cancelled workflow run {run_id}")
         return True
@@ -499,7 +499,7 @@ class WorkflowEngine:
             return False
 
         workflow.status = WorkflowStatus.ACTIVE
-        workflow.updated_at = datetime.utcnow()
+        workflow.updated_at = datetime.now(timezone.utc)
         return True
 
     async def pause_workflow(self, workflow_id: str) -> bool:
@@ -509,7 +509,7 @@ class WorkflowEngine:
             return False
 
         workflow.status = WorkflowStatus.PAUSED
-        workflow.updated_at = datetime.utcnow()
+        workflow.updated_at = datetime.now(timezone.utc)
         return True
 
     async def archive_workflow(self, workflow_id: str) -> bool:
@@ -519,7 +519,7 @@ class WorkflowEngine:
             return False
 
         workflow.status = WorkflowStatus.ARCHIVED
-        workflow.updated_at = datetime.utcnow()
+        workflow.updated_at = datetime.now(timezone.utc)
         return True
 
     async def notify_dag_completed(self, dag: DAG) -> None:
@@ -528,7 +528,7 @@ class WorkflowEngine:
         for run in self._runs.values():
             if run.dag_id == dag.dag_id:
                 run.status = dag.status
-                run.completed_at = datetime.utcnow()
+                run.completed_at = datetime.now(timezone.utc)
 
                 if run.started_at:
                     run.duration_seconds = (run.completed_at - run.started_at).total_seconds()
@@ -595,7 +595,7 @@ class WorkflowScheduler:
         """حلقة الجدولة."""
         while self._running:
             try:
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
 
                 workflows = await self.engine.list_workflows(status=WorkflowStatus.ACTIVE)
 

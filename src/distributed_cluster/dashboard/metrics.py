@@ -19,7 +19,7 @@ import asyncio
 import logging
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -74,7 +74,7 @@ class MetricSeries:
     def add_point(self, value: float, labels: Optional[dict[str, str]] = None) -> None:
         """إضافة نقطة بيانات"""
         point = MetricPoint(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             value=value,
             labels=labels or {},
         )
@@ -333,7 +333,7 @@ class MetricsCollector:
 
     async def _cleanup_old_data(self) -> None:
         """تنظيف البيانات القديمة"""
-        cutoff = datetime.utcnow() - timedelta(hours=self.retention_hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=self.retention_hours)
 
         for series in self._metrics.values():
             while series.points and series.points[0].timestamp < cutoff:

@@ -16,7 +16,7 @@ import json
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -399,8 +399,8 @@ class JobTemplate:
             post_run_commands=data.get("post_run_commands", []),
             labels=data.get("labels", {}),
             annotations=data.get("annotations", {}),
-            created_at=created_at or datetime.utcnow(),
-            updated_at=updated_at or datetime.utcnow(),
+            created_at=created_at or datetime.now(timezone.utc),
+            updated_at=updated_at or datetime.now(timezone.utc),
             created_by=data.get("created_by"),
         )
 
@@ -495,7 +495,7 @@ class TemplateManager:
             template_dict["version"] = ".".join(parts)
             template_dict["template_id"] = str(uuid.uuid4())
 
-        template_dict["updated_at"] = datetime.utcnow().isoformat()
+        template_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
 
         new_template = JobTemplate.from_dict(template_dict)
 

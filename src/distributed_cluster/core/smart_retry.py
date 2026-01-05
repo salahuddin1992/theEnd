@@ -27,7 +27,7 @@ import random
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import (
     Any,
@@ -85,7 +85,7 @@ class RetryContext:
     @property
     def elapsed_seconds(self) -> float:
         """Total elapsed time since first attempt."""
-        return (datetime.utcnow() - self.start_time).total_seconds()
+        return (datetime.now(timezone.utc) - self.start_time).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -562,7 +562,7 @@ class SmartRetryManager:
             operation_name=op_name,
             attempt=0,
             total_attempts=cfg.max_attempts,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
             last_delay_seconds=0.0,
             total_delay_seconds=0.0,
             last_exception=None,
@@ -612,7 +612,7 @@ class SmartRetryManager:
             except Exception as e:
                 last_exception = e
                 context.last_exception = e
-                context.exception_history.append((attempt, type(e).__name__, datetime.utcnow()))
+                context.exception_history.append((attempt, type(e).__name__, datetime.now(timezone.utc)))
 
                 # Update exception stats
                 exc_type = type(e).__name__

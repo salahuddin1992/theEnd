@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -252,7 +252,7 @@ class ClusterController:
             logger.warning(f"No reconciler for {request.resource_type}")
             return
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         self._reconcile_count += 1
 
         try:
@@ -261,7 +261,7 @@ class ClusterController:
             else:
                 result = handler(request)
 
-            self._last_reconcile_time = datetime.utcnow()
+            self._last_reconcile_time = datetime.now(timezone.utc)
 
             if result == ReconcileResult.REQUEUE:
                 await asyncio.sleep(self.config.requeue_delay_seconds)
@@ -269,7 +269,7 @@ class ClusterController:
             elif result == ReconcileResult.ERROR:
                 self._reconcile_errors += 1
 
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
             logger.debug(
                 f"Reconciled {request.resource_type}/{request.name} "
                 f"in {duration:.2f}s with result {result.value}"
@@ -579,7 +579,7 @@ class ClusterController:
                     "phase": phase.value,
                     "readyWorkers": ready_workers,
                     "totalWorkers": total_workers,
-                    "lastUpdated": datetime.utcnow().isoformat(),
+                    "lastUpdated": datetime.now(timezone.utc).isoformat(),
                 }
             }
 

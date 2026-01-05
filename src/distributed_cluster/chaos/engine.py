@@ -13,7 +13,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -136,7 +136,7 @@ class ChaosExperiment:
         """Get elapsed duration in seconds."""
         if not self.started_at:
             return 0.0
-        end = self.completed_at or datetime.utcnow()
+        end = self.completed_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -297,7 +297,7 @@ class ChaosEngine:
 
             experiment.status = ExperimentStatus.SCHEDULED
             experiment.metadata["approved_by"] = approved_by
-            experiment.metadata["approved_at"] = datetime.utcnow().isoformat()
+            experiment.metadata["approved_at"] = datetime.now(timezone.utc).isoformat()
 
         logger.info(f"Experiment {experiment_id} approved by {approved_by}")
         return True
@@ -338,7 +338,7 @@ class ChaosEngine:
 
             # Start experiment
             experiment.status = ExperimentStatus.RUNNING
-            experiment.started_at = datetime.utcnow()
+            experiment.started_at = datetime.now(timezone.utc)
             self._running_experiments.add(experiment_id)
 
         logger.info(f"Starting chaos experiment: {experiment.name}")
@@ -367,7 +367,7 @@ class ChaosEngine:
             pre_metrics = await self._collect_metrics()
             metrics["pre_experiment"] = pre_metrics
 
-            observations.append(f"Experiment started at {datetime.utcnow().isoformat()}")
+            observations.append(f"Experiment started at {datetime.now(timezone.utc).isoformat()}")
 
             # Inject fault
             if self._fault_injector:
@@ -505,7 +505,7 @@ class ChaosEngine:
             return result
 
         finally:
-            experiment.completed_at = datetime.utcnow()
+            experiment.completed_at = datetime.now(timezone.utc)
             self._stats["total_duration_seconds"] += experiment.duration_elapsed
             self._running_experiments.discard(experiment.experiment_id)
             self._experiment_tasks.pop(experiment.experiment_id, None)
@@ -524,7 +524,7 @@ class ChaosEngine:
         # - Response times
         # - Error rates
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "healthy_workers": 5,
             "running_jobs": 10,
             "error_rate": 0.01,

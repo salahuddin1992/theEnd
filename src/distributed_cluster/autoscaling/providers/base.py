@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
@@ -459,9 +459,9 @@ class CloudProvider(ABC):
         import asyncio
         from datetime import datetime, timedelta
 
-        deadline = datetime.utcnow() + timedelta(seconds=timeout_seconds)
+        deadline = datetime.now(timezone.utc) + timedelta(seconds=timeout_seconds)
 
-        while datetime.utcnow() < deadline:
+        while datetime.now(timezone.utc) < deadline:
             all_ready = True
 
             for instance_id in instance_ids:

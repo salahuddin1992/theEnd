@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Callable, Dict, List, Optional
 
 from .mdns import MDNSDiscovery, ServiceInfo, MASTER_SERVICE, WORKER_SERVICE
@@ -292,7 +292,7 @@ class DiscoveryManager:
                 self.on_worker_found(service)
         else:
             # Update last seen
-            self._services[service.service_id].last_seen = datetime.utcnow()
+            self._services[service.service_id].last_seen = datetime.now(timezone.utc)
             self._services[service.service_id].healthy = True
 
     async def _cleanup_loop(self) -> None:
@@ -301,7 +301,7 @@ class DiscoveryManager:
             try:
                 await asyncio.sleep(30)  # Check every 30 seconds
 
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
                 stale_threshold = now - timedelta(seconds=self.stale_timeout)
 
                 stale_services = []

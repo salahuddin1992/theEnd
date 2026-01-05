@@ -13,7 +13,7 @@ import logging
 import socket
 import struct
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class BroadcastMessage:
     host: str
     port: int
     properties: Dict[str, str] = field(default_factory=dict)
-    timestamp: float = field(default_factory=lambda: datetime.utcnow().timestamp())
+    timestamp: float = field(default_factory=lambda: datetime.now(timezone.utc).timestamp())
 
     def to_bytes(self) -> bytes:
         """تحويل إلى بايتات."""
@@ -63,7 +63,7 @@ class BroadcastMessage:
                 host=payload["host"],
                 port=payload["port"],
                 properties=payload.get("props", {}),
-                timestamp=payload.get("ts", datetime.utcnow().timestamp()),
+                timestamp=payload.get("ts", datetime.now(timezone.utc).timestamp()),
             )
         except Exception as e:
             logger.error(f"Failed to parse message: {e}")

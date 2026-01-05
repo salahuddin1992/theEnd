@@ -12,7 +12,7 @@ API لوحة تحكم المدير:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -174,7 +174,7 @@ def create_dashboard_router(
     """
     router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
 
     # =========================================================================
     # Cluster Overview
@@ -184,7 +184,7 @@ def create_dashboard_router(
     async def get_cluster_overview():
         """نظرة عامة على الكلاستر."""
         workers = await database.get_all_workers()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Worker stats
         online = [w for w in workers if w.status.value in ("ready", "busy")]
@@ -284,7 +284,7 @@ def create_dashboard_router(
                 completed_jobs=w.completed_jobs_count,
                 failed_jobs=w.failed_jobs_count,
                 last_heartbeat=w.last_heartbeat.isoformat() if w.last_heartbeat else None,
-                uptime_seconds=(datetime.utcnow() - w.registered_at).total_seconds() if w.registered_at else None,
+                uptime_seconds=(datetime.now(timezone.utc) - w.registered_at).total_seconds() if w.registered_at else None,
                 tags=w.tags,
             )
             for w in workers
@@ -311,7 +311,7 @@ def create_dashboard_router(
                 completed_jobs=worker.completed_jobs_count,
                 failed_jobs=worker.failed_jobs_count,
                 last_heartbeat=worker.last_heartbeat.isoformat() if worker.last_heartbeat else None,
-                uptime_seconds=(datetime.utcnow() - worker.registered_at).total_seconds(),
+                uptime_seconds=(datetime.now(timezone.utc) - worker.registered_at).total_seconds(),
                 tags=worker.tags,
             ),
             "active_jobs": [j.job_id for j in jobs if j.status.value == "running"],

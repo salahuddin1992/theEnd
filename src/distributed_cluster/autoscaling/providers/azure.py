@@ -28,7 +28,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from distributed_cluster.autoscaling.providers.base import (
@@ -443,7 +443,7 @@ class AzureProvider(CloudProvider):
                     state=InstanceState.PENDING,
                     instance_type=vm_size,
                     zone=self.location,
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
                     tags=azure_tags,
                     labels=merged_labels,
                 )

@@ -256,6 +256,10 @@ class RateLimitMiddleware(Middleware):
 class CORSMiddleware(Middleware):
     """
     CORS (Cross-Origin Resource Sharing) middleware.
+
+    Security Note:
+        Default is empty list (no CORS) for security.
+        Use specific origins in production, never ["*"] with credentials.
     """
 
     def __init__(
@@ -266,7 +270,8 @@ class CORSMiddleware(Middleware):
         allow_credentials: bool = False,
         max_age: int = 86400,
     ):
-        self.allowed_origins = allowed_origins or ["*"]
+        # Security: default to empty list (no CORS) instead of ["*"]
+        self.allowed_origins = allowed_origins or []
         self.allowed_methods = allowed_methods or [
             "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ]
@@ -296,7 +301,10 @@ class CORSMiddleware(Middleware):
 
     def _add_cors_headers(self, response: GatewayResponse, origin: str) -> None:
         """Add CORS headers to response."""
-        if "*" in self.allowed_origins:
+        if not self.allowed_origins:
+            # No CORS configured - don't add any headers
+            return
+        elif "*" in self.allowed_origins:
             response.set_header("access-control-allow-origin", "*")
         elif origin in self.allowed_origins:
             response.set_header("access-control-allow-origin", origin)

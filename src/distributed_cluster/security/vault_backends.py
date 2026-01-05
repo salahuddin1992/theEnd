@@ -15,7 +15,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from distributed_cluster.security.secrets import (
@@ -176,7 +176,7 @@ class HashiCorpVaultStore(VaultBackend):
                 secret_type=SecretType.OPAQUE,
                 version=metadata_resp.get("version", 1),
                 created_at=datetime.fromisoformat(
-                    metadata_resp.get("created_time", datetime.utcnow().isoformat()).replace("Z", "")
+                    metadata_resp.get("created_time", datetime.now(timezone.utc).isoformat()).replace("Z", "")
                 ),
             )
 
@@ -403,7 +403,7 @@ class AWSSecretsManagerStore(VaultBackend):
             metadata = SecretMetadata(
                 name=name,
                 namespace=namespace,
-                created_at=response.get("CreatedDate", datetime.utcnow()),
+                created_at=response.get("CreatedDate", datetime.now(timezone.utc)),
             )
 
             # Encode as bytes
@@ -485,7 +485,7 @@ class AWSSecretsManagerStore(VaultBackend):
                     secrets.append(SecretMetadata(
                         name=name,
                         namespace=ns,
-                        created_at=secret.get("CreatedDate", datetime.utcnow()),
+                        created_at=secret.get("CreatedDate", datetime.now(timezone.utc)),
                     ))
 
             return secrets
@@ -614,8 +614,8 @@ class AzureKeyVaultStore(VaultBackend):
             metadata = SecretMetadata(
                 name=name,
                 namespace=namespace,
-                created_at=azure_secret.properties.created_on or datetime.utcnow(),
-                updated_at=azure_secret.properties.updated_on or datetime.utcnow(),
+                created_at=azure_secret.properties.created_on or datetime.now(timezone.utc),
+                updated_at=azure_secret.properties.updated_on or datetime.now(timezone.utc),
             )
 
             data = {k: v.encode("utf-8") for k, v in secret_data.items()}
@@ -672,7 +672,7 @@ class AzureKeyVaultStore(VaultBackend):
                 secrets.append(SecretMetadata(
                     name=name,
                     namespace=ns,
-                    created_at=props.created_on or datetime.utcnow(),
+                    created_at=props.created_on or datetime.now(timezone.utc),
                 ))
 
             return secrets

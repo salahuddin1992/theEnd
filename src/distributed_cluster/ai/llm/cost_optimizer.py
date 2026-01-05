@@ -16,7 +16,7 @@ import json
 import logging
 import statistics
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -268,7 +268,7 @@ class CostOptimizer:
                     provider: metrics.to_dict()
                     for provider, metrics in self._provider_metrics.items()
                 },
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(path, "w") as f:
@@ -583,7 +583,7 @@ class CostOptimizer:
             توقع التكاليف
         """
         daily_costs = []
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Get historical daily costs
         for i in range(days_history):
@@ -711,7 +711,7 @@ class CostOptimizer:
 
         metrics.total_requests = new_count
         metrics.total_cost += self.estimate_cost(model, input_tokens, output_tokens)
-        metrics.last_used = datetime.utcnow()
+        metrics.last_used = datetime.now(timezone.utc)
 
         if error:
             metrics.last_error = error
@@ -795,7 +795,7 @@ class CostOptimizer:
                 "top_action": savings[0].action if savings else None,
                 "forecast_trend": forecast.trend,
             },
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
 

@@ -10,7 +10,7 @@ import base64
 import hashlib
 import pytest
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 
@@ -249,7 +249,7 @@ class TestSessionManager:
         session, _ = manager.create_session(user_id="user-123")
 
         # Force expiration
-        session.expires_at = datetime.utcnow() - timedelta(hours=1)
+        session.expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
         manager.store.update(session)
 
         validated, error = manager.validate_session(session.session_id)
@@ -403,7 +403,7 @@ class TestPolicyEngine:
         )
 
         # This test depends on current time
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         hour_before = (now - timedelta(hours=1)).strftime("%H:%M")
         hour_after = (now + timedelta(hours=1)).strftime("%H:%M")
 

@@ -6,7 +6,7 @@ import fnmatch
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -171,7 +171,7 @@ class Policy:
 
             elif condition_type == "time_range":
                 # Check if current time is within range
-                now = datetime.utcnow().time()
+                now = datetime.now(timezone.utc).time()
                 start = datetime.strptime(condition_value["start"], "%H:%M").time()
                 end = datetime.strptime(condition_value["end"], "%H:%M").time()
                 if not (start <= now <= end):

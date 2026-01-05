@@ -14,7 +14,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from distributed_cluster.multitenancy.tenant import (
@@ -182,7 +182,7 @@ class TenantManager:
 
             # Activate
             tenant.status = TenantStatus.ACTIVE
-            tenant.activated_at = datetime.utcnow()
+            tenant.activated_at = datetime.now(timezone.utc)
 
             # Store
             self._tenants[tenant.id] = tenant
@@ -256,7 +256,7 @@ class TenantManager:
             if metadata:
                 tenant.metadata.update(metadata)
 
-            tenant.updated_at = datetime.utcnow()
+            tenant.updated_at = datetime.now(timezone.utc)
 
             await self._emit_event("updated", tenant)
 
@@ -275,9 +275,9 @@ class TenantManager:
                 raise ValueError(f"Tenant not found: {tenant_id}")
 
             tenant.status = TenantStatus.SUSPENDED
-            tenant.suspended_at = datetime.utcnow()
+            tenant.suspended_at = datetime.now(timezone.utc)
             tenant.suspension_reason = reason
-            tenant.updated_at = datetime.utcnow()
+            tenant.updated_at = datetime.now(timezone.utc)
 
             # Cancel active jobs
             await self._cancel_tenant_jobs(tenant)
@@ -297,7 +297,7 @@ class TenantManager:
             tenant.status = TenantStatus.ACTIVE
             tenant.suspended_at = None
             tenant.suspension_reason = None
-            tenant.updated_at = datetime.utcnow()
+            tenant.updated_at = datetime.now(timezone.utc)
 
             await self._emit_event("activated", tenant)
 
@@ -320,7 +320,7 @@ class TenantManager:
 
             # Mark as terminating
             tenant.status = TenantStatus.TERMINATING
-            tenant.updated_at = datetime.utcnow()
+            tenant.updated_at = datetime.now(timezone.utc)
 
             # Cleanup resources
             await self._cleanup_tenant(tenant)
@@ -378,7 +378,7 @@ class TenantManager:
                 usage.jobs_today += int(delta)
                 usage.total_jobs += int(delta)
 
-        usage.last_activity = datetime.utcnow()
+        usage.last_activity = datetime.now(timezone.utc)
 
         # Check for quota exceeded
         if self.config.enforce_quotas:
@@ -563,7 +563,7 @@ class TenantManager:
                 cancelled_count = 0
                 for job in jobs:
                     job["status"] = "cancelled"
-                    job["cancelled_at"] = datetime.utcnow().isoformat()
+                    job["cancelled_at"] = datetime.now(timezone.utc).isoformat()
                     job["cancellation_reason"] = f"Tenant {tenant.status.value}"
                     await self.storage.save(f"job:{job['id']}", job)
                     cancelled_count += 1
@@ -586,7 +586,7 @@ class TenantManager:
         exceeded = any(p >= 100 for p in usage_percent.values())
         if exceeded and tenant.status == TenantStatus.ACTIVE:
             tenant.status = TenantStatus.QUOTA_EXCEEDED
-            tenant.updated_at = datetime.utcnow()
+            tenant.updated_at = datetime.now(timezone.utc)
             logger.warning(f"Tenant {tenant.name} exceeded quota")
 
         # Check for warning
@@ -626,7 +626,7 @@ class TenantManager:
                 "warning_resources": warning_resources,
                 "usage_percent": usage_percent,
                 "threshold": self.config.quota_warning_threshold * 100,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             # Send via configured notification channels
@@ -771,7 +771,7 @@ NebulaCompute Team
             try:
                 await asyncio.sleep(3600)  # Every hour
 
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
                 for tenant in list(self._tenants.values()):
                     # Cleanup terminated tenants
                     if tenant.status == TenantStatus.TERMINATED:

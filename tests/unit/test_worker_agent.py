@@ -4,7 +4,7 @@ Tests for Worker Agent
 """
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -235,7 +235,7 @@ class TestWorkerAgentJobExecution:
             submission=submission,
             status=JobStatus.SCHEDULED,
             assigned_worker="worker-123",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Mock executor
@@ -277,7 +277,7 @@ class TestWorkerAgentJobExecution:
             submission=submission,
             status=JobStatus.SCHEDULED,
             assigned_worker="worker-123",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Mock executor with failure

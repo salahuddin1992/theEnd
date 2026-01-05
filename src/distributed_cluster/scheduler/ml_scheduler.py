@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import pickle
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -578,7 +578,7 @@ class MLScheduler:
             pickle.dump(
                 {
                     "history_size": len(self._history),
-                    "saved_at": datetime.utcnow().isoformat(),
+                    "saved_at": datetime.now(timezone.utc).isoformat(),
                 },
                 f,
             )

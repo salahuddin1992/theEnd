@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -158,7 +158,7 @@ class ScheduleConfig:
 
     def get_next_run(self, from_time: Optional[datetime] = None) -> datetime:
         """حساب موعد التشغيل التالي"""
-        now = from_time or datetime.utcnow()
+        now = from_time or datetime.now(timezone.utc)
 
         if self.schedule_type == ScheduleType.INTERVAL:
             return now + timedelta(hours=self.interval_hours)
@@ -358,7 +358,7 @@ class BackupScheduler:
         """حلقة المجدول"""
         while self._running:
             try:
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
 
                 for job in self._jobs.values():
                     if not job.config.enabled:
@@ -410,7 +410,7 @@ class BackupScheduler:
                     job.last_status = f"failed: {str(e)}"
 
         # Update timing
-        job.last_run = datetime.utcnow()
+        job.last_run = datetime.now(timezone.utc)
         job.next_run = job.config.get_next_run()
 
         # Run cleanup if configured

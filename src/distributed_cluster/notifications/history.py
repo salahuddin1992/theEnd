@@ -22,7 +22,7 @@ import json
 import logging
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -119,7 +119,7 @@ class NotificationHistory:
         results = await history.search(HistoryQuery(
             search_text="error",
             priority=NotificationPriority.HIGH,
-            start_time=datetime.utcnow() - timedelta(hours=24),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=24),
         ))
 
         # Get statistics
@@ -656,7 +656,7 @@ class NotificationHistory:
 
         if self.retention_policy in retention_days:
             days = retention_days[self.retention_policy]
-            cutoff = datetime.utcnow() - timedelta(days=days)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=days)
             deleted += await self.delete_before(cutoff)
 
         # Count-based retention

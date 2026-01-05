@@ -79,7 +79,7 @@ class Schedule:
 
     def next_run_time(self, after: Optional[datetime] = None) -> Optional[datetime]:
         """حساب وقت التشغيل التالي."""
-        now = after or datetime.utcnow()
+        now = after or datetime.now(timezone.utc)
 
         if self.schedule_type == ScheduleType.ONCE:
             if self.run_at and self.run_at > now:
@@ -244,7 +244,7 @@ class NotificationScheduler:
         # Schedule one-time notification
         job = await scheduler.schedule_once(
             notification,
-            run_at=datetime.utcnow() + timedelta(hours=1),
+            run_at=datetime.now(timezone.utc) + timedelta(hours=1),
         )
 
         # Schedule recurring notification
@@ -346,7 +346,7 @@ class NotificationScheduler:
                     next_run=datetime.fromisoformat(row[4]) if row[4] else None,
                     last_run=datetime.fromisoformat(row[5]) if row[5] else None,
                     run_count=row[6] or 0,
-                    created_at=datetime.fromisoformat(row[7]) if row[7] else datetime.utcnow(),
+                    created_at=datetime.fromisoformat(row[7]) if row[7] else datetime.now(timezone.utc),
                     error=row[8],
                 )
 
@@ -429,7 +429,7 @@ class NotificationScheduler:
 
     async def _process_due_jobs(self) -> None:
         """Process jobs that are due."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         async with self._lock:
             while self._heap and self._heap[0].next_run and self._heap[0].next_run <= now:
@@ -461,7 +461,7 @@ class NotificationScheduler:
                     logger.info(f"Scheduled notification: {job.notification.title}")
                     success = True
 
-                job.last_run = datetime.utcnow()
+                job.last_run = datetime.now(timezone.utc)
                 job.run_count += 1
                 job.error = None
 
@@ -482,7 +482,7 @@ class NotificationScheduler:
                 if job.schedule.max_runs and job.run_count >= job.schedule.max_runs:
                     job.status = JobStatus.COMPLETED
                 # Check end time
-                elif job.schedule.end_time and datetime.utcnow() >= job.schedule.end_time:
+                elif job.schedule.end_time and datetime.now(timezone.utc) >= job.schedule.end_time:
                     job.status = JobStatus.COMPLETED
                 else:
                     job.next_run = job.schedule.next_run_time(after=job.last_run)

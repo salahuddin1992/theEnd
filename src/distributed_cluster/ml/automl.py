@@ -13,7 +13,7 @@ import random
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -535,7 +535,7 @@ class AutoMLPipeline:
             raise ValueError(f"Job not found: {job_id}")
 
         job.status = AutoMLJobStatus.RUNNING
-        job.started_at = datetime.utcnow()
+        job.started_at = datetime.now(timezone.utc)
 
         try:
             # Run searches for each model type
@@ -560,13 +560,13 @@ class AutoMLPipeline:
                 job.best_score = best_trial.objective_value
 
             job.status = AutoMLJobStatus.COMPLETED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
             logger.info(f"Completed AutoML job: {job_id}")
 
         except Exception as e:
             job.status = AutoMLJobStatus.FAILED
             job.error = str(e)
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
             logger.error(f"AutoML job failed: {job_id}, error: {e}")
 
         return job
@@ -578,7 +578,7 @@ class AutoMLPipeline:
     ) -> None:
         """Run a hyperparameter search."""
         search.status = "running"
-        search.started_at = datetime.utcnow()
+        search.started_at = datetime.now(timezone.utc)
 
         # Create search strategy
         if search.algorithm == SearchAlgorithm.RANDOM:
@@ -594,7 +594,7 @@ class AutoMLPipeline:
         while not strategy.is_complete(search.trials):
             # Check time budget
             if job.config.time_budget_minutes > 0:
-                elapsed = (datetime.utcnow() - job.started_at).total_seconds() / 60
+                elapsed = (datetime.now(timezone.utc) - job.started_at).total_seconds() / 60
                 if elapsed >= job.config.time_budget_minutes:
                     break
 
@@ -625,7 +625,7 @@ class AutoMLPipeline:
                     break
 
         search.status = "completed"
-        search.completed_at = datetime.utcnow()
+        search.completed_at = datetime.now(timezone.utc)
 
     async def _run_trial(
         self,
@@ -637,7 +637,7 @@ class AutoMLPipeline:
         import time
 
         trial.status = "running"
-        trial.started_at = datetime.utcnow()
+        trial.started_at = datetime.now(timezone.utc)
         start_time = time.time()
 
         try:
@@ -657,7 +657,7 @@ class AutoMLPipeline:
             trial.error = str(e)
 
         finally:
-            trial.completed_at = datetime.utcnow()
+            trial.completed_at = datetime.now(timezone.utc)
             trial.duration_seconds = time.time() - start_time
 
     def cancel_job(self, job_id: str) -> None:
@@ -665,7 +665,7 @@ class AutoMLPipeline:
         job = self._jobs.get(job_id)
         if job:
             job.status = AutoMLJobStatus.CANCELLED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
     def get_best_model(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Get the best model from a completed job."""

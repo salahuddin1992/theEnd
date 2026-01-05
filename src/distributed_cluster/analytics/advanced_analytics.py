@@ -17,7 +17,7 @@ import logging
 import statistics
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
@@ -200,7 +200,7 @@ class AnomalyDetector:
 
         إضافة نقطة بيانات والتحقق من الشذوذ.
         """
-        timestamp = timestamp or datetime.utcnow()
+        timestamp = timestamp or datetime.now(timezone.utc)
 
         async with self._lock:
             # Initialize window if needed
@@ -359,7 +359,7 @@ class AnomalyDetector:
             "metrics_tracked": len(self._windows),
             "active_anomalies": len([
                 a for a in self._anomalies
-                if a.timestamp > datetime.utcnow() - timedelta(hours=1)
+                if a.timestamp > datetime.now(timezone.utc) - timedelta(hours=1)
             ]),
         }
 
@@ -392,7 +392,7 @@ class WorkloadClassifier:
         timestamp: Optional[datetime] = None,
     ) -> None:
         """Add a workload sample for classification."""
-        timestamp = timestamp or datetime.utcnow()
+        timestamp = timestamp or datetime.now(timezone.utc)
 
         sample = {
             "cpu_usage": cpu_usage,
@@ -688,7 +688,7 @@ class PatternAnalyzer:
 
     async def add_event(self, event: Dict[str, Any]) -> None:
         """Add an event to the pattern buffer."""
-        event["timestamp"] = event.get("timestamp", datetime.utcnow())
+        event["timestamp"] = event.get("timestamp", datetime.now(timezone.utc))
         self._sequence_buffer.append(event)
 
     async def detect_patterns(self) -> List[PatternMatch]:
@@ -853,7 +853,7 @@ class AdvancedAnalyticsEngine:
         self._running = False
         self._stats = {
             "events_processed": 0,
-            "start_time": datetime.utcnow(),
+            "start_time": datetime.now(timezone.utc),
         }
 
     async def start(self) -> None:
@@ -933,7 +933,7 @@ class AdvancedAnalyticsEngine:
 
         return {
             **self._stats,
-            "uptime_seconds": (datetime.utcnow() - self._stats["start_time"]).total_seconds(),
+            "uptime_seconds": (datetime.now(timezone.utc) - self._stats["start_time"]).total_seconds(),
             "anomaly_detector": anomaly_stats,
             "workload_profiles_count": len(await self.workload_classifier.get_all_profiles()),
             "running": self._running,

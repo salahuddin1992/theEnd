@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, WebSocket, WebSocketDisconnect
@@ -139,7 +139,7 @@ class TaskExecutionState:
             "progress": 0,
             "result": None,
             "error": None,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "started_at": None,
             "completed_at": None,
             "metadata": {},
@@ -353,7 +353,7 @@ async def _execute_task(
     state.update_execution(
         execution_id,
         status="running",
-        started_at=datetime.utcnow().isoformat(),
+        started_at=datetime.now(timezone.utc).isoformat(),
     )
 
     start_time = time.time()
@@ -375,7 +375,7 @@ async def _execute_task(
             status="completed",
             result=result,
             progress=100,
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
             metadata={"execution_time_ms": execution_time},
         )
 
@@ -385,7 +385,7 @@ async def _execute_task(
             execution_id,
             status="failed",
             error=str(e),
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
         )
 
 
@@ -401,7 +401,7 @@ async def _execute_distributed_task(
     state.update_execution(
         execution_id,
         status="running",
-        started_at=datetime.utcnow().isoformat(),
+        started_at=datetime.now(timezone.utc).isoformat(),
     )
 
     try:
@@ -440,7 +440,7 @@ async def _execute_distributed_task(
             result=result.output,
             error=result.error,
             progress=100,
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
             metadata=result.metadata,
         )
 
@@ -450,7 +450,7 @@ async def _execute_distributed_task(
             execution_id,
             status="failed",
             error=str(e),
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
         )
 
 
@@ -526,7 +526,7 @@ async def _execute_raw_prompt(
     state.update_execution(
         execution_id,
         status="running",
-        started_at=datetime.utcnow().isoformat(),
+        started_at=datetime.now(timezone.utc).isoformat(),
     )
 
     start_time = time.time()
@@ -544,7 +544,7 @@ async def _execute_raw_prompt(
             status="completed",
             result=result,
             progress=100,
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
             metadata={"execution_time_ms": execution_time},
         )
 
@@ -553,7 +553,7 @@ async def _execute_raw_prompt(
             execution_id,
             status="failed",
             error=str(e),
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
         )
 
 
@@ -604,7 +604,7 @@ async def _execute_batch(
     state.update_execution(
         execution_id,
         status="running",
-        started_at=datetime.utcnow().isoformat(),
+        started_at=datetime.now(timezone.utc).isoformat(),
     )
 
     start_time = time.time()
@@ -641,7 +641,7 @@ async def _execute_batch(
             status="completed",
             result=results,
             progress=100,
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
             metadata={
                 "execution_time_ms": execution_time,
                 "total_prompts": total,
@@ -654,7 +654,7 @@ async def _execute_batch(
             execution_id,
             status="failed",
             error=str(e),
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(timezone.utc).isoformat(),
         )
 
 

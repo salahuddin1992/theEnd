@@ -345,9 +345,9 @@ class LocalStorage(CheckpointStorage):
         تنظيف نقاط الحفظ القديمة
         Cleanup old checkpoints
         """
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
 
-        cutoff = datetime.utcnow() - timedelta(days=before_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=before_days)
         cleaned = 0
 
         for meta_file in self._metadata_dir.glob("*.json"):

@@ -8,7 +8,7 @@ Tests for Advanced Analytics Module
 
 import asyncio
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, AsyncMock
 
 from distributed_cluster.analytics.advanced_analytics import (
@@ -339,7 +339,7 @@ class TestPatternAnalyzer:
     @pytest.mark.asyncio
     async def test_detect_failure_pattern(self, analyzer):
         """Test detection of failure patterns."""
-        base_time = datetime.utcnow()
+        base_time = datetime.now(timezone.utc)
 
         # Add cascading failures
         for i in range(5):

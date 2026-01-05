@@ -24,7 +24,7 @@ import logging
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -337,7 +337,7 @@ class JobInsightsEngine:
 
             data = {
                 "records": [r.to_dict() for r in self._records[-self.max_records:]],
-                "saved_at": datetime.utcnow().isoformat(),
+                "saved_at": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(path, "w") as f:
@@ -416,7 +416,7 @@ class JobInsightsEngine:
         Returns:
             Performance summary with key metrics
         """
-        end = end_date or datetime.utcnow()
+        end = end_date or datetime.now(timezone.utc)
         start = start_date or (end - timedelta(days=days))
 
         # Filter records in range
@@ -785,7 +785,7 @@ class JobInsightsEngine:
         Returns:
             List of failure patterns
         """
-        end = datetime.utcnow()
+        end = datetime.now(timezone.utc)
         start = end - timedelta(days=days)
 
         failed_records = [
@@ -868,7 +868,7 @@ class JobInsightsEngine:
         Returns:
             Dictionary of worker ID to performance metrics
         """
-        end = datetime.utcnow()
+        end = datetime.now(timezone.utc)
         start = end - timedelta(days=days)
 
         records = [
@@ -913,7 +913,7 @@ class JobInsightsEngine:
         Returns:
             Dictionary of hour to job counts by status
         """
-        end = datetime.utcnow()
+        end = datetime.now(timezone.utc)
         start = end - timedelta(days=days)
 
         records = [
@@ -953,7 +953,7 @@ class JobInsightsEngine:
         Returns:
             List of data points with timestamps and values
         """
-        end = datetime.utcnow()
+        end = datetime.now(timezone.utc)
         start = end - timedelta(days=days)
 
         if granularity == "hourly":
@@ -1077,7 +1077,7 @@ class JobInsightsEngine:
         recommendations = self.get_recommendations(days=days)
 
         report = {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "period_days": days,
             "summary": summary.to_dict(),
             "failure_patterns": [p.to_dict() for p in patterns],

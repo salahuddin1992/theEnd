@@ -270,7 +270,7 @@ async def _submit_job_to_node(
     """Submit a job to a mesh node via TCP connection."""
     import json
     import uuid
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     try:
         reader, writer = await asyncio.wait_for(
@@ -294,7 +294,7 @@ async def _submit_job_to_node(
                 "timeout_seconds": timeout,
             },
             "message_id": uuid.uuid4().hex[:12],
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "ttl": 5,
         }
 

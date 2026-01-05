@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -253,7 +253,7 @@ class HealthMonitor:
     ) -> None:
         """تشغيل فحص واحد"""
         self._total_checks += 1
-        check.last_check_time = datetime.utcnow()
+        check.last_check_time = datetime.now(timezone.utc)
 
         try:
             # Run check with timeout
@@ -287,7 +287,7 @@ class HealthMonitor:
         """معالجة نجاح الفحص"""
         check.consecutive_successes += 1
         check.consecutive_failures = 0
-        check.last_success_time = datetime.utcnow()
+        check.last_success_time = datetime.now(timezone.utc)
 
         if check.consecutive_successes >= check.success_threshold:
             check.status = HealthStatus.HEALTHY
@@ -302,7 +302,7 @@ class HealthMonitor:
         self._failed_checks += 1
         check.consecutive_failures += 1
         check.consecutive_successes = 0
-        check.last_failure_time = datetime.utcnow()
+        check.last_failure_time = datetime.now(timezone.utc)
 
         logger.warning(
             f"Health check failed: {component.name}/{check.name}: {message}"
@@ -317,7 +317,7 @@ class HealthMonitor:
 
     def _update_component_status(self, component: ComponentHealth) -> None:
         """تحديث حالة المكون"""
-        component.last_check = datetime.utcnow()
+        component.last_check = datetime.now(timezone.utc)
 
         if not component.checks:
             component.status = HealthStatus.UNKNOWN

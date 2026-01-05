@@ -11,7 +11,7 @@ import asyncio
 import logging
 import socket
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -191,7 +191,7 @@ class MDNSDiscovery:
     def update_service(self, zeroconf, service_type: str, name: str) -> None:
         """معالج تحديث خدمة (Zeroconf callback)."""
         if name in self._services:
-            self._services[name].last_seen = datetime.utcnow()
+            self._services[name].last_seen = datetime.now(timezone.utc)
 
     async def _handle_service_found(self, zeroconf, service_type: str, name: str) -> None:
         """معالجة خدمة مكتشفة."""

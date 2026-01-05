@@ -21,7 +21,7 @@ import json
 import logging
 import pickle
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 from uuid import uuid4
@@ -213,7 +213,7 @@ class Snapshot:
         metadata = SnapshotMetadata(
             snapshot_id=str(uuid4()),
             snapshot_type=snapshot_type,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             cluster_id=cluster_id,
             cluster_name=cluster_name,
             description=description,

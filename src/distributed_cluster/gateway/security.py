@@ -16,7 +16,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from ipaddress import ip_address, ip_network
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -251,7 +251,7 @@ class APIKeyValidator(Validator):
             "name": name,
             "roles": roles or [],
             "rate_limit": rate_limit,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def revoke_key(self, key: str) -> None:

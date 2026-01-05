@@ -13,7 +13,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -120,7 +120,7 @@ class MigrationProgress:
         """Calculate migration duration."""
         if not self.started_at:
             return 0.0
-        end = self.completed_at or datetime.utcnow()
+        end = self.completed_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds()
 
     @property
@@ -337,7 +337,7 @@ class MigrationManager:
             request=request,
             progress=MigrationProgress(
                 state=MigrationState.PREPARING,
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
                 current_phase="Initializing migration",
             ),
         )
@@ -384,7 +384,7 @@ class MigrationManager:
 
             # Complete
             await self._update_state(record, MigrationState.COMPLETED)
-            progress.completed_at = datetime.utcnow()
+            progress.completed_at = datetime.now(timezone.utc)
             progress.progress_percent = 100.0
 
             self._stats["successful_migrations"] += 1
@@ -787,7 +787,7 @@ class MigrationManager:
 
     async def cleanup_completed(self, max_age_hours: int = 24) -> int:
         """Clean up old completed migrations."""
-        cutoff = datetime.utcnow() - timedelta(hours=max_age_hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
         cleaned = 0
 
         async with self._lock:

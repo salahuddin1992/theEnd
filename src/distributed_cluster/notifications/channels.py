@@ -44,7 +44,7 @@ import ssl
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum, auto
@@ -245,12 +245,12 @@ class Notification:
         """هل انتهت صلاحية الإشعار؟"""
         if self.ttl_seconds is None:
             return False
-        return datetime.utcnow() > self.timestamp + timedelta(seconds=self.ttl_seconds)
+        return datetime.now(timezone.utc) > self.timestamp + timedelta(seconds=self.ttl_seconds)
 
     @property
     def age_seconds(self) -> float:
         """عمر الإشعار بالثواني."""
-        return (datetime.utcnow() - self.timestamp).total_seconds()
+        return (datetime.now(timezone.utc) - self.timestamp).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
         """تحويل لقاموس."""
@@ -709,11 +709,11 @@ class NotificationChannel(abc.ABC):
         self._metrics.total_sent += 1
         if success:
             self._metrics.total_success += 1
-            self._metrics.last_success = datetime.utcnow()
+            self._metrics.last_success = datetime.now(timezone.utc)
             await self._circuit_breaker.record_success()
         else:
             self._metrics.total_failed += 1
-            self._metrics.last_failure = datetime.utcnow()
+            self._metrics.last_failure = datetime.now(timezone.utc)
             self._metrics.last_error = str(result)
             await self._circuit_breaker.record_failure()
 
@@ -1865,10 +1865,10 @@ class NotificationManager:
             async with self._lock:
                 if notification.dedupe_key in self._dedupe_cache:
                     last_sent = self._dedupe_cache[notification.dedupe_key]
-                    if datetime.utcnow() - last_sent < self._dedupe_window:
+                    if datetime.now(timezone.utc) - last_sent < self._dedupe_window:
                         logger.debug(f"Deduplicated notification: {notification.dedupe_key}")
                         return {}
-                self._dedupe_cache[notification.dedupe_key] = datetime.utcnow()
+                self._dedupe_cache[notification.dedupe_key] = datetime.now(timezone.utc)
 
         # تحديد القنوات
         target_channels = channels or notification.target_channels or self._default_channels

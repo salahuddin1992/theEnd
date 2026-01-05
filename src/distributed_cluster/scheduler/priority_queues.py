@@ -16,7 +16,7 @@ import json
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Deque, Dict, List, Optional
 
@@ -157,7 +157,7 @@ class PriorityQueue:
                 return False, "Queue pending limit reached"
 
         # Check rate limits
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Jobs per minute
         if self.limits.max_jobs_per_minute > 0:
@@ -194,7 +194,7 @@ class PriorityQueue:
 
         # Add to pending list (will be sorted by scheduler)
         self.pending_jobs.append(job_id)
-        self._job_timestamps.append(datetime.utcnow())
+        self._job_timestamps.append(datetime.now(timezone.utc))
         self.stats.total_submitted += 1
 
         return True
@@ -277,7 +277,7 @@ class PriorityQueue:
             preemption_enabled=data.get("preemption_enabled", False),
             can_preempt_queues=data.get("can_preempt_queues", []),
             labels=data.get("labels", {}),
-            created_at=created_at or datetime.utcnow(),
+            created_at=created_at or datetime.now(timezone.utc),
         )
 
 
@@ -380,7 +380,7 @@ class QueueManager:
             if "max_jobs_per_hour" in limits:
                 queue.limits.max_jobs_per_hour = limits["max_jobs_per_hour"]
 
-        queue.updated_at = datetime.utcnow()
+        queue.updated_at = datetime.now(timezone.utc)
 
         if self.database:
             await self._persist_queue(queue)
@@ -608,7 +608,7 @@ class QueueManager:
         queue = self._queues.get(name)
         if queue:
             queue.state = QueueState.PAUSED
-            queue.updated_at = datetime.utcnow()
+            queue.updated_at = datetime.now(timezone.utc)
 
             if self.database:
                 await self._persist_queue(queue)
@@ -618,7 +618,7 @@ class QueueManager:
         queue = self._queues.get(name)
         if queue:
             queue.state = QueueState.ACTIVE
-            queue.updated_at = datetime.utcnow()
+            queue.updated_at = datetime.now(timezone.utc)
 
             if self.database:
                 await self._persist_queue(queue)
@@ -628,7 +628,7 @@ class QueueManager:
         queue = self._queues.get(name)
         if queue:
             queue.state = QueueState.DRAINING
-            queue.updated_at = datetime.utcnow()
+            queue.updated_at = datetime.now(timezone.utc)
 
             if self.database:
                 await self._persist_queue(queue)

@@ -12,7 +12,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -70,7 +70,7 @@ class SpotNotification:
     @property
     def time_remaining_seconds(self) -> float:
         """Calculate remaining time before termination."""
-        remaining = (self.termination_time - datetime.utcnow()).total_seconds()
+        remaining = (self.termination_time - datetime.now(timezone.utc)).total_seconds()
         return max(0, remaining)
 
     @property
@@ -218,7 +218,7 @@ class SpotInstanceHandler:
                 "provider": provider or self.provider,
                 "is_spot": is_spot,
                 "state": SpotInstanceState.RUNNING,
-                "registered_at": datetime.utcnow(),
+                "registered_at": datetime.now(timezone.utc),
                 "metadata": metadata or {},
             }
 
@@ -360,7 +360,7 @@ class SpotInstanceHandler:
                         worker_id=worker_id,
                         provider=SpotProvider.AWS,
                         termination_type=TerminationType.CAPACITY_REBALANCING,
-                        termination_time=datetime.utcnow() + timedelta(minutes=10),
+                        termination_time=datetime.now(timezone.utc) + timedelta(minutes=10),
                         warning_seconds=600,
                         metadata={"type": "rebalance_recommendation"},
                     )
@@ -392,7 +392,7 @@ class SpotInstanceHandler:
                         worker_id=worker_id,
                         provider=SpotProvider.GCP,
                         termination_type=TerminationType.PREEMPTION,
-                        termination_time=datetime.utcnow() + timedelta(seconds=30),
+                        termination_time=datetime.now(timezone.utc) + timedelta(seconds=30),
                         warning_seconds=30,
                     )
 
@@ -580,7 +580,7 @@ class SpotInstanceHandler:
             worker_id=worker_id,
             provider=worker["provider"],
             termination_type=TerminationType.SPOT_INTERRUPTION,
-            termination_time=datetime.utcnow() + timedelta(seconds=warning_seconds),
+            termination_time=datetime.now(timezone.utc) + timedelta(seconds=warning_seconds),
             warning_seconds=warning_seconds,
             metadata={"simulated": True},
         )

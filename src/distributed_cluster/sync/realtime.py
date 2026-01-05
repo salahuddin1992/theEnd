@@ -16,7 +16,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -88,7 +88,7 @@ class SyncMessage:
             channel=d.get("channel", "default"),
             sender_id=d.get("sender_id", ""),
             payload=d.get("payload", {}),
-            timestamp=datetime.fromisoformat(d["timestamp"]) if "timestamp" in d else datetime.utcnow(),
+            timestamp=datetime.fromisoformat(d["timestamp"]) if "timestamp" in d else datetime.now(timezone.utc),
             ttl_seconds=d.get("ttl_seconds", 0),
             require_ack=d.get("require_ack", False),
         )
@@ -278,7 +278,7 @@ class RealtimeSync:
         channel = self.get_channel(channel_name)
         if channel:
             channel.message_count += 1
-            channel.last_activity = datetime.utcnow()
+            channel.last_activity = datetime.now(timezone.utc)
 
         # Wait for ack if required
         if require_ack:
@@ -319,7 +319,7 @@ class RealtimeSync:
             payload={
                 "key": key,
                 "value": value,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 

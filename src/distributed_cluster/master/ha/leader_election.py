@@ -18,7 +18,7 @@ import hashlib
 import logging
 import socket
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -73,7 +73,7 @@ class MasterPeer:
 
     def is_alive(self, timeout_seconds: float = 30.0) -> bool:
         """هل الـ Master متصل"""
-        return (datetime.utcnow() - self.last_seen).total_seconds() < timeout_seconds
+        return (datetime.now(timezone.utc) - self.last_seen).total_seconds() < timeout_seconds
 
 
 @dataclass
@@ -105,7 +105,7 @@ class ElectionConfig:
         if not self.master_id:
             # توليد ID فريد من hostname + port
             hostname = socket.gethostname()
-            raw = f"{hostname}:{self.port}:{datetime.utcnow().timestamp()}"
+            raw = f"{hostname}:{self.port}:{datetime.now(timezone.utc).timestamp()}"
             self.master_id = hashlib.sha256(raw.encode()).hexdigest()[:12]
 
 
@@ -136,7 +136,7 @@ class LeaderElection:
         self._role = HARole.UNKNOWN
         self._term = 0
         self._current_leader: Optional[LeaderInfo] = None
-        self._last_heartbeat = datetime.utcnow()
+        self._last_heartbeat = datetime.now(timezone.utc)
         self._peers: dict[str, MasterPeer] = {}
 
         # التحكم
@@ -251,7 +251,7 @@ class LeaderElection:
                     continue
 
                 # فحص آخر heartbeat من القائد
-                elapsed = (datetime.utcnow() - self._last_heartbeat).total_seconds()
+                elapsed = (datetime.now(timezone.utc) - self._last_heartbeat).total_seconds()
                 if elapsed > self.config.election_timeout_seconds:
                     logger.warning(f"Leader timeout ({elapsed:.1f}s), starting election")
                     await self._start_election()
@@ -289,7 +289,7 @@ class LeaderElection:
                         )
                         if resp.status_code == 200:
                             data = resp.json()
-                            peer.last_seen = datetime.utcnow()
+                            peer.last_seen = datetime.now(timezone.utc)
                             peer.role = HARole(data.get("role", "unknown"))
                             peer.priority = data.get("priority", 0)
                             peer.master_id = data.get("master_id", peer_id)
@@ -359,7 +359,7 @@ class LeaderElection:
             master_id=self.config.master_id,
             address=self.config.address,
             port=self.config.port,
-            elected_at=datetime.utcnow(),
+            elected_at=datetime.now(timezone.utc),
             term=self._term,
         )
 
@@ -396,7 +396,7 @@ class LeaderElection:
                     json={
                         "master_id": self.config.master_id,
                         "term": self._term,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     },
                     timeout=2.0,
                 )
@@ -434,7 +434,7 @@ class LeaderElection:
 
         self._current_leader = new_leader
         self._term = new_leader.term
-        self._last_heartbeat = datetime.utcnow()
+        self._last_heartbeat = datetime.now(timezone.utc)
 
         if new_leader.master_id != self.config.master_id:
             self._role = HARole.FOLLOWER
@@ -461,7 +461,7 @@ class LeaderElection:
     async def handle_heartbeat(self, master_id: str, term: int) -> dict:
         """معالجة heartbeat من القائد"""
         if self._current_leader and self._current_leader.master_id == master_id:
-            self._last_heartbeat = datetime.utcnow()
+            self._last_heartbeat = datetime.now(timezone.utc)
             if term > self._term:
                 self._term = term
 

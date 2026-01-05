@@ -12,7 +12,7 @@ gRPC Server - سيرفر gRPC
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 try:
@@ -103,7 +103,7 @@ class MetricsInterceptor(grpc_aio.ServerInterceptor if GRPC_AVAILABLE else objec
     async def intercept_service(self, continuation, handler_call_details):
         """Track RPC metrics."""
         method_name = handler_call_details.method.split("/")[-1]
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         try:
             response = await continuation(handler_call_details)
@@ -113,7 +113,7 @@ class MetricsInterceptor(grpc_aio.ServerInterceptor if GRPC_AVAILABLE else objec
             self.metrics.counter("grpc_requests_total", 1, {"method": method_name, "status": "error"})
             raise
         finally:
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
             self.metrics.histogram("grpc_request_duration_seconds", duration, {"method": method_name})
 
 

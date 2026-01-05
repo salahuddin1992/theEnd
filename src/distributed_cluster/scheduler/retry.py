@@ -16,7 +16,7 @@ import heapq
 import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
@@ -240,7 +240,7 @@ class RetryManager:
         attempt = RetryAttempt(
             job_id=job_id,
             attempt_number=attempt_number,
-            scheduled_at=datetime.utcnow(),
+            scheduled_at=datetime.now(timezone.utc),
             failure_reason=failure_reason,
             exit_code=exit_code,
             worker_id=worker_id,
@@ -269,7 +269,7 @@ class RetryManager:
 
         # Schedule retry
         delay = policy.calculate_delay(attempt_number)
-        retry_at = datetime.utcnow() + timedelta(seconds=delay)
+        retry_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
 
         pending = PendingRetry(
             job_id=job_id,
@@ -291,7 +291,7 @@ class RetryManager:
         """معالجة إعادة المحاولات المعلقة."""
         while self._running:
             try:
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
 
                 # Process due retries
                 while self._pending_retries and self._pending_retries[0].retry_at <= now:
@@ -321,7 +321,7 @@ class RetryManager:
 
     async def _record_worker_failure(self, worker_id: str) -> None:
         """تسجيل فشل عامل (للـ circuit breaker)."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if worker_id not in self._worker_failures:
             self._worker_failures[worker_id] = []
@@ -348,7 +348,7 @@ class RetryManager:
         failures = self._worker_failures.get(worker_id, [])
         if failures:
             last_failure = max(failures)
-            if datetime.utcnow() - last_failure > timedelta(seconds=30):
+            if datetime.now(timezone.utc) - last_failure > timedelta(seconds=30):
                 self._circuit_open.discard(worker_id)
                 logger.info(f"Circuit breaker CLOSED for worker {worker_id}")
                 return True

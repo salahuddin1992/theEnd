@@ -19,7 +19,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Callable, Dict, List, Optional
 
@@ -402,7 +402,7 @@ class LocalityAwareScheduler:
         # Check if already delayed too long
         if job.job_id in self._delayed_jobs:
             delay_until = self._delayed_jobs[job.job_id]
-            if datetime.utcnow() >= delay_until:
+            if datetime.now(timezone.utc) >= delay_until:
                 del self._delayed_jobs[job.job_id]
                 return False
 
@@ -426,7 +426,7 @@ class LocalityAwareScheduler:
 
             if potential_workers:
                 # Set delay
-                delay_until = datetime.utcnow() + timedelta(
+                delay_until = datetime.now(timezone.utc) + timedelta(
                     seconds=self.config.max_delay_seconds
                 )
                 self._delayed_jobs[job.job_id] = delay_until
@@ -519,7 +519,7 @@ class LocalityAwareScheduler:
             job=job,
             worker=selected.worker,
             lease_id=lease_id,
-            decision_time=datetime.utcnow(),
+            decision_time=datetime.now(timezone.utc),
             policy_used=SchedulingPolicy.BEST_FIT,
             locality_score=selected.locality_result.total_score,
             locality_level=selected.locality_result.locality_level,

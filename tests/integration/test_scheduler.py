@@ -5,7 +5,7 @@ Scheduler Integration Tests
 Tests for job scheduling and worker selection.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from distributed_cluster.models.job import Job, JobPriority, JobStatus, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
@@ -44,7 +44,7 @@ class TestSchedulerBasic:
             job_id="test-job-1",
             submission=sample_job_submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         scheduler.submit_job(job)
 
@@ -66,7 +66,7 @@ class TestSchedulerWithWorkers:
             job_id="test-job-1",
             submission=sample_job_submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         scheduler.submit_job(job)
 
@@ -94,7 +94,7 @@ class TestSchedulerWithWorkers:
                 priority=JobPriority.HIGH,
             ),
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         scheduler.submit_job(gpu_job)
 
@@ -117,7 +117,7 @@ class TestSchedulerWithWorkers:
             job_id="test-job-1",
             submission=sample_job_submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         scheduler.submit_job(job)
 
@@ -140,7 +140,7 @@ class TestSchedulerWithWorkers:
                 priority=JobPriority.LOW,
             ),
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         scheduler.submit_job(low_job)
 
@@ -153,7 +153,7 @@ class TestSchedulerWithWorkers:
                 priority=JobPriority.HIGH,
             ),
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         scheduler.submit_job(high_job)
 
@@ -196,7 +196,7 @@ class TestCompositeScorer:
             job_id="test-job",
             submission=sample_job_submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
         breakdown = scorer.score(job, sample_worker, context={})
@@ -213,7 +213,7 @@ class TestCompositeScorer:
             job_id="test-job",
             submission=sample_job_submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Filter out offline workers

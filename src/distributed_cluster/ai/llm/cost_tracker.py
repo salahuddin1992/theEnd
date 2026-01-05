@@ -15,7 +15,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -484,7 +484,7 @@ class CostTracker:
             currency = pricing.currency if pricing else CostCurrency.USD
 
             record = UsageRecord(
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 provider=provider,
                 model=model,
                 input_tokens=input_tokens,
@@ -512,7 +512,7 @@ class CostTracker:
         if not self.budget.alert_callback:
             return
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Check daily limit
         if self.budget.daily_limit:
@@ -550,7 +550,7 @@ class CostTracker:
         if not self.budget.block_on_limit:
             return False
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Check global limits
         if self.budget.daily_limit:
@@ -634,7 +634,7 @@ class CostTracker:
 
     def get_daily_report(self, days: int = 7) -> List[Dict[str, Any]]:
         """تقرير يومي."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         report = []
 
         for i in range(days):
@@ -699,7 +699,7 @@ class CostTracker:
     async def cleanup_old_records(self, days: int = 90) -> int:
         """حذف السجلات القديمة."""
         async with self._lock:
-            cutoff = datetime.utcnow() - timedelta(days=days)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=days)
             old_count = len(self._records)
             self._records = [r for r in self._records if r.timestamp >= cutoff]
             removed = old_count - len(self._records)

@@ -17,7 +17,7 @@ import threading
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from functools import wraps
 from typing import (
@@ -205,7 +205,7 @@ class RequestMetricsCollector:
                 return 0.0
 
             # الحصول على آخر 5 دقائق
-            cutoff = datetime.utcnow() - timedelta(minutes=5)
+            cutoff = datetime.now(timezone.utc) - timedelta(minutes=5)
             latencies = sorted(
                 m.duration_seconds for m in self._history if m.timestamp >= cutoff
             )
@@ -347,7 +347,7 @@ class SLOMonitor:
             return None
 
         slo = self._slos[name]
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # حساب القيمة الحالية
         if slo.slo_type == SLOType.AVAILABILITY:
@@ -497,7 +497,7 @@ class BusinessMetricsCollector:
 
     def get_recent(self, name: str, minutes: int = 5) -> List[BusinessMetric]:
         """الحصول على المقاييس الأخيرة."""
-        cutoff = datetime.utcnow() - timedelta(minutes=minutes)
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
 
         with self._lock:
             return [m for m in self._metrics[name] if m.timestamp >= cutoff]
@@ -546,7 +546,7 @@ class MetricsAggregator:
             "request_metrics": self.request_metrics.get_summary(),
             "business_metrics": self.business_metrics.get_summary(),
             "slo_status": self.slo_monitor.get_summary(),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def export_prometheus(self) -> str:

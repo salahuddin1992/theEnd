@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
 from starlette.websockets import WebSocket
@@ -144,7 +144,7 @@ class EventBroadcaster:
 
         event = Event(
             event_type=event_type,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="master",
             job_id=job.job_id,
             worker_id=job.assigned_worker,
@@ -182,7 +182,7 @@ class EventBroadcaster:
 
         event = Event(
             event_type=event_type,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="master",
             worker_id=worker.worker_id,
             message=message or f"Worker {worker.worker_id} {event_type.value}",
@@ -206,7 +206,7 @@ class EventBroadcaster:
         """
         event = Event(
             event_type=event_type,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             source="master",
             message=message,
             data=data or {},

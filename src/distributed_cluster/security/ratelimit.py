@@ -9,7 +9,7 @@ import time
 from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -155,7 +155,7 @@ class TokenBucket(RateLimiter):
             return RateLimitInfo(
                 limit=self.capacity,
                 remaining=int(tokens),
-                reset_at=datetime.utcnow(),
+                reset_at=datetime.now(timezone.utc),
                 retry_after=(1 - tokens) / self.rate if tokens < 1 else None,
             )
 
@@ -461,7 +461,7 @@ class DistributedRateLimiter(RateLimiter):
             return RateLimitInfo(
                 limit=self.limit,
                 remaining=self.limit,
-                reset_at=datetime.utcnow(),
+                reset_at=datetime.now(timezone.utc),
             )
 
     def reset(self, key: str = "default"):

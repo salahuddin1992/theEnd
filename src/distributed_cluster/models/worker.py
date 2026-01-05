@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
@@ -140,7 +140,7 @@ class WorkerInfo:
         if self.last_heartbeat is None:
             return False
         # تعتبر غير صحي إذا مر أكثر من 30 ثانية بدون heartbeat
-        delta = datetime.utcnow() - self.last_heartbeat
+        delta = datetime.now(timezone.utc) - self.last_heartbeat
         return delta.total_seconds() < 30
 
     @property
@@ -172,7 +172,7 @@ class WorkerInfo:
 
     def update_heartbeat(self, usage: ResourceUsage) -> None:
         """تحديث معلومات من heartbeat."""
-        self.last_heartbeat = datetime.utcnow()
+        self.last_heartbeat = datetime.now(timezone.utc)
         self.current_usage = usage
 
         # تحديث الحالة بناءً على الاستخدام

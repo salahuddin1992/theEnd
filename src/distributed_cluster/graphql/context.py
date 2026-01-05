@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 if TYPE_CHECKING:
@@ -70,7 +70,7 @@ class GraphQLContext:
         self.user = user
         self.services = services or ServiceRegistry()
         self.dataloaders = dataloaders
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(timezone.utc)
         self._query_count = 0
         self._mutation_count = 0
 
@@ -149,7 +149,7 @@ class GraphQLContext:
     @property
     def execution_time_ms(self) -> float:
         """وقت التنفيذ بالملي ثانية"""
-        return (datetime.utcnow() - self._start_time).total_seconds() * 1000
+        return (datetime.now(timezone.utc) - self._start_time).total_seconds() * 1000
 
     def get_stats(self) -> Dict[str, Any]:
         """الحصول على إحصائيات السياق"""

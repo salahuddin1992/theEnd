@@ -15,7 +15,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
@@ -230,7 +230,7 @@ class WebSocketManager:
             await self._handle_unsubscribe(conn_info, message)
 
         elif msg_type == MessageType.PING.value:
-            conn_info.last_ping = datetime.utcnow()
+            conn_info.last_ping = datetime.now(timezone.utc)
             await self._send(conn_info, {"type": MessageType.PONG.value})
 
     async def _handle_subscribe(
@@ -352,7 +352,7 @@ class WebSocketManager:
             "category": category,
             "event_type": event_type,
             "data": data,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         if job_id:
@@ -428,7 +428,7 @@ class WebSocketManager:
             try:
                 await asyncio.sleep(self.ping_interval)
 
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
                 disconnected = []
 
                 for conn_id, conn_info in self._connections.items():

@@ -12,7 +12,7 @@ import asyncio
 import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -233,7 +233,7 @@ class ChaosScheduler:
         """Main scheduler loop."""
         while self._running:
             try:
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
 
                 # Check maintenance windows
                 if self._in_maintenance_window(now):
@@ -273,7 +273,7 @@ class ChaosScheduler:
                 wait=True,
             )
 
-            schedule.last_run = datetime.utcnow()
+            schedule.last_run = datetime.now(timezone.utc)
             schedule.run_count += 1
             schedule.next_run = schedule.calculate_next_run()
 
@@ -443,7 +443,7 @@ class ChaosScheduler:
             return False
 
         game_day.status = "running"
-        game_day.started_at = datetime.utcnow()
+        game_day.started_at = datetime.now(timezone.utc)
         game_day.results = {"experiments": {}}
 
         logger.info(f"Starting Game Day: {game_day.name}")
@@ -460,7 +460,7 @@ class ChaosScheduler:
                 game_day.results["experiments"][experiment_id] = {"error": str(e)}
 
         game_day.status = "completed"
-        game_day.completed_at = datetime.utcnow()
+        game_day.completed_at = datetime.now(timezone.utc)
         self._stats["game_days_completed"] += 1
 
         logger.info(f"Game Day completed: {game_day.name}")
@@ -473,7 +473,7 @@ class ChaosScheduler:
             return False
 
         game_day.status = "cancelled"
-        game_day.completed_at = datetime.utcnow()
+        game_day.completed_at = datetime.now(timezone.utc)
         return True
 
     async def get_game_day(self, game_day_id: str) -> Optional[GameDay]:

@@ -18,7 +18,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -242,7 +242,7 @@ class SyncManager:
         # Test connection
         connected = await self._test_peer_connection(peer)
         peer.healthy = connected
-        peer.last_heartbeat = datetime.utcnow() if connected else None
+        peer.last_heartbeat = datetime.now(timezone.utc) if connected else None
 
         self._peers[peer_id] = peer
 
@@ -297,7 +297,7 @@ class SyncManager:
                 "value": value,
                 "old_value": old_value,
                 "version": self._state_version,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "node_id": self.node_id,
             }
             self._pending_changes.append(change)
@@ -326,7 +326,7 @@ class SyncManager:
                     "key": key,
                     "old_value": old_value,
                     "version": self._state_version,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "node_id": self.node_id,
                 }
                 self._pending_changes.append(change)
@@ -344,7 +344,7 @@ class SyncManager:
             "version": self._state_version,
             "hash": self._state_hash,
             "node_id": self.node_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def _update_state_hash(self) -> None:
@@ -361,7 +361,7 @@ class SyncManager:
         operation = SyncOperation(
             operation_type="sync_all",
             source_peer=self.node_id,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
         )
         self._operations[operation.operation_id] = operation
 
@@ -376,14 +376,14 @@ class SyncManager:
                 await self._sync_with_peer(peer)
                 operation.items_synced += 1
                 peer.sync_count += 1
-                peer.last_sync = datetime.utcnow()
+                peer.last_sync = datetime.now(timezone.utc)
             except Exception as e:
                 errors.append(f"{peer.name}: {e}")
                 peer.error_count += 1
 
             operation.progress = operation.items_synced / max(1, operation.items_total)
 
-        operation.completed_at = datetime.utcnow()
+        operation.completed_at = datetime.now(timezone.utc)
 
         if not errors:
             operation.status = SyncStatus.SYNCED
@@ -414,19 +414,19 @@ class SyncManager:
             operation_type="sync",
             source_peer=self.node_id,
             target_peer=peer_id,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
         )
         self._operations[operation.operation_id] = operation
 
         try:
             await self._sync_with_peer(peer)
             operation.status = SyncStatus.SYNCED
-            peer.last_sync = datetime.utcnow()
+            peer.last_sync = datetime.now(timezone.utc)
         except Exception as e:
             operation.status = SyncStatus.FAILED
             operation.error = str(e)
 
-        operation.completed_at = datetime.utcnow()
+        operation.completed_at = datetime.now(timezone.utc)
         return operation
 
     async def _sync_with_peer(self, peer: SyncPeer) -> None:
@@ -612,7 +612,7 @@ class SyncManager:
                         await self._emit_event("peer_health_changed", {"peer_id": peer.peer_id, "healthy": healthy})
 
                     if healthy:
-                        peer.last_heartbeat = datetime.utcnow()
+                        peer.last_heartbeat = datetime.now(timezone.utc)
 
             except asyncio.CancelledError:
                 break
@@ -669,7 +669,7 @@ class SyncManager:
         snapshot = {
             "snapshot_id": str(uuid.uuid4()),
             "node_id": self.node_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "version": self._state_version,
             "hash": self._state_hash,
             "state": self._local_state.copy(),

@@ -35,6 +35,7 @@ from distributed_cluster.utils.helpers import (
     sanitize_string,
     timeout_async,
     truncate_string,
+    utc_now,
     validate_email,
     validate_hostname,
 )
@@ -70,6 +71,7 @@ __all__ = [
     "hash_string",
     "get_timestamp",
     "parse_timestamp",
+    "utc_now",
     # Async utils
     "run_with_timeout",
     "gather_with_concurrency",

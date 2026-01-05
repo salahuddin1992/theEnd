@@ -12,7 +12,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
@@ -305,12 +305,12 @@ class SubscriptionManager:
                     subscriber.queue.get(),
                     timeout=30.0,
                 )
-                subscriber.last_message_at = datetime.utcnow()
+                subscriber.last_message_at = datetime.now(timezone.utc)
                 self._stats["messages_delivered"] += 1
                 yield message
             except asyncio.TimeoutError:
                 # Send heartbeat
-                yield {"type": "heartbeat", "timestamp": datetime.utcnow().isoformat()}
+                yield {"type": "heartbeat", "timestamp": datetime.now(timezone.utc).isoformat()}
 
     async def publish(
         self,
@@ -343,7 +343,7 @@ class SubscriptionManager:
                 subscriber.queue.put_nowait({
                     "type": subscription_type,
                     "data": data,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 })
                 delivered += 1
             except asyncio.QueueFull:
@@ -503,7 +503,7 @@ class WebSocketHandler:
         self._connections[connection_id] = {
             "websocket": websocket,
             "subscriptions": [],
-            "connected_at": datetime.utcnow(),
+            "connected_at": datetime.now(timezone.utc),
         }
 
         try:

@@ -637,7 +637,7 @@ class TestNotificationScheduler:
     @pytest.mark.asyncio
     async def test_schedule_once(self):
         """اختبار جدولة مرة واحدة"""
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
 
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
         from distributed_cluster.notifications.scheduler import NotificationScheduler
@@ -645,7 +645,7 @@ class TestNotificationScheduler:
         scheduler = NotificationScheduler()
 
         notification = ChannelNotification(title="Scheduled", message="Test")
-        run_at = datetime.utcnow() + timedelta(hours=1)
+        run_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
         job = await scheduler.schedule_once(notification, run_at)
 
@@ -684,7 +684,7 @@ class TestNotificationScheduler:
         scheduler = NotificationScheduler()
 
         notification = ChannelNotification(title="Test", message="")
-        run_at = datetime.utcnow() + timedelta(hours=1)
+        run_at = datetime.now(timezone.utc) + timedelta(hours=1)
 
         job = await scheduler.schedule_once(notification, run_at)
         result = await scheduler.cancel(job.job_id)

@@ -15,7 +15,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -76,7 +76,7 @@ class GPUSlice:
         """Check if allocation has expired."""
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -405,7 +405,7 @@ class GPUSharingManager:
 
             # Create slice
             timeout = timeout_seconds or self.slice_timeout_seconds
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             gpu_slice = GPUSlice(
                 slice_id=str(uuid.uuid4()),

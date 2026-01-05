@@ -14,7 +14,7 @@ import asyncio
 import logging
 import signal
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
@@ -45,7 +45,7 @@ class MasterEndpoint:
 
     def mark_success(self) -> None:
         self.is_healthy = True
-        self.last_success = datetime.utcnow()
+        self.last_success = datetime.now(timezone.utc)
         self.consecutive_failures = 0
 
     def mark_failure(self) -> None:

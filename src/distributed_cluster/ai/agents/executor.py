@@ -13,7 +13,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -251,7 +251,7 @@ class AgentExecutor:
     async def _execute_job(self, job: AgentJob) -> None:
         """تنفيذ مهمة."""
         job.status = AgentStatus.EXECUTING
-        job.started_at = datetime.utcnow()
+        job.started_at = datetime.now(timezone.utc)
 
         logger.info(f"Executing job {job.job_id}")
 
@@ -275,7 +275,7 @@ class AgentExecutor:
 
             job.result = result
             job.status = result.status
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
             self._results[job.job_id] = result
 
@@ -288,7 +288,7 @@ class AgentExecutor:
             logger.error(f"Job {job.job_id} failed: {e}")
 
             job.status = AgentStatus.FAILED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
             # Retry if configured
             if self.config.retry_on_failure and job.retries < self.config.max_retries:

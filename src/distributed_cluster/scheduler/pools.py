@@ -14,7 +14,7 @@ Worker Pools System
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
@@ -243,7 +243,7 @@ class WorkerPool:
             worker_ids=set(data.get("worker_ids", [])),
             active_jobs=data.get("active_jobs", 0),
             pending_jobs=data.get("pending_jobs", 0),
-            created_at=created_at or datetime.utcnow(),
+            created_at=created_at or datetime.now(timezone.utc),
         )
 
 
@@ -339,7 +339,7 @@ class PoolManager:
             if "max_concurrent_jobs" in limits:
                 pool.resource_limits.max_concurrent_jobs = limits["max_concurrent_jobs"]
 
-        pool.updated_at = datetime.utcnow()
+        pool.updated_at = datetime.now(timezone.utc)
 
         if self.database:
             await self._persist_pool(pool)
@@ -506,7 +506,7 @@ class PoolManager:
         pool = self._pools.get(name)
         if pool:
             pool.status = PoolStatus.DRAINING
-            pool.updated_at = datetime.utcnow()
+            pool.updated_at = datetime.now(timezone.utc)
 
             if self.database:
                 await self._persist_pool(pool)
@@ -516,7 +516,7 @@ class PoolManager:
         pool = self._pools.get(name)
         if pool:
             pool.status = PoolStatus.ACTIVE
-            pool.updated_at = datetime.utcnow()
+            pool.updated_at = datetime.now(timezone.utc)
 
             if self.database:
                 await self._persist_pool(pool)

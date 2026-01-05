@@ -12,7 +12,7 @@ import os
 import sys
 import tempfile
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from distributed_cluster.models.events import Event, EventType
@@ -127,7 +127,7 @@ class MasterServicer:
             platform=request.get("platform", "linux"),
             docker_available=request.get("docker_available", False),
             gpu_driver_version=request.get("docker_version"),
-            registered_at=datetime.utcnow(),
+            registered_at=datetime.now(timezone.utc),
         )
 
         # Save to database
@@ -138,13 +138,13 @@ class MasterServicer:
 
         # Track locally
         self._workers[worker_id] = worker
-        self._worker_last_heartbeat[worker_id] = datetime.utcnow()
+        self._worker_last_heartbeat[worker_id] = datetime.now(timezone.utc)
 
         # Record event
         await self.database.save_event(
             Event(
                 event_type=EventType.WORKER_REGISTERED,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 source="master",
                 worker_id=worker_id,
                 message=f"Worker {worker.hostname} registered",
@@ -165,7 +165,7 @@ class MasterServicer:
             "heartbeat_interval_seconds": self.heartbeat_interval,
             "lease_duration_seconds": self.lease_duration,
             "auth_token": auth_token,
-            "token_expires_at": (datetime.utcnow() + timedelta(hours=24)).isoformat(),
+            "token_expires_at": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(),
         }
 
     async def Heartbeat(
@@ -217,7 +217,7 @@ class MasterServicer:
         else:
             worker.status = WorkerStatus.READY
 
-        worker.last_heartbeat = datetime.utcnow()
+        worker.last_heartbeat = datetime.now(timezone.utc)
         worker.active_jobs = [j.get("job_id") for j in running_jobs]
 
         # Update in database
@@ -228,7 +228,7 @@ class MasterServicer:
         )
 
         # Track heartbeat
-        self._worker_last_heartbeat[worker_id] = datetime.utcnow()
+        self._worker_last_heartbeat[worker_id] = datetime.now(timezone.utc)
 
         # Get pending commands
         commands = self._pending_commands.pop(worker_id, [])
@@ -256,7 +256,7 @@ class MasterServicer:
             "acknowledged": True,
             "commands": commands,
             "lease_renewals": lease_renewals,
-            "server_timestamp": datetime.utcnow().isoformat(),
+            "server_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     async def DeregisterWorker(
@@ -306,7 +306,7 @@ class MasterServicer:
         await self.database.save_event(
             Event(
                 event_type=EventType.WORKER_DEREGISTERED,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 source="master",
                 worker_id=worker_id,
                 message=f"Worker deregistered: {reason}",
@@ -385,7 +385,7 @@ class MasterServicer:
             job.status = JobStatus.SCHEDULED
             job.assigned_worker = worker_id
             job.lease_id = lease.lease_id
-            job.scheduled_at = datetime.utcnow()
+            job.scheduled_at = datetime.now(timezone.utc)
             await self.database.save_job(job)
 
             # Build assignment
@@ -411,7 +411,7 @@ class MasterServicer:
             await self.database.save_event(
                 Event(
                     event_type=EventType.JOB_ASSIGNED,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                     source="master",
                     job_id=job_id,
                     worker_id=worker_id,
@@ -451,14 +451,14 @@ class MasterServicer:
         job = await self.database.get_job(job_id)
         if job:
             job.status = JobStatus.RUNNING
-            job.started_at = datetime.utcnow()
+            job.started_at = datetime.now(timezone.utc)
             await self.database.save_job(job)
 
         # Record event
         await self.database.save_event(
             Event(
                 event_type=EventType.JOB_STARTED,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 source="worker",
                 job_id=job_id,
                 worker_id=worker_id,
@@ -532,7 +532,7 @@ class MasterServicer:
             else:
                 job.status = JobStatus.FAILED
 
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
             # Parse result
             from distributed_cluster.models.job import JobResult
@@ -563,7 +563,7 @@ class MasterServicer:
         await self.database.save_event(
             Event(
                 event_type=event_type,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 source="worker",
                 job_id=job_id,
                 worker_id=worker_id,

@@ -8,7 +8,7 @@ import threading
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, TypeVar
@@ -150,7 +150,7 @@ class CircuitBreaker:
         self._state = new_state
         self._stats.state = new_state
         self._stats.state_transitions += 1
-        self._stats.last_state_change = datetime.utcnow()
+        self._stats.last_state_change = datetime.now(timezone.utc)
 
         if new_state == CircuitState.HALF_OPEN:
             self._half_open_calls = 0
@@ -210,7 +210,7 @@ class CircuitBreaker:
         with self._lock:
             self._stats.total_calls += 1
             self._stats.successful_calls += 1
-            self._stats.last_success_time = datetime.utcnow()
+            self._stats.last_success_time = datetime.now(timezone.utc)
             self._stats.current_success_streak += 1
             self._stats.current_failure_streak = 0
 
@@ -235,7 +235,7 @@ class CircuitBreaker:
         with self._lock:
             self._stats.total_calls += 1
             self._stats.failed_calls += 1
-            self._stats.last_failure_time = datetime.utcnow()
+            self._stats.last_failure_time = datetime.now(timezone.utc)
             self._stats.current_failure_streak += 1
             self._stats.current_success_streak = 0
             self._last_failure_time = time.time()

@@ -12,7 +12,7 @@ import json
 import socket
 import struct
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
@@ -47,7 +47,7 @@ class DiscoveryMessage:
 
     def __post_init__(self):
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat()
+            self.timestamp = datetime.now(timezone.utc).isoformat()
 
     def to_json(self) -> str:
         return json.dumps(

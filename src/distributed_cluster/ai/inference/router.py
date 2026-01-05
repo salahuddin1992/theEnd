@@ -18,7 +18,7 @@ import random
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, AsyncIterator, Dict, List, Optional
 
@@ -125,7 +125,7 @@ class InferenceNode:
                 models = await self._provider.list_models()
                 self.models = [m.name for m in models]
 
-            self.last_health_check = datetime.utcnow()
+            self.last_health_check = datetime.now(timezone.utc)
 
             return healthy
 
@@ -184,7 +184,7 @@ class InferenceNode:
 
         finally:
             self.metrics.active_requests -= 1
-            self.metrics.last_updated = datetime.utcnow()
+            self.metrics.last_updated = datetime.now(timezone.utc)
 
     async def generate_stream(
         self,

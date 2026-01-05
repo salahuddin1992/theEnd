@@ -14,7 +14,7 @@ import logging
 import struct
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Optional, Tuple
@@ -120,7 +120,7 @@ class TransferSession:
         """Calculate transfer duration."""
         if not self.started_at:
             return 0.0
-        end = self.completed_at or datetime.utcnow()
+        end = self.completed_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -259,7 +259,7 @@ class StateTransfer:
 
         try:
             session.status = TransferStatus.CONNECTING
-            session.started_at = datetime.utcnow()
+            session.started_at = datetime.now(timezone.utc)
 
             # Connect to target
             reader, writer = await asyncio.open_connection(
@@ -347,7 +347,7 @@ class StateTransfer:
 
             # Complete
             session.status = TransferStatus.COMPLETED
-            session.completed_at = datetime.utcnow()
+            session.completed_at = datetime.now(timezone.utc)
 
             total_time = time.monotonic() - start_time
             session.progress.average_rate_mbps = (
@@ -425,7 +425,7 @@ class StateTransfer:
                 status=TransferStatus.TRANSFERRING,
                 progress=TransferProgress(bytes_total=file_size),
             )
-            session.started_at = datetime.utcnow()
+            session.started_at = datetime.now(timezone.utc)
 
             # Prepare output file
             output_path = Path(save_dir) / target_path
@@ -464,7 +464,7 @@ class StateTransfer:
 
             # Send acknowledgment
             session.status = TransferStatus.COMPLETED
-            session.completed_at = datetime.utcnow()
+            session.completed_at = datetime.now(timezone.utc)
 
             await self._send_ack(writer, {"success": True})
 
@@ -521,7 +521,7 @@ class StateTransfer:
 
         self._sessions[session_id] = session
         session.status = TransferStatus.TRANSFERRING
-        session.started_at = datetime.utcnow()
+        session.started_at = datetime.now(timezone.utc)
 
         try:
             reader, writer = await asyncio.open_connection(
@@ -564,7 +564,7 @@ class StateTransfer:
                 session.status = TransferStatus.FAILED
                 session.error_message = ack.get("error")
 
-            session.completed_at = datetime.utcnow()
+            session.completed_at = datetime.now(timezone.utc)
 
             writer.close()
             await writer.wait_closed()

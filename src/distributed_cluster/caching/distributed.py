@@ -8,7 +8,7 @@ import threading
 import time
 from bisect import bisect_left, insort
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -55,7 +55,7 @@ class CacheNode:
         try:
             self.backend = RedisBackend(host=self.host, port=self.port)
             self.status = NodeStatus.ONLINE
-            self.last_heartbeat = datetime.utcnow()
+            self.last_heartbeat = datetime.now(timezone.utc)
             return True
         except Exception as e:
             logger.error(f"Failed to connect to node {self.node_id}: {e}")
@@ -76,7 +76,7 @@ class CacheNode:
         try:
             # Try a simple operation
             self.backend.set("__health_check__", b"1", ttl=10)
-            self.last_heartbeat = datetime.utcnow()
+            self.last_heartbeat = datetime.now(timezone.utc)
             self.status = NodeStatus.ONLINE
             return True
         except Exception:

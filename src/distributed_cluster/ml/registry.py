@@ -12,7 +12,7 @@ import logging
 import shutil
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -207,7 +207,7 @@ class ExperimentTracker:
         run = Run(
             run_id=str(uuid.uuid4()),
             experiment_id=experiment_id,
-            name=run_name or f"run-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}",
+            name=run_name or f"run-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}",
             tags=tags or {},
         )
         self._runs[run.run_id] = run
@@ -223,7 +223,7 @@ class ExperimentTracker:
             raise RuntimeError("No active run to end")
 
         self._active_run.status = status
-        self._active_run.end_time = datetime.utcnow()
+        self._active_run.end_time = datetime.now(timezone.utc)
         self._save_run(self._active_run)
 
         logger.info(f"Ended run: {self._active_run.name} with status {status}")
@@ -582,7 +582,7 @@ class ModelRegistry:
         self._stage_assignments[(model_id, stage)] = version_id
 
         if stage == ModelStage.PRODUCTION:
-            version.deployed_at = datetime.utcnow()
+            version.deployed_at = datetime.now(timezone.utc)
             version.state = ModelState.DEPLOYED
 
         logger.info(f"Transitioned version {version_id} to stage {stage.value}")

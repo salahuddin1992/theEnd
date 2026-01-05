@@ -11,7 +11,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -75,7 +75,7 @@ class JobResult:
             completed_at=datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else None,
             execution_time_seconds=data.get("execution_time_seconds", 0.0),
             worker_id=data.get("worker_id"),
-            created_at=datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.utcnow(),
+            created_at=datetime.fromisoformat(data["created_at"]) if data.get("created_at") else datetime.now(timezone.utc),
         )
 
 
@@ -299,7 +299,7 @@ class ResultStorage:
             completed_at=datetime.fromisoformat(row[9]) if row[9] else None,
             execution_time_seconds=row[10] or 0.0,
             worker_id=row[11],
-            created_at=datetime.fromisoformat(row[12]) if row[12] else datetime.utcnow(),
+            created_at=datetime.fromisoformat(row[12]) if row[12] else datetime.now(timezone.utc),
         )
 
     async def _get_postgresql(self, job_id: str) -> Optional[JobResult]:
@@ -403,7 +403,7 @@ class ResultStorage:
                     completed_at=datetime.fromisoformat(row[9]) if row[9] else None,
                     execution_time_seconds=row[10] or 0.0,
                     worker_id=row[11],
-                    created_at=datetime.fromisoformat(row[12]) if row[12] else datetime.utcnow(),
+                    created_at=datetime.fromisoformat(row[12]) if row[12] else datetime.now(timezone.utc),
                 )
             )
 
@@ -452,7 +452,7 @@ class ResultStorage:
         Returns:
             int: عدد النتائج المحذوفة
         """
-        cutoff = datetime.utcnow() - timedelta(days=self.retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
         deleted = 0
 
         if self.backend == StorageBackend.SQLITE:

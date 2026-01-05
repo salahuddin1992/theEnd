@@ -17,7 +17,7 @@ import asyncio
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 import psutil
@@ -414,7 +414,7 @@ class SystemCollector:
             "network": network_metrics,
             "process": process_metrics,
             "gpu": gpu_metrics,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
 

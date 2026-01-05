@@ -6,7 +6,7 @@ Tests for authentication, API keys, and audit logging.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -143,7 +143,7 @@ class TestAuditLogging:
         """Test creating audit events."""
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             action=AuditAction.JOB_SUBMITTED,
             result=AuditResult.SUCCESS,
             actor_id="user-123",
@@ -162,7 +162,7 @@ class TestAuditLogging:
 
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             action=AuditAction.WORKER_REGISTERED,
             result=AuditResult.SUCCESS,
             actor_id="system",
@@ -187,7 +187,7 @@ class TestAuditLogging:
 
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             action=AuditAction.JOB_COMPLETED,
             result=AuditResult.SUCCESS,
             actor_id="worker-1",

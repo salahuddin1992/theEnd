@@ -9,7 +9,7 @@ import time
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -506,7 +506,7 @@ class PubSubManager:
                         subscription.pending_acks[message.message_id] = (
                             message,
                             subscriber,
-                            datetime.utcnow()
+                            datetime.now(timezone.utc)
                         )
 
                     subscription.cursor_positions[partition] = position + 1
@@ -585,7 +585,7 @@ class PubSubManager:
         with self._lock:
             for topic in self._topics.values():
                 retention = timedelta(hours=topic.config.retention_hours)
-                cutoff = datetime.utcnow() - retention
+                cutoff = datetime.now(timezone.utc) - retention
 
                 for partition in topic.partitions.values():
                     while partition and partition[0].publish_time < cutoff:
@@ -604,7 +604,7 @@ class PubSubManager:
     def _check_ack_timeouts(self):
         """Check for acknowledgment timeouts and redeliver."""
         with self._lock:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             for subscription in self._subscriptions.values():
                 timeout = timedelta(milliseconds=subscription.config.ack_timeout_ms)

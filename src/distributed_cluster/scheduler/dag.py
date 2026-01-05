@@ -16,7 +16,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
@@ -285,7 +285,7 @@ class DAGExecutor:
         # Store DAG
         self._dags[dag.dag_id] = dag
         dag.status = DAGStatus.RUNNING
-        dag.started_at = datetime.utcnow()
+        dag.started_at = datetime.now(timezone.utc)
 
         logger.info(f"DAG {dag.dag_id} submitted with {len(dag.nodes)} jobs")
 
@@ -342,7 +342,7 @@ class DAGExecutor:
 
         # Update node
         node.status = status
-        node.completed_at = datetime.utcnow()
+        node.completed_at = datetime.now(timezone.utc)
         node.result = result
 
         logger.info(f"Job {job_id} in DAG {dag_id} completed with status {status}")
@@ -386,7 +386,7 @@ class DAGExecutor:
             # Submit job
             if node.job:
                 node.status = JobStatus.SCHEDULED
-                node.started_at = datetime.utcnow()
+                node.started_at = datetime.now(timezone.utc)
                 self._running_jobs[node.job_id] = dag.dag_id
 
                 try:
@@ -442,7 +442,7 @@ class DAGExecutor:
         else:
             dag.status = DAGStatus.PARTIAL
 
-        dag.completed_at = datetime.utcnow()
+        dag.completed_at = datetime.now(timezone.utc)
 
         logger.info(f"DAG {dag.dag_id} completed with status {dag.status}")
 
