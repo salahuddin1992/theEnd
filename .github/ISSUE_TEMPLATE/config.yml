@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://docs.nebulacompute.io
+    about: Check out our documentation for guides and examples
+  - name: Discussions
+    url: https://github.com/salahuddin1992/theEnd/discussions
+    about: Ask questions and discuss with the community
