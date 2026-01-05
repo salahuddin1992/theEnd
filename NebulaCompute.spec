@@ -6,48 +6,26 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # Build Configuration:
-#   Mode: fast
-#   Version: d30a123
+#   Mode: release
+#   Version: dc92594
 #   Platform: linux
 #   One-File: True
 #   Console: False
 #
-# Generated: 2026-01-03T23:52:02.023939
+# Generated: 2026-01-05T02:35:09.912508
 # ═══════════════════════════════════════════════════════════════════════════════
 
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_all
 
 # Data files
-datas = [(r'/home/user/theEnd/src/distributed_cluster/desktop/resources', 'distributed_cluster/desktop/resources'), (r'/home/user/theEnd/config', 'config')]
+datas = [(r'/home/user/theEnd/src/distributed_cluster/desktop/resources', 'distributed_cluster/desktop/resources'), (r'/home/user/theEnd/src/distributed_cluster/web/templates', 'distributed_cluster/web/templates'), (r'/home/user/theEnd/src/distributed_cluster/web/static', 'distributed_cluster/web/static'), (r'/home/user/theEnd/config', 'config')]
 
 # Binary files
 binaries = []
 
 # Hidden imports
-hiddenimports = [
-    # Core Qt
-    'PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets', 'PySide6.QtCharts',
-    'PySide6.QtNetwork', 'PySide6.QtSvg', 'PySide6.QtSvgWidgets',
-    # Desktop app
-    'distributed_cluster', 'distributed_cluster.desktop', 'distributed_cluster.desktop.main',
-    'distributed_cluster.desktop.main_window', 'distributed_cluster.desktop.app_entry',
-    'distributed_cluster.desktop.api', 'distributed_cluster.desktop.api.client',
-    'distributed_cluster.desktop.views', 'distributed_cluster.desktop.widgets',
-    'distributed_cluster.desktop.resources',
-    # Models
-    'distributed_cluster.models', 'distributed_cluster.models.job',
-    'distributed_cluster.models.worker', 'distributed_cluster.models.resources',
-    # Core
-    'distributed_cluster.core', 'distributed_cluster.core.config',
-    # Network
-    'httpx', 'httpx._transports', 'httpx._transports.default',
-    'websockets', 'websockets.client', 'websockets.legacy', 'websockets.legacy.client',
-    'httpcore', 'h11', 'anyio', 'anyio._backends', 'anyio._backends._asyncio', 'sniffio',
-    # Standard library
-    'asyncio', 'json', 'datetime', 'dataclasses', 'enum', 'typing', 'pathlib',
-    'uuid', 'threading', 'queue', 'collections', 'ssl', 'certifi', 'qasync',
-]
+hiddenimports = ['dataclasses', 'distributed_cluster.desktop.ui.views', 'distributed_cluster.desktop.main', 'distributed_cluster.desktop.ui', 'distributed_cluster.desktop.widgets.sidebar', 'distributed_cluster.desktop.ui.components', 'distributed_cluster.desktop.views.templates', 'packaging.version', 'distributed_cluster.desktop.ui.sidebar', 'distributed_cluster.desktop.ui.dialogs', 'packaging', 'distributed_cluster.core', 'distributed_cluster.models.resources', 'httpcore', 'distributed_cluster', 'fnmatch', 'PySide6.QtPrintSupport', 'shutil', 'distributed_cluster.desktop.views.logs', 'distributed_cluster.desktop.ui.splash', 'PySide6.QtWidgets', 'weakref', 'distributed_cluster.desktop.views.plugin_manager', 'collections.abc', 'packaging.specifiers', 'PySide6.QtGui', 'pathlib', 'stat', 'urllib.parse', 'email.mime.multipart', 'qasync', 'distributed_cluster.desktop.views.pools', 'distributed_cluster.desktop.resources.themes', 'importlib_resources', 'jaraco.functools', 'jaraco.text', 'certifi', 'distributed_cluster.desktop.ui.fluent_design', 'websockets', 'asyncio.selector_events', 'websockets.server', 'PySide6.QtSvg', 'jaraco.classes', 'distributed_cluster.desktop.widgets.terminal', 'operator', 'typing', 'enum', 'distributed_cluster.desktop.views', 'distributed_cluster.models', 'distributed_cluster.core.logger', 'zipp', 'json', 'jaraco.collections', 'distributed_cluster.desktop.ui.data_table', 'distributed_cluster.desktop.widgets.charts', 'httpx._transports.asgi', 'contextlib', 'distributed_cluster.desktop.ui.titlebar', 'distributed_cluster.desktop.main_window', 'distributed_cluster.desktop.app_entry', 'distributed_cluster.desktop.views.queues', 'functools', 're', 'codecs', 'importlib_metadata', 'websockets.legacy.client', 'ctypes', 'PySide6.QtCharts', 'distributed_cluster.desktop.widgets', 'websockets.client', 'urllib', 'asyncio', 'anyio._backends._asyncio', 'copy', 'email.mime', 'distributed_cluster.desktop.ui.notifications', 'PySide6.QtOpenGL', 'uuid', 'httpx._transports.default', 'more_itertools', 'glob', 'urllib.request', 'ctypes.wintypes', 'distributed_cluster.models.cluster', 'distributed_cluster.desktop.ui.views.jobs', 'packaging.requirements', 'collections', 'distributed_cluster.desktop.views.jobs', 'distributed_cluster.desktop.widgets.connection_dialog', 'pickle', 'distributed_cluster.models.job', 'httpx', 'tempfile', 'anyio', 'hmac', 'threading', 'struct', 'h11', 'httpx._content', 'pkg_resources', 'ssl', 'distributed_cluster.desktop.views.dashboard', 'distributed_cluster.core.exceptions', 'httpx._transports', 'asyncio.events', 'secrets', 'distributed_cluster.desktop.views.script_editor', 'distributed_cluster.models.task', 'asyncio.proactor_events', 'distributed_cluster.desktop.ui.animations', 'distributed_cluster.desktop.views.powershell_console', 'PySide6.QtOpenGLWidgets', 'distributed_cluster.desktop.ui.main_window', 'distributed_cluster.desktop.ui.views.logs', 'distributed_cluster.desktop.views.workers', 'email.mime.text', 'PySide6.QtCore', 'distributed_cluster.desktop.widgets.data_table', 'distributed_cluster.desktop.widgets.login_dialog', 'pkg_resources.extern', 'hashlib', 'queue', 'distributed_cluster.desktop.resources', 'packaging.markers', 'base64', 'distributed_cluster.desktop.ui.dashboard', 'asyncio.base_events', 'io', 'distributed_cluster.desktop', 'distributed_cluster.desktop.widgets.notifications', 'email', 'jaraco', 'anyio._backends', 'jaraco.context', 'distributed_cluster.desktop.widgets.stat_card', 'distributed_cluster.models.worker', 'distributed_cluster.desktop.api.client', 'h2', 'sniffio', 'datetime', 'PySide6.QtNetwork', 'distributed_cluster.desktop.widgets.system_tray', 'distributed_cluster.desktop.views.metrics', 'itertools', 'os.path', 'websockets.legacy', 'distributed_cluster.core.config', 'distributed_cluster.desktop.ui.windows_integration', 'distributed_cluster.desktop.api', 'PySide6.QtSvgWidgets', 'distributed_cluster.desktop.resources.styles', 'distributed_cluster.desktop.views.settings']
 
 # Collect all from packages
 
@@ -60,13 +38,11 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('websockets')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
-# jaraco is not needed for basic functionality
-# tmp_ret = collect_all('jaraco')
-# datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('jaraco')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
-# pkg_resources causes issues
-# tmp_ret = collect_all('pkg_resources')
-# datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+tmp_ret = collect_all('pkg_resources')
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 tmp_ret = collect_all('certifi')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
@@ -82,9 +58,9 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['jupyter', 'tensorflow', 'tk', 'pytest', 'test', '_tkinter', 'tcl', 'scipy', 'pandas', 'keras', 'pydoc', 'numpy', 'torch', 'setuptools', 'tests', 'doctest', 'matplotlib', 'unittest', 'wx', 'distutils', 'wheel', 'pdb', 'pip', 'PyQt5', 'sklearn', 'notebook', 'PIL.ImageTk', 'IPython', 'tkinter', 'PyQt6', 'cryptography', 'cryptography.hazmat', 'cryptography.hazmat.backends', 'cryptography.hazmat.backends.openssl', 'jaraco', 'pkg_resources'],
+    excludes=['sklearn', 'pip', 'jupyter', 'tests', 'tensorflow', 'keras', 'distutils', 'notebook', 'pandas', 'scipy', 'tk', 'PyQt6', 'test', 'torch', 'wx', 'tkinter', 'pydoc', '_tkinter', 'IPython', 'PyQt5', 'matplotlib', 'wheel', 'setuptools', 'unittest', 'pytest', 'tcl', 'PIL.ImageTk', 'doctest', 'pdb', 'numpy'],
     noarchive=False,
-    optimize=0,
+    optimize=2,
 )
 
 # Create PYZ archive

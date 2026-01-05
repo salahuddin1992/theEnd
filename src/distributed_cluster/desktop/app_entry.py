@@ -59,9 +59,16 @@ try:
     from PySide6.QtCore import Qt
     from PySide6.QtGui import QFont, QIcon  # noqa: F401
     from PySide6.QtWidgets import QApplication
-except ImportError:
-    print("Error: PySide6 is not installed.")
-    print("Install it with: pip install PySide6 qasync")
+except ImportError as e:
+    error_msg = str(e)
+    if "libEGL" in error_msg or "libGL" in error_msg or "xcb" in error_msg:
+        print(f"Error: Missing graphics libraries: {error_msg}")
+        print("This application requires a graphical environment (X11/Wayland).")
+        print("On headless Linux, install: apt-get install libegl1 libxcb-xinerama0")
+    else:
+        print("Error: PySide6 is not installed or cannot be loaded.")
+        print(f"Details: {error_msg}")
+        print("Install it with: pip install PySide6 qasync")
     sys.exit(1)
 
 try:
