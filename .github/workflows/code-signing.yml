@@ -1,0 +1,331 @@
+# ==============================================================================
+# Code Signing Configuration Workflow
+# ==============================================================================
+# This workflow handles code signing for Windows, macOS, and Linux builds
+#
+# REQUIRED SECRETS:
+# -----------------
+# Windows:
+#   - CODE_SIGN_CERT_BASE64    : Base64-encoded .pfx certificate
+#   - CODE_SIGN_CERT_PASSWORD  : Certificate password
+#
+# macOS:
+#   - APPLE_CERT_BASE64        : Base64-encoded .p12 certificate
+#   - APPLE_CERT_PASSWORD      : Certificate password
+#   - APPLE_ID                 : Apple Developer ID email
+#   - APPLE_ID_PASSWORD        : App-specific password
+#   - APPLE_TEAM_ID            : Apple Developer Team ID
+#
+# Linux (GPG):
+#   - GPG_PRIVATE_KEY          : ASCII-armored GPG private key
+#   - GPG_PASSPHRASE           : GPG key passphrase
+#
+# ==============================================================================
+
+name: Code Signing
+
+on:
+  workflow_call:
+    inputs:
+      artifact_name:
+        description: 'Name of the artifact to sign'
+        required: true
+        type: string
+      platform:
+        description: 'Target platform (windows, macos, linux)'
+        required: true
+        type: string
+    secrets:
+      CODE_SIGN_CERT_BASE64:
+        required: false
+      CODE_SIGN_CERT_PASSWORD:
+        required: false
+      APPLE_CERT_BASE64:
+        required: false
+      APPLE_CERT_PASSWORD:
+        required: false
+      APPLE_ID:
+        required: false
+      APPLE_ID_PASSWORD:
+        required: false
+      APPLE_TEAM_ID:
+        required: false
+      GPG_PRIVATE_KEY:
+        required: false
+      GPG_PASSPHRASE:
+        required: false
+
+jobs:
+  # ============================================================================
+  # Windows Code Signing (Authenticode)
+  # ============================================================================
+  sign-windows:
+    name: Sign Windows Executable
+    runs-on: windows-latest
+    if: inputs.platform == 'windows'
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./to-sign/
+
+      - name: Check Signing Certificate
+        id: check-cert
+        shell: pwsh
+        run: |
+          if ("${{ secrets.CODE_SIGN_CERT_BASE64 }}" -ne "") {
+            echo "has_cert=true" >> $env:GITHUB_OUTPUT
+            Write-Host "Certificate found, will sign executable"
+          } else {
+            echo "has_cert=false" >> $env:GITHUB_OUTPUT
+            Write-Host "No certificate configured, skipping signing"
+          }
+
+      - name: Import Certificate
+        if: steps.check-cert.outputs.has_cert == 'true'
+        shell: pwsh
+        run: |
+          $certBytes = [Convert]::FromBase64String("${{ secrets.CODE_SIGN_CERT_BASE64 }}")
+          [IO.File]::WriteAllBytes("certificate.pfx", $certBytes)
+
+      - name: Sign Executable
+        if: steps.check-cert.outputs.has_cert == 'true'
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path ./to-sign -Filter "*.exe" -Recurse | Select-Object -First 1
+
+          if ($exe) {
+            & signtool sign /f certificate.pfx `
+              /p "${{ secrets.CODE_SIGN_CERT_PASSWORD }}" `
+              /t http://timestamp.digicert.com `
+              /fd SHA256 `
+              /d "NebulaCompute" `
+              $exe.FullName
+
+            Write-Host "Successfully signed: $($exe.Name)"
+          } else {
+            Write-Host "No executable found to sign"
+          }
+
+      - name: Verify Signature
+        if: steps.check-cert.outputs.has_cert == 'true'
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path ./to-sign -Filter "*.exe" -Recurse | Select-Object -First 1
+          if ($exe) {
+            & signtool verify /pa $exe.FullName
+          }
+
+      - name: Cleanup Certificate
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path "certificate.pfx") {
+            Remove-Item "certificate.pfx" -Force
+          }
+
+      - name: Upload Signed Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}-signed
+          path: ./to-sign/
+
+  # ============================================================================
+  # macOS Code Signing & Notarization
+  # ============================================================================
+  sign-macos:
+    name: Sign macOS Application
+    runs-on: macos-latest
+    if: inputs.platform == 'macos'
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./to-sign/
+
+      - name: Check Signing Certificate
+        id: check-cert
+        run: |
+          if [ -n "${{ secrets.APPLE_CERT_BASE64 }}" ]; then
+            echo "has_cert=true" >> $GITHUB_OUTPUT
+            echo "Certificate found, will sign application"
+          else
+            echo "has_cert=false" >> $GITHUB_OUTPUT
+            echo "No certificate configured, skipping signing"
+          fi
+
+      - name: Import Certificate
+        if: steps.check-cert.outputs.has_cert == 'true'
+        run: |
+          # Decode certificate
+          echo "${{ secrets.APPLE_CERT_BASE64 }}" | base64 --decode > certificate.p12
+
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          security import certificate.p12 \
+            -P "${{ secrets.APPLE_CERT_PASSWORD }}" \
+            -A -t cert -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> $GITHUB_ENV
+
+      - name: Sign Application
+        if: steps.check-cert.outputs.has_cert == 'true'
+        run: |
+          # Find the app bundle or executable
+          APP=$(find ./to-sign -name "*.app" -o -name "NebulaCompute" | head -1)
+
+          if [ -n "$APP" ]; then
+            codesign --force --deep --sign "Developer ID Application: ${{ secrets.APPLE_TEAM_ID }}" \
+              --options runtime \
+              --entitlements - <<EOF
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+              <key>com.apple.security.cs.allow-jit</key>
+              <true/>
+              <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+              <true/>
+              <key>com.apple.security.cs.disable-library-validation</key>
+              <true/>
+            </dict>
+            </plist>
+          EOF
+            "$APP"
+
+            echo "Successfully signed: $APP"
+          else
+            echo "No application found to sign"
+          fi
+
+      - name: Notarize Application
+        if: steps.check-cert.outputs.has_cert == 'true' && secrets.APPLE_ID != ''
+        run: |
+          DMG=$(find ./to-sign -name "*.dmg" | head -1)
+
+          if [ -n "$DMG" ]; then
+            xcrun notarytool submit "$DMG" \
+              --apple-id "${{ secrets.APPLE_ID }}" \
+              --password "${{ secrets.APPLE_ID_PASSWORD }}" \
+              --team-id "${{ secrets.APPLE_TEAM_ID }}" \
+              --wait
+
+            # Staple the notarization ticket
+            xcrun stapler staple "$DMG"
+            echo "Successfully notarized: $DMG"
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f certificate.p12
+          if [ -n "$KEYCHAIN_PATH" ]; then
+            security delete-keychain "$KEYCHAIN_PATH" || true
+          fi
+
+      - name: Upload Signed Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}-signed
+          path: ./to-sign/
+
+  # ============================================================================
+  # Linux GPG Signing
+  # ============================================================================
+  sign-linux:
+    name: Sign Linux Package
+    runs-on: ubuntu-latest
+    if: inputs.platform == 'linux'
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./to-sign/
+
+      - name: Check GPG Key
+        id: check-gpg
+        run: |
+          if [ -n "${{ secrets.GPG_PRIVATE_KEY }}" ]; then
+            echo "has_key=true" >> $GITHUB_OUTPUT
+            echo "GPG key found, will sign packages"
+          else
+            echo "has_key=false" >> $GITHUB_OUTPUT
+            echo "No GPG key configured, skipping signing"
+          fi
+
+      - name: Import GPG Key
+        if: steps.check-gpg.outputs.has_key == 'true'
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --batch --passphrase-fd 0 --pinentry-mode loopback \
+            --export-secret-keys --armor | gpg --batch --import
+
+      - name: Sign Packages
+        if: steps.check-gpg.outputs.has_key == 'true'
+        run: |
+          # Sign AppImage
+          for file in ./to-sign/*.AppImage; do
+            if [ -f "$file" ]; then
+              gpg --batch --yes --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+                --pinentry-mode loopback \
+                --detach-sign --armor "$file"
+              echo "Signed: $file"
+            fi
+          done
+
+          # Sign DEB package
+          for file in ./to-sign/*.deb; do
+            if [ -f "$file" ]; then
+              dpkg-sig --sign builder "$file" -k "${{ secrets.GPG_PASSPHRASE }}" || \
+              gpg --batch --yes --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+                --pinentry-mode loopback \
+                --detach-sign --armor "$file"
+              echo "Signed: $file"
+            fi
+          done
+
+          # Sign tar.gz
+          for file in ./to-sign/*.tar.gz; do
+            if [ -f "$file" ]; then
+              gpg --batch --yes --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+                --pinentry-mode loopback \
+                --detach-sign --armor "$file"
+              echo "Signed: $file"
+            fi
+          done
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd ./to-sign
+          sha256sum * > SHA256SUMS.txt 2>/dev/null || true
+          cat SHA256SUMS.txt
+
+      - name: Sign Checksums File
+        if: steps.check-gpg.outputs.has_key == 'true'
+        run: |
+          cd ./to-sign
+          gpg --batch --yes --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+            --pinentry-mode loopback \
+            --clearsign SHA256SUMS.txt
+
+      - name: Upload Signed Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}-signed
+          path: ./to-sign/
