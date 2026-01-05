@@ -55,6 +55,20 @@ docs/_build/
 *.log
 *.db
 
+# Configuration (may contain secrets)
+config.yaml
+!config.example.yaml
+
+# E2E Tests
+tests/e2e/node_modules/
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+
+# Frontend build
+frontend/node_modules/
+frontend/dist/
+src/distributed_cluster/web/frontend_dist/
+
 # OS
 .DS_Store
 Thumbs.db
