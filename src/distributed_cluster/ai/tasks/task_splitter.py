@@ -724,7 +724,7 @@ class DistributedPromptExecutor:
             on_progress(0, f"Split into {split_task.total_chunks} chunks")
 
         # Execute chunks in parallel
-        results = await self._execute_chunks_parallel(
+        await self._execute_chunks_parallel(
             split_task,
             task,
             parameters,

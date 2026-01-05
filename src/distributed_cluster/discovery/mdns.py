@@ -89,7 +89,7 @@ class MDNSDiscovery:
             service_type: نوع الخدمة للبحث عنها
         """
         try:
-            from zeroconf import ServiceBrowser, Zeroconf
+            from zeroconf import ServiceBrowser
             from zeroconf.asyncio import AsyncZeroconf
 
             logger.info(f"Starting mDNS browser for {service_type}")

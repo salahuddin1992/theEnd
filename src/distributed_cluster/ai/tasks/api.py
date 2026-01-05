@@ -405,9 +405,6 @@ async def _execute_distributed_task(
     )
 
     try:
-        chunking = ChunkingStrategy(chunking_strategy) if chunking_strategy else None
-        aggregation = AggregationStrategy(aggregation_strategy) if aggregation_strategy else None
-
         async def on_progress(progress: float, message: str):
             state.update_execution(execution_id, progress=progress)
             await state.notify_progress(

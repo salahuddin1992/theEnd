@@ -687,7 +687,10 @@ class JobInsightsEngine:
                 type=InsightType.FAILURE,
                 priority=InsightPriority.HIGH,
                 title="High Timeout Rate",
-                description=f"{summary.timeout_jobs} jobs ({summary.timeout_jobs / summary.total_jobs:.1%}) timed out",
+                description=(
+                    f"{summary.timeout_jobs} jobs "
+                    f"({summary.timeout_jobs / summary.total_jobs:.1%}) timed out"
+                ),
                 metric_value=summary.timeout_jobs,
                 metric_unit="jobs",
                 recommendation="Review timeout settings; optimize job execution or increase limits",
