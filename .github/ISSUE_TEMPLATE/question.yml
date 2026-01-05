@@ -1,0 +1,49 @@
+name: Question
+description: Ask a question about NebulaCompute
+title: "[Question]: "
+labels: ["question"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're here to help!
+        Please check the documentation first: https://docs.nebulacompute.io
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Topic Area
+      options:
+        - Installation
+        - Configuration
+        - Usage
+        - Performance
+        - Security
+        - Integration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any additional context that might help us answer your question
+
+  - type: checkboxes
+    id: docs
+    attributes:
+      label: Documentation Check
+      options:
+        - label: I have checked the documentation and FAQ
+          required: true

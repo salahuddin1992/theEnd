@@ -1,0 +1,31 @@
+# CODEOWNERS file
+# These owners will be automatically requested for review when someone opens a pull request
+
+# Default owners for everything
+* @salahuddin1992
+
+# Core modules
+/src/distributed_cluster/scheduler/ @salahuddin1992
+/src/distributed_cluster/worker/ @salahuddin1992
+/src/distributed_cluster/master/ @salahuddin1992
+/src/distributed_cluster/security/ @salahuddin1992
+
+# Frontend
+/frontend/ @salahuddin1992
+
+# Documentation
+/docs/ @salahuddin1992
+*.md @salahuddin1992
+
+# CI/CD
+/.github/ @salahuddin1992
+/deploy/ @salahuddin1992
+/Dockerfile* @salahuddin1992
+/docker-compose*.yml @salahuddin1992
+
+# Tests
+/tests/ @salahuddin1992
+
+# Configuration
+/pyproject.toml @salahuddin1992
+/config*.yaml @salahuddin1992

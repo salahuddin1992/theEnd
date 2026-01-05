@@ -1,0 +1,41 @@
+[run]
+source = src/distributed_cluster
+branch = true
+parallel = true
+omit =
+    */tests/*
+    */__pycache__/*
+    */site-packages/*
+    src/distributed_cluster/desktop/*
+    src/distributed_cluster/ai/llm/*
+
+[paths]
+source =
+    src/distributed_cluster
+    */site-packages/distributed_cluster
+
+[report]
+show_missing = true
+precision = 2
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+    @abstractmethod
+    @abc.abstractmethod
+    @overload
+    @typing.overload
+    class .*\bProtocol\):
+    \.\.\.
+
+[html]
+directory = htmlcov
+title = NebulaCompute Coverage Report
+
+[xml]
+output = coverage.xml
