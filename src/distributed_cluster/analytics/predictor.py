@@ -11,7 +11,7 @@ import asyncio
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -159,7 +159,7 @@ class JobPredictor:
             actual_duration=actual_duration,
             actual_cpu_usage=actual_cpu_usage,
             actual_memory_usage=actual_memory_usage,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         async with self._lock:

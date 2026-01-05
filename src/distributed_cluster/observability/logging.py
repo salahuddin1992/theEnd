@@ -27,7 +27,7 @@ import time
 import traceback
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import IntEnum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -186,7 +186,7 @@ class StructuredLogger:
         ctx = get_current_context()
 
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             "level": level.name,
             "logger": self.name,
             "message": message,

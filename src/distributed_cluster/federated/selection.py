@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -715,7 +715,7 @@ class AvailabilitySelector(ClientSelector):
         **kwargs,
     ) -> SelectionResult:
         """Select clients based on availability and reliability."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Filter by availability
         eligible = []

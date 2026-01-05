@@ -24,7 +24,7 @@ import time
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum, IntEnum
 from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
@@ -77,13 +77,13 @@ class QueuedRequest:
     @property
     def age_seconds(self) -> float:
         """Get request age in seconds."""
-        return (datetime.utcnow() - self.enqueued_at).total_seconds()
+        return (datetime.now(timezone.utc) - self.enqueued_at).total_seconds()
 
     @property
     def is_expired(self) -> bool:
         """Check if request has expired."""
         if self.deadline:
-            return datetime.utcnow() > self.deadline
+            return datetime.now(timezone.utc) > self.deadline
         return False
 
     def to_dict(self) -> Dict[str, Any]:
@@ -302,14 +302,14 @@ class LoadShedder:
         request_id = request_id or str(uuid.uuid4())
         deadline = None
         if deadline_seconds:
-            deadline = datetime.utcnow() + timedelta(seconds=deadline_seconds)
+            deadline = datetime.now(timezone.utc) + timedelta(seconds=deadline_seconds)
 
         request = QueuedRequest(
             request_id=request_id,
             priority=priority,
             client_id=client_id,
             payload=payload,
-            enqueued_at=datetime.utcnow(),
+            enqueued_at=datetime.now(timezone.utc),
             deadline=deadline,
             metadata=metadata or {},
         )

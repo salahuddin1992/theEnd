@@ -29,7 +29,7 @@ import hmac
 import json
 import secrets
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional, Set
 
@@ -156,12 +156,12 @@ class TokenPayload:
         """هل انتهت صلاحية الـ token؟"""
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     @property
     def is_valid(self) -> bool:
         """هل الـ token صالح؟"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if self.expires_at and now > self.expires_at:
             return False
         if self.not_before and now < self.not_before:
@@ -253,7 +253,7 @@ class WorkerEnrollment:
             enrollment_id=f"enroll-{secrets.token_hex(8)}",
             worker_fingerprint="",  # Will be set when worker registers
             enrollment_token=token_hash,
-            token_expires_at=datetime.utcnow() + timedelta(hours=expires_in_hours),
+            token_expires_at=datetime.now(timezone.utc) + timedelta(hours=expires_in_hours),
         )
 
         return token, enrollment
@@ -262,7 +262,7 @@ class WorkerEnrollment:
         """التحقق من صحة token."""
         if not self.enrollment_token:
             return False
-        if self.token_expires_at and datetime.utcnow() > self.token_expires_at:
+        if self.token_expires_at and datetime.now(timezone.utc) > self.token_expires_at:
             return False
 
         provided_hash = hashlib.sha256(provided_token.encode()).hexdigest()
@@ -325,7 +325,7 @@ class AuthManager:
         يستخدم HMAC-SHA256 (مشابه لـ JWT بدون header).
         """
         if payload.expires_at is None:
-            payload.expires_at = datetime.utcnow() + timedelta(hours=self.token_expiry_hours)
+            payload.expires_at = datetime.now(timezone.utc) + timedelta(hours=self.token_expiry_hours)
 
         payload.session_id = secrets.token_hex(16)
 
@@ -442,8 +442,8 @@ class AuthManager:
             "name": name,
             "role": role,
             "permissions": permissions,
-            "created_at": datetime.utcnow(),
-            "expires_at": datetime.utcnow() + timedelta(days=expires_in_days),
+            "created_at": datetime.now(timezone.utc),
+            "expires_at": datetime.now(timezone.utc) + timedelta(days=expires_in_days),
         }
 
         payload = TokenPayload(
@@ -452,7 +452,7 @@ class AuthManager:
             role=role,
             api_key_id=api_key_id,
             permissions=set(permissions) if permissions else set(),
-            expires_at=datetime.utcnow() + timedelta(days=expires_in_days),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=expires_in_days),
         )
 
         # الـ API key هو token موقّع
@@ -555,7 +555,7 @@ class AuthManager:
                     enrollment.worker_fingerprint = fingerprint
                     enrollment.hostname = hostname
                     enrollment.ip_address = ip_address
-                    enrollment.approved_at = datetime.utcnow()
+                    enrollment.approved_at = datetime.now(timezone.utc)
 
                     # Remove used token
                     del self._enrollment_tokens[token_hash]

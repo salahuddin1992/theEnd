@@ -12,7 +12,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -70,7 +70,7 @@ class WebSocketMessage:
             message_id=data.get("id", str(uuid.uuid4())),
             message_type=MessageType(data.get("type", "text")),
             data=data.get("data"),
-            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.utcnow(),
+            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.now(timezone.utc),
         )
 
 
@@ -285,7 +285,7 @@ class ConnectionManager:
             return None
 
         connection.messages_received += 1
-        connection.last_message_at = datetime.utcnow()
+        connection.last_message_at = datetime.now(timezone.utc)
 
         # Call handlers
         for handler in self._handlers:

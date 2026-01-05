@@ -9,7 +9,7 @@ import threading
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
@@ -460,7 +460,7 @@ class EventAggregator:
 
     def get_completed_windows(self) -> List[tuple]:
         """Get all completed windows with their aggregation results."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         results = []
 
         with self._lock:
@@ -650,7 +650,7 @@ class WindowedProcessor:
     def add(self, event: Event):
         """Add an event to the current window."""
         with self._lock:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             # Close expired windows
             self._close_expired_windows(now)

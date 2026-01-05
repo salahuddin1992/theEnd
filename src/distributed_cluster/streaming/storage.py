@@ -11,7 +11,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Dict, Iterator, List, Optional, Tuple
 
@@ -256,7 +256,7 @@ class FileEventStore(EventStore):
 
     def _init_current_file(self):
         """Initialize current log file."""
-        today = datetime.utcnow().strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         self._current_file = self.directory / f"events-{today}.jsonl"
 
         if self.config.compression:
@@ -266,7 +266,7 @@ class FileEventStore(EventStore):
 
     def _rotate_if_needed(self):
         """Rotate log file if date changed."""
-        today = datetime.utcnow().strftime("%Y-%m-%d")
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         expected_file = self.directory / f"events-{today}.jsonl"
 
         if expected_file != self._current_file:

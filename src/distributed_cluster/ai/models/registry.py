@@ -15,7 +15,7 @@ import json
 import logging
 import shutil
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, AsyncIterator, Dict, List, Optional
@@ -156,7 +156,7 @@ class ModelMetadata:
             versions.append(
                 ModelVersion(
                     version=v.get("version", "1.0"),
-                    created_at=datetime.fromisoformat(v["created_at"]) if "created_at" in v else datetime.utcnow(),
+                    created_at=datetime.fromisoformat(v["created_at"]) if "created_at" in v else datetime.now(timezone.utc),
                     size_bytes=v.get("size_bytes", 0),
                     checksum=v.get("checksum", ""),
                     quantization=v.get("quantization"),
@@ -180,8 +180,8 @@ class ModelMetadata:
             tags=data.get("tags", []),
             category=data.get("category", "general"),
             language=data.get("language", ["en"]),
-            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.utcnow(),
-            updated_at=datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.utcnow(),
+            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(timezone.utc),
+            updated_at=datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.now(timezone.utc),
             download_count=data.get("download_count", 0),
             usage_count=data.get("usage_count", 0),
         )
@@ -237,7 +237,7 @@ class ModelRegistry:
         """حفظ فهرس النماذج."""
         data = {
             "models": [m.to_dict() for m in self._models.values()],
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
         self._index_path.write_text(
@@ -504,7 +504,7 @@ class ModelRegistry:
         model = self._models.get(model_id)
         if model:
             model.usage_count += 1
-            model.updated_at = datetime.utcnow()
+            model.updated_at = datetime.now(timezone.utc)
             self._save_index()
 
     def get_stats(self) -> Dict[str, Any]:

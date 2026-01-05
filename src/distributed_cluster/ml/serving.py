@@ -13,7 +13,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from queue import Queue
 from threading import Lock
@@ -359,7 +359,7 @@ class BatchInferenceRunner:
         import pandas as pd
 
         job.state = "running"
-        job.started_at = datetime.utcnow()
+        job.started_at = datetime.now(timezone.utc)
         self._running_jobs[job.job_id] = job
 
         try:
@@ -402,12 +402,12 @@ class BatchInferenceRunner:
                 results_df.to_json(job.output_path, orient="records")
 
             job.state = "completed"
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
 
         except Exception as e:
             job.state = "failed"
             job.error = str(e)
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
             logger.error(f"Batch job {job.job_id} failed: {e}")
 
         finally:

@@ -23,7 +23,7 @@ import time
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -278,7 +278,7 @@ class AnomalyDetector(ThreatDetector):
 
     def _get_hour_key(self) -> str:
         """Get current hour key for baseline grouping."""
-        return datetime.utcnow().strftime("%H")
+        return datetime.now(timezone.utc).strftime("%H")
 
     def record_metric(self, actor_id: str, metric_name: str, value: float) -> None:
         """Record a metric value for baseline calculation."""
@@ -514,7 +514,7 @@ class SecurityMonitor:
 
     def _cleanup_old_data(self) -> None:
         """Clean up old events and resolved alerts."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         retention_cutoff = now - timedelta(hours=self.config.event_retention_hours)
 
         # Remove old events
@@ -624,7 +624,7 @@ class SecurityMonitor:
 
             alert.acknowledged = True
             alert.acknowledged_by = acknowledged_by
-            alert.acknowledged_at = datetime.utcnow()
+            alert.acknowledged_at = datetime.now(timezone.utc)
             return True
 
     def resolve_alert(
@@ -639,7 +639,7 @@ class SecurityMonitor:
                 return False
 
             alert.resolved = True
-            alert.resolved_at = datetime.utcnow()
+            alert.resolved_at = datetime.now(timezone.utc)
             alert.false_positive = false_positive
             return True
 

@@ -19,7 +19,7 @@ import asyncio
 import logging
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -520,7 +520,7 @@ class ClusterSecurityManager:
             "request": {
                 "action": request.action,
                 "ip": request.ip_address,
-                "time": datetime.utcnow(),
+                "time": datetime.now(timezone.utc),
             },
             "session": {"mfa_verified": session.mfa_verified if request.session_id else False},
             "resource": {"type": request.resource_type, "id": request.resource_id},

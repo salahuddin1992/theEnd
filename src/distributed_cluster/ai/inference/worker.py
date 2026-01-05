@@ -12,7 +12,7 @@ import asyncio
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 import httpx
@@ -368,7 +368,7 @@ class InferenceWorker:
         if not healthy:
             logger.warning(f"LLM provider at {self.config.llm_url} is not healthy")
 
-        self._stats["started_at"] = datetime.utcnow().isoformat()
+        self._stats["started_at"] = datetime.now(timezone.utc).isoformat()
         self._running = True
 
         # Register with master if configured

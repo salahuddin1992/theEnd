@@ -19,7 +19,7 @@ import os
 import secrets as py_secrets
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
@@ -79,13 +79,13 @@ class Secret:
     def set(self, key: str, value: bytes) -> None:
         """تعيين قيمة."""
         self.data[key] = value
-        self.metadata.updated_at = datetime.utcnow()
+        self.metadata.updated_at = datetime.now(timezone.utc)
 
     def delete(self, key: str) -> bool:
         """حذف مفتاح."""
         if key in self.data:
             del self.data[key]
-            self.metadata.updated_at = datetime.utcnow()
+            self.metadata.updated_at = datetime.now(timezone.utc)
             return True
         return False
 
@@ -96,7 +96,7 @@ class Secret:
     def is_expired(self) -> bool:
         """هل انتهت صلاحية السر؟"""
         if self.metadata.expires_at:
-            return datetime.utcnow() > self.metadata.expires_at
+            return datetime.now(timezone.utc) > self.metadata.expires_at
         return False
 
     def can_access(self, user_id: Optional[str], team_id: Optional[str], job_pattern: Optional[str]) -> bool:
@@ -304,7 +304,7 @@ class FileSecretStore(SecretStore):
 
         # Increment version
         secret.metadata.version += 1
-        secret.metadata.updated_at = datetime.utcnow()
+        secret.metadata.updated_at = datetime.now(timezone.utc)
 
         # Delete and recreate
         path.unlink()
@@ -369,7 +369,7 @@ class MemorySecretStore(SecretStore):
         if key not in self._secrets:
             return False
         secret.metadata.version += 1
-        secret.metadata.updated_at = datetime.utcnow()
+        secret.metadata.updated_at = datetime.now(timezone.utc)
         self._secrets[key] = secret
         return True
 
@@ -429,7 +429,7 @@ class SecretsManager:
             name=name,
             namespace=namespace,
             secret_type=secret_type,
-            expires_at=datetime.utcnow() + expires_in if expires_in else None,
+            expires_at=datetime.now(timezone.utc) + expires_in if expires_in else None,
             labels=labels or {},
             owner=owner,
             allowed_jobs=set(allowed_jobs or []),

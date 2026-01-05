@@ -13,7 +13,7 @@ import logging
 import random
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Pattern, Tuple
 
@@ -74,13 +74,13 @@ class ServiceBackend:
     def mark_healthy(self) -> None:
         self.status = BackendStatus.HEALTHY
         self.consecutive_failures = 0
-        self.last_health_check = datetime.utcnow()
+        self.last_health_check = datetime.now(timezone.utc)
 
     def mark_unhealthy(self) -> None:
         self.consecutive_failures += 1
         if self.consecutive_failures >= 3:
             self.status = BackendStatus.UNHEALTHY
-        self.last_health_check = datetime.utcnow()
+        self.last_health_check = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict[str, Any]:
         return {

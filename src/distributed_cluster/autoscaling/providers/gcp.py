@@ -27,7 +27,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from distributed_cluster.autoscaling.providers.base import (
@@ -338,7 +338,7 @@ class GCPProvider(CloudProvider):
                     state=InstanceState.PENDING,
                     instance_type=machine_type,
                     zone=zone,
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
                     tags=merged_tags,
                     labels=merged_labels,
                 )

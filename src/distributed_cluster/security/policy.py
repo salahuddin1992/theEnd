@@ -23,7 +23,7 @@ import re
 import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -164,7 +164,7 @@ class PolicyCondition:
 
         elif self.operator == ConditionOperator.TIME_BETWEEN:
             try:
-                now = datetime.utcnow().time()
+                now = datetime.now(timezone.utc).time()
                 start = datetime.strptime(self.value[0], "%H:%M").time()
                 end = datetime.strptime(self.value[1], "%H:%M").time()
 
@@ -371,7 +371,7 @@ class MemoryPolicyStore(PolicyStore):
         with self._lock:
             if policy.policy_id not in self._policies:
                 return False
-            policy.updated_at = datetime.utcnow()
+            policy.updated_at = datetime.now(timezone.utc)
             policy.version += 1
             self._policies[policy.policy_id] = policy
             return True

@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -262,7 +262,7 @@ class HookManager:
         """
         context = HookContext(
             hook_type=hook_type,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             data=data or {},
             source=source,
             metadata=metadata or {},
@@ -310,7 +310,7 @@ class HookManager:
         """
         context = HookContext(
             hook_type=hook_type,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             data=data or {},
             source=source,
         )

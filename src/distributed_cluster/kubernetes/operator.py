@@ -19,7 +19,7 @@ import asyncio
 import logging
 import signal
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from distributed_cluster.kubernetes.controller import (
@@ -166,7 +166,7 @@ class ClusterOperator:
             self._setup_signals()
 
             self._running = True
-            self._started_at = datetime.utcnow()
+            self._started_at = datetime.now(timezone.utc)
 
             logger.info("Cluster Operator started successfully")
             return True
@@ -311,7 +311,7 @@ class ClusterOperator:
 
         # Uptime
         if self._started_at:
-            uptime = (datetime.utcnow() - self._started_at).total_seconds()
+            uptime = (datetime.now(timezone.utc) - self._started_at).total_seconds()
             lines.append(
                 '# HELP operator_uptime_seconds Operator uptime in seconds'
             )
@@ -366,7 +366,7 @@ class ClusterOperator:
         return {
             "running": self._running,
             "started_at": self._started_at.isoformat() if self._started_at else None,
-            "uptime_seconds": (datetime.utcnow() - self._started_at).total_seconds()
+            "uptime_seconds": (datetime.now(timezone.utc) - self._started_at).total_seconds()
                 if self._started_at else 0,
             "config": self.config.to_dict(),
             "controller": self._controller.get_status(),

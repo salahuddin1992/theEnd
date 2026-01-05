@@ -9,7 +9,7 @@ Client Service gRPC Implementation
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from distributed_cluster.models.events import Event, EventType
@@ -108,7 +108,7 @@ class ClientServicer:
             job_id=job_id,
             submission=submission,
             status=JobStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
         # Save to database
@@ -125,7 +125,7 @@ class ClientServicer:
         await self.database.save_event(
             Event(
                 event_type=EventType.JOB_SUBMITTED,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 source="client",
                 job_id=job_id,
                 message=f"Job '{submission.name}' submitted",
@@ -199,7 +199,7 @@ class ClientServicer:
         # Update status
         old_status = job.status
         job.status = JobStatus.CANCELLED
-        job.completed_at = datetime.utcnow()
+        job.completed_at = datetime.now(timezone.utc)
         await self.database.save_job(job)
 
         # Remove from scheduler if pending
@@ -210,7 +210,7 @@ class ClientServicer:
         await self.database.save_event(
             Event(
                 event_type=EventType.JOB_CANCELLED,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 source="client",
                 job_id=job_id,
                 message=f"Job cancelled: {reason}",

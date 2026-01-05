@@ -14,7 +14,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional
@@ -68,7 +68,7 @@ class UsageRecord:
         """المدة بالثواني"""
         if self.end_time:
             return (self.end_time - self.start_time).total_seconds()
-        return (datetime.utcnow() - self.start_time).total_seconds()
+        return (datetime.now(timezone.utc) - self.start_time).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -190,7 +190,7 @@ class UsageTracker:
         async with self._lock:
             record = self._active_records.pop(record_id, None)
             if record:
-                record.end_time = datetime.utcnow()
+                record.end_time = datetime.now(timezone.utc)
                 logger.debug(f"Stopped tracking {record.resource_type.value}")
             return record
 
@@ -209,7 +209,7 @@ class UsageTracker:
             quantity=quantity,
             unit=unit,
             job_id=job_id,
-            end_time=datetime.utcnow(),
+            end_time=datetime.now(timezone.utc),
         )
 
         async with self._lock:
@@ -418,13 +418,13 @@ class BillingManager:
         invoice = await self.get_invoice(invoice_id)
         if invoice:
             invoice.status = "paid"
-            invoice.paid_at = datetime.utcnow()
+            invoice.paid_at = datetime.now(timezone.utc)
             logger.info(f"Invoice {invoice_id} marked as paid")
         return invoice
 
     async def get_current_month_cost(self, tenant_id: str) -> Decimal:
         """الحصول على تكلفة الشهر الحالي"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         records = await self.usage_tracker.get_usage(
@@ -449,7 +449,7 @@ class BillingManager:
         days: int = 30,
     ) -> Dict[str, Any]:
         """الحصول على توقعات التكلفة"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         past_days = min(days, 7)
         start = now - timedelta(days=past_days)
 

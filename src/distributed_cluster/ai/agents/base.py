@@ -18,7 +18,7 @@ import re
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import (
     Any,
@@ -182,7 +182,7 @@ class AgentMemory:
                 "type": "observation",
                 "content": observation,
                 "source": source,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
         # Keep last 50 observations
@@ -195,7 +195,7 @@ class AgentMemory:
                 "type": "action",
                 "action": action,
                 "result": str(result)[:500],
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 
@@ -347,7 +347,7 @@ Thought:"""
         self._current_task = task
         steps: List[AgentStep] = []
         total_tokens = 0
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         try:
             # Build initial prompt
@@ -388,7 +388,7 @@ Thought:"""
 
                     self.memory.add_observation(final_answer, "agent")
 
-                    elapsed = (datetime.utcnow() - start_time).total_seconds() * 1000
+                    elapsed = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
                     self.status = AgentStatus.COMPLETED
                     return AgentResult(
@@ -437,7 +437,7 @@ Thought:"""
                 steps.append(step)
 
             # Max iterations reached
-            elapsed = (datetime.utcnow() - start_time).total_seconds() * 1000
+            elapsed = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             self.status = AgentStatus.FAILED
             return AgentResult(
@@ -452,7 +452,7 @@ Thought:"""
 
         except Exception as e:
             logger.error(f"Agent execution failed: {e}")
-            elapsed = (datetime.utcnow() - start_time).total_seconds() * 1000
+            elapsed = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             self.status = AgentStatus.FAILED
             return AgentResult(

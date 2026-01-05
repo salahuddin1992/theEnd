@@ -20,7 +20,7 @@ import os
 import pickle
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -236,7 +236,7 @@ class FederatedCoordinator:
         result = RoundResult(
             round_number=round_number,
             status=RoundStatus.PENDING,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
         )
 
         # Fire round start callbacks
@@ -381,7 +381,7 @@ class FederatedCoordinator:
             logger.exception(f"Round {round_number} failed")
 
         finally:
-            result.completed_at = datetime.utcnow()
+            result.completed_at = datetime.now(timezone.utc)
             result.round_duration = time.time() - start_time
 
             # Fire round end callbacks
@@ -413,7 +413,7 @@ class FederatedCoordinator:
                 "round": round_number,
                 "loss": loss,
                 "metrics": metrics,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             self._state.evaluation_results.append(result)
@@ -453,8 +453,8 @@ class FederatedCoordinator:
             Training metrics
         """
         self._state.is_running = True
-        self._state.started_at = datetime.utcnow()
-        self._metrics.started_at = datetime.utcnow()
+        self._state.started_at = datetime.now(timezone.utc)
+        self._metrics.started_at = datetime.now(timezone.utc)
 
         total_rounds = num_rounds or self.config.total_rounds
         self._state.total_rounds = total_rounds
@@ -508,8 +508,8 @@ class FederatedCoordinator:
 
         finally:
             self._state.is_running = False
-            self._state.completed_at = datetime.utcnow()
-            self._metrics.last_updated = datetime.utcnow()
+            self._state.completed_at = datetime.now(timezone.utc)
+            self._metrics.last_updated = datetime.now(timezone.utc)
 
             # Fire training complete callbacks
             for callback in self._callbacks["on_training_complete"]:
@@ -551,7 +551,7 @@ class FederatedCoordinator:
                 "current_round": self._state.current_round,
                 "evaluation_results": self._state.evaluation_results,
             },
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         path = os.path.join(

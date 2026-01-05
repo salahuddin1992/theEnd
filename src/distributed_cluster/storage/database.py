@@ -20,7 +20,7 @@ import logging
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import AsyncIterator, Dict, List, Optional, Tuple
 
@@ -417,7 +417,7 @@ class SQLiteDatabase(Database):
         if count == 0:
             await self._connection.execute(
                 "INSERT INTO schema_version (version, applied_at, description) VALUES (?, ?, ?)",
-                (1, datetime.utcnow().isoformat(), "Initial schema"),
+                (1, datetime.now(timezone.utc).isoformat(), "Initial schema"),
             )
             await self._connection.commit()
 
@@ -774,7 +774,7 @@ class SQLiteDatabase(Database):
 
     async def update_lease_state(self, lease_id: str, state: LeaseState) -> bool:
         """تحديث حالة lease."""
-        released_at = datetime.utcnow().isoformat() if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
+        released_at = datetime.now(timezone.utc).isoformat() if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
 
         cursor = await self._connection.execute(
             """
@@ -795,7 +795,7 @@ class SQLiteDatabase(Database):
             SET expires_at = ?, last_renewed_at = ?, renewal_count = ?
             WHERE lease_id = ? AND state = 'active'
         """,
-            (expires_at.isoformat(), datetime.utcnow().isoformat(), renewal_count, lease_id),
+            (expires_at.isoformat(), datetime.now(timezone.utc).isoformat(), renewal_count, lease_id),
         )
         if not self._in_transaction:
             await self._connection.commit()
@@ -913,7 +913,7 @@ class SQLiteDatabase(Database):
 
     async def cleanup_old_data(self, retention_days: int = 30) -> Dict[str, int]:
         """تنظيف البيانات القديمة."""
-        cutoff = datetime.utcnow() - timedelta(days=retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
         cutoff_str = cutoff.isoformat()
 
         results = {}
@@ -1450,7 +1450,7 @@ class PostgreSQLDatabase(Database):
 
     async def update_lease_state(self, lease_id: str, state: LeaseState) -> bool:
         """تحديث حالة lease."""
-        released_at = datetime.utcnow() if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
+        released_at = datetime.now(timezone.utc) if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
 
         async with self._pool.acquire() as conn:
             result = await conn.execute(
@@ -1471,7 +1471,7 @@ class PostgreSQLDatabase(Database):
                 WHERE lease_id = $4 AND state = 'active'
             """,
                 expires_at,
-                datetime.utcnow(),
+                datetime.now(timezone.utc),
                 renewal_count,
                 lease_id,
             )
@@ -1574,7 +1574,7 @@ class PostgreSQLDatabase(Database):
 
     async def cleanup_old_data(self, retention_days: int = 30) -> Dict[str, int]:
         """تنظيف البيانات القديمة."""
-        cutoff = datetime.utcnow() - timedelta(days=retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
         results = {}
 
         async with self._pool.acquire() as conn:

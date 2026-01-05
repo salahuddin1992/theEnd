@@ -15,7 +15,7 @@ import logging
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -62,7 +62,7 @@ class MetricSeries:
     def add_point(self, value: float, timestamp: Optional[datetime] = None) -> None:
         """إضافة نقطة"""
         self.points.append(MetricPoint(
-            timestamp=timestamp or datetime.utcnow(),
+            timestamp=timestamp or datetime.now(timezone.utc),
             value=value,
         ))
 
@@ -568,7 +568,7 @@ class AnalyticsEngine:
             try:
                 await asyncio.sleep(3600)  # Every hour
                 # Clean up data older than 7 days
-                cutoff = datetime.utcnow() - timedelta(days=7)
+                cutoff = datetime.now(timezone.utc) - timedelta(days=7)
                 count = self.aggregator.clear(before=cutoff)
                 if count > 0:
                     logger.info(f"Cleaned up {count} old metric points")

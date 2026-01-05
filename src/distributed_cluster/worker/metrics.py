@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Callable, Dict, List, Optional
 
 import psutil
@@ -357,7 +357,7 @@ class WorkerMetricsCollector:
         """بدء تتبع job."""
         self._job_metrics[job_id] = JobMetrics(
             job_id=job_id,
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
         )
         self._jobs_active += 1
 
@@ -377,7 +377,7 @@ class WorkerMetricsCollector:
         job_metrics = self._job_metrics.pop(job_id, None)
 
         if job_metrics:
-            job_metrics.end_time = datetime.utcnow()
+            job_metrics.end_time = datetime.now(timezone.utc)
             job_metrics.execution_time_seconds = (
                 job_metrics.end_time - job_metrics.start_time
             ).total_seconds()
@@ -426,7 +426,7 @@ class WorkerMetricsCollector:
         minutes: int = 60,
     ) -> List[WorkerMetrics]:
         """الحصول على سجل المقاييس."""
-        cutoff = datetime.utcnow() - timedelta(minutes=minutes)
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
         return [m for m in self._history if m.timestamp >= cutoff]
 
     def get_job_metrics(self, job_id: str) -> Optional[JobMetrics]:

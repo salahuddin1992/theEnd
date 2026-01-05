@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
@@ -240,7 +240,7 @@ class Job:
         """كم انتظر في الطابور؟"""
         if self.started_at:
             return (self.started_at - self.created_at).total_seconds()
-        return (datetime.utcnow() - self.created_at).total_seconds()
+        return (datetime.now(timezone.utc) - self.created_at).total_seconds()
 
     @property
     def execution_time_seconds(self) -> Optional[float]:
@@ -256,16 +256,16 @@ class Job:
         self.status = JobStatus.SCHEDULED
         self.assigned_worker = worker_id
         self.lease_id = lease_id
-        self.scheduled_at = datetime.utcnow()
+        self.scheduled_at = datetime.now(timezone.utc)
 
     def start(self) -> None:
         """بدء التنفيذ."""
         self.status = JobStatus.RUNNING
-        self.started_at = datetime.utcnow()
+        self.started_at = datetime.now(timezone.utc)
 
     def complete(self, result: JobResult) -> None:
         """إنهاء بنجاح أو فشل."""
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
         self.result = result
 
         if result.success:
@@ -289,12 +289,12 @@ class Job:
     def timeout(self) -> None:
         """تجاوز الوقت المحدد."""
         self.status = JobStatus.TIMEOUT
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
 
     def cancel(self) -> None:
         """إلغاء الـ Job."""
         self.status = JobStatus.CANCELLED
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
 
     def prepare_retry(self) -> None:
         """تجهيز لإعادة المحاولة."""

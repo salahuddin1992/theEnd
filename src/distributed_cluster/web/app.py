@@ -3,7 +3,7 @@ Web Dashboard Application - تطبيق واجهة الويب
 """
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -110,7 +110,7 @@ class WebDashboard:
                 "resources": {"cpu_cores": 8, "memory_mb": 16384, "gpu_count": 1},
                 "current_usage": {"cpu_percent": 45.2, "memory_percent": 62.1},
                 "jobs_running": 2,
-                "last_heartbeat": datetime.utcnow().isoformat(),
+                "last_heartbeat": datetime.now(timezone.utc).isoformat(),
             },
             "worker-2": {
                 "worker_id": "worker-2",
@@ -119,7 +119,7 @@ class WebDashboard:
                 "resources": {"cpu_cores": 16, "memory_mb": 32768, "gpu_count": 2},
                 "current_usage": {"cpu_percent": 78.5, "memory_percent": 45.3},
                 "jobs_running": 4,
-                "last_heartbeat": datetime.utcnow().isoformat(),
+                "last_heartbeat": datetime.now(timezone.utc).isoformat(),
             },
             "worker-3": {
                 "worker_id": "worker-3",
@@ -128,7 +128,7 @@ class WebDashboard:
                 "resources": {"cpu_cores": 4, "memory_mb": 8192, "gpu_count": 0},
                 "current_usage": {"cpu_percent": 92.1, "memory_percent": 88.7},
                 "jobs_running": 1,
-                "last_heartbeat": datetime.utcnow().isoformat(),
+                "last_heartbeat": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -210,7 +210,7 @@ class WebDashboard:
             {
                 "type": event_type,
                 "data": data,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 
@@ -312,7 +312,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             "sync_status": "active",
             "connected_peers": 3,
             "total_synced_items": 1523,
-            "last_sync": datetime.utcnow().isoformat(),
+            "last_sync": datetime.now(timezone.utc).isoformat(),
             "sync_mode": "realtime",
             # Peers info
             "peers": [
@@ -322,7 +322,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                     "url": "http://192.168.1.10:8765",
                     "status": "connected",
                     "latency_ms": 12,
-                    "last_seen": datetime.utcnow().isoformat(),
+                    "last_seen": datetime.now(timezone.utc).isoformat(),
                 },
                 {
                     "id": "peer-2",
@@ -330,7 +330,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                     "url": "http://192.168.1.11:8765",
                     "status": "connected",
                     "latency_ms": 8,
-                    "last_seen": datetime.utcnow().isoformat(),
+                    "last_seen": datetime.now(timezone.utc).isoformat(),
                 },
                 {
                     "id": "peer-3",
@@ -338,7 +338,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                     "url": "http://192.168.1.12:8765",
                     "status": "syncing",
                     "latency_ms": 25,
-                    "last_seen": datetime.utcnow().isoformat(),
+                    "last_seen": datetime.now(timezone.utc).isoformat(),
                 },
             ],
             # Transfer stats
@@ -429,7 +429,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             "mode": "realtime",
             "connected_peers": 3,
             "state_version": 1523,
-            "last_sync": datetime.utcnow().isoformat(),
+            "last_sync": datetime.now(timezone.utc).isoformat(),
         }
 
     @app.get("/api/sync/peers")
@@ -462,7 +462,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             raise HTTPException(status_code=400, detail="URL is required")
         return {
             "success": True,
-            "peer_id": f"peer-{datetime.utcnow().timestamp()}",
+            "peer_id": f"peer-{datetime.now(timezone.utc).timestamp()}",
             "message": f"Peer {name} added successfully",
         }
 
@@ -478,7 +478,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
             "version": 1523,
             "items_count": 856,
             "pending_deltas": 3,
-            "last_update": datetime.utcnow().isoformat(),
+            "last_update": datetime.now(timezone.utc).isoformat(),
         }
 
     @app.post("/api/sync/trigger")
@@ -487,7 +487,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
         return {
             "success": True,
             "message": "Sync triggered",
-            "sync_id": f"sync-{datetime.utcnow().timestamp()}",
+            "sync_id": f"sync-{datetime.now(timezone.utc).timestamp()}",
         }
 
     @app.get("/api/sync/transfers")
@@ -522,7 +522,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                     "local_value": 30,
                     "remote_value": 60,
                     "remote_peer": "peer-2",
-                    "detected_at": datetime.utcnow().isoformat(),
+                    "detected_at": datetime.now(timezone.utc).isoformat(),
                 },
             ],
         }
@@ -552,7 +552,7 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
                         "stats": dash.get_stats(),
                         "workers": dash.get_workers(),
                         "jobs": dash.get_jobs(),
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     }
                 )
                 await asyncio.sleep(2)

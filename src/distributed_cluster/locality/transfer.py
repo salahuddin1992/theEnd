@@ -21,7 +21,7 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Set
 
@@ -155,7 +155,7 @@ class TransferProgress:
         """Get elapsed time in seconds."""
         if not self.started_at:
             return 0.0
-        end = self.completed_at or datetime.utcnow()
+        end = self.completed_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds()
 
     @property
@@ -661,7 +661,7 @@ class DataTransferManager:
 
             # Update progress
             progress.state = TransferState.CONNECTING
-            progress.started_at = datetime.utcnow()
+            progress.started_at = datetime.now(timezone.utc)
             progress.attempt += 1
 
             # Mark target location as syncing
@@ -676,7 +676,7 @@ class DataTransferManager:
 
             def progress_callback(bytes_transferred: int):
                 progress.bytes_transferred = bytes_transferred
-                progress.last_update = datetime.utcnow()
+                progress.last_update = datetime.now(timezone.utc)
 
                 # Calculate speed
                 elapsed = progress.elapsed_seconds
@@ -689,7 +689,7 @@ class DataTransferManager:
             # Handle result
             if result.success:
                 progress.state = TransferState.COMPLETED
-                progress.completed_at = datetime.utcnow()
+                progress.completed_at = datetime.now(timezone.utc)
                 progress.bytes_transferred = result.bytes_transferred
 
                 # Update location as available
@@ -770,7 +770,7 @@ class DataTransferManager:
 
         else:
             progress.state = TransferState.FAILED
-            progress.completed_at = datetime.utcnow()
+            progress.completed_at = datetime.now(timezone.utc)
 
             # Mark location as failed
             await self.tracker.update_location_state(
@@ -850,7 +850,7 @@ class DataTransferManager:
                 await asyncio.sleep(60)  # Every minute
 
                 # Clean up old completed transfers (keep for 1 hour)
-                cutoff = datetime.utcnow() - timedelta(hours=1)
+                cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
                 to_remove = []
 
                 for tid, result in self._completed_transfers.items():

@@ -9,7 +9,7 @@ import asyncio
 import json
 import random
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
@@ -49,7 +49,7 @@ class GossipMessage:
 
             self.message_id = str(uuid.uuid4())[:12]
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat()
+            self.timestamp = datetime.now(timezone.utc).isoformat()
 
     def to_json(self) -> str:
         return json.dumps(

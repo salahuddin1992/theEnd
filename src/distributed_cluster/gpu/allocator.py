@@ -11,7 +11,7 @@ resource utilization across the cluster.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -235,7 +235,7 @@ class GPUAllocator:
                             "strategy": strategy,
                             "priority": priority,
                             "metadata": metadata,
-                            "timestamp": datetime.utcnow(),
+                            "timestamp": datetime.now(timezone.utc),
                         })
                     return None
 
@@ -585,7 +585,7 @@ class GPUAllocator:
         إنشاء حجز GPU.
         """
         async with self._lock:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             self._reservations[reservation_id] = {
                 "gpu_indices": gpu_indices,
                 "created_at": now,

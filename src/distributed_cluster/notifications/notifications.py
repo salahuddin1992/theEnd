@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -191,21 +191,21 @@ class Notification:
     def mark_sent(self, channel: Optional[str] = None) -> None:
         """Mark notification as sent."""
         self.status = NotificationStatus.SENT
-        self.sent_at = datetime.utcnow()
+        self.sent_at = datetime.now(timezone.utc)
         if channel:
             self.channel_status[channel] = "sent"
 
     def mark_delivered(self, channel: Optional[str] = None) -> None:
         """Mark notification as delivered."""
         self.status = NotificationStatus.DELIVERED
-        self.delivered_at = datetime.utcnow()
+        self.delivered_at = datetime.now(timezone.utc)
         if channel:
             self.channel_status[channel] = "delivered"
 
     def mark_read(self) -> None:
         """Mark notification as read."""
         self.status = NotificationStatus.READ
-        self.read_at = datetime.utcnow()
+        self.read_at = datetime.now(timezone.utc)
 
     def mark_failed(self, error: str, channel: Optional[str] = None) -> None:
         """Mark notification as failed."""
@@ -217,7 +217,7 @@ class Notification:
     def is_expired(self) -> bool:
         """Check if notification has expired."""
         if self.metadata.expires_at:
-            return datetime.utcnow() > self.metadata.expires_at
+            return datetime.now(timezone.utc) > self.metadata.expires_at
         return False
 
     def should_send(self) -> bool:
@@ -227,7 +227,7 @@ class Notification:
         if self.status in (NotificationStatus.SENT, NotificationStatus.DELIVERED,
                           NotificationStatus.READ, NotificationStatus.CANCELLED):
             return False
-        if self.scheduled_at and datetime.utcnow() < self.scheduled_at:
+        if self.scheduled_at and datetime.now(timezone.utc) < self.scheduled_at:
             return False
         return True
 

@@ -10,7 +10,7 @@ Tracks SLA violations and generates compliance reports.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -64,7 +64,7 @@ class SLAViolation:
         """Get current duration in seconds."""
         if self.ended_at:
             return self.duration_seconds
-        return (datetime.utcnow() - self.started_at).total_seconds()
+        return (datetime.now(timezone.utc) - self.started_at).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -251,7 +251,7 @@ class SLATracker:
                 expected_value=result["target_value"],
                 actual_value=result["current_value"],
                 severity=severity,
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
             )
 
             self._violations[violation.violation_id] = violation
@@ -288,7 +288,7 @@ class SLATracker:
                     # Violation resolved
                     violation = self._violations.get(violation_id)
                     if violation:
-                        violation.ended_at = datetime.utcnow()
+                        violation.ended_at = datetime.now(timezone.utc)
                         violation.duration_seconds = (
                             violation.ended_at - violation.started_at
                         ).total_seconds()
@@ -345,7 +345,7 @@ class SLATracker:
 
             violation.acknowledged = True
             violation.acknowledged_by = acknowledged_by
-            violation.acknowledged_at = datetime.utcnow()
+            violation.acknowledged_at = datetime.now(timezone.utc)
             if notes:
                 violation.metadata["acknowledgment_notes"] = notes
 
@@ -496,7 +496,7 @@ class SLATracker:
         sla_id: Optional[str] = None,
     ) -> ComplianceReport:
         """Generate weekly compliance report."""
-        end = datetime.utcnow()
+        end = datetime.now(timezone.utc)
         start = end - timedelta(days=7)
         return await self.generate_report(start, end, sla_id)
 
@@ -505,7 +505,7 @@ class SLATracker:
         sla_id: Optional[str] = None,
     ) -> ComplianceReport:
         """Generate monthly compliance report."""
-        end = datetime.utcnow()
+        end = datetime.now(timezone.utc)
         start = end - timedelta(days=30)
         return await self.generate_report(start, end, sla_id)
 
@@ -521,7 +521,7 @@ class SLATracker:
 
     async def cleanup_old_data(self) -> int:
         """Clean up old violation records."""
-        cutoff = datetime.utcnow() - timedelta(days=self.retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
         removed = 0
 
         async with self._lock:

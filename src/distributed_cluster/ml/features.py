@@ -13,7 +13,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -266,7 +266,7 @@ class OnlineFeatureStore(FeatureStoreBackend):
     ) -> None:
         """Set features for an entity."""
         key = self._make_key(entity_type, entity_id)
-        ts = timestamp or datetime.utcnow()
+        ts = timestamp or datetime.now(timezone.utc)
 
         # Update cache
         async with self._lock:
@@ -350,7 +350,7 @@ class OfflineFeatureStore(FeatureStoreBackend):
                     entity_id=entity_id,
                     entity_type=entity_type,
                     features=features,
-                    timestamp=datetime.fromisoformat(data.get("timestamp", datetime.utcnow().isoformat())),
+                    timestamp=datetime.fromisoformat(data.get("timestamp", datetime.now(timezone.utc).isoformat())),
                 )
 
         return results
@@ -364,7 +364,7 @@ class OfflineFeatureStore(FeatureStoreBackend):
     ) -> None:
         """Set features for an entity."""
         path = self._get_entity_path(entity_type, entity_id)
-        ts = timestamp or datetime.utcnow()
+        ts = timestamp or datetime.now(timezone.utc)
 
         data = {
             "entity_id": entity_id,

@@ -14,7 +14,7 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -248,7 +248,7 @@ class FileAuditBackend(AuditBackend):
 
     def _get_current_file(self) -> Path:
         """Get current log file path."""
-        date_str = datetime.utcnow().strftime("%Y-%m-%d")
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         return self._log_dir / f"audit-{date_str}.jsonl"
 
     async def write(self, event: AuditEvent) -> None:
@@ -261,7 +261,7 @@ class FileAuditBackend(AuditBackend):
                 size_mb = log_file.stat().st_size / (1024 * 1024)
                 if size_mb >= self._rotate_size_mb:
                     # Rotate by adding timestamp
-                    ts = datetime.utcnow().strftime("%H%M%S")
+                    ts = datetime.now(timezone.utc).strftime("%H%M%S")
                     rotated = log_file.with_suffix(f".{ts}.jsonl")
                     log_file.rename(rotated)
 
@@ -364,7 +364,7 @@ class AuditLogger:
         # Query audit logs
         events = await audit.query(
             action=AuditAction.AUTH_LOGIN_FAILED,
-            start_time=datetime.utcnow() - timedelta(hours=24),
+            start_time=datetime.now(timezone.utc) - timedelta(hours=24),
             limit=100,
         )
     """
@@ -418,7 +418,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             action=action,
             result=result,
             actor_id=actor_id,

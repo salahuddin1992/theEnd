@@ -23,7 +23,7 @@ import logging
 import pickle
 import zlib
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
 from uuid import uuid4
@@ -165,7 +165,7 @@ class Checkpoint(Generic[T]):
         if self.state in (CheckpointState.CORRUPTED, CheckpointState.DELETED):
             return False
 
-        if self.metadata.expires_at and datetime.utcnow() > self.metadata.expires_at:
+        if self.metadata.expires_at and datetime.now(timezone.utc) > self.metadata.expires_at:
             self.state = CheckpointState.EXPIRED
             return False
 
@@ -282,7 +282,7 @@ class CheckpointManager:
 
         # Calculate expiration
         ttl = ttl_hours or self.default_ttl_hours
-        expires_at = datetime.utcnow() + timedelta(hours=ttl)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=ttl)
 
         # Serialize data
         serialized = data.to_bytes(compress=self.compress)
@@ -337,7 +337,7 @@ class CheckpointManager:
             return None
 
         # Check expiration
-        if metadata.expires_at and datetime.utcnow() > metadata.expires_at:
+        if metadata.expires_at and datetime.now(timezone.utc) > metadata.expires_at:
             return Checkpoint(
                 metadata=metadata,
                 data=CheckpointData(state=None),
@@ -508,7 +508,7 @@ class CheckpointManager:
             if not metadata:
                 continue
 
-            if metadata.expires_at and datetime.utcnow() > metadata.expires_at:
+            if metadata.expires_at and datetime.now(timezone.utc) > metadata.expires_at:
                 if await self.delete_checkpoint(checkpoint_id):
                     expired_count += 1
 

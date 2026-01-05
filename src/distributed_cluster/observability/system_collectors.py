@@ -19,7 +19,7 @@ import os
 import platform
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 try:
@@ -986,7 +986,7 @@ class AsyncCollectorRunner:
                 duration = time.time() - start
                 self._collection_count += 1
                 self._collection_duration_sum += duration
-                self._last_collection = datetime.utcnow()
+                self._last_collection = datetime.now(timezone.utc)
 
             except Exception as e:
                 logger.error(f"Collection error: {e}")

@@ -15,7 +15,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -93,7 +93,7 @@ def list_secrets(
             return
 
         # Filter expired if needed
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if not show_expired:
             secrets = [
                 s for s in secrets
@@ -505,7 +505,7 @@ def check_expiry(
 
     async def do_check():
         all_secrets = await manager.list_secrets()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         threshold = now + timedelta(days=days)
 
         expiring = []

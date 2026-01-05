@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -97,19 +97,19 @@ class ResourceQuota:
         if not self.can_allocate(amount):
             return False
         self.used += amount
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
 
     def release(self, amount: float) -> None:
         """تحرير مقدار"""
         self.used = max(0, self.used - amount)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def reset(self) -> None:
         """إعادة تعيين"""
         self.used = 0
-        self.period_start = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.period_start = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict[str, Any]:
         """تحويل لقاموس"""
@@ -188,7 +188,7 @@ class QuotaManager:
             quota_type=quota_type,
             scope_id=scope_id,
             period_seconds=period_seconds,
-            period_start=datetime.utcnow() if period_seconds else None,
+            period_start=datetime.now(timezone.utc) if period_seconds else None,
         )
 
         if scope_id not in self._quotas:
@@ -306,7 +306,7 @@ class QuotaManager:
             try:
                 await asyncio.sleep(60)  # Check every minute
 
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
                 async with self._lock:
                     for scope_quotas in self._quotas.values():
                         for quota in scope_quotas.values():

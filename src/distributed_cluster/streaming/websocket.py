@@ -8,7 +8,7 @@ import logging
 import threading
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
@@ -193,7 +193,7 @@ class WebSocketEventServer:
         await self._send_to_client(client_id, {
             "type": "connected",
             "client_id": client_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         })
 
         try:
@@ -399,7 +399,7 @@ class WebSocketEventServer:
 
             heartbeat = {
                 "type": "heartbeat",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
             for client_id in list(self._clients.keys()):

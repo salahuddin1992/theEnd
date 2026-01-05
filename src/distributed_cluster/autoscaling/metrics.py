@@ -28,7 +28,7 @@ import time
 from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -219,7 +219,7 @@ class ClusterMetricsSource(MetricsSource):
     def __init__(self, cluster_state: ClusterState):
         self.cluster_state = cluster_state
         self._last_queue_depth: int = 0
-        self._last_check_time: datetime = datetime.utcnow()
+        self._last_check_time: datetime = datetime.now(timezone.utc)
         self._completed_jobs_history: deque[tuple[datetime, int]] = deque(maxlen=60)
         self._failed_jobs_history: deque[tuple[datetime, int]] = deque(maxlen=60)
 
@@ -228,7 +228,7 @@ class ClusterMetricsSource(MetricsSource):
         جمع المقاييس من الكلاستر
         Collect metrics from cluster state
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # الحصول على البيانات الأساسية
         workers = self.cluster_state.get_all_workers()
@@ -578,7 +578,7 @@ class MetricsCollector:
         history = list(self._history)
 
         if duration_seconds is not None:
-            cutoff = datetime.utcnow() - timedelta(seconds=duration_seconds)
+            cutoff = datetime.now(timezone.utc) - timedelta(seconds=duration_seconds)
             history = [m for m in history if m.timestamp >= cutoff]
 
         if limit is not None:
@@ -602,7 +602,7 @@ class MetricsCollector:
         samples = list(self._samples.get(metric_type, []))
 
         if duration_seconds is not None:
-            cutoff = datetime.utcnow() - timedelta(seconds=duration_seconds)
+            cutoff = datetime.now(timezone.utc) - timedelta(seconds=duration_seconds)
             samples = [s for s in samples if s.timestamp >= cutoff]
 
         return samples

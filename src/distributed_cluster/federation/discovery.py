@@ -19,7 +19,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
@@ -431,7 +431,7 @@ class ClusterDiscovery:
         """اكتشاف الكتل"""
         try:
             discovered = await self._backend.discover()
-            self._last_discovery = datetime.utcnow()
+            self._last_discovery = datetime.now(timezone.utc)
 
             # Process discovered clusters
             current_ids = set(self._clusters.keys())
@@ -477,7 +477,7 @@ class ClusterDiscovery:
 
                     if response.status_code == 200:
                         cluster.status = ClusterStatus.HEALTHY
-                        cluster.last_seen = datetime.utcnow()
+                        cluster.last_seen = datetime.now(timezone.utc)
                         self._unhealthy_counts[cluster_id] = 0
                     else:
                         self._mark_unhealthy(cluster_id)

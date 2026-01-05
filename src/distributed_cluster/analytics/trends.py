@@ -11,7 +11,7 @@ import asyncio
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -189,7 +189,7 @@ class TrendAnalyzer:
         إضافة نقطة بيانات للمقياس.
         """
         point = MetricDataPoint(
-            timestamp=timestamp or datetime.utcnow(),
+            timestamp=timestamp or datetime.now(timezone.utc),
             value=value,
             labels=labels or {},
         )
@@ -220,7 +220,7 @@ class TrendAnalyzer:
             return None
 
         # Filter by period
-        cutoff = datetime.utcnow() - timedelta(hours=period_hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=period_hours)
         filtered = [d for d in data if d.timestamp > cutoff]
 
         if len(filtered) < self.min_data_points:

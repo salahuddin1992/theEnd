@@ -13,7 +13,7 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -206,7 +206,7 @@ class RequestLogger:
 
         log_data = {
             "type": "request",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "request_id": request.request_id,
             "method": request.method,
             "path": request.path,
@@ -230,7 +230,7 @@ class RequestLogger:
 
         log_data = {
             "type": "response",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "request_id": request.request_id,
             "method": request.method,
             "path": request.path,
@@ -284,7 +284,7 @@ class MetricsCollector:
         self._total_requests = 0
         self._total_latency_ms = 0.0
         self._status_counts: Dict[int, int] = defaultdict(int)
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(timezone.utc)
 
     def start_request(self, request: GatewayRequest) -> None:
         """Mark request start time."""
@@ -313,7 +313,7 @@ class MetricsCollector:
         # Create metrics record
         metrics = RequestMetrics(
             request_id=request.request_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             method=request.method,
             path=request.path,
             status_code=response.status_code,
@@ -348,7 +348,7 @@ class MetricsCollector:
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get global metrics."""
-        uptime = (datetime.utcnow() - self._start_time).total_seconds()
+        uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
         rps = self._total_requests / uptime if uptime > 0 else 0
 
         return {
@@ -435,7 +435,7 @@ class MetricsCollector:
         self._status_counts.clear()
         self._endpoint_metrics.clear()
         self._recent_requests.clear()
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(timezone.utc)
 
     def export_prometheus(self) -> str:
         """Export metrics in Prometheus format."""

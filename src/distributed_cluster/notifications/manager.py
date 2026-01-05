@@ -11,7 +11,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -143,7 +143,7 @@ class NotificationManager:
             نتائج الإرسال لكل قناة
         """
         notification.notification_id = notification.notification_id or f"notif-{uuid.uuid4().hex[:12]}"
-        notification.sent_at = datetime.utcnow()
+        notification.sent_at = datetime.now(timezone.utc)
 
         results = {}
         target_channels = channels or list(self._channels.keys())
@@ -215,7 +215,7 @@ class NotificationManager:
             cooldown_key = f"{rule.rule_id}:{trigger.value}"
             if not force and cooldown_key in self._cooldowns:
                 last_time = self._cooldowns[cooldown_key]
-                if datetime.utcnow() - last_time < timedelta(minutes=rule.cooldown_minutes):
+                if datetime.now(timezone.utc) - last_time < timedelta(minutes=rule.cooldown_minutes):
                     logger.debug(f"Rule {rule.name} is in cooldown")
                     continue
 
@@ -241,9 +241,9 @@ class NotificationManager:
             results[rule.rule_id] = rule_results
 
             # Update rate limiting
-            rule.last_triggered = datetime.utcnow()
+            rule.last_triggered = datetime.now(timezone.utc)
             rule.trigger_count += 1
-            self._cooldowns[cooldown_key] = datetime.utcnow()
+            self._cooldowns[cooldown_key] = datetime.now(timezone.utc)
 
         return results
 

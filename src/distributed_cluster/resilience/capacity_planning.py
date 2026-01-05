@@ -23,7 +23,7 @@ import logging
 import statistics
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 
@@ -347,7 +347,7 @@ class CapacityPlanner:
             if asyncio.iscoroutine(metrics):
                 metrics = await metrics
 
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             async with self._lock:
                 for resource_type, value in metrics.items():
@@ -375,7 +375,7 @@ class CapacityPlanner:
 
         تسجيل نقطة بيانات استخدام الموارد.
         """
-        timestamp = timestamp or datetime.utcnow()
+        timestamp = timestamp or datetime.now(timezone.utc)
 
         async with self._lock:
             self._history[resource_type].append((timestamp, value))
@@ -526,7 +526,7 @@ class CapacityPlanner:
             resource_type=resource_type,
             current_capacity=capacity,
             forecasted_demand=forecast_value,
-            forecast_date=datetime.utcnow() + timedelta(days=horizon_days),
+            forecast_date=datetime.now(timezone.utc) + timedelta(days=horizon_days),
             confidence_interval=confidence_interval,
             confidence=0.7,  # Base confidence
             model_used=model,
@@ -728,7 +728,7 @@ class CapacityPlanner:
                 reason=reason,
                 estimated_cost_change=cost_change,
                 confidence=trend.confidence,
-                valid_until=datetime.utcnow() + timedelta(hours=24),
+                valid_until=datetime.now(timezone.utc) + timedelta(hours=24),
             )
 
             recommendations.append(recommendation)
@@ -767,7 +767,7 @@ class CapacityPlanner:
         }
 
         # Predict peak for next N hours
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         future_hours = [(now + timedelta(hours=i)).hour for i in range(hours_ahead)]
         predicted_peaks = [peak_by_hour.get(h, 0.0) for h in future_hours]
 

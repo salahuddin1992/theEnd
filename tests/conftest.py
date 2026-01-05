@@ -81,7 +81,7 @@ def sample_resources() -> ResourceSpec:
 @pytest.fixture
 def sample_worker(sample_resources: ResourceSpec) -> WorkerInfo:
     """Sample worker info."""
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     return WorkerInfo(
         worker_id="test-worker-1",
@@ -95,8 +95,8 @@ def sample_worker(sample_resources: ResourceSpec) -> WorkerInfo:
         labels={"zone": "us-east-1a", "env": "test"},
         platform="linux",
         docker_available=True,
-        registered_at=datetime.utcnow(),
-        last_heartbeat=datetime.utcnow(),  # Required for can_accept_jobs
+        registered_at=datetime.now(timezone.utc),
+        last_heartbeat=datetime.now(timezone.utc),  # Required for can_accept_jobs
     )
 
 
@@ -121,7 +121,7 @@ def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
     from datetime import datetime
 
     workers = []
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     # Worker 1: High CPU, low GPU
     workers.append(

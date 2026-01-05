@@ -15,7 +15,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
@@ -123,7 +123,7 @@ class Alert:
             "annotations": self.annotations,
             "started_at": self.started_at.isoformat(),
             "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
-            "duration_seconds": ((self.resolved_at or datetime.utcnow()) - self.started_at).total_seconds(),
+            "duration_seconds": ((self.resolved_at or datetime.now(timezone.utc)) - self.started_at).total_seconds(),
         }
 
 
@@ -145,7 +145,7 @@ class HealthChecker:
     def __init__(self):
         self._checks: Dict[str, Callable[[], Awaitable[HealthCheck]]] = {}
         self._results: Dict[str, HealthCheck] = {}
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(timezone.utc)
         self._version = "0.1.0"
 
     def register(
@@ -172,11 +172,11 @@ class HealthChecker:
             )
 
         check_func = self._checks[name]
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         try:
             result = await asyncio.wait_for(check_func(), timeout=10.0)
-            result.last_check = datetime.utcnow()
+            result.last_check = datetime.now(timezone.utc)
             result.duration_ms = (result.last_check - start_time).total_seconds() * 1000
             self._results[name] = result
             return result
@@ -186,7 +186,7 @@ class HealthChecker:
                 name=name,
                 status=HealthStatus.UNHEALTHY,
                 message="Check timed out",
-                last_check=datetime.utcnow(),
+                last_check=datetime.now(timezone.utc),
                 duration_ms=10000,
             )
             self._results[name] = result
@@ -197,8 +197,8 @@ class HealthChecker:
                 name=name,
                 status=HealthStatus.UNHEALTHY,
                 message=f"Check error: {str(e)}",
-                last_check=datetime.utcnow(),
-                duration_ms=(datetime.utcnow() - start_time).total_seconds() * 1000,
+                last_check=datetime.now(timezone.utc),
+                duration_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
             )
             self._results[name] = result
             return result
@@ -217,7 +217,7 @@ class HealthChecker:
             elif check.status == HealthStatus.DEGRADED:
                 overall_status = HealthStatus.DEGRADED
 
-        uptime = (datetime.utcnow() - self._start_time).total_seconds()
+        uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
 
         return HealthReport(
             overall_status=overall_status,
@@ -466,7 +466,7 @@ class AlertManager:
 
     async def _evaluate_all_rules(self) -> None:
         """تقييم كل القواعد."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         for rule in self._rules.values():
             if not rule.enabled:
@@ -520,7 +520,7 @@ class AlertManager:
 
     async def _send_alert(self, alert: Alert) -> None:
         """إرسال تنبيه."""
-        alert.last_sent_at = datetime.utcnow()
+        alert.last_sent_at = datetime.now(timezone.utc)
         alert.send_count += 1
 
         logger.warning(f"Alert firing: {alert.name} - {alert.message}")

@@ -6,7 +6,7 @@ Tests for load shedding and capacity planning features.
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import numpy as np
@@ -45,7 +45,7 @@ class TestQueuedRequest:
             priority=PriorityLevel.NORMAL,
             client_id="client-1",
             payload={"data": "test"},
-            enqueued_at=datetime.utcnow(),
+            enqueued_at=datetime.now(timezone.utc),
         )
 
         assert request.request_id == "test-123"
@@ -60,7 +60,7 @@ class TestQueuedRequest:
             priority=PriorityLevel.NORMAL,
             client_id="client-1",
             payload=None,
-            enqueued_at=datetime.utcnow() - timedelta(seconds=10),
+            enqueued_at=datetime.now(timezone.utc) - timedelta(seconds=10),
         )
 
         assert request.age_seconds >= 10
@@ -73,8 +73,8 @@ class TestQueuedRequest:
             priority=PriorityLevel.NORMAL,
             client_id="client-1",
             payload=None,
-            enqueued_at=datetime.utcnow(),
-            deadline=datetime.utcnow() + timedelta(hours=1),
+            enqueued_at=datetime.now(timezone.utc),
+            deadline=datetime.now(timezone.utc) + timedelta(hours=1),
         )
         assert not request1.is_expired
 
@@ -84,8 +84,8 @@ class TestQueuedRequest:
             priority=PriorityLevel.NORMAL,
             client_id="client-1",
             payload=None,
-            enqueued_at=datetime.utcnow() - timedelta(hours=2),
-            deadline=datetime.utcnow() - timedelta(hours=1),
+            enqueued_at=datetime.now(timezone.utc) - timedelta(hours=2),
+            deadline=datetime.now(timezone.utc) - timedelta(hours=1),
         )
         assert request2.is_expired
 
@@ -96,7 +96,7 @@ class TestQueuedRequest:
             priority=PriorityLevel.HIGH,
             client_id="client-1",
             payload={"key": "value"},
-            enqueued_at=datetime.utcnow(),
+            enqueued_at=datetime.now(timezone.utc),
             metadata={"source": "api"},
         )
 
@@ -283,7 +283,7 @@ class TestLoadShedder:
                 priority=PriorityLevel.LOW,
                 client_id="client-1",
                 payload=None,
-                enqueued_at=datetime.utcnow(),
+                enqueued_at=datetime.now(timezone.utc),
             )
             await shedder._enqueue(request)
 
@@ -362,7 +362,7 @@ class TestCapacityForecast:
             resource_type=ResourceType.CPU,
             current_capacity=100.0,
             forecasted_demand=120.0,
-            forecast_date=datetime.utcnow() + timedelta(days=7),
+            forecast_date=datetime.now(timezone.utc) + timedelta(days=7),
             confidence_interval=(110.0, 130.0),
             confidence=0.85,
             model_used=GrowthModel.LINEAR,
@@ -379,7 +379,7 @@ class TestCapacityForecast:
             resource_type=ResourceType.MEMORY,
             current_capacity=100.0,
             forecasted_demand=80.0,
-            forecast_date=datetime.utcnow() + timedelta(days=7),
+            forecast_date=datetime.now(timezone.utc) + timedelta(days=7),
             confidence_interval=(70.0, 90.0),
             confidence=0.9,
             model_used=GrowthModel.LINEAR,
@@ -455,7 +455,7 @@ class TestCapacityPlanner:
     async def test_analyze_trend(self, planner):
         """Test trend analysis with sufficient data."""
         # Add enough data points
-        base_time = datetime.utcnow() - timedelta(hours=10)
+        base_time = datetime.now(timezone.utc) - timedelta(hours=10)
         for i in range(20):
             await planner.record_usage(
                 ResourceType.CPU,
@@ -472,7 +472,7 @@ class TestCapacityPlanner:
     async def test_forecast(self, planner):
         """Test capacity forecasting."""
         # Add enough data points
-        base_time = datetime.utcnow() - timedelta(hours=10)
+        base_time = datetime.now(timezone.utc) - timedelta(hours=10)
         for i in range(20):
             await planner.record_usage(
                 ResourceType.CPU,
@@ -491,7 +491,7 @@ class TestCapacityPlanner:
     async def test_get_recommendations(self, planner):
         """Test getting recommendations."""
         # Add data showing high utilization
-        base_time = datetime.utcnow() - timedelta(hours=10)
+        base_time = datetime.now(timezone.utc) - timedelta(hours=10)
         for i in range(20):
             await planner.record_usage(
                 ResourceType.CPU,
@@ -509,7 +509,7 @@ class TestCapacityPlanner:
     async def test_peak_prediction(self, planner):
         """Test peak demand prediction."""
         # Add data
-        base_time = datetime.utcnow() - timedelta(hours=48)
+        base_time = datetime.now(timezone.utc) - timedelta(hours=48)
         for i in range(50):
             await planner.record_usage(
                 ResourceType.CPU,
@@ -627,7 +627,7 @@ class TestCapacityPlanningIntegration:
         planner = CapacityPlanner(config=config)
 
         # Simulate historical data with growth trend
-        base_time = datetime.utcnow() - timedelta(hours=24)
+        base_time = datetime.now(timezone.utc) - timedelta(hours=24)
         for i in range(30):
             usage = 50.0 + i * 2  # Growing usage
             await planner.record_usage(

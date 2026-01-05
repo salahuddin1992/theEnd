@@ -21,7 +21,7 @@ import asyncio
 import hashlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import BinaryIO, Optional
 from urllib.parse import urlparse
@@ -47,7 +47,7 @@ class ArtifactMetadata:
         """هل انتهت صلاحيته؟"""
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
 
 class ArtifactStorage(ABC):
@@ -482,7 +482,7 @@ class S3Storage(ArtifactStorage):
                 size_bytes=response["ContentLength"],
                 checksum=response.get("ETag", "").strip('"'),
                 content_type=response.get("ContentType", "application/octet-stream"),
-                created_at=response.get("LastModified", datetime.utcnow()),
+                created_at=response.get("LastModified", datetime.now(timezone.utc)),
                 metadata=response.get("Metadata", {}),
             )
         except Exception:

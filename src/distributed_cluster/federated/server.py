@@ -21,7 +21,7 @@ import pickle
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
@@ -184,7 +184,7 @@ class FederatedServer:
         async with self._lock:
             if client_id in self._state.registered_clients:
                 client = self._state.registered_clients[client_id]
-                client.last_heartbeat = datetime.utcnow()
+                client.last_heartbeat = datetime.now(timezone.utc)
                 if status:
                     client.status = status
                 return True
@@ -192,7 +192,7 @@ class FederatedServer:
 
     async def get_available_clients(self) -> List[ClientInfo]:
         """Get list of available clients."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         available = []
 
         for client in self._state.registered_clients.values():
@@ -238,7 +238,7 @@ class FederatedServer:
             "best_loss": self._state.best_loss,
             "config": self.config.to_dict(),
             "metrics": self._metrics.to_dict(),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         checkpoint_path = os.path.join(
@@ -522,7 +522,7 @@ class FederatedServer:
             result = RoundResult(
                 round_number=round_num,
                 status=RoundStatus.PENDING,
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
             )
 
             start_time = time.time()
@@ -587,11 +587,11 @@ class FederatedServer:
                 logger.error(f"Round {round_num} failed: {e}")
 
             finally:
-                result.completed_at = datetime.utcnow()
+                result.completed_at = datetime.now(timezone.utc)
                 result.round_duration = time.time() - start_time
                 self._state.round_history.append(result)
                 self._metrics.current_round = round_num
-                self._metrics.last_updated = datetime.utcnow()
+                self._metrics.last_updated = datetime.now(timezone.utc)
 
             # Fire round end callbacks
             for callback in self._callbacks["on_round_end"]:
@@ -629,7 +629,7 @@ class FederatedServer:
             Final training metrics
         """
         self._state.is_training = True
-        self._metrics.started_at = datetime.utcnow()
+        self._metrics.started_at = datetime.now(timezone.utc)
         total_rounds = num_rounds or self.config.total_rounds
 
         logger.info(f"Starting federated training for {total_rounds} rounds")
@@ -684,7 +684,7 @@ class FederatedServer:
 
         finally:
             self._state.is_training = False
-            self._metrics.last_updated = datetime.utcnow()
+            self._metrics.last_updated = datetime.now(timezone.utc)
 
             # Fire training complete callbacks
             for callback in self._callbacks["on_training_complete"]:

@@ -254,12 +254,12 @@ class FreshnessScorer(Scorer):
         worker: WorkerInfo,
         context: Optional[dict] = None,
     ) -> float:
-        from datetime import datetime
+        from datetime import datetime, timezone
 
         if worker.last_heartbeat is None:
             return 0.0
 
-        age = (datetime.utcnow() - worker.last_heartbeat).total_seconds()
+        age = (datetime.now(timezone.utc) - worker.last_heartbeat).total_seconds()
 
         if age >= self.max_age_seconds:
             return 0.0

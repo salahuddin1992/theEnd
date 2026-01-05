@@ -17,7 +17,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -212,7 +212,7 @@ class ClientInfo:
             return False
         if self.last_heartbeat is None:
             return False
-        delta = datetime.utcnow() - self.last_heartbeat
+        delta = datetime.now(timezone.utc) - self.last_heartbeat
         return delta.total_seconds() < 60  # 60s timeout
 
     def to_dict(self) -> Dict[str, Any]:

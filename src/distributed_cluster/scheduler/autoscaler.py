@@ -16,7 +16,7 @@ import logging
 import statistics
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -170,7 +170,7 @@ class DefaultMetricsProvider(MetricsProvider):
             pending = self.scheduler.get_pending_jobs()
             if not pending:
                 return 0.0
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             times = [(now - job.created_at).total_seconds() for job in pending]
             return statistics.mean(times) if times else 0.0
 
@@ -389,20 +389,20 @@ class AutoScaler:
         """هل يمكن التحجيم لأعلى (cool-down)؟"""
         if self._last_scale_up is None:
             return True
-        elapsed = (datetime.utcnow() - self._last_scale_up).total_seconds()
+        elapsed = (datetime.now(timezone.utc) - self._last_scale_up).total_seconds()
         return elapsed >= self.policy.scale_up_cooldown_seconds
 
     def _can_scale_down(self) -> bool:
         """هل يمكن التحجيم لأسفل (cool-down)؟"""
         if self._last_scale_down is None:
             return True
-        elapsed = (datetime.utcnow() - self._last_scale_down).total_seconds()
+        elapsed = (datetime.now(timezone.utc) - self._last_scale_down).total_seconds()
         return elapsed >= self.policy.scale_down_cooldown_seconds
 
     async def _execute_scaling(self, decision: ScalingDecision, current_workers: int) -> None:
         """تنفيذ قرار التحجيم."""
         event = ScalingEvent(
-            event_id=f"scale-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            event_id=f"scale-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
             direction=decision.direction,
             requested_count=decision.count,
             actual_count=0,
@@ -421,7 +421,7 @@ class AutoScaler:
 
                 event.actual_count = len(new_workers)
                 event.success = True
-                self._last_scale_up = datetime.utcnow()
+                self._last_scale_up = datetime.now(timezone.utc)
 
             elif decision.direction == ScalingDirection.DOWN:
                 logger.info(f"Scaling DOWN by {decision.count}: {decision.reason}")
@@ -431,14 +431,14 @@ class AutoScaler:
 
                 event.actual_count = terminated
                 event.success = True
-                self._last_scale_down = datetime.utcnow()
+                self._last_scale_down = datetime.now(timezone.utc)
 
         except Exception as e:
             event.success = False
             event.error = str(e)
             logger.error(f"Scaling failed: {e}")
 
-        event.completed_at = datetime.utcnow()
+        event.completed_at = datetime.now(timezone.utc)
         self._events.append(event)
 
         # Keep only recent events

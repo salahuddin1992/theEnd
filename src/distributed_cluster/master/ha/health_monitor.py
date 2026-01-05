@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -220,7 +220,7 @@ class HAHealthMonitor:
 
                 self._self_health.cpu_percent = psutil.cpu_percent()
                 self._self_health.memory_percent = psutil.virtual_memory().percent
-                self._self_health.last_check = datetime.utcnow()
+                self._self_health.last_check = datetime.now(timezone.utc)
 
             except asyncio.CancelledError:
                 break
@@ -229,7 +229,7 @@ class HAHealthMonitor:
 
     async def _check_master_health(self, master: MasterHealth) -> None:
         """فحص صحة master معين"""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         old_status = master.status
 
         try:
@@ -238,9 +238,9 @@ class HAHealthMonitor:
                 timeout=self.config.http_timeout_seconds,
             )
 
-            response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            response_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             master.response_time_ms = response_time
-            master.last_check = datetime.utcnow()
+            master.last_check = datetime.now(timezone.utc)
             master.consecutive_failures = 0
             master.error_message = None
 
@@ -271,7 +271,7 @@ class HAHealthMonitor:
         except httpx.TimeoutException:
             master.consecutive_failures += 1
             master.error_message = "Timeout"
-            master.last_check = datetime.utcnow()
+            master.last_check = datetime.now(timezone.utc)
 
             if master.consecutive_failures >= self.config.unhealthy_threshold:
                 master.status = MasterHealthStatus.UNHEALTHY
@@ -279,7 +279,7 @@ class HAHealthMonitor:
         except Exception as e:
             master.consecutive_failures += 1
             master.error_message = str(e)
-            master.last_check = datetime.utcnow()
+            master.last_check = datetime.now(timezone.utc)
 
             if master.consecutive_failures >= self.config.unhealthy_threshold:
                 master.status = MasterHealthStatus.UNHEALTHY
@@ -373,7 +373,7 @@ class HAHealthMonitor:
         return {
             "status": self._self_health.status.value,
             "master_id": self.config.master_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "metrics": {
                 "cpu_percent": self._self_health.cpu_percent,
                 "memory_percent": self._self_health.memory_percent,

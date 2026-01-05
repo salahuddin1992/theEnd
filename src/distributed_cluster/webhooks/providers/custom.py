@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 from distributed_cluster.webhooks.templates import TemplateEngine
@@ -95,7 +95,7 @@ class CustomWebhook(WebhookProvider):
             context = {
                 "webhook_id": config.webhook_id,
                 "provider": config.provider,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
             for key, value in self.headers_template.items():
                 if isinstance(value, str) and "{{" in value:
@@ -173,7 +173,7 @@ class CustomWebhook(WebhookProvider):
 
         if self.include_metadata:
             payload["metadata"] = {
-                "sent_at": datetime.utcnow().isoformat(),
+                "sent_at": datetime.now(timezone.utc).isoformat(),
                 "provider": "custom",
             }
 

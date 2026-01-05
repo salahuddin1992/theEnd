@@ -9,7 +9,7 @@ import asyncio
 import uuid
 import warnings
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -337,7 +337,7 @@ class MeshNode:
                 for peer_id, peer in list(self.peers.items()):
                     try:
                         await self._send_ping(peer)
-                        peer.last_seen = datetime.utcnow()
+                        peer.last_seen = datetime.now(timezone.utc)
                     except Exception:
                         # العقدة غير متاحة
                         await self._remove_peer(peer_id)
@@ -428,7 +428,7 @@ class MeshNode:
     async def _execute_job(self, job: Job) -> None:
         """تنفيذ مهمة"""
         job.status = JobStatus.RUNNING
-        job.started_at = datetime.utcnow()
+        job.started_at = datetime.now(timezone.utc)
 
         self._emit("job_started", {"job_id": job.job_id})
 
@@ -459,7 +459,7 @@ class MeshNode:
             job.status = JobStatus.FAILED
             job.result = {"error": str(e)}
 
-        job.completed_at = datetime.utcnow()
+        job.completed_at = datetime.now(timezone.utc)
         self._emit("job_completed", {"job_id": job.job_id, "status": job.status.value})
 
         # إرسال النتيجة للعقدة المصدر إذا كانت مهمة موجهة

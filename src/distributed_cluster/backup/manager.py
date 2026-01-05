@@ -19,7 +19,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -272,7 +272,7 @@ class BackupManager:
         Returns:
             نتيجة النسخ الاحتياطي
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         self._stats["total_backups"] += 1
 
         try:
@@ -297,7 +297,7 @@ class BackupManager:
             await self._storage.save(snapshot, data)
 
             # Calculate duration
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
 
             self._stats["successful_backups"] += 1
 
@@ -322,7 +322,7 @@ class BackupManager:
             return BackupResult(
                 success=False,
                 error=str(e),
-                duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+                duration_seconds=(datetime.now(timezone.utc) - start_time).total_seconds(),
             )
 
     async def _collect_state(
@@ -410,7 +410,7 @@ class BackupManager:
         Returns:
             نتيجة الاستعادة
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         self._stats["total_restores"] += 1
 
         try:
@@ -439,7 +439,7 @@ class BackupManager:
                     restore_jobs,
                 )
 
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds()
             self._stats["successful_restores"] += 1
 
             logger.info(f"Restore completed: {snapshot_id} ({duration:.2f}s)")
@@ -458,7 +458,7 @@ class BackupManager:
                 success=False,
                 snapshot_id=snapshot_id,
                 error=str(e),
-                duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+                duration_seconds=(datetime.now(timezone.utc) - start_time).total_seconds(),
             )
 
     def _get_restore_preview(self, snapshot: Snapshot) -> dict[str, int]:
@@ -643,7 +643,7 @@ class BackupManager:
     ) -> int:
         """تنظيف النسخ القديمة"""
         deleted = 0
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         snapshots = await self._storage.list_snapshots(
             cluster_id=self.config.cluster_id,

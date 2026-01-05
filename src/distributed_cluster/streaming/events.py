@@ -6,7 +6,7 @@ import hashlib
 import json
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Any, Dict, Optional
 
@@ -122,7 +122,7 @@ class Event:
     @property
     def age_seconds(self) -> float:
         """Get the age of the event in seconds."""
-        return (datetime.utcnow() - self.timestamp).total_seconds()
+        return (datetime.now(timezone.utc) - self.timestamp).total_seconds()
 
     @property
     def checksum(self) -> str:
@@ -167,7 +167,7 @@ class Event:
             timestamp=(
                 datetime.fromisoformat(data["timestamp"])
                 if isinstance(data.get("timestamp"), str)
-                else data.get("timestamp", datetime.utcnow())
+                else data.get("timestamp", datetime.now(timezone.utc))
             ),
             payload=data.get("payload", {}),
             metadata=(

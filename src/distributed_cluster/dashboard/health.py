@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 
@@ -205,7 +205,7 @@ class HealthChecker:
     ) -> None:
         """تشغيل فحص واحد"""
         component = self._components[name]
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         try:
             # Run check with timeout
@@ -222,9 +222,9 @@ class HealthChecker:
                 )
 
             # Update component
-            duration = (datetime.utcnow() - start_time).total_seconds() * 1000
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             component.check_duration_ms = duration
-            component.last_check = datetime.utcnow()
+            component.last_check = datetime.now(timezone.utc)
 
             if result:
                 component.consecutive_successes += 1
@@ -251,7 +251,7 @@ class HealthChecker:
         component.consecutive_failures += 1
         component.consecutive_successes = 0
         component.message = message
-        component.last_check = datetime.utcnow()
+        component.last_check = datetime.now(timezone.utc)
 
         if component.consecutive_failures >= config.failure_threshold:
             component.status = HealthStatus.UNHEALTHY

@@ -20,7 +20,7 @@ import ssl
 import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -88,11 +88,11 @@ class CertificateInfo:
 
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() > self.not_after
+        return datetime.now(timezone.utc) > self.not_after
 
     @property
     def is_valid(self) -> bool:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return (
             self.status == CertificateStatus.VALID and
             self.not_before <= now <= self.not_after
@@ -100,7 +100,7 @@ class CertificateInfo:
 
     @property
     def days_until_expiry(self) -> int:
-        return (self.not_after - datetime.utcnow()).days
+        return (self.not_after - datetime.now(timezone.utc)).days
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -218,7 +218,7 @@ class MemoryCertificateStore(CertificateStore):
             if serial_number in self._certificates:
                 info, pem = self._certificates[serial_number]
                 info.status = CertificateStatus.REVOKED
-                info.revoked_at = datetime.utcnow()
+                info.revoked_at = datetime.now(timezone.utc)
                 info.revocation_reason = reason
                 self._revoked.add(serial_number)
                 return True
@@ -321,7 +321,7 @@ class FileCertificateStore(CertificateStore):
                 return False
 
             self._index[serial_number]["status"] = CertificateStatus.REVOKED.value
-            self._index[serial_number]["revoked_at"] = datetime.utcnow().isoformat()
+            self._index[serial_number]["revoked_at"] = datetime.now(timezone.utc).isoformat()
             self._index[serial_number]["revocation_reason"] = reason
             self._revoked.add(serial_number)
             self._save_index()
@@ -421,7 +421,7 @@ class CertificateAuthority:
             x509.NameAttribute(NameOID.COMMON_NAME, f"{self.organization} Root CA"),
         ])
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         self._ca_cert = (
             x509.CertificateBuilder()
             .subject_name(subject)
@@ -524,7 +524,7 @@ class CertificateAuthority:
                 x509.NameAttribute(NameOID.COMMON_NAME, common_name),
             ])
 
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             days = validity_days or self.validity_days
 
             builder = (
@@ -679,7 +679,7 @@ class CertificateAuthority:
             cert = x509.load_pem_x509_certificate(cert_pem, default_backend())
 
             # Check validity period
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             if now < cert.not_valid_before:
                 return False, "Certificate not yet valid", None
             if now > cert.not_valid_after:

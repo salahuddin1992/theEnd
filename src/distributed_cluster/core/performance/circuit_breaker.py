@@ -16,7 +16,7 @@ import threading
 import time
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from functools import wraps
 from typing import (
@@ -208,7 +208,7 @@ class CircuitBreaker(Generic[T]):
         self._state = new_state
         self._state_time = now
         self._stats.state_changes += 1
-        self._stats.last_state_change = datetime.utcnow()
+        self._stats.last_state_change = datetime.now(timezone.utc)
 
         if new_state == CircuitState.OPEN:
             self._opened_at = now
@@ -231,7 +231,7 @@ class CircuitBreaker(Generic[T]):
         with self._lock:
             self._stats.total_requests += 1
             self._stats.successful_requests += 1
-            self._stats.last_success = datetime.utcnow()
+            self._stats.last_success = datetime.now(timezone.utc)
 
             if self._state == CircuitState.HALF_OPEN:
                 self._successes += 1
@@ -245,7 +245,7 @@ class CircuitBreaker(Generic[T]):
 
             self._stats.total_requests += 1
             self._stats.failed_requests += 1
-            self._stats.last_failure = datetime.utcnow()
+            self._stats.last_failure = datetime.now(timezone.utc)
 
             # Check if exception should be excluded
             if isinstance(exception, self.config.excluded_exceptions):

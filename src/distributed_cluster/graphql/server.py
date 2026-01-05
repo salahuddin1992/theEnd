@@ -10,7 +10,7 @@ HTTP and WebSocket server for GraphQL API.
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from .resolvers import MutationResolver, QueryResolver, ResolverContext, ResolverInfo
@@ -32,7 +32,8 @@ class GraphQLConfig:
     introspection_enabled: bool = True
     max_query_depth: int = 10
     max_query_complexity: int = 1000
-    cors_origins: List[str] = field(default_factory=lambda: ["*"])
+    # Security: default to empty list (no CORS) instead of ["*"]
+    cors_origins: List[str] = field(default_factory=list)
     rate_limit_per_minute: int = 1000
 
 
@@ -110,7 +111,7 @@ class GraphQLExecutor:
 
         تنفيذ طلب GraphQL.
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         context = context or ResolverContext()
 
         try:
@@ -143,7 +144,7 @@ class GraphQLExecutor:
                 }])
 
             # Update statistics
-            execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             self._update_avg_time(execution_time)
 
             return GraphQLResponse(data=data)
@@ -483,7 +484,7 @@ class GraphQLServer:
 
     def _check_rate_limit(self, client_ip: str) -> bool:
         """Check if request is within rate limit."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         minute_ago = now.replace(second=0, microsecond=0)
 
         # Clean old entries
@@ -504,6 +505,9 @@ class GraphQLServer:
 
     def _get_cors_headers(self) -> Dict[str, str]:
         """Get CORS headers."""
+        if not self.config.cors_origins:
+            # No CORS configured - return empty headers
+            return {}
         return {
             "Access-Control-Allow-Origin": ", ".join(self.config.cors_origins),
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",

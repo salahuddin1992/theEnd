@@ -9,7 +9,7 @@ import pickle
 import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
@@ -90,22 +90,22 @@ class CacheEntry(Generic[T]):
     def is_expired(self) -> bool:
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     @property
     def ttl_remaining(self) -> Optional[float]:
         if self.expires_at is None:
             return None
-        remaining = (self.expires_at - datetime.utcnow()).total_seconds()
+        remaining = (self.expires_at - datetime.now(timezone.utc)).total_seconds()
         return max(0, remaining)
 
     @property
     def age_seconds(self) -> float:
-        return (datetime.utcnow() - self.created_at).total_seconds()
+        return (datetime.now(timezone.utc) - self.created_at).total_seconds()
 
     def touch(self):
         """Update last accessed time and increment access count."""
-        self.last_accessed = datetime.utcnow()
+        self.last_accessed = datetime.now(timezone.utc)
         self.access_count += 1
 
 

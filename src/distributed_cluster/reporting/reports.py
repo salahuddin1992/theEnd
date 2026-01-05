@@ -14,7 +14,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -323,16 +323,16 @@ class ReportGenerator:
         توليد تقرير
         Generate report
         """
-        start = datetime.utcnow()
+        start = datetime.now(timezone.utc)
 
         # Default time range: last 7 days
         if not end_time:
-            end_time = datetime.utcnow()
+            end_time = datetime.now(timezone.utc)
         if not start_time:
             start_time = end_time - timedelta(days=7)
 
         report = Report(
-            name=f"{report_type.value}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+            name=f"{report_type.value}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
             report_type=report_type,
             start_time=start_time,
             end_time=end_time,
@@ -348,8 +348,8 @@ class ReportGenerator:
             await builder(report, options or {})
 
             report.status = ReportStatus.COMPLETED
-            report.generated_at = datetime.utcnow()
-            report.generation_time_ms = (datetime.utcnow() - start).total_seconds() * 1000
+            report.generated_at = datetime.now(timezone.utc)
+            report.generation_time_ms = (datetime.now(timezone.utc) - start).total_seconds() * 1000
 
             logger.info(f"Generated report: {report.name} in {report.generation_time_ms:.2f}ms")
 

@@ -11,7 +11,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -225,7 +225,7 @@ class AITaskManager:
             del self._running_tasks[task_id]
 
         task.status = AITaskStatus.CANCELLED
-        task.completed_at = datetime.utcnow()
+        task.completed_at = datetime.now(timezone.utc)
 
         logger.info(f"Cancelled AI task {task_id}")
         return True
@@ -235,7 +235,7 @@ class AITaskManager:
         async with self._semaphore:
             try:
                 task.status = AITaskStatus.RUNNING
-                task.started_at = datetime.utcnow()
+                task.started_at = datetime.now(timezone.utc)
                 task.update_progress(0, "Starting task")
 
                 # Get handler
@@ -265,7 +265,7 @@ class AITaskManager:
                 logger.error(f"Task {task.task_id} failed: {e}")
 
             finally:
-                task.completed_at = datetime.utcnow()
+                task.completed_at = datetime.now(timezone.utc)
                 if task.task_id in self._running_tasks:
                     del self._running_tasks[task.task_id]
 

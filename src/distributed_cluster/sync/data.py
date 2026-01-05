@@ -17,7 +17,7 @@ import logging
 import uuid
 import zlib
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, AsyncIterator, Dict, List, Optional
 
@@ -146,7 +146,7 @@ class DataTransfer:
         """سرعة النقل (bytes/second)."""
         if not self.started_at:
             return 0.0
-        elapsed = (datetime.utcnow() - self.started_at).total_seconds()
+        elapsed = (datetime.now(timezone.utc) - self.started_at).total_seconds()
         if elapsed == 0:
             return 0.0
         return self.transferred_bytes / elapsed
@@ -268,7 +268,7 @@ class DataSync:
             target_node=target_node,
             total_bytes=len(data),
             metadata=metadata or {},
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
         )
 
         # Create chunks
@@ -311,7 +311,7 @@ class DataSync:
             await asyncio.gather(*(send_chunk(c) for c in chunks))
 
             transfer.status = TransferStatus.COMPLETED
-            transfer.completed_at = datetime.utcnow()
+            transfer.completed_at = datetime.now(timezone.utc)
 
             # Cleanup
             del self._pending_chunks[transfer_id]
@@ -427,7 +427,7 @@ class DataSync:
 
     def cleanup_completed(self, max_age_hours: int = 24) -> int:
         """تنظيف عمليات النقل القديمة."""
-        cutoff = datetime.utcnow()
+        cutoff = datetime.now(timezone.utc)
         from datetime import timedelta
 
         cutoff = cutoff - timedelta(hours=max_age_hours)

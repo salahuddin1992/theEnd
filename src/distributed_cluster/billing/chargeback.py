@@ -11,7 +11,7 @@ for teams and projects.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -389,7 +389,7 @@ class ChargebackManager:
         if should_alert and self.alert_callback:
             # Check if we recently sent an alert
             last_alert = self._alerts_sent.get(budget.budget_id)
-            if last_alert is None or (datetime.utcnow() - last_alert).seconds > 3600:
+            if last_alert is None or (datetime.now(timezone.utc) - last_alert).seconds > 3600:
                 try:
                     await self._safe_callback(
                         self.alert_callback,
@@ -397,7 +397,7 @@ class ChargebackManager:
                         old_status,
                         new_status,
                     )
-                    self._alerts_sent[budget.budget_id] = datetime.utcnow()
+                    self._alerts_sent[budget.budget_id] = datetime.now(timezone.utc)
                 except Exception as e:
                     logger.error(f"Budget alert callback error: {e}")
 
@@ -560,7 +560,7 @@ class ChargebackManager:
         توقع التكاليف المستقبلية.
         """
         # Get historical data
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=30)
 
         if entity_type == "user":
@@ -599,7 +599,7 @@ class ChargebackManager:
 
     async def reset_period_budgets(self) -> int:
         """Reset budgets that have crossed period boundaries."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         reset_count = 0
 
         async with self._lock:
@@ -618,7 +618,7 @@ class ChargebackManager:
 
     def _get_period_start(self, period: BudgetPeriod) -> datetime:
         """Get start of current period."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if period == BudgetPeriod.DAILY:
             return now.replace(hour=0, minute=0, second=0, microsecond=0)

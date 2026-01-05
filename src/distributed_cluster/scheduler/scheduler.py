@@ -18,7 +18,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Callable, Optional
 
@@ -191,7 +191,7 @@ class Scheduler:
             job=job,
             worker=selected,
             lease_id=lease_id,
-            decision_time=datetime.utcnow(),
+            decision_time=datetime.now(timezone.utc),
             policy_used=self.policy,
         )
 

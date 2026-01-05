@@ -26,7 +26,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -124,13 +124,13 @@ class MFAChallenge:
     user_id: str
     mfa_type: MFAType
     created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: datetime = field(default_factory=lambda: datetime.utcnow() + timedelta(minutes=5))
+    expires_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(minutes=5))
     verified: bool = False
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
 
 class TOTPGenerator:
@@ -510,7 +510,7 @@ class MFAManager:
 
         # Complete enrollment
         device.status = MFAStatus.ENROLLED
-        device.verified_at = datetime.utcnow()
+        device.verified_at = datetime.now(timezone.utc)
         self.store.save_device(device)
 
         logger.info(f"Completed TOTP enrollment for device {device_id}")
@@ -586,7 +586,7 @@ class MFAManager:
             valid, offset = self.totp.verify_totp(device.secret, code)
             if valid:
                 # Update last used
-                device.last_used = datetime.utcnow()
+                device.last_used = datetime.now(timezone.utc)
                 self.store.save_device(device)
                 self._clear_failed_attempts(user_id)
 
@@ -678,7 +678,7 @@ class MFAManager:
             challenge_id=f"mfa_challenge_{secrets.token_hex(16)}",
             user_id=user_id,
             mfa_type=mfa_type,
-            expires_at=datetime.utcnow() + timedelta(seconds=ttl_seconds),
+            expires_at=datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds),
         )
 
         with self._lock:
@@ -820,7 +820,7 @@ class MFAMiddleware:
         # Check if MFA verification is still valid (e.g., 24 hours)
         if mfa_verified_at:
             verified_at = datetime.fromisoformat(mfa_verified_at)
-            if datetime.utcnow() - verified_at > timedelta(hours=24):
+            if datetime.now(timezone.utc) - verified_at > timedelta(hours=24):
                 return False, "MFA verification expired"
 
         return True, None

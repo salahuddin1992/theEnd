@@ -12,7 +12,7 @@ import importlib
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -508,6 +508,6 @@ class HealthCheckPlugin(Plugin):
         if ctx.request.path == self.path:
             return GatewayResponse.ok({
                 "status": "healthy",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             })
         return None

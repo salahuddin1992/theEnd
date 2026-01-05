@@ -53,6 +53,13 @@ class MasterConfig:
     auth_secret_key: Optional[str] = None
     api_keys: list[str] = field(default_factory=list)
 
+    # CORS - إعدادات CORS للأمان
+    # قائمة فارغة = لا CORS (أكثر أماناً)
+    # ["*"] = كل المواقع (غير آمن - فقط للتطوير)
+    # ["https://example.com"] = مواقع محددة (موصى به للإنتاج)
+    cors_allowed_origins: list[str] = field(default_factory=list)
+    cors_allow_credentials: bool = False
+
     # Logging
     log_level: str = "INFO"
     log_file: Optional[str] = None
@@ -71,6 +78,8 @@ class MasterConfig:
             "max_concurrent_jobs_per_worker": self.max_concurrent_jobs_per_worker,
             "enable_ha": self.enable_ha,
             "auth_enabled": self.auth_enabled,
+            "cors_allowed_origins": self.cors_allowed_origins,
+            "cors_allow_credentials": self.cors_allow_credentials,
             "log_level": self.log_level,
         }
 
@@ -99,6 +108,8 @@ class MasterConfig:
             auth_enabled=data.get("auth_enabled", False),
             auth_secret_key=data.get("auth_secret_key"),
             api_keys=data.get("api_keys", []),
+            cors_allowed_origins=data.get("cors_allowed_origins", []),
+            cors_allow_credentials=data.get("cors_allow_credentials", False),
             log_level=data.get("log_level", "INFO"),
             log_file=data.get("log_file"),
         )
@@ -106,12 +117,15 @@ class MasterConfig:
     @classmethod
     def from_env(cls) -> MasterConfig:
         """إنشاء من environment variables."""
+        cors_origins = os.getenv("DC_CORS_ORIGINS", "")
         return cls(
             host=os.getenv("DC_MASTER_HOST", "0.0.0.0"),
             port=int(os.getenv("DC_MASTER_PORT", "8765")),
             heartbeat_timeout_seconds=int(os.getenv("DC_HEARTBEAT_TIMEOUT", "30")),
             auth_enabled=os.getenv("DC_AUTH_ENABLED", "false").lower() == "true",
             auth_secret_key=os.getenv("DC_AUTH_SECRET"),
+            cors_allowed_origins=cors_origins.split(",") if cors_origins else [],
+            cors_allow_credentials=os.getenv("DC_CORS_CREDENTIALS", "false").lower() == "true",
             log_level=os.getenv("DC_LOG_LEVEL", "INFO"),
         )
 

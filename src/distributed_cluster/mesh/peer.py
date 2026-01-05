@@ -4,7 +4,7 @@ Peer - تمثيل عقدة متصلة في الشبكة
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional, Set
 
@@ -49,7 +49,7 @@ class Peer:
     def is_healthy(self) -> bool:
         """هل العقدة صحية"""
         timeout = 30  # ثواني
-        age = (datetime.utcnow() - self.last_seen).total_seconds()
+        age = (datetime.now(timezone.utc) - self.last_seen).total_seconds()
         return age < timeout and self.connection_failures < 3
 
     @property
@@ -83,7 +83,7 @@ class Peer:
             resources=ResourceSpec.from_dict(data["resources"]),
             state=data.get("state", "active"),
             tags=set(data.get("tags", [])),
-            last_seen=datetime.fromisoformat(data["last_seen"]) if "last_seen" in data else datetime.utcnow(),
+            last_seen=datetime.fromisoformat(data["last_seen"]) if "last_seen" in data else datetime.now(timezone.utc),
             latency_ms=data.get("latency_ms", 0.0),
             jobs_running=data.get("jobs_running", 0),
         )
@@ -123,7 +123,7 @@ class PeerConnection:
                     timeout=5.0,
                 )
                 self.state = ConnectionState.CONNECTED
-                self.connected_at = datetime.utcnow()
+                self.connected_at = datetime.now(timezone.utc)
                 self.peer.connection_failures = 0
                 return True
 
@@ -191,5 +191,5 @@ class PeerConnection:
             "connected_at": self.connected_at.isoformat() if self.connected_at else None,
             "messages_sent": self.messages_sent,
             "messages_received": self.messages_received,
-            "uptime_seconds": (datetime.utcnow() - self.connected_at).total_seconds() if self.connected_at else 0,
+            "uptime_seconds": (datetime.now(timezone.utc) - self.connected_at).total_seconds() if self.connected_at else 0,
         }

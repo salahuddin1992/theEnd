@@ -19,7 +19,7 @@ import asyncio
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, Dict, List, Optional
 
 from .scorer import LocalityLevel
@@ -310,7 +310,7 @@ class LocalityMetricsCollector:
 
     async def collect_metrics(self) -> LocalityMetrics:
         """Collect current locality metrics."""
-        metrics = LocalityMetrics(window_start=datetime.utcnow())
+        metrics = LocalityMetrics(window_start=datetime.now(timezone.utc))
 
         # Get tracker stats
         tracker_stats = await self.tracker.get_stats()
@@ -346,7 +346,7 @@ class LocalityMetricsCollector:
             )
         metrics.total_bytes_transferred = self._transfer_bytes
 
-        metrics.window_end = datetime.utcnow()
+        metrics.window_end = datetime.now(timezone.utc)
 
         # Store in history
         self._metrics_history.append(metrics)
@@ -590,7 +590,7 @@ class LocalityDashboard:
                 "locality_distribution": self._build_locality_chart(),
                 "block_types": current.blocks_by_type if current else {},
             },
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def _build_locality_chart(self) -> List[Dict]:

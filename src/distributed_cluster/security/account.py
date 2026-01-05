@@ -26,7 +26,7 @@ import secrets
 import threading
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -169,7 +169,7 @@ class AccountSecurityInfo:
     @property
     def is_locked(self) -> bool:
         if self.status == AccountStatus.LOCKED:
-            if self.locked_until and datetime.utcnow() > self.locked_until:
+            if self.locked_until and datetime.now(timezone.utc) > self.locked_until:
                 return False
             return True
         return False
@@ -177,7 +177,7 @@ class AccountSecurityInfo:
     @property
     def is_password_expired(self) -> bool:
         if self.password_expires_at:
-            return datetime.utcnow() > self.password_expires_at
+            return datetime.now(timezone.utc) > self.password_expires_at
         return False
 
     def to_dict(self) -> Dict[str, Any]:
@@ -541,13 +541,13 @@ class AccountSecurityManager:
         # Calculate expiration
         password_expires_at = None
         if self.policy.max_password_age_days > 0:
-            password_expires_at = datetime.utcnow() + timedelta(days=self.policy.max_password_age_days)
+            password_expires_at = datetime.now(timezone.utc) + timedelta(days=self.policy.max_password_age_days)
 
         # Create account
         account = AccountSecurityInfo(
             user_id=user_id,
             password_hash=password_hash,
-            password_changed_at=datetime.utcnow(),
+            password_changed_at=datetime.now(timezone.utc),
             password_expires_at=password_expires_at,
             password_history=[password_hash.to_storage_format()],
         )
@@ -587,7 +587,7 @@ class AccountSecurityManager:
         # Check minimum password age
         if not force and account.password_changed_at:
             min_age = timedelta(hours=self.policy.min_password_age_hours)
-            if datetime.utcnow() - account.password_changed_at < min_age:
+            if datetime.now(timezone.utc) - account.password_changed_at < min_age:
                 error_msg = (
                     f"Cannot change password within {self.policy.min_password_age_hours} "
                     f"hours of last change"
@@ -616,11 +616,11 @@ class AccountSecurityManager:
 
         # Update account
         account.password_hash = new_hash
-        account.password_changed_at = datetime.utcnow()
+        account.password_changed_at = datetime.now(timezone.utc)
         account.must_change_password = False
 
         if self.policy.max_password_age_days > 0:
-            account.password_expires_at = datetime.utcnow() + timedelta(days=self.policy.max_password_age_days)
+            account.password_expires_at = datetime.now(timezone.utc) + timedelta(days=self.policy.max_password_age_days)
 
         # Clear lockout on password change
         account.failed_login_count = 0
@@ -660,7 +660,7 @@ class AccountSecurityManager:
         if account.is_locked:
             remaining = None
             if account.locked_until:
-                remaining = int((account.locked_until - datetime.utcnow()).total_seconds())
+                remaining = int((account.locked_until - datetime.now(timezone.utc)).total_seconds())
             return False, f"Account is locked. Try again in {remaining} seconds", None
 
         # Clear expired lockout
@@ -674,7 +674,7 @@ class AccountSecurityManager:
         if not self.hasher.verify(password, account.password_hash):
             # Record failed attempt
             account.failed_login_count += 1
-            account.last_failed_login = datetime.utcnow()
+            account.last_failed_login = datetime.now(timezone.utc)
 
             # Check for lockout
             if account.failed_login_count >= self.max_failed_attempts:
@@ -682,7 +682,7 @@ class AccountSecurityManager:
                 if self.progressive_lockout:
                     lockout_minutes *= (account.lockout_count + 1)
 
-                account.locked_until = datetime.utcnow() + timedelta(minutes=lockout_minutes)
+                account.locked_until = datetime.now(timezone.utc) + timedelta(minutes=lockout_minutes)
                 account.status = AccountStatus.LOCKED
                 account.lockout_count += 1
 
@@ -706,7 +706,7 @@ class AccountSecurityManager:
         # Clear failed attempts
         account.failed_login_count = 0
         account.last_failed_login = None
-        account.last_login = datetime.utcnow()
+        account.last_login = datetime.now(timezone.utc)
         account.last_login_ip = ip_address
 
         self.store.save(account)
@@ -763,7 +763,7 @@ class AccountSecurityManager:
         if not account or not account.password_expires_at:
             return False, None
 
-        days_until_expiry = (account.password_expires_at - datetime.utcnow()).days
+        days_until_expiry = (account.password_expires_at - datetime.now(timezone.utc)).days
 
         if days_until_expiry <= self.policy.warn_before_expiry_days:
             return True, days_until_expiry

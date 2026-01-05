@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 from uuid import uuid4
@@ -85,7 +85,7 @@ class Alert:
     @property
     def duration_seconds(self) -> float:
         """مدة التنبيه بالثواني"""
-        end = self.resolved_at or datetime.utcnow()
+        end = self.resolved_at or datetime.now(timezone.utc)
         return (end - self.started_at).total_seconds()
 
 
@@ -226,7 +226,7 @@ class AlertManager:
 
     async def _check_rule(self, rule: AlertRule) -> None:
         """فحص قاعدة واحدة"""
-        rule.last_check = datetime.utcnow()
+        rule.last_check = datetime.now(timezone.utc)
 
         try:
             # Evaluate condition
@@ -245,7 +245,7 @@ class AlertManager:
 
     async def _handle_condition_met(self, rule: AlertRule) -> None:
         """معالجة تحقق الشرط"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         # Check if pending
         if rule.pending_since is None:
@@ -305,7 +305,7 @@ class AlertManager:
 
         alert = self._alerts.pop(name)
         alert.state = AlertState.RESOLVED
-        alert.resolved_at = datetime.utcnow()
+        alert.resolved_at = datetime.now(timezone.utc)
 
         # Add to history
         self._alert_history.append(alert)
@@ -331,10 +331,10 @@ class AlertManager:
         """إرسال إشعار"""
         # Check if silenced
         if alert.name in self._silences:
-            if datetime.utcnow() < self._silences[alert.name]:
+            if datetime.now(timezone.utc) < self._silences[alert.name]:
                 return
 
-        alert.last_notification = datetime.utcnow()
+        alert.last_notification = datetime.now(timezone.utc)
         alert.notification_count += 1
 
         for handler in self._handlers:
@@ -356,7 +356,7 @@ class AlertManager:
         duration_seconds: float = 3600,
     ) -> None:
         """كتم تنبيه"""
-        until = datetime.utcnow() + timedelta(seconds=duration_seconds)
+        until = datetime.now(timezone.utc) + timedelta(seconds=duration_seconds)
         self._silences[name] = until
 
         if name in self._alerts:

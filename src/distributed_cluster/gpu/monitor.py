@@ -11,7 +11,7 @@ and alerting capabilities.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -321,7 +321,7 @@ class GPUMonitor:
 
     async def _collect_gpu_metrics(self, gpu_index: int, handle) -> GPUMetrics:
         """Collect metrics from a single GPU."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         metrics = GPUMetrics(gpu_index=gpu_index, timestamp=now)
 
         try:
@@ -589,7 +589,7 @@ class GPUMonitor:
         # Check for duplicate alerts
 
         # Only add if not a duplicate recent alert
-        recent_cutoff = datetime.utcnow() - timedelta(minutes=5)
+        recent_cutoff = datetime.now(timezone.utc) - timedelta(minutes=5)
         is_duplicate = any(
             a.gpu_index == alert.gpu_index
             and a.metric_name == alert.metric_name
@@ -611,7 +611,7 @@ class GPUMonitor:
 
     async def _cleanup_history(self) -> None:
         """Clean up old metrics history."""
-        cutoff = datetime.utcnow() - self.history_retention
+        cutoff = datetime.now(timezone.utc) - self.history_retention
 
         async with self._lock:
             for gpu_index in self._metrics_history:
@@ -643,7 +643,7 @@ class GPUMonitor:
         duration_minutes: int = 10,
     ) -> List[GPUMetrics]:
         """Get metrics history for a GPU."""
-        cutoff = datetime.utcnow() - timedelta(minutes=duration_minutes)
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=duration_minutes)
         history = self._metrics_history.get(gpu_index, [])
         return [m for m in history if m.timestamp > cutoff]
 
@@ -674,7 +674,7 @@ class GPUMonitor:
         """Resolve an alert."""
         if alert_id in self._alerts:
             self._alerts[alert_id].resolved = True
-            self._alerts[alert_id].resolved_at = datetime.utcnow()
+            self._alerts[alert_id].resolved_at = datetime.now(timezone.utc)
             return True
         return False
 

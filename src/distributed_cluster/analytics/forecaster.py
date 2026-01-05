@@ -11,7 +11,7 @@ import asyncio
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -173,7 +173,7 @@ class ResourceForecaster:
             self._stats["metrics_stored"] += 1
 
             # Cleanup old data
-            cutoff = datetime.utcnow() - timedelta(days=self.history_days)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=self.history_days)
             self._metrics = [m for m in self._metrics if m.timestamp > cutoff]
 
     async def forecast(
@@ -213,7 +213,7 @@ class ResourceForecaster:
         )
 
         # Create forecast object
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         step_duration = self._get_step_duration(horizon)
         end_time = start_time + step_duration * steps
 
@@ -432,7 +432,7 @@ class ResourceForecaster:
         """Generate naive forecast when insufficient data."""
         import uuid
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         step_duration = self._get_step_duration(horizon)
 
         # Use simple moving average or default

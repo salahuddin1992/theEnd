@@ -14,7 +14,7 @@ import os
 import random
 import signal
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -204,7 +204,7 @@ class FaultInjector:
 
         fault_id = str(uuid.uuid4())
         fault_type_enum = FaultType(fault_type)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         self._stats["total_injections"] += 1
 
@@ -302,7 +302,7 @@ class FaultInjector:
                 success=False,
                 targets_affected=[],
                 started_at=now,
-                ended_at=datetime.utcnow(),
+                ended_at=datetime.now(timezone.utc),
                 error_message=str(e),
             )
 

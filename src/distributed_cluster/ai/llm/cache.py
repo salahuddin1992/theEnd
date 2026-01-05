@@ -18,7 +18,7 @@ import logging
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class CacheEntry:
 
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -264,7 +264,7 @@ class RedisCacheBackend(CacheBackend):
         redis = await self._get_redis()
         full_key = self._make_key(entry.key)
 
-        ttl = int((entry.expires_at - datetime.utcnow()).total_seconds())
+        ttl = int((entry.expires_at - datetime.now(timezone.utc)).total_seconds())
         if ttl > 0:
             await redis.setex(
                 full_key,
@@ -417,7 +417,7 @@ class LLMCache:
             return
 
         key = self._compute_hash(prompt, model, config)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         entry = CacheEntry(
             key=key,
@@ -567,7 +567,7 @@ class SemanticCache:
 
             embedding = await self._compute_embedding(prompt)
             key = hashlib.sha256(prompt.encode()).hexdigest()
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             entry = CacheEntry(
                 key=key,

@@ -27,7 +27,7 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -478,7 +478,7 @@ class MetricsStreamManager:
             aggregated = MetricPoint(
                 name=last_point.name,
                 value=aggregated_value,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
                 metric_type=last_point.metric_type,
                 labels=last_point.labels,
                 unit=last_point.unit,
@@ -508,7 +508,7 @@ class MetricsStreamManager:
             raise ValueError(f"Unknown client: {client_id}")
 
         client = self._clients[client_id]
-        client.last_activity = datetime.utcnow()
+        client.last_activity = datetime.now(timezone.utc)
 
         try:
             if timeout:

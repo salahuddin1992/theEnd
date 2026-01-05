@@ -20,7 +20,7 @@ import re
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -295,7 +295,7 @@ class BotHandler(ABC):
         command = " ".join(cmd.args)
         job_data = {
             "command": command,
-            "name": f"bot-{datetime.utcnow().strftime('%H%M%S')}",
+            "name": f"bot-{datetime.now(timezone.utc).strftime('%H%M%S')}",
         }
 
         result = await self._api_request("POST", "/jobs", json=job_data)
@@ -764,7 +764,7 @@ class DiscordBot(BotHandler):
                 {"name": "Worker", "value": job.get("assigned_worker", "N/A"), "inline": True},
             ],
             "footer": {"text": "NebulaCompute"},
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def get_slash_commands(self) -> List[Dict[str, Any]]:

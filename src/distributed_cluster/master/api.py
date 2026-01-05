@@ -15,7 +15,7 @@ from __future__ import annotations
 import asyncio
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated, Optional
 
 from fastapi import (
@@ -282,14 +282,16 @@ def create_app(config: Optional[MasterConfig] = None) -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # CORS - تقييد الوصول حسب الإعدادات
+    # قائمة فارغة = لا يتم إضافة middleware (أكثر أماناً)
+    if config.cors_allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=config.cors_allowed_origins,
+            allow_credentials=config.cors_allow_credentials,
+            allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+            allow_headers=["Authorization", "Content-Type", "X-API-Key", "X-Request-ID"],
+        )
 
     # Exception handlers
     @app.exception_handler(HTTPException)
@@ -336,7 +338,7 @@ def _register_routes(app: FastAPI) -> None:
     async def health():
         return {
             "status": "healthy",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     @app.get("/stats", tags=["Info"])

@@ -11,7 +11,7 @@ in real-time.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -124,7 +124,7 @@ class SLADefinition:
         """Check if SLA is currently active."""
         if not self.enabled:
             return False
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if self.valid_from and now < self.valid_from:
             return False
         if self.valid_until and now > self.valid_until:
@@ -474,7 +474,7 @@ class SLAMonitor:
     ) -> List[SLAEvaluation]:
         """Get evaluation history for an SLA."""
         history = self._evaluation_history.get(sla_id, [])
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         return [e for e in history if e.evaluated_at > cutoff]
 
     async def get_compliance_summary(self) -> Dict[str, Any]:
@@ -504,7 +504,7 @@ class SLAMonitor:
             "at_risk": at_risk,
             "violated": violated,
             "compliance_rate": compliance_rate,
-            "evaluated_at": datetime.utcnow().isoformat(),
+            "evaluated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def record_metric(
@@ -525,11 +525,11 @@ class SLAMonitor:
             self._metrics_cache[metric_name].append({
                 "value": value,
                 "labels": labels or {},
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(timezone.utc),
             })
 
             # Cleanup old entries
-            cutoff = datetime.utcnow() - self._cache_max_age
+            cutoff = datetime.now(timezone.utc) - self._cache_max_age
             self._metrics_cache[metric_name] = [
                 m for m in self._metrics_cache[metric_name]
                 if m["timestamp"] > cutoff

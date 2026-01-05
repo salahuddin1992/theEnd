@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
@@ -220,7 +220,7 @@ class MasterServer:
 
         @app.get("/health")
         async def health():
-            return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+            return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
         @app.get("/stats")
         async def get_stats():

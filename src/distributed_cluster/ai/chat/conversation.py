@@ -11,7 +11,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, AsyncIterator, Dict, List, Optional
@@ -79,7 +79,7 @@ class Message:
             role=MessageRole(data["role"]),
             content=data["content"],
             message_id=data.get("message_id", str(uuid.uuid4())),
-            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.utcnow(),
+            timestamp=datetime.fromisoformat(data["timestamp"]) if "timestamp" in data else datetime.now(timezone.utc),
             model=data.get("model"),
             tokens=data.get("tokens", 0),
         )
@@ -111,7 +111,7 @@ class Conversation:
     def add_message(self, message: Message) -> None:
         """إضافة رسالة."""
         self.messages.append(message)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         self.message_count += 1
         self.total_tokens += message.tokens
 
@@ -174,7 +174,7 @@ class Conversation:
         self.messages.clear()
         self.total_tokens = 0
         self.message_count = 0
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict[str, Any]:
         """تحويل لقاموس."""
@@ -198,8 +198,8 @@ class Conversation:
         conv = cls(
             conversation_id=data.get("conversation_id", str(uuid.uuid4())),
             title=data.get("title"),
-            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.utcnow(),
-            updated_at=datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.utcnow(),
+            created_at=datetime.fromisoformat(data["created_at"]) if "created_at" in data else datetime.now(timezone.utc),
+            updated_at=datetime.fromisoformat(data["updated_at"]) if "updated_at" in data else datetime.now(timezone.utc),
             system_prompt=data.get("system_prompt"),
             model=data.get("model", "llama3.2"),
             metadata=data.get("metadata", {}),

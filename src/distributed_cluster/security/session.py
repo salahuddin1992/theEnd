@@ -182,7 +182,7 @@ class Session:
     session_id: str
     user_id: str
     created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: datetime = field(default_factory=lambda: datetime.utcnow() + timedelta(hours=24))
+    expires_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=24))
     last_activity: datetime = field(default_factory=datetime.utcnow)
     status: SessionStatus = SessionStatus.ACTIVE
 
@@ -207,7 +207,7 @@ class Session:
 
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     @property
     def is_active(self) -> bool:
@@ -215,15 +215,15 @@ class Session:
 
     @property
     def age_seconds(self) -> int:
-        return int((datetime.utcnow() - self.created_at).total_seconds())
+        return int((datetime.now(timezone.utc) - self.created_at).total_seconds())
 
     @property
     def idle_seconds(self) -> int:
-        return int((datetime.utcnow() - self.last_activity).total_seconds())
+        return int((datetime.now(timezone.utc) - self.last_activity).total_seconds())
 
     def update_activity(self, action: str, ip_address: Optional[str] = None) -> None:
         """Update session activity."""
-        self.last_activity = datetime.utcnow()
+        self.last_activity = datetime.now(timezone.utc)
 
         if ip_address and ip_address != self.ip_address:
             if self.ip_address:
@@ -231,7 +231,7 @@ class Session:
             self.ip_address = ip_address
 
         self.activity_log.append(SessionActivity(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             action=action,
             ip_address=ip_address,
         ))
@@ -440,7 +440,7 @@ class SessionManager:
         session = Session(
             session_id=self._generate_session_id(),
             user_id=user_id,
-            expires_at=datetime.utcnow() + timedelta(hours=self.config.session_lifetime_hours),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=self.config.session_lifetime_hours),
             ip_address=ip_address,
             user_agent=user_agent,
             device_fingerprint=device_fingerprint,
@@ -504,7 +504,7 @@ class SessionManager:
         if self.config.detect_anomalies:
             anomaly = self._detect_anomalies(session, ip_address, device_fingerprint)
             if anomaly:
-                session.suspicious_flags.append(f"{datetime.utcnow().isoformat()}: {anomaly}")
+                session.suspicious_flags.append(f"{datetime.now(timezone.utc).isoformat()}: {anomaly}")
                 self._emit_event(SessionEvent.SUSPICIOUS_ACTIVITY, session, {"anomaly": anomaly})
 
                 # Lock session on critical anomalies
@@ -523,7 +523,7 @@ class SessionManager:
             if session.device_fingerprint:
                 similarity = session.device_fingerprint.similarity(device_fingerprint)
                 if similarity < 0.5:
-                    session.suspicious_flags.append(f"{datetime.utcnow().isoformat()}: Device change detected")
+                    session.suspicious_flags.append(f"{datetime.now(timezone.utc).isoformat()}: Device change detected")
                     self._emit_event(SessionEvent.DEVICE_CHANGED, session)
 
         # Update activity
@@ -577,7 +577,7 @@ class SessionManager:
             return None, error
 
         extension = extend_hours or self.config.session_lifetime_hours
-        new_expiry = datetime.utcnow() + timedelta(hours=extension)
+        new_expiry = datetime.now(timezone.utc) + timedelta(hours=extension)
 
         # Don't extend beyond absolute timeout
         max_expiry = session.created_at + timedelta(hours=self.config.absolute_timeout_hours)
@@ -604,10 +604,10 @@ class SessionManager:
             return None, error
 
         session.mfa_verified = True
-        session.mfa_verified_at = datetime.utcnow()
+        session.mfa_verified_at = datetime.now(timezone.utc)
 
         # Optionally extend session for MFA-verified users
-        session.expires_at = datetime.utcnow() + timedelta(
+        session.expires_at = datetime.now(timezone.utc) + timedelta(
             hours=self.config.mfa_session_lifetime_hours
         )
 
@@ -629,7 +629,7 @@ class SessionManager:
 
         session.status = SessionStatus.REVOKED
         session.metadata["revocation_reason"] = reason
-        session.metadata["revoked_at"] = datetime.utcnow().isoformat()
+        session.metadata["revoked_at"] = datetime.now(timezone.utc).isoformat()
 
         self.store.update(session)
         self._emit_event(SessionEvent.REVOKED, session, {"reason": reason})

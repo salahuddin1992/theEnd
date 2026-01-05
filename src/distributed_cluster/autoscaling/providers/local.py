@@ -20,7 +20,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional
 
 from distributed_cluster.autoscaling.providers.base import (
@@ -122,7 +122,7 @@ class LocalProvider(CloudProvider):
                 instance_type=instance_type or "local.default",
                 zone=zone or "local-zone-1",
                 private_ip=f"10.0.0.{100 + self._instance_counter}",
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
                 tags=self._merge_tags(tags),
                 labels=self._merge_labels(labels),
                 metadata={"simulated": True},
@@ -327,7 +327,7 @@ class DryRunProvider(LocalProvider):
             "instance_type": instance_type,
             "zone": zone,
             "tags": tags,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self._action_log.append(action)
         logger.info(f"[DRY-RUN] Would provision {count} workers")
@@ -340,7 +340,7 @@ class DryRunProvider(LocalProvider):
         action = {
             "action": "terminate",
             "instance_ids": instance_ids,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         self._action_log.append(action)
         logger.info(f"[DRY-RUN] Would terminate {len(instance_ids)} workers")

@@ -19,7 +19,7 @@ import ssl
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -963,7 +963,7 @@ class HealthCheckManager:
 
         self._checks: Dict[str, HealthCheck] = {}
         self._results: Dict[str, HealthCheckResult] = {}
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(timezone.utc)
         self._running = False
         self._task: Optional[asyncio.Task] = None
 
@@ -1025,14 +1025,14 @@ class HealthCheckManager:
 
     def get_health_report(self) -> Dict[str, Any]:
         """الحصول على تقرير الصحة الكامل."""
-        uptime = (datetime.utcnow() - self._start_time).total_seconds()
+        uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
 
         return {
             "status": self.get_overall_status().value,
             "service": self.service_name,
             "version": self.version,
             "uptime_seconds": uptime,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "checks": {name: result.to_dict() for name, result in self._results.items()},
         }
 
@@ -1114,13 +1114,13 @@ class LivenessProbe:
     """
 
     def __init__(self):
-        self._last_heartbeat = datetime.utcnow()
+        self._last_heartbeat = datetime.now(timezone.utc)
         self._max_heartbeat_age = timedelta(seconds=60)
         self._custom_checks: List[Callable[[], bool]] = []
 
     def heartbeat(self) -> None:
         """تسجيل نبضة قلب."""
-        self._last_heartbeat = datetime.utcnow()
+        self._last_heartbeat = datetime.now(timezone.utc)
 
     def add_check(self, check: Callable[[], bool]) -> None:
         """إضافة فحص مخصص."""
@@ -1129,7 +1129,7 @@ class LivenessProbe:
     def is_alive(self) -> Tuple[bool, str]:
         """هل التطبيق حي؟"""
         # Check heartbeat
-        age = datetime.utcnow() - self._last_heartbeat
+        age = datetime.now(timezone.utc) - self._last_heartbeat
         if age > self._max_heartbeat_age:
             return False, f"No heartbeat for {age.total_seconds():.0f}s"
 

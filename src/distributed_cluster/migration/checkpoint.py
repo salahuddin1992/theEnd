@@ -18,7 +18,7 @@ import subprocess
 import tarfile
 import tempfile
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -723,7 +723,7 @@ class CheckpointManager:
         """Clean up expired checkpoints."""
         from datetime import timedelta
 
-        cutoff = datetime.utcnow() - timedelta(hours=self.auto_cleanup_hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=self.auto_cleanup_hours)
         expired = []
 
         async with self._lock:

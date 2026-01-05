@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -264,7 +264,7 @@ class SQLiteAuditBackend(AuditBackend):
 
     async def cleanup(self) -> int:
         """تنظيف الأحداث القديمة."""
-        cutoff = datetime.utcnow() - timedelta(days=self.retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
 
         async with self._lock:
             conn = await self._get_conn()
@@ -542,7 +542,7 @@ class PostgreSQLAuditBackend(AuditBackend):
 
     async def cleanup(self) -> int:
         """تنظيف الأحداث القديمة."""
-        cutoff = datetime.utcnow() - timedelta(days=self.retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
 
         async with self._pool.acquire() as conn:
             result = await conn.execute(
@@ -566,8 +566,8 @@ class PostgreSQLAuditBackend(AuditBackend):
         end_time: Optional[datetime] = None,
     ) -> Dict[str, Any]:
         """إحصائيات سجل التدقيق."""
-        start_time = start_time or datetime.utcnow() - timedelta(days=7)
-        end_time = end_time or datetime.utcnow()
+        start_time = start_time or datetime.now(timezone.utc) - timedelta(days=7)
+        end_time = end_time or datetime.now(timezone.utc)
 
         async with self._pool.acquire() as conn:
             # Total events

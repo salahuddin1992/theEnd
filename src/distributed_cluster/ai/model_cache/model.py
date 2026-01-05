@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
@@ -202,7 +202,7 @@ class ModelInfo:
 
     def update_usage(self, tokens: int = 0, latency_ms: float = 0.0) -> None:
         """تحديث إحصائيات الاستخدام"""
-        self.last_used_at = datetime.utcnow()
+        self.last_used_at = datetime.now(timezone.utc)
         self.request_count += 1
         self.total_tokens_processed += tokens
 

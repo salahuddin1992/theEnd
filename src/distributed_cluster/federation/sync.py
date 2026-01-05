@@ -20,7 +20,7 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional
 from uuid import uuid4
@@ -155,7 +155,7 @@ class SyncState:
             key=key,
             value=value,
             version=version,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             checksum=checksum,
             source_cluster=source_cluster,
         )
@@ -331,7 +331,7 @@ class StateSync:
         else:
             self._status = SyncStatus.FAILED
 
-        self._last_sync = datetime.utcnow()
+        self._last_sync = datetime.now(timezone.utc)
         self._stats["total_syncs"] += len(results)
         self._stats["successful_syncs"] += sum(1 for r in results if r.success)
         self._stats["failed_syncs"] += sum(1 for r in results if not r.success)
@@ -414,7 +414,7 @@ class StateSync:
         # Push to cluster
         success = await cluster.push_state({
             "source_cluster": self.cluster_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "state": state_data,
         })
 

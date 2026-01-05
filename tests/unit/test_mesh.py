@@ -3,7 +3,7 @@ Tests for Mesh Network module
 اختبارات وحدة Mesh Network
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from distributed_cluster.mesh.consensus import ConsensusState, LeaderElection
 from distributed_cluster.mesh.discovery import DiscoveryMessage, DiscoveryMethod
@@ -88,7 +88,7 @@ class TestPeer:
             ip_address="192.168.1.10",
             port=9000,
             resources=resources,
-            last_seen=datetime.utcnow(),
+            last_seen=datetime.now(timezone.utc),
         )
         assert peer.is_healthy is True
 
@@ -340,8 +340,8 @@ class TestNodeInfo:
             },
             "state": "active",
             "tags": ["gpu"],
-            "joined_at": datetime.utcnow().isoformat(),
-            "last_seen": datetime.utcnow().isoformat(),
+            "joined_at": datetime.now(timezone.utc).isoformat(),
+            "last_seen": datetime.now(timezone.utc).isoformat(),
         }
 
         info = NodeInfo.from_dict(data)

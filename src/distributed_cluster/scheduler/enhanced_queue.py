@@ -12,7 +12,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from heapq import heappush, heappop
 from typing import Any, Callable, Dict, List, Optional
@@ -212,7 +212,7 @@ class PriorityQueue:
         while True:
             async with self._lock:
                 # Check retry queue first
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
                 ready_retries = [
                     r for r in self._retry_queue
                     if r.next_retry_at and r.next_retry_at <= now
@@ -285,7 +285,7 @@ class PriorityQueue:
         item.last_error = error
 
         delay = config.get_delay(item.attempts)
-        item.next_retry_at = datetime.utcnow() + timedelta(seconds=delay)
+        item.next_retry_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
 
         async with self._lock:
             self._retry_queue.append(item)

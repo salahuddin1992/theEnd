@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, Callable, Optional
 
@@ -164,7 +164,7 @@ class StateSync:
         msg = SyncMessage(
             type=update_type,
             source_master_id=self.config.master_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             sequence=self._sequence,
             data=data,
         )
@@ -252,7 +252,7 @@ class StateSync:
         msg = SyncMessage(
             type=SyncMessageType.FULL_SYNC,
             source_master_id=self.config.master_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             sequence=self._sequence,
             data=full_state,
         )
@@ -319,7 +319,7 @@ class StateSync:
         try:
             msg = SyncMessage.from_dict(sync_data)
             await self._apply_full_sync(msg.data)
-            self._last_full_sync = datetime.utcnow()
+            self._last_full_sync = datetime.now(timezone.utc)
             self._last_received_sequence[msg.source_master_id] = msg.sequence
 
             return {"status": "ok"}

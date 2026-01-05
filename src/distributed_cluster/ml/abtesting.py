@@ -12,7 +12,7 @@ import logging
 import random
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -209,7 +209,7 @@ class ABTest:
             raise RuntimeError(f"Cannot start test in status: {self.status}")
 
         self.status = ABTestStatus.RUNNING
-        self.started_at = datetime.utcnow()
+        self.started_at = datetime.now(timezone.utc)
         logger.info(f"Started A/B test: {self.test_id}")
 
     def pause(self) -> None:
@@ -231,14 +231,14 @@ class ABTest:
     def complete(self, result: ABTestResult) -> None:
         """Complete the test."""
         self.status = ABTestStatus.COMPLETED
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
         self.result = result
         logger.info(f"Completed A/B test: {self.test_id}")
 
     def cancel(self) -> None:
         """Cancel the test."""
         self.status = ABTestStatus.CANCELLED
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now(timezone.utc)
         logger.info(f"Cancelled A/B test: {self.test_id}")
 
     def assign_variant(self, user_id: str) -> Variant:
@@ -423,7 +423,7 @@ class StatisticalAnalyzer:
         # Calculate duration
         duration_hours = 0.0
         if test.started_at:
-            end_time = test.completed_at or datetime.utcnow()
+            end_time = test.completed_at or datetime.now(timezone.utc)
             duration_hours = (end_time - test.started_at).total_seconds() / 3600
 
         # Generate recommendation

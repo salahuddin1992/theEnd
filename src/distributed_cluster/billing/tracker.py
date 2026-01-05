@@ -11,7 +11,7 @@ users, teams, and projects.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -253,7 +253,7 @@ class CostTracker:
                 "team_id": team_id,
                 "project_id": project_id,
                 "worker_id": worker_id,
-                "start_time": datetime.utcnow(),
+                "start_time": datetime.now(timezone.utc),
                 "resources": resources or {},
                 "metadata": metadata or {},
                 "ai_usage": {
@@ -281,7 +281,7 @@ class CostTracker:
                 return None
 
             job_info = self._active_jobs.pop(job_id)
-            end_time = datetime.utcnow()
+            end_time = datetime.now(timezone.utc)
 
             # Merge final resources
             resources = {**job_info["resources"], **(final_resources or {})}
@@ -643,7 +643,7 @@ class CostTracker:
 
         الحصول على اتجاه التكاليف.
         """
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=days)
 
         # Get entries in range
@@ -702,7 +702,7 @@ class CostTracker:
 
     async def cleanup_old_entries(self) -> int:
         """Clean up old cost entries."""
-        cutoff = datetime.utcnow() - timedelta(days=self.retention_days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
         removed = 0
 
         async with self._lock:

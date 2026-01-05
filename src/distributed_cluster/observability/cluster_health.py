@@ -25,7 +25,7 @@ import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
@@ -154,7 +154,7 @@ class HealthAlert:
 
     @property
     def duration_seconds(self) -> float:
-        end = self.resolved_at or datetime.utcnow()
+        end = self.resolved_at or datetime.now(timezone.utc)
         return (end - self.triggered_at).total_seconds()
 
     def to_dict(self) -> Dict[str, Any]:
@@ -304,7 +304,7 @@ class ClusterHealthAggregator:
 
         # State
         self._lock = asyncio.Lock()
-        self._last_check = datetime.utcnow()
+        self._last_check = datetime.now(timezone.utc)
 
         # Load persisted data
         if persist_path:
@@ -337,7 +337,7 @@ class ClusterHealthAggregator:
 
             data = {
                 "alert_counter": self._alert_counter,
-                "saved_at": datetime.utcnow().isoformat(),
+                "saved_at": datetime.now(timezone.utc).isoformat(),
             }
 
             with open(path, "w") as f:
@@ -404,7 +404,7 @@ class ClusterHealthAggregator:
 
             # Update checks and status
             component.checks = checks
-            component.last_seen = datetime.utcnow()
+            component.last_seen = datetime.now(timezone.utc)
 
             if uptime_seconds is not None:
                 component.uptime_seconds = uptime_seconds
@@ -473,7 +473,7 @@ class ClusterHealthAggregator:
                 # Resolve active alerts for this component
                 for alert_id, alert in self._alerts.items():
                     if alert.component_id == component.component_id and alert.is_active:
-                        alert.resolved_at = datetime.utcnow()
+                        alert.resolved_at = datetime.now(timezone.utc)
 
     def _build_alert_message(self, component: ComponentHealth) -> str:
         """Build detailed alert message."""
@@ -530,10 +530,10 @@ class ClusterHealthAggregator:
             check_results = []
 
             for i, check_func in enumerate(checks):
-                start_time = datetime.utcnow()
+                start_time = datetime.now(timezone.utc)
                 try:
                     result = await check_func()
-                    duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+                    duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
                     if isinstance(result, HealthCheck):
                         result.duration_ms = duration_ms
@@ -548,7 +548,7 @@ class ClusterHealthAggregator:
                         ))
 
                 except Exception as e:
-                    duration_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+                    duration_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
                     check_results.append(HealthCheck(
                         check_id=f"{component_id}-check-{i}",
                         name=f"Check {i}",
@@ -566,11 +566,11 @@ class ClusterHealthAggregator:
         # Record history
         self._record_history()
 
-        self._last_check = datetime.utcnow()
+        self._last_check = datetime.now(timezone.utc)
 
     async def _check_stale_components(self) -> None:
         """Check for and mark stale components."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         stale_threshold = timedelta(seconds=self.stale_threshold_seconds)
 
         for component in self._components.values():
@@ -592,7 +592,7 @@ class ClusterHealthAggregator:
         summary = self.get_cluster_summary()
 
         self._history.append(HealthHistoryEntry(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             health_score=summary.health_score,
             overall_status=summary.overall_status,
             component_count=summary.total_components,
@@ -601,7 +601,7 @@ class ClusterHealthAggregator:
         ))
 
         # Trim old history
-        cutoff = datetime.utcnow() - timedelta(hours=self.history_retention_hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=self.history_retention_hours)
         self._history = [h for h in self._history if h.timestamp > cutoff]
 
     def get_cluster_summary(self) -> ClusterHealthSummary:
@@ -725,7 +725,7 @@ class ClusterHealthAggregator:
 
     def get_alert_history(self, hours: int = 24) -> List[HealthAlert]:
         """Get alert history for the specified period."""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         alerts = [a for a in self._alerts.values() if a.triggered_at > cutoff]
         alerts.sort(key=lambda a: a.triggered_at, reverse=True)
         return alerts
@@ -740,7 +740,7 @@ class ClusterHealthAggregator:
     def resolve_alert(self, alert_id: str) -> bool:
         """Manually resolve an alert."""
         if alert_id in self._alerts:
-            self._alerts[alert_id].resolved_at = datetime.utcnow()
+            self._alerts[alert_id].resolved_at = datetime.now(timezone.utc)
             return True
         return False
 
@@ -759,7 +759,7 @@ class ClusterHealthAggregator:
         Returns:
             List of health data points
         """
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         relevant = [h for h in self._history if h.timestamp > cutoff]
 
         if not relevant:
@@ -858,7 +858,7 @@ class ClusterHealthAggregator:
             "unhealthy_components": [c.to_dict() for c in unhealthy],
             "components": [c.to_dict() for c in self._components.values()],
             "health_trend": self.get_health_history(hours=6, resolution_minutes=10),
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     async def start_monitoring(

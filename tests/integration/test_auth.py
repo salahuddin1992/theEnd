@@ -5,7 +5,7 @@ Authentication Integration Tests
 Tests for the security and authentication layer.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from distributed_cluster.security.auth import (
     ROLE_PERMISSIONS,
@@ -33,8 +33,8 @@ class TestAuthManager:
             subject_type="user",
             role=Role.OPERATOR,
             permissions={Permission.JOB_SUBMIT, Permission.JOB_READ},
-            issued_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            issued_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
         )
 
         token = auth_manager.generate_token(payload)
@@ -53,8 +53,8 @@ class TestAuthManager:
             subject_type="user",
             role=Role.USER,
             permissions={Permission.JOB_READ},
-            issued_at=datetime.utcnow() - timedelta(hours=2),
-            expires_at=datetime.utcnow() - timedelta(hours=1),
+            issued_at=datetime.now(timezone.utc) - timedelta(hours=2),
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
         )
 
         token = auth_manager.generate_token(payload)
@@ -183,8 +183,8 @@ class TestTokenPayload:
             subject_type="user",
             role=Role.OPERATOR,
             permissions={Permission.JOB_SUBMIT, Permission.JOB_CANCEL},
-            issued_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            issued_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
             worker_id="worker-123",
         )
 
@@ -203,8 +203,8 @@ class TestTokenPayload:
             subject_type="user",
             role=Role.USER,
             permissions=set(),
-            issued_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            issued_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
         )
         assert not valid.is_expired
 
@@ -214,7 +214,7 @@ class TestTokenPayload:
             subject_type="user",
             role=Role.USER,
             permissions=set(),
-            issued_at=datetime.utcnow() - timedelta(hours=2),
-            expires_at=datetime.utcnow() - timedelta(hours=1),
+            issued_at=datetime.now(timezone.utc) - timedelta(hours=2),
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
         )
         assert expired.is_expired

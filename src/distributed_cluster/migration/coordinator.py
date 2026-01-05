@@ -11,7 +11,7 @@ multi-job migrations and dependency management.
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
@@ -405,7 +405,7 @@ class MigrationCoordinator:
 
             plan.status = PlanStatus.APPROVED
             plan.metadata["approved_by"] = approved_by
-            plan.metadata["approved_at"] = datetime.utcnow().isoformat()
+            plan.metadata["approved_at"] = datetime.now(timezone.utc).isoformat()
 
         logger.info(f"Plan {plan_id} approved by {approved_by}")
         return True
@@ -439,7 +439,7 @@ class MigrationCoordinator:
                 raise ValueError(f"Plan {plan_id} is already executing")
 
             plan.status = PlanStatus.EXECUTING
-            plan.started_at = datetime.utcnow()
+            plan.started_at = datetime.now(timezone.utc)
             self._executing_plans.add(plan_id)
 
         logger.info(f"Executing migration plan {plan_id} ({len(plan.steps)} steps)")
@@ -448,7 +448,7 @@ class MigrationCoordinator:
             result = await self._execute_plan_steps(plan)
 
             plan.status = PlanStatus.COMPLETED if result.success else PlanStatus.FAILED
-            plan.completed_at = datetime.utcnow()
+            plan.completed_at = datetime.now(timezone.utc)
 
             if self._on_plan_complete:
                 await self._safe_callback(self._on_plan_complete, plan, result)
@@ -457,7 +457,7 @@ class MigrationCoordinator:
 
         except Exception as e:
             plan.status = PlanStatus.FAILED
-            plan.completed_at = datetime.utcnow()
+            plan.completed_at = datetime.now(timezone.utc)
             logger.error(f"Plan {plan_id} execution failed: {e}")
 
             return MigrationResult(
@@ -559,7 +559,7 @@ class MigrationCoordinator:
         # Calculate result
         duration = 0.0
         if plan.started_at:
-            end = plan.completed_at or datetime.utcnow()
+            end = plan.completed_at or datetime.now(timezone.utc)
             duration = (end - plan.started_at).total_seconds()
 
         return MigrationResult(
@@ -604,7 +604,7 @@ class MigrationCoordinator:
             plan.scheduled_at = scheduled_time
 
             # Create scheduled task
-            delay = (scheduled_time - datetime.utcnow()).total_seconds()
+            delay = (scheduled_time - datetime.now(timezone.utc)).total_seconds()
             if delay > 0:
                 task = asyncio.create_task(self._scheduled_execution(plan_id, delay))
                 self._scheduled_tasks[plan_id] = task

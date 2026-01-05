@@ -1,6 +1,6 @@
 """Tests for the scheduler."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from distributed_cluster.models.job import Job, JobPriority, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
@@ -33,7 +33,7 @@ def create_worker(
             gpu_count=gpu,
         ),
         tags=tags or [],
-        last_heartbeat=datetime.utcnow(),
+        last_heartbeat=datetime.now(timezone.utc),
     )
 
 

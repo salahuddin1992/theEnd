@@ -23,7 +23,7 @@ import time
 from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from functools import wraps
 from typing import (
@@ -379,7 +379,7 @@ class EnhancedCircuitBreaker(Generic[T]):
         self._state = new_state
         self._state_time = now
         self._stats.state_transitions += 1
-        self._stats.last_state_change = datetime.utcnow()
+        self._stats.last_state_change = datetime.now(timezone.utc)
 
         # State-specific actions
         if new_state == EnhancedCircuitState.OPEN:
@@ -412,12 +412,12 @@ class EnhancedCircuitBreaker(Generic[T]):
 
             if success:
                 self._stats.successful_calls += 1
-                self._stats.last_success = datetime.utcnow()
+                self._stats.last_success = datetime.now(timezone.utc)
                 self._stats.consecutive_successes += 1
                 self._stats.consecutive_failures = 0
             else:
                 self._stats.failed_calls += 1
-                self._stats.last_failure = datetime.utcnow()
+                self._stats.last_failure = datetime.now(timezone.utc)
                 self._stats.consecutive_failures += 1
                 self._stats.consecutive_successes = 0
 

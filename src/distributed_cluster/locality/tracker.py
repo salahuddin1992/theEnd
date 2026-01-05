@@ -23,7 +23,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
@@ -90,12 +90,12 @@ class DataBlock:
         """Check if the data block has expired."""
         if self.ttl_seconds is None:
             return False
-        age = (datetime.utcnow() - self.created_at).total_seconds()
+        age = (datetime.now(timezone.utc) - self.created_at).total_seconds()
         return age > self.ttl_seconds
 
     def touch(self) -> None:
         """Update access time."""
-        self.last_accessed = datetime.utcnow()
+        self.last_accessed = datetime.now(timezone.utc)
         self.access_count += 1
 
     def to_dict(self) -> dict:
@@ -154,11 +154,11 @@ class DataLocation:
 
     def mark_accessed(self) -> None:
         """Mark as recently accessed."""
-        self.last_accessed = datetime.utcnow()
+        self.last_accessed = datetime.now(timezone.utc)
 
     def mark_verified(self) -> None:
         """Mark as verified."""
-        self.last_verified = datetime.utcnow()
+        self.last_verified = datetime.now(timezone.utc)
         self.verification_failures = 0
 
     def mark_failed(self) -> None:
@@ -718,7 +718,7 @@ class DataLocationTracker:
         Clean up stale data locations.
         تنظيف مواقع البيانات القديمة.
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         stale_threshold = timedelta(seconds=self.stale_threshold_seconds)
         removed = 0
 
