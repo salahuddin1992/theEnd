@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class RedisCommand(str, Enum):
     """أوامر Redis"""
+
     # Strings
     GET = "GET"
     SET = "SET"
@@ -445,12 +446,7 @@ class RedisCompatClient:
 
     async def dbsize(self) -> int:
         """DBSIZE command"""
-        return (
-            self.store.size +
-            len(self._lists) +
-            len(self._sets) +
-            len(self._hashes)
-        )
+        return self.store.size + len(self._lists) + len(self._sets) + len(self._hashes)
 
     # =========================================================================
     # Utility

@@ -343,9 +343,7 @@ class SimulatedTransferHandler(TransferHandler):
                 progress_callback(chunk_size * (i + 1))
 
         # Generate checksum
-        checksum = hashlib.sha256(
-            f"{request.block_id}:{request.target_worker}".encode()
-        ).hexdigest()[:16]
+        checksum = hashlib.sha256(f"{request.block_id}:{request.target_worker}".encode()).hexdigest()[:16]
 
         return TransferResult(
             transfer_id=request.transfer_id,
@@ -380,9 +378,7 @@ class DataTransferManager:
         self.topology = topology or NetworkTopology()
 
         # Transfer queues
-        self._pending_queue: asyncio.PriorityQueue = asyncio.PriorityQueue(
-            maxsize=self.config.max_queue_size
-        )
+        self._pending_queue: asyncio.PriorityQueue = asyncio.PriorityQueue(maxsize=self.config.max_queue_size)
         self._active_transfers: Dict[str, TransferProgress] = {}
         self._completed_transfers: Dict[str, TransferResult] = {}
 
@@ -390,9 +386,7 @@ class DataTransferManager:
         self._worker_transfers: Dict[str, Set[str]] = {}  # worker_id -> transfer_ids
 
         # Semaphores for concurrency control
-        self._global_semaphore = asyncio.Semaphore(
-            self.config.max_concurrent_transfers
-        )
+        self._global_semaphore = asyncio.Semaphore(self.config.max_concurrent_transfers)
         self._worker_semaphores: Dict[str, asyncio.Semaphore] = {}
 
         # Background tasks
@@ -585,9 +579,7 @@ class DataTransferManager:
     ) -> List[TransferResult]:
         """Wait for multiple transfers to complete."""
         results = []
-        tasks = [
-            self.wait_for_transfer(tid, timeout=timeout) for tid in transfer_ids
-        ]
+        tasks = [self.wait_for_transfer(tid, timeout=timeout) for tid in transfer_ids]
         completed = await asyncio.gather(*tasks)
 
         for result in completed:
@@ -614,10 +606,7 @@ class DataTransferManager:
             total_bytes=request.size_bytes,
         )
 
-        logger.debug(
-            f"Queued transfer {request.transfer_id}: "
-            f"{request.block_id} -> {request.target_worker}"
-        )
+        logger.debug(f"Queued transfer {request.transfer_id}: " f"{request.block_id} -> {request.target_worker}")
 
     async def _process_queue(self) -> None:
         """Process the transfer queue."""
@@ -755,14 +744,11 @@ class DataTransferManager:
         if progress.attempt < self.config.max_retries:
             # Retry with backoff
             progress.state = TransferState.RETRYING
-            delay = self.config.retry_delay_seconds * (
-                self.config.retry_backoff_multiplier ** (progress.attempt - 1)
-            )
+            delay = self.config.retry_delay_seconds * (self.config.retry_backoff_multiplier ** (progress.attempt - 1))
             delay = min(delay, self.config.max_retry_delay_seconds)
 
             logger.warning(
-                f"Transfer {request.transfer_id} failed (attempt {progress.attempt}), "
-                f"retrying in {delay:.1f}s"
+                f"Transfer {request.transfer_id} failed (attempt {progress.attempt}), " f"retrying in {delay:.1f}s"
             )
 
             await asyncio.sleep(delay)
@@ -792,8 +778,7 @@ class DataTransferManager:
                     logger.error(f"Transfer failed callback error: {e}")
 
             logger.error(
-                f"Transfer {request.transfer_id} failed after "
-                f"{progress.attempt} attempts: {result.error_message}"
+                f"Transfer {request.transfer_id} failed after " f"{progress.attempt} attempts: {result.error_message}"
             )
 
     async def _find_best_source(
@@ -814,9 +799,7 @@ class DataTransferManager:
             bandwidth = self.topology.get_bandwidth(level)
 
             # Check if worker is busy with transfers
-            active_count = len(
-                self._worker_transfers.get(loc.worker_id, set())
-            )
+            active_count = len(self._worker_transfers.get(loc.worker_id, set()))
 
             # Score: higher bandwidth + lower active transfers = better
             score = bandwidth / (1 + active_count)
@@ -836,9 +819,7 @@ class DataTransferManager:
     def _get_worker_semaphore(self, worker_id: str) -> asyncio.Semaphore:
         """Get or create semaphore for a worker."""
         if worker_id not in self._worker_semaphores:
-            self._worker_semaphores[worker_id] = asyncio.Semaphore(
-                self.config.max_transfers_per_worker
-            )
+            self._worker_semaphores[worker_id] = asyncio.Semaphore(self.config.max_transfers_per_worker)
         return self._worker_semaphores[worker_id]
 
     # ==================== Cleanup ====================
@@ -886,9 +867,7 @@ class DataTransferManager:
     async def get_stats(self) -> Dict:
         """Get transfer statistics."""
         active_count = sum(
-            1
-            for p in self._active_transfers.values()
-            if p.state in (TransferState.QUEUED, TransferState.TRANSFERRING)
+            1 for p in self._active_transfers.values() if p.state in (TransferState.QUEUED, TransferState.TRANSFERRING)
         )
 
         total = max(self._stats["total_transfers"], 1)
@@ -899,13 +878,10 @@ class DataTransferManager:
             "queue_size": self._pending_queue.qsize(),
             "success_rate": self._stats["successful_transfers"] / total,
             "avg_transfer_size_mb": (
-                self._stats["total_bytes_transferred"]
-                / (1024 * 1024)
-                / max(self._stats["successful_transfers"], 1)
+                self._stats["total_bytes_transferred"] / (1024 * 1024) / max(self._stats["successful_transfers"], 1)
             ),
             "avg_transfer_time_seconds": (
-                self._stats["total_transfer_time_seconds"]
-                / max(self._stats["successful_transfers"], 1)
+                self._stats["total_transfer_time_seconds"] / max(self._stats["successful_transfers"], 1)
             ),
         }
 
@@ -914,6 +890,5 @@ class DataTransferManager:
         return [
             p
             for p in self._active_transfers.values()
-            if p.state
-            not in (TransferState.COMPLETED, TransferState.FAILED, TransferState.CANCELLED)
+            if p.state not in (TransferState.COMPLETED, TransferState.FAILED, TransferState.CANCELLED)
         ]

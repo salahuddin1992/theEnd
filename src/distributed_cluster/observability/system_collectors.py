@@ -24,12 +24,14 @@ from typing import Any, Dict, List, Optional
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
 
 try:
     import pynvml
+
     PYNVML_AVAILABLE = True
 except ImportError:
     PYNVML_AVAILABLE = False
@@ -626,18 +628,14 @@ class GPUCollector:
                     self.gpu_memory_bytes.set(memory.used, {"gpu": gpu_label, "type": "used"})
                     self.gpu_memory_bytes.set(memory.free, {"gpu": gpu_label, "type": "free"})
                     self.gpu_memory_percent.set(
-                        (memory.used / memory.total) * 100 if memory.total > 0 else 0,
-                        {"gpu": gpu_label}
+                        (memory.used / memory.total) * 100 if memory.total > 0 else 0, {"gpu": gpu_label}
                     )
                 except pynvml.NVMLError:
                     pass
 
                 # Temperature
                 try:
-                    temp = pynvml.nvmlDeviceGetTemperature(
-                        handle,
-                        pynvml.NVML_TEMPERATURE_GPU
-                    )
+                    temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
                     self.gpu_temperature_celsius.set(temp, {"gpu": gpu_label})
                 except pynvml.NVMLError:
                     pass
@@ -651,18 +649,9 @@ class GPUCollector:
 
                 # Clock speeds
                 try:
-                    graphics_clock = pynvml.nvmlDeviceGetClockInfo(
-                        handle,
-                        pynvml.NVML_CLOCK_GRAPHICS
-                    )
-                    memory_clock = pynvml.nvmlDeviceGetClockInfo(
-                        handle,
-                        pynvml.NVML_CLOCK_MEM
-                    )
-                    sm_clock = pynvml.nvmlDeviceGetClockInfo(
-                        handle,
-                        pynvml.NVML_CLOCK_SM
-                    )
+                    graphics_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_GRAPHICS)
+                    memory_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_MEM)
+                    sm_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM)
                     self.gpu_clock_hz.set(graphics_clock * 1e6, {"gpu": gpu_label, "type": "graphics"})
                     self.gpu_clock_hz.set(memory_clock * 1e6, {"gpu": gpu_label, "type": "memory"})
                     self.gpu_clock_hz.set(sm_clock * 1e6, {"gpu": gpu_label, "type": "sm"})
@@ -892,12 +881,15 @@ class UnifiedSystemCollector:
     def _set_system_info(self) -> None:
         """Set system information gauge."""
         info = SystemInfo.collect()
-        self.system_info_gauge.set(1, {
-            "hostname": info.hostname,
-            "platform": info.platform,
-            "architecture": info.architecture,
-            "python_version": info.python_version,
-        })
+        self.system_info_gauge.set(
+            1,
+            {
+                "hostname": info.hostname,
+                "platform": info.platform,
+                "architecture": info.architecture,
+                "python_version": info.python_version,
+            },
+        )
 
     def set_build_info(self, version: str, commit: str = "unknown") -> None:
         """Set build information."""
@@ -998,18 +990,12 @@ class AsyncCollectorRunner:
 
     def get_stats(self) -> Dict[str, Any]:
         """Get collection statistics."""
-        avg_duration = (
-            self._collection_duration_sum / self._collection_count
-            if self._collection_count > 0 else 0
-        )
+        avg_duration = self._collection_duration_sum / self._collection_count if self._collection_count > 0 else 0
 
         return {
             "running": self._running,
             "collection_count": self._collection_count,
-            "last_collection": (
-                self._last_collection.isoformat()
-                if self._last_collection else None
-            ),
+            "last_collection": (self._last_collection.isoformat() if self._last_collection else None),
             "avg_collection_duration_seconds": avg_duration,
             "interval_seconds": self.interval,
         }

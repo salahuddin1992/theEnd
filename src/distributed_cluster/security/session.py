@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 class SessionStatus(str, Enum):
     """Session status."""
+
     ACTIVE = "active"
     EXPIRED = "expired"
     REVOKED = "revoked"
@@ -43,6 +44,7 @@ class SessionStatus(str, Enum):
 
 class SessionEvent(str, Enum):
     """Session events for audit."""
+
     CREATED = "session.created"
     RENEWED = "session.renewed"
     EXPIRED = "session.expired"
@@ -56,6 +58,7 @@ class SessionEvent(str, Enum):
 @dataclass
 class DeviceFingerprint:
     """Device fingerprint for session binding."""
+
     fingerprint_id: str
     user_agent: str
     accept_language: Optional[str] = None
@@ -140,6 +143,7 @@ class DeviceFingerprint:
 @dataclass
 class GeoLocation:
     """Geographic location data."""
+
     country_code: Optional[str] = None
     country_name: Optional[str] = None
     region: Optional[str] = None
@@ -168,6 +172,7 @@ class GeoLocation:
 @dataclass
 class SessionActivity:
     """Session activity record."""
+
     timestamp: datetime
     action: str
     resource: Optional[str] = None
@@ -179,6 +184,7 @@ class SessionActivity:
 @dataclass
 class Session:
     """User session."""
+
     session_id: str
     user_id: str
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -230,11 +236,13 @@ class Session:
                 self.ip_history.append(self.ip_address)
             self.ip_address = ip_address
 
-        self.activity_log.append(SessionActivity(
-            timestamp=datetime.now(timezone.utc),
-            action=action,
-            ip_address=ip_address,
-        ))
+        self.activity_log.append(
+            SessionActivity(
+                timestamp=datetime.now(timezone.utc),
+                action=action,
+                ip_address=ip_address,
+            )
+        )
 
         # Limit activity log size
         if len(self.activity_log) > 1000:
@@ -260,6 +268,7 @@ class Session:
 @dataclass
 class SessionConfig:
     """Session configuration."""
+
     # Timeouts
     session_lifetime_hours: int = 24
     idle_timeout_minutes: int = 30
@@ -354,11 +363,7 @@ class MemorySessionStore(SessionStore):
     def get_user_sessions(self, user_id: str) -> List[Session]:
         with self._lock:
             session_ids = self._user_sessions.get(user_id, set())
-            return [
-                self._sessions[sid]
-                for sid in session_ids
-                if sid in self._sessions
-            ]
+            return [self._sessions[sid] for sid in session_ids if sid in self._sessions]
 
     def delete_user_sessions(self, user_id: str) -> int:
         with self._lock:
@@ -371,10 +376,7 @@ class MemorySessionStore(SessionStore):
 
     def cleanup_expired(self) -> int:
         with self._lock:
-            expired = [
-                sid for sid, session in self._sessions.items()
-                if session.is_expired
-            ]
+            expired = [sid for sid, session in self._sessions.items() if session.is_expired]
             for sid in expired:
                 self.delete(sid)
             return len(expired)
@@ -607,9 +609,7 @@ class SessionManager:
         session.mfa_verified_at = datetime.now(timezone.utc)
 
         # Optionally extend session for MFA-verified users
-        session.expires_at = datetime.now(timezone.utc) + timedelta(
-            hours=self.config.mfa_session_lifetime_hours
-        )
+        session.expires_at = datetime.now(timezone.utc) + timedelta(hours=self.config.mfa_session_lifetime_hours)
 
         session.update_activity("mfa_verify")
         self.store.update(session)
@@ -714,11 +714,7 @@ class SessionTokenManager:
         payload_b64 = base64.urlsafe_b64encode(payload_json.encode()).decode().rstrip("=")
 
         # Sign
-        signature = hmac.new(
-            self.secret_key,
-            payload_b64.encode(),
-            hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(self.secret_key, payload_b64.encode(), hashlib.sha256).hexdigest()
 
         return f"{payload_b64}.{signature}"
 
@@ -740,11 +736,7 @@ class SessionTokenManager:
             payload_b64, signature = parts
 
             # Verify signature
-            expected_sig = hmac.new(
-                self.secret_key,
-                payload_b64.encode(),
-                hashlib.sha256
-            ).hexdigest()
+            expected_sig = hmac.new(self.secret_key, payload_b64.encode(), hashlib.sha256).hexdigest()
 
             if not hmac.compare_digest(signature, expected_sig):
                 return None, "Invalid signature"
@@ -777,11 +769,14 @@ class SessionTokenManager:
         if error:
             return None, error
 
-        return self.create_token(
-            session_id=payload["sid"],
-            user_id=payload["uid"],
-            extra_claims={k: v for k, v in payload.items() if k not in ["sid", "uid", "iat", "exp"]},
-        ), None
+        return (
+            self.create_token(
+                session_id=payload["sid"],
+                user_id=payload["uid"],
+                extra_claims={k: v for k, v in payload.items() if k not in ["sid", "uid", "iat", "exp"]},
+            ),
+            None,
+        )
 
 
 def create_session_manager(

@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 class TrainingStrategy(str, Enum):
     """Distributed training strategy."""
+
     DATA_PARALLEL = "data_parallel"
     MODEL_PARALLEL = "model_parallel"
     PIPELINE_PARALLEL = "pipeline_parallel"
@@ -44,6 +45,7 @@ class TrainingStrategy(str, Enum):
 
 class AggregationMethod(str, Enum):
     """Gradient aggregation method."""
+
     SYNC_SGD = "sync_sgd"
     ASYNC_SGD = "async_sgd"
     FEDERATED_AVG = "federated_avg"
@@ -52,6 +54,7 @@ class AggregationMethod(str, Enum):
 
 class TrainingStatus(str, Enum):
     """Training job status."""
+
     PENDING = "pending"
     INITIALIZING = "initializing"
     TRAINING = "training"
@@ -64,6 +67,7 @@ class TrainingStatus(str, Enum):
 @dataclass
 class TrainingConfig:
     """Configuration for distributed training."""
+
     job_id: str
     model_name: str
     strategy: TrainingStrategy
@@ -105,6 +109,7 @@ class TrainingConfig:
 @dataclass
 class WorkerState:
     """State of a training worker."""
+
     worker_id: str
     rank: int
     status: TrainingStatus
@@ -138,6 +143,7 @@ class WorkerState:
 @dataclass
 class TrainingMetrics:
     """Training metrics and statistics."""
+
     job_id: str
     total_steps: int = 0
     total_samples: int = 0
@@ -178,6 +184,7 @@ class TrainingMetrics:
 @dataclass
 class Checkpoint:
     """Training checkpoint."""
+
     checkpoint_id: str
     job_id: str
     epoch: int
@@ -203,6 +210,7 @@ class Checkpoint:
 @dataclass
 class GradientUpdate:
     """Gradient update from a worker."""
+
     worker_id: str
     step: int
     gradients: Dict[str, np.ndarray]
@@ -392,9 +400,7 @@ class ParameterServer:
             # Check if all workers have submitted for this step
             if len(self._gradient_buffer[step]) >= self.num_workers:
                 # Aggregate gradients
-                aggregated = await self._aggregator.aggregate(
-                    self._gradient_buffer[step]
-                )
+                aggregated = await self._aggregator.aggregate(self._gradient_buffer[step])
 
                 # Clear buffer for this step
                 del self._gradient_buffer[step]
@@ -424,9 +430,7 @@ class ParameterServer:
             **self._stats,
             "current_step": self._current_step,
             "num_parameters": len(self._parameters),
-            "pending_gradients": sum(
-                len(updates) for updates in self._gradient_buffer.values()
-            ),
+            "pending_gradients": sum(len(updates) for updates in self._gradient_buffer.values()),
         }
 
 
@@ -494,9 +498,7 @@ class DistributedTrainer:
         # Calculate total steps
         # Assuming dataset_size is provided in config
         dataset_size = self.config.extra_config.get("dataset_size", 10000)
-        steps_per_epoch = dataset_size // (
-            self.config.batch_size * self.config.num_workers
-        )
+        steps_per_epoch = dataset_size // (self.config.batch_size * self.config.num_workers)
         self._metrics.total_steps = steps_per_epoch * self.config.epochs
 
         self._status = TrainingStatus.TRAINING
@@ -652,10 +654,7 @@ class DistributedTrainer:
         )
 
         # Save to disk
-        checkpoint_path = os.path.join(
-            self.checkpoint_dir,
-            f"checkpoint_{self.config.job_id}_{step}.pkl"
-        )
+        checkpoint_path = os.path.join(self.checkpoint_dir, f"checkpoint_{self.config.job_id}_{step}.pkl")
         with open(checkpoint_path, "wb") as f:
             pickle.dump(checkpoint, f)
 
@@ -689,9 +688,7 @@ class DistributedTrainer:
             "status": self._status.value,
             "config": self.config.to_dict(),
             "metrics": self._metrics.to_dict(),
-            "workers": {
-                wid: w.to_dict() for wid, w in self._workers.items()
-            },
+            "workers": {wid: w.to_dict() for wid, w in self._workers.items()},
             "checkpoints": len(self._checkpoints),
         }
 
@@ -761,10 +758,7 @@ class TrainingJobManager:
             if len(self._jobs) >= self.max_concurrent_jobs:
                 raise RuntimeError("Maximum concurrent jobs reached")
 
-            checkpoint_dir = os.path.join(
-                self.checkpoint_base_dir,
-                config.job_id
-            )
+            checkpoint_dir = os.path.join(self.checkpoint_base_dir, config.job_id)
 
             trainer = DistributedTrainer(
                 config=config,
@@ -803,7 +797,8 @@ class TrainingJobManager:
         """Remove completed jobs from memory."""
         async with self._lock:
             completed = [
-                jid for jid, t in self._jobs.items()
+                jid
+                for jid, t in self._jobs.items()
                 if t._status in [TrainingStatus.COMPLETED, TrainingStatus.CANCELLED]
             ]
             for jid in completed:
@@ -855,7 +850,7 @@ class DataSharder:
     ):
         """Create batch iterator from indices."""
         for i in range(0, len(indices), batch_size):
-            batch = indices[i:i + batch_size]
+            batch = indices[i : i + batch_size]
             if len(batch) == batch_size or not drop_last:
                 yield batch
 
@@ -954,10 +949,7 @@ async def simulate_training_step(
     """Simulate a training step (for testing)."""
     # Generate fake gradients
     params = await trainer.parameter_server.get_parameters()
-    gradients = {
-        k: np.random.randn(*v.shape) * 0.01
-        for k, v in params.items()
-    }
+    gradients = {k: np.random.randn(*v.shape) * 0.01 for k, v in params.items()}
 
     # Simulate loss
     loss = 1.0 / (1 + step * 0.01) + np.random.random() * 0.1

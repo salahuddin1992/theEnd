@@ -38,12 +38,12 @@ logger = logging.getLogger(__name__)
 class ScheduleType(str, Enum):
     """نوع الجدولة."""
 
-    ONCE = "once"                    # مرة واحدة
-    INTERVAL = "interval"            # كل فترة
-    DAILY = "daily"                  # يومياً
-    WEEKLY = "weekly"                # أسبوعياً
-    MONTHLY = "monthly"              # شهرياً
-    CRON = "cron"                    # تعبير cron
+    ONCE = "once"  # مرة واحدة
+    INTERVAL = "interval"  # كل فترة
+    DAILY = "daily"  # يومياً
+    WEEKLY = "weekly"  # أسبوعياً
+    MONTHLY = "monthly"  # شهرياً
+    CRON = "cron"  # تعبير cron
 
 
 class JobStatus(str, Enum):
@@ -67,15 +67,15 @@ class Schedule:
     """
 
     schedule_type: ScheduleType
-    run_at: Optional[datetime] = None           # For ONCE
-    interval_seconds: Optional[int] = None       # For INTERVAL
-    time_of_day: Optional[str] = None           # HH:MM for DAILY/WEEKLY/MONTHLY
-    day_of_week: Optional[int] = None           # 0=Mon, 6=Sun for WEEKLY
-    day_of_month: Optional[int] = None          # 1-31 for MONTHLY
-    cron_expression: Optional[str] = None       # For CRON
+    run_at: Optional[datetime] = None  # For ONCE
+    interval_seconds: Optional[int] = None  # For INTERVAL
+    time_of_day: Optional[str] = None  # HH:MM for DAILY/WEEKLY/MONTHLY
+    day_of_week: Optional[int] = None  # 0=Mon, 6=Sun for WEEKLY
+    day_of_month: Optional[int] = None  # 1-31 for MONTHLY
+    cron_expression: Optional[str] = None  # For CRON
     timezone: str = "UTC"
-    max_runs: Optional[int] = None              # Max number of executions
-    end_time: Optional[datetime] = None         # Stop scheduling after this
+    max_runs: Optional[int] = None  # Max number of executions
+    end_time: Optional[datetime] = None  # Stop scheduling after this
 
     def next_run_time(self, after: Optional[datetime] = None) -> Optional[datetime]:
         """حساب وقت التشغيل التالي."""
@@ -169,6 +169,7 @@ class Schedule:
         weekday: str,
     ) -> bool:
         """Check if datetime matches cron pattern."""
+
         def match_field(value: int, pattern: str) -> bool:
             if pattern == "*":
                 return True
@@ -185,11 +186,11 @@ class Schedule:
             return False
 
         return (
-            match_field(dt.minute, minute) and
-            match_field(dt.hour, hour) and
-            match_field(dt.day, day) and
-            match_field(dt.month, month) and
-            match_field(dt.weekday(), weekday)
+            match_field(dt.minute, minute)
+            and match_field(dt.hour, hour)
+            and match_field(dt.day, day)
+            and match_field(dt.month, month)
+            and match_field(dt.weekday(), weekday)
         )
 
 
@@ -212,9 +213,7 @@ class ScheduledJob:
     error: Optional[str] = None
 
     # Callback for when notification is sent
-    callback: Optional[Callable[[Notification, bool], Any]] = field(
-        default=None, compare=False, repr=False
-    )
+    callback: Optional[Callable[[Notification, bool], Any]] = field(default=None, compare=False, repr=False)
 
     def __post_init__(self):
         if not self.next_run:
@@ -294,7 +293,8 @@ class NotificationScheduler:
         self.persistence_path.parent.mkdir(parents=True, exist_ok=True)
         self._db = sqlite3.connect(str(self.persistence_path))
 
-        self._db.execute("""
+        self._db.execute(
+            """
             CREATE TABLE IF NOT EXISTS scheduled_jobs (
                 id TEXT PRIMARY KEY,
                 notification_data TEXT,
@@ -306,7 +306,8 @@ class NotificationScheduler:
                 created_at TEXT,
                 error TEXT
             )
-        """)
+        """
+        )
         self._db.commit()
 
         # Load existing jobs
@@ -317,9 +318,7 @@ class NotificationScheduler:
         if not self._db:
             return
 
-        cursor = self._db.execute(
-            "SELECT * FROM scheduled_jobs WHERE status NOT IN ('completed', 'cancelled')"
-        )
+        cursor = self._db.execute("SELECT * FROM scheduled_jobs WHERE status NOT IN ('completed', 'cancelled')")
 
         for row in cursor.fetchall():
             try:
@@ -657,10 +656,7 @@ class NotificationScheduler:
 
     async def get_pending_count(self) -> int:
         """Get count of pending jobs."""
-        return sum(
-            1 for j in self._jobs.values()
-            if j.status in (JobStatus.PENDING, JobStatus.SCHEDULED)
-        )
+        return sum(1 for j in self._jobs.values() if j.status in (JobStatus.PENDING, JobStatus.SCHEDULED))
 
     @property
     def stats(self) -> Dict[str, Any]:

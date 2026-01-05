@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class NodeStatus(Enum):
     """Status of a cache node."""
+
     ONLINE = "online"
     OFFLINE = "offline"
     DEGRADED = "degraded"
@@ -29,6 +30,7 @@ class NodeStatus(Enum):
 @dataclass
 class CacheNode:
     """Represents a node in the distributed cache cluster."""
+
     node_id: str
     host: str
     port: int
@@ -124,10 +126,7 @@ class ConsistentHashing:
             self._nodes[node_id]
 
             # Remove virtual nodes
-            self._ring = [
-                (h, nid) for h, nid in self._ring
-                if nid != node_id
-            ]
+            self._ring = [(h, nid) for h, nid in self._ring if nid != node_id]
 
             del self._nodes[node_id]
 
@@ -190,6 +189,7 @@ class ConsistentHashing:
 
 class ReplicationStrategy(Enum):
     """Replication strategies for distributed cache."""
+
     NONE = "none"  # No replication
     SYNC = "sync"  # Synchronous replication
     ASYNC = "async"  # Asynchronous replication
@@ -199,6 +199,7 @@ class ReplicationStrategy(Enum):
 @dataclass
 class ClusterConfig:
     """Configuration for a cache cluster."""
+
     replication_factor: int = 2
     replication_strategy: ReplicationStrategy = ReplicationStrategy.ASYNC
     read_quorum: int = 1
@@ -228,6 +229,7 @@ class CacheCluster:
 
     def _start_health_check(self):
         """Start background health check thread."""
+
         def health_loop():
             while self._running:
                 time.sleep(self.config.health_check_interval_ms / 1000)
@@ -242,13 +244,7 @@ class CacheCluster:
             if not node.health_check():
                 logger.warning(f"Node {node.node_id} is unhealthy")
 
-    def add_node(
-        self,
-        node_id: str,
-        host: str,
-        port: int,
-        weight: int = 1
-    ) -> bool:
+    def add_node(self, node_id: str, host: str, port: int, weight: int = 1) -> bool:
         """Add a node to the cluster."""
         node = CacheNode(
             node_id=node_id,
@@ -300,12 +296,7 @@ class CacheCluster:
         self._stats.record_miss(elapsed)
         return default
 
-    def set(
-        self,
-        key: str,
-        value: bytes,
-        ttl: Optional[int] = None
-    ) -> bool:
+    def set(self, key: str, value: bytes, ttl: Optional[int] = None) -> bool:
         """Set a value in the cluster."""
         time.time()
         nodes = self._hasher.get_nodes(key, self.config.replication_factor)
@@ -330,11 +321,7 @@ class CacheCluster:
             # Write to primary, async replicate
             success = self._write_to_node(nodes[0], key, value, ttl)
             if success and len(nodes) > 1:
-                threading.Thread(
-                    target=self._async_replicate,
-                    args=(nodes[1:], key, value, ttl),
-                    daemon=True
-                ).start()
+                threading.Thread(target=self._async_replicate, args=(nodes[1:], key, value, ttl), daemon=True).start()
             return success
 
         elif self.config.replication_strategy == ReplicationStrategy.QUORUM:
@@ -345,25 +332,17 @@ class CacheCluster:
                     success_count += 1
                     if success_count >= self.config.write_quorum:
                         # Async replicate to remaining
-                        remaining = nodes[nodes.index(node) + 1:]
+                        remaining = nodes[nodes.index(node) + 1 :]
                         if remaining:
                             threading.Thread(
-                                target=self._async_replicate,
-                                args=(remaining, key, value, ttl),
-                                daemon=True
+                                target=self._async_replicate, args=(remaining, key, value, ttl), daemon=True
                             ).start()
                         return True
             return False
 
         return False
 
-    def _write_to_node(
-        self,
-        node: CacheNode,
-        key: str,
-        value: bytes,
-        ttl: Optional[int]
-    ) -> bool:
+    def _write_to_node(self, node: CacheNode, key: str, value: bytes, ttl: Optional[int]) -> bool:
         """Write to a single node with retries."""
         for attempt in range(self.config.retry_attempts):
             try:
@@ -379,13 +358,7 @@ class CacheCluster:
         node.status = NodeStatus.DEGRADED
         return False
 
-    def _async_replicate(
-        self,
-        nodes: List[CacheNode],
-        key: str,
-        value: bytes,
-        ttl: Optional[int]
-    ):
+    def _async_replicate(self, nodes: List[CacheNode], key: str, value: bytes, ttl: Optional[int]):
         """Asynchronously replicate to nodes."""
         for node in nodes:
             self._write_to_node(node, key, value, ttl)
@@ -462,11 +435,7 @@ class DistributedCache(Cache):
     Distributed cache implementation using a cluster backend.
     """
 
-    def __init__(
-        self,
-        cluster: CacheCluster,
-        config: Optional[CacheConfig] = None
-    ):
+    def __init__(self, cluster: CacheCluster, config: Optional[CacheConfig] = None):
         super().__init__(config)
         self.cluster = cluster
 
@@ -482,13 +451,7 @@ class DistributedCache(Cache):
 
         return default
 
-    def set(
-        self,
-        key: str,
-        value: Any,
-        ttl: Optional[int] = None,
-        **kwargs
-    ) -> bool:
+    def set(self, key: str, value: Any, ttl: Optional[int] = None, **kwargs) -> bool:
         full_key = self._make_key(key)
 
         try:

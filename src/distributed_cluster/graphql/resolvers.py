@@ -478,6 +478,7 @@ class MutationResolver:
         if not job_manager:
             # Return mock response
             import uuid
+
             return {
                 "id": str(uuid.uuid4()),
                 "name": input_data.get("name", "New Job"),

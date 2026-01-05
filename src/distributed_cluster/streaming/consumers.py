@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConsumerConfig:
     """Configuration for event consumers."""
+
     group_id: str = "default-group"
     auto_commit: bool = True
     auto_commit_interval_ms: int = 5000
@@ -104,6 +105,7 @@ class ConsumerMetrics:
 @dataclass
 class Offset:
     """Represents a consumer offset."""
+
     topic: str
     partition: int
     offset: int
@@ -128,9 +130,7 @@ class FunctionHandler(EventHandler):
     """Event handler that wraps a function."""
 
     def __init__(
-        self,
-        handler_fn: Callable[[Event], bool],
-        error_fn: Optional[Callable[[Event, Exception], None]] = None
+        self, handler_fn: Callable[[Event], bool], error_fn: Optional[Callable[[Event, Exception], None]] = None
     ):
         self._handler_fn = handler_fn
         self._error_fn = error_fn
@@ -237,7 +237,7 @@ class SyncEventConsumer(EventConsumer):
         self,
         broker_poll_fn: Callable[[List[str], int], List[tuple]],
         broker_commit_fn: Callable[[List[Offset]], None],
-        config: Optional[ConsumerConfig] = None
+        config: Optional[ConsumerConfig] = None,
     ):
         super().__init__(config)
         self._broker_poll = broker_poll_fn
@@ -307,7 +307,7 @@ class AsyncEventConsumer(EventConsumer):
         self,
         broker_poll_fn: Callable[[List[str], int], List[tuple]],
         broker_commit_fn: Callable[[List[Offset]], None],
-        config: Optional[ConsumerConfig] = None
+        config: Optional[ConsumerConfig] = None,
     ):
         super().__init__(config)
         self._broker_poll = broker_poll_fn
@@ -352,12 +352,7 @@ class AsyncEventConsumer(EventConsumer):
 
         try:
             # Run in executor to avoid blocking
-            raw_events = await self._loop.run_in_executor(
-                None,
-                self._broker_poll,
-                topics,
-                timeout
-            )
+            raw_events = await self._loop.run_in_executor(None, self._broker_poll, topics, timeout)
             events = []
 
             for topic, partition, offset, event_data in raw_events:
@@ -383,10 +378,7 @@ class AsyncEventConsumer(EventConsumer):
     def poll(self, timeout_ms: Optional[int] = None) -> List[Event]:
         """Synchronous poll wrapper."""
         if self._loop and self._loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(
-                self.poll_async(timeout_ms),
-                self._loop
-            )
+            future = asyncio.run_coroutine_threadsafe(self.poll_async(timeout_ms), self._loop)
             return future.result()
         return []
 
@@ -399,20 +391,13 @@ class AsyncEventConsumer(EventConsumer):
                     offsets.append(Offset(topic, partition, offset))
 
         if offsets:
-            await self._loop.run_in_executor(
-                None,
-                self._broker_commit,
-                offsets
-            )
+            await self._loop.run_in_executor(None, self._broker_commit, offsets)
             self.metrics.record_commit()
 
     def commit(self, offsets: Optional[List[Offset]] = None) -> None:
         """Synchronous commit wrapper."""
         if self._loop and self._loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(
-                self.commit_async(offsets),
-                self._loop
-            )
+            future = asyncio.run_coroutine_threadsafe(self.commit_async(offsets), self._loop)
             future.result()
 
     def seek(self, offset: Offset) -> None:
@@ -441,12 +426,7 @@ class AsyncEventConsumer(EventConsumer):
 class ConsumerGroup:
     """Manages a group of consumers for parallel processing."""
 
-    def __init__(
-        self,
-        group_id: str,
-        consumer_factory: Callable[[], EventConsumer],
-        num_consumers: int = 4
-    ):
+    def __init__(self, group_id: str, consumer_factory: Callable[[], EventConsumer], num_consumers: int = 4):
         self.group_id = group_id
         self._consumer_factory = consumer_factory
         self._num_consumers = num_consumers
@@ -520,11 +500,7 @@ class ConsumerGroup:
 class FilteringConsumer(EventConsumer):
     """Consumer that filters events before processing."""
 
-    def __init__(
-        self,
-        base_consumer: EventConsumer,
-        filter_fn: Callable[[Event], bool]
-    ):
+    def __init__(self, base_consumer: EventConsumer, filter_fn: Callable[[Event], bool]):
         super().__init__(base_consumer.config)
         self._base_consumer = base_consumer
         self._filter_fn = filter_fn
@@ -557,7 +533,7 @@ class RetryingConsumer(EventConsumer):
         base_consumer: EventConsumer,
         max_retries: int = 3,
         retry_delay_ms: int = 1000,
-        dead_letter_handler: Optional[Callable[[Event, Exception], None]] = None
+        dead_letter_handler: Optional[Callable[[Event, Exception], None]] = None,
     ):
         super().__init__(base_consumer.config)
         self._base_consumer = base_consumer
@@ -568,12 +544,7 @@ class RetryingConsumer(EventConsumer):
 
     def subscribe(self, topics: Union[str, List[str]], handler: EventHandler) -> None:
         # Wrap handler with retry logic
-        retry_handler = RetryHandler(
-            handler,
-            self._max_retries,
-            self._retry_delay_ms,
-            self._dead_letter_handler
-        )
+        retry_handler = RetryHandler(handler, self._max_retries, self._retry_delay_ms, self._dead_letter_handler)
         self._base_consumer.subscribe(topics, retry_handler)
 
     def unsubscribe(self, topics: Optional[Union[str, List[str]]] = None) -> None:
@@ -600,7 +571,7 @@ class RetryHandler(EventHandler):
         base_handler: EventHandler,
         max_retries: int,
         retry_delay_ms: int,
-        dead_letter_handler: Optional[Callable[[Event, Exception], None]]
+        dead_letter_handler: Optional[Callable[[Event, Exception], None]],
     ):
         self._base_handler = base_handler
         self._max_retries = max_retries

@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class HealthStatus(str, Enum):
     """حالة الصحة / Health status"""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -39,6 +40,7 @@ class ComponentHealth:
     صحة المكون
     Component health
     """
+
     name: str
     status: HealthStatus = HealthStatus.UNKNOWN
     message: str = ""
@@ -67,6 +69,7 @@ class HealthCheckConfig:
     إعدادات فحص الصحة
     Health check configuration
     """
+
     interval_seconds: float = 30.0
     timeout_seconds: float = 10.0
     failure_threshold: int = 3
@@ -175,9 +178,7 @@ class HealthChecker:
         if config.initial_delay_seconds > 0:
             await asyncio.sleep(config.initial_delay_seconds)
 
-        task = asyncio.create_task(
-            self._check_loop(name, check_fn, config)
-        )
+        task = asyncio.create_task(self._check_loop(name, check_fn, config))
         self._check_tasks[name] = task
 
     async def _check_loop(
@@ -259,8 +260,7 @@ class HealthChecker:
             component.status = HealthStatus.DEGRADED
 
         logger.warning(
-            f"Health check failed for {component.name}: {message} "
-            f"(failures: {component.consecutive_failures})"
+            f"Health check failed for {component.name}: {message} " f"(failures: {component.consecutive_failures})"
         )
 
     # =========================================================================
@@ -280,24 +280,15 @@ class HealthChecker:
         if not self._components:
             return True
 
-        return all(
-            c.status == HealthStatus.HEALTHY
-            for c in self._components.values()
-        )
+        return all(c.status == HealthStatus.HEALTHY for c in self._components.values())
 
     def get_status(self) -> dict[str, Any]:
         """الحصول على الحالة الكاملة"""
         components = self._components.values()
 
-        healthy_count = sum(
-            1 for c in components if c.status == HealthStatus.HEALTHY
-        )
-        degraded_count = sum(
-            1 for c in components if c.status == HealthStatus.DEGRADED
-        )
-        unhealthy_count = sum(
-            1 for c in components if c.status == HealthStatus.UNHEALTHY
-        )
+        healthy_count = sum(1 for c in components if c.status == HealthStatus.HEALTHY)
+        degraded_count = sum(1 for c in components if c.status == HealthStatus.DEGRADED)
+        unhealthy_count = sum(1 for c in components if c.status == HealthStatus.UNHEALTHY)
 
         # Overall status
         if unhealthy_count > 0:
@@ -315,10 +306,7 @@ class HealthChecker:
             "degraded": degraded_count,
             "unhealthy": unhealthy_count,
             "total": len(components),
-            "components": {
-                name: comp.to_dict()
-                for name, comp in self._components.items()
-            },
+            "components": {name: comp.to_dict() for name, comp in self._components.items()},
         }
 
     async def check_now(self) -> dict[str, HealthStatus]:
@@ -326,15 +314,13 @@ class HealthChecker:
         for name, (check_fn, config) in self._checks.items():
             await self._run_check(name, check_fn, config)
 
-        return {
-            name: comp.status
-            for name, comp in self._components.items()
-        }
+        return {name: comp.status for name, comp in self._components.items()}
 
 
 # =============================================================================
 # Predefined Checks
 # =============================================================================
+
 
 def create_http_check(
     url: str,
@@ -342,6 +328,7 @@ def create_http_check(
     timeout: float = 10.0,
 ) -> Callable[[], bool]:
     """إنشاء فحص HTTP"""
+
     async def check():
         import httpx
 
@@ -358,6 +345,7 @@ def create_tcp_check(
     timeout: float = 5.0,
 ) -> Callable[[], bool]:
     """إنشاء فحص TCP"""
+
     async def check():
         try:
             _, writer = await asyncio.wait_for(
@@ -378,6 +366,7 @@ def create_disk_check(
     threshold_percent: float = 90.0,
 ) -> Callable[[], bool]:
     """إنشاء فحص القرص"""
+
     def check():
         import shutil
 
@@ -392,6 +381,7 @@ def create_memory_check(
     threshold_percent: float = 90.0,
 ) -> Callable[[], bool]:
     """إنشاء فحص الذاكرة"""
+
     def check():
         import psutil
 

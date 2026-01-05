@@ -36,10 +36,10 @@ class TeamsWebhook(WebhookProvider):
 
     # Theme colors
     COLORS = {
-        "info": "0078D4",      # Microsoft Blue
-        "success": "107C10",   # Microsoft Green
-        "warning": "FFA500",   # Orange
-        "error": "D13438",     # Microsoft Red
+        "info": "0078D4",  # Microsoft Blue
+        "success": "107C10",  # Microsoft Green
+        "warning": "FFA500",  # Orange
+        "error": "D13438",  # Microsoft Red
         "critical": "881798",  # Purple
     }
 
@@ -108,9 +108,7 @@ class TeamsWebhook(WebhookProvider):
             EventType.SYSTEM_ERROR,
         ):
             return self.COLORS["error"]
-        elif event.event_type in (
-            EventType.ALERT_FIRED,
-        ):
+        elif event.event_type in (EventType.ALERT_FIRED,):
             return self.COLORS["critical"]
         elif event.event_type in (
             EventType.SYSTEM_WARNING,
@@ -167,49 +165,59 @@ class TeamsWebhook(WebhookProvider):
         body = []
 
         # Header
-        body.append({
-            "type": "TextBlock",
-            "size": "Large",
-            "weight": "Bolder",
-            "text": title,
-            "wrap": True,
-        })
+        body.append(
+            {
+                "type": "TextBlock",
+                "size": "Large",
+                "weight": "Bolder",
+                "text": title,
+                "wrap": True,
+            }
+        )
 
         # Description
         description = self._get_description(event)
         if description:
-            body.append({
-                "type": "TextBlock",
-                "text": description,
-                "wrap": True,
-            })
+            body.append(
+                {
+                    "type": "TextBlock",
+                    "text": description,
+                    "wrap": True,
+                }
+            )
 
         # Separator
-        body.append({
-            "type": "TextBlock",
-            "text": " ",
-            "separator": True,
-        })
+        body.append(
+            {
+                "type": "TextBlock",
+                "text": " ",
+                "separator": True,
+            }
+        )
 
         # Facts
         facts = self._build_facts(event)
         if facts:
-            body.append({
-                "type": "FactSet",
-                "facts": facts,
-            })
+            body.append(
+                {
+                    "type": "FactSet",
+                    "facts": facts,
+                }
+            )
 
         # Timestamp
-        body.append({
-            "type": "TextBlock",
-            "size": "Small",
-            "isSubtle": True,
-            "text": (
-                f"Source: {event.source} | Event ID: {event.event_id[:8]} | "
-                f"{event.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}"
-            ),
-            "wrap": True,
-        })
+        body.append(
+            {
+                "type": "TextBlock",
+                "size": "Small",
+                "isSubtle": True,
+                "text": (
+                    f"Source: {event.source} | Event ID: {event.event_id[:8]} | "
+                    f"{event.timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+                ),
+                "wrap": True,
+            }
+        )
 
         return body
 
@@ -252,10 +260,12 @@ class TeamsWebhook(WebhookProvider):
                 value = data[key]
                 if isinstance(value, float):
                     value = f"{value:.2f}"
-                facts.append({
-                    "title": label,
-                    "value": str(value),
-                })
+                facts.append(
+                    {
+                        "title": label,
+                        "value": str(value),
+                    }
+                )
 
         return facts
 
@@ -265,11 +275,13 @@ class TeamsWebhook(WebhookProvider):
 
         # Dashboard link
         if self.dashboard_url:
-            actions.append({
-                "type": "Action.OpenUrl",
-                "title": "Open Dashboard",
-                "url": self.dashboard_url,
-            })
+            actions.append(
+                {
+                    "type": "Action.OpenUrl",
+                    "title": "Open Dashboard",
+                    "url": self.dashboard_url,
+                }
+            )
 
         # Event-specific actions
         data = event.data
@@ -277,29 +289,35 @@ class TeamsWebhook(WebhookProvider):
         if event.event_type in (EventType.JOB_FAILED, EventType.JOB_COMPLETED):
             job_id = data.get("job_id")
             if job_id and self.dashboard_url:
-                actions.append({
-                    "type": "Action.OpenUrl",
-                    "title": "View Job",
-                    "url": f"{self.dashboard_url}/jobs/{job_id}",
-                })
+                actions.append(
+                    {
+                        "type": "Action.OpenUrl",
+                        "title": "View Job",
+                        "url": f"{self.dashboard_url}/jobs/{job_id}",
+                    }
+                )
 
         if event.event_type in (EventType.WORKER_FAILED, EventType.WORKER_LEFT):
             worker_id = data.get("worker_id")
             if worker_id and self.dashboard_url:
-                actions.append({
-                    "type": "Action.OpenUrl",
-                    "title": "View Worker",
-                    "url": f"{self.dashboard_url}/workers/{worker_id}",
-                })
+                actions.append(
+                    {
+                        "type": "Action.OpenUrl",
+                        "title": "View Worker",
+                        "url": f"{self.dashboard_url}/workers/{worker_id}",
+                    }
+                )
 
         if event.event_type == EventType.ALERT_FIRED:
             alert_name = data.get("name")
             if alert_name and self.dashboard_url:
-                actions.append({
-                    "type": "Action.OpenUrl",
-                    "title": "View Alert",
-                    "url": f"{self.dashboard_url}/alerts/{alert_name}",
-                })
+                actions.append(
+                    {
+                        "type": "Action.OpenUrl",
+                        "title": "View Alert",
+                        "url": f"{self.dashboard_url}/alerts/{alert_name}",
+                    }
+                )
 
         return actions
 
@@ -307,6 +325,7 @@ class TeamsWebhook(WebhookProvider):
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def create_teams_provider(
     dashboard_url: Optional[str] = None,

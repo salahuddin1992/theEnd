@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class ServiceStatus(Enum):
     """Status of a service instance."""
+
     HEALTHY = "healthy"
     UNHEALTHY = "unhealthy"
     DRAINING = "draining"
@@ -26,6 +27,7 @@ class ServiceStatus(Enum):
 @dataclass
 class ServiceInstance:
     """Represents a service instance."""
+
     instance_id: str
     service_name: str
     host: str
@@ -125,7 +127,7 @@ class ServiceRegistry:
         healthy_only: bool = True,
         tags: Optional[List[str]] = None,
         zone: Optional[str] = None,
-        version: Optional[str] = None
+        version: Optional[str] = None,
     ) -> List[ServiceInstance]:
         """Get instances of a service with optional filters."""
         with self._lock:
@@ -160,12 +162,7 @@ class ServiceRegistry:
                 return True
             return False
 
-    def set_status(
-        self,
-        service_name: str,
-        instance_id: str,
-        status: ServiceStatus
-    ) -> bool:
+    def set_status(self, service_name: str, instance_id: str, status: ServiceStatus) -> bool:
         """Set the status of an instance."""
         with self._lock:
             instance = self.get_instance(service_name, instance_id)
@@ -180,28 +177,18 @@ class ServiceRegistry:
         with self._lock:
             return list(self._services.keys())
 
-    def watch(
-        self,
-        service_name: str,
-        callback: Callable[[str, List[ServiceInstance]], None]
-    ):
+    def watch(self, service_name: str, callback: Callable[[str, List[ServiceInstance]], None]):
         """Watch for changes to a service."""
         with self._lock:
             if service_name not in self._watchers:
                 self._watchers[service_name] = []
             self._watchers[service_name].append(callback)
 
-    def unwatch(
-        self,
-        service_name: str,
-        callback: Callable[[str, List[ServiceInstance]], None]
-    ):
+    def unwatch(self, service_name: str, callback: Callable[[str, List[ServiceInstance]], None]):
         """Stop watching a service."""
         with self._lock:
             if service_name in self._watchers:
-                self._watchers[service_name] = [
-                    c for c in self._watchers[service_name] if c != callback
-                ]
+                self._watchers[service_name] = [c for c in self._watchers[service_name] if c != callback]
 
     def _notify_watchers(self, service_name: str):
         """Notify watchers of a service change."""
@@ -231,11 +218,7 @@ class ServiceDiscovery(ABC):
         pass
 
     @abstractmethod
-    def watch(
-        self,
-        service_name: str,
-        callback: Callable[[str, List[ServiceInstance]], None]
-    ):
+    def watch(self, service_name: str, callback: Callable[[str, List[ServiceInstance]], None]):
         pass
 
     @abstractmethod
@@ -247,11 +230,7 @@ class ConsulDiscovery(ServiceDiscovery):
     """Consul-based service discovery."""
 
     def __init__(
-        self,
-        host: str = "localhost",
-        port: int = 8500,
-        token: Optional[str] = None,
-        datacenter: Optional[str] = None
+        self, host: str = "localhost", port: int = 8500, token: Optional[str] = None, datacenter: Optional[str] = None
     ):
         self.host = host
         self.port = port
@@ -266,6 +245,7 @@ class ConsulDiscovery(ServiceDiscovery):
         """Connect to Consul."""
         try:
             import consul
+
             self._client = consul.Consul(
                 host=self.host,
                 port=self.port,
@@ -281,13 +261,10 @@ class ConsulDiscovery(ServiceDiscovery):
         """Register a service with Consul."""
         try:
             import consul
+
             check = None
             if instance.health_check_url:
-                check = consul.Check.http(
-                    instance.health_check_url,
-                    interval="10s",
-                    timeout="5s"
-                )
+                check = consul.Check.http(instance.health_check_url, interval="10s", timeout="5s")
 
             self._client.agent.service.register(
                 name=instance.service_name,
@@ -340,22 +317,14 @@ class ConsulDiscovery(ServiceDiscovery):
             logger.error(f"Failed to get instances from Consul: {e}")
             return []
 
-    def watch(
-        self,
-        service_name: str,
-        callback: Callable[[str, List[ServiceInstance]], None]
-    ):
+    def watch(self, service_name: str, callback: Callable[[str, List[ServiceInstance]], None]):
         """Watch for service changes in Consul."""
+
         def watch_loop():
             index = None
             while self._running:
                 try:
-                    index, services = self._client.health.service(
-                        service_name,
-                        passing=True,
-                        index=index,
-                        wait="30s"
-                    )
+                    index, services = self._client.health.service(service_name, passing=True, index=index, wait="30s")
 
                     instances = []
                     for service in services:
@@ -428,10 +397,7 @@ class KubernetesDiscovery(ServiceDiscovery):
     def get_instances(self, service_name: str) -> List[ServiceInstance]:
         """Get endpoints for a Kubernetes service."""
         try:
-            endpoints = self._core_api.read_namespaced_endpoints(
-                name=service_name,
-                namespace=self.namespace
-            )
+            endpoints = self._core_api.read_namespaced_endpoints(name=service_name, namespace=self.namespace)
 
             instances = []
             if endpoints.subsets:
@@ -448,7 +414,7 @@ class KubernetesDiscovery(ServiceDiscovery):
                                     metadata={
                                         "node": addr.node_name or "",
                                         "pod": addr.target_ref.name if addr.target_ref else "",
-                                    }
+                                    },
                                 )
                                 instances.append(instance)
 
@@ -457,12 +423,9 @@ class KubernetesDiscovery(ServiceDiscovery):
             logger.error(f"Failed to get endpoints from Kubernetes: {e}")
             return []
 
-    def watch(
-        self,
-        service_name: str,
-        callback: Callable[[str, List[ServiceInstance]], None]
-    ):
+    def watch(self, service_name: str, callback: Callable[[str, List[ServiceInstance]], None]):
         """Watch for endpoint changes in Kubernetes."""
+
         def watch_loop():
             from kubernetes import watch as k8s_watch
 
@@ -472,7 +435,7 @@ class KubernetesDiscovery(ServiceDiscovery):
                     for event in w.stream(
                         self._core_api.list_namespaced_endpoints,
                         namespace=self.namespace,
-                        field_selector=f"metadata.name={service_name}"
+                        field_selector=f"metadata.name={service_name}",
                     ):
                         if event["type"] in ["ADDED", "MODIFIED", "DELETED"]:
                             instances = self.get_instances(service_name)
@@ -493,12 +456,7 @@ class KubernetesDiscovery(ServiceDiscovery):
 class EtcdDiscovery(ServiceDiscovery):
     """etcd-based service discovery."""
 
-    def __init__(
-        self,
-        host: str = "localhost",
-        port: int = 2379,
-        prefix: str = "/services"
-    ):
+    def __init__(self, host: str = "localhost", port: int = 2379, prefix: str = "/services"):
         self.host = host
         self.port = port
         self.prefix = prefix
@@ -511,6 +469,7 @@ class EtcdDiscovery(ServiceDiscovery):
         """Connect to etcd."""
         try:
             import etcd3
+
             self._client = etcd3.client(host=self.host, port=self.port)
             logger.info(f"Connected to etcd at {self.host}:{self.port}")
         except ImportError:
@@ -564,12 +523,9 @@ class EtcdDiscovery(ServiceDiscovery):
             logger.error(f"Failed to get instances from etcd: {e}")
             return []
 
-    def watch(
-        self,
-        service_name: str,
-        callback: Callable[[str, List[ServiceInstance]], None]
-    ):
+    def watch(self, service_name: str, callback: Callable[[str, List[ServiceInstance]], None]):
         """Watch for service changes in etcd."""
+
         def watch_loop():
             prefix = f"{self.prefix}/{service_name}/"
             events_iterator, cancel = self._client.watch_prefix(prefix)

@@ -36,8 +36,10 @@ from ..fluent_design import FluentDesignSystem
 # DATA MODELS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TemplateCategory(Enum):
     """Template categories"""
+
     MACHINE_LEARNING = "Machine Learning"
     DATA_PROCESSING = "Data Processing"
     SCIENTIFIC = "Scientific Computing"
@@ -48,6 +50,7 @@ class TemplateCategory(Enum):
 @dataclass
 class JobTemplate:
     """Job template definition"""
+
     id: str
     name: str
     description: str
@@ -65,6 +68,7 @@ class JobTemplate:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TEMPLATE CARD
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TemplateCard(QFrame):
     """
@@ -88,7 +92,8 @@ class TemplateCard(QFrame):
 
         self.setFixedSize(280, 200)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             TemplateCard {{
                 background-color: {colors.bg_card};
                 border: 1px solid {colors.stroke_card};
@@ -98,7 +103,8 @@ class TemplateCard(QFrame):
                 background-color: {colors.fill_subtle};
                 border-color: {colors.accent};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
@@ -118,14 +124,16 @@ class TemplateCard(QFrame):
         cat_color = category_colors.get(self._template.category, colors.accent)
 
         category_label = QLabel(self._template.category.value)
-        category_label.setStyleSheet(f"""
+        category_label.setStyleSheet(
+            f"""
             background-color: {cat_color}20;
             color: {cat_color};
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: 500;
-        """)
+        """
+        )
         header.addWidget(category_label)
 
         header.addStretch()
@@ -142,21 +150,25 @@ class TemplateCard(QFrame):
 
         # Template name
         name_label = QLabel(self._template.name)
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 16px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(name_label)
 
         # Description
         desc_label = QLabel(self._template.description)
         desc_label.setWordWrap(True)
         desc_label.setMaximumHeight(40)
-        desc_label.setStyleSheet(f"""
+        desc_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(desc_label)
 
         # Resource info
@@ -207,6 +219,7 @@ class TemplateCard(QFrame):
 # TEMPLATE DETAILS PANEL
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TemplateDetailsPanel(QFrame):
     """
     Panel showing template details and edit form.
@@ -226,12 +239,14 @@ class TemplateDetailsPanel(QFrame):
         colors = FluentDesignSystem().colors
 
         self.setMinimumWidth(350)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             TemplateDetailsPanel {{
                 background-color: {colors.bg_solid_secondary};
                 border-left: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -240,11 +255,13 @@ class TemplateDetailsPanel(QFrame):
         # Header
         header = QHBoxLayout()
         self._title = QLabel("Template Details")
-        self._title.setStyleSheet(f"""
+        self._title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 18px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(self._title)
         header.addStretch()
 
@@ -278,7 +295,8 @@ class TemplateDetailsPanel(QFrame):
         self._content_layout.addWidget(desc_label)
         self._desc_input = QTextEdit()
         self._desc_input.setMaximumHeight(80)
-        self._desc_input.setStyleSheet(f"""
+        self._desc_input.setStyleSheet(
+            f"""
             QTextEdit {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -286,7 +304,8 @@ class TemplateDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         self._content_layout.addWidget(self._desc_input)
 
         # Category
@@ -295,7 +314,8 @@ class TemplateDetailsPanel(QFrame):
         self._content_layout.addWidget(cat_label)
         self._category_combo = QComboBox()
         self._category_combo.addItems([c.value for c in TemplateCategory])
-        self._category_combo.setStyleSheet(f"""
+        self._category_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -303,7 +323,8 @@ class TemplateDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         self._content_layout.addWidget(self._category_combo)
 
         # Resources section
@@ -318,7 +339,8 @@ class TemplateDetailsPanel(QFrame):
         cpu_row.addWidget(cpu_label)
         self._cpu_spin = QSpinBox()
         self._cpu_spin.setRange(1, 128)
-        self._cpu_spin.setStyleSheet(f"""
+        self._cpu_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -326,7 +348,8 @@ class TemplateDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 6px;
             }}
-        """)
+        """
+        )
         cpu_row.addWidget(self._cpu_spin)
         self._content_layout.addLayout(cpu_row)
 
@@ -337,7 +360,8 @@ class TemplateDetailsPanel(QFrame):
         mem_row.addWidget(mem_label)
         self._mem_spin = QSpinBox()
         self._mem_spin.setRange(1, 512)
-        self._mem_spin.setStyleSheet(f"""
+        self._mem_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -345,7 +369,8 @@ class TemplateDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 6px;
             }}
-        """)
+        """
+        )
         mem_row.addWidget(self._mem_spin)
         self._content_layout.addLayout(mem_row)
 
@@ -356,7 +381,8 @@ class TemplateDetailsPanel(QFrame):
         gpu_row.addWidget(gpu_label)
         self._gpu_spin = QSpinBox()
         self._gpu_spin.setRange(0, 8)
-        self._gpu_spin.setStyleSheet(f"""
+        self._gpu_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -364,7 +390,8 @@ class TemplateDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 6px;
             }}
-        """)
+        """
+        )
         gpu_row.addWidget(self._gpu_spin)
         self._content_layout.addLayout(gpu_row)
 
@@ -375,7 +402,8 @@ class TemplateDetailsPanel(QFrame):
 
         self._script_edit = QTextEdit()
         self._script_edit.setMinimumHeight(150)
-        self._script_edit.setStyleSheet(f"""
+        self._script_edit.setStyleSheet(
+            f"""
             QTextEdit {{
                 background-color: {colors.bg_solid_base};
                 color: {colors.text_primary};
@@ -385,7 +413,8 @@ class TemplateDetailsPanel(QFrame):
                 font-family: 'Cascadia Code', 'Consolas', monospace;
                 font-size: 12px;
             }}
-        """)
+        """
+        )
         self._content_layout.addWidget(self._script_edit)
 
         self._content_layout.addStretch()
@@ -439,7 +468,7 @@ class TemplateDetailsPanel(QFrame):
             "cpu_cores": self._cpu_spin.value(),
             "memory_gb": self._mem_spin.value(),
             "gpu_count": self._gpu_spin.value(),
-            "script": self._script_edit.toPlainText()
+            "script": self._script_edit.toPlainText(),
         }
         self.template_updated.emit(data)
 
@@ -452,6 +481,7 @@ class TemplateDetailsPanel(QFrame):
 # ═══════════════════════════════════════════════════════════════════════════════
 # TEMPLATES VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentTemplatesView(QWidget):
     """
@@ -483,11 +513,13 @@ class FluentTemplatesView(QWidget):
         header = QHBoxLayout()
 
         title = QLabel("Job Templates")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(title)
 
         header.addStretch()
@@ -503,7 +535,8 @@ class FluentTemplatesView(QWidget):
         self._category_filter.addItem("All Categories")
         self._category_filter.addItems([c.value for c in TemplateCategory])
         self._category_filter.currentTextChanged.connect(self._filter_templates)
-        self._category_filter.setStyleSheet(f"""
+        self._category_filter.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -512,7 +545,8 @@ class FluentTemplatesView(QWidget):
                 padding: 8px 16px;
                 min-width: 150px;
             }}
-        """)
+        """
+        )
         header.addWidget(self._category_filter)
 
         # New template button
@@ -573,7 +607,7 @@ class FluentTemplatesView(QWidget):
                 script="python train.py --epochs 100 --batch-size 32",
                 tags=["pytorch", "gpu", "training"],
                 usage_count=156,
-                is_favorite=True
+                is_favorite=True,
             ),
             JobTemplate(
                 id="tpl-002",
@@ -586,7 +620,7 @@ class FluentTemplatesView(QWidget):
                 timeout_hours=12,
                 script="python etl_pipeline.py --input $INPUT --output $OUTPUT",
                 tags=["etl", "data", "pipeline"],
-                usage_count=89
+                usage_count=89,
             ),
             JobTemplate(
                 id="tpl-003",
@@ -600,7 +634,7 @@ class FluentTemplatesView(QWidget):
                 script="gmx mdrun -deffnm simulation -nsteps 1000000",
                 tags=["gromacs", "md", "simulation"],
                 usage_count=42,
-                is_favorite=True
+                is_favorite=True,
             ),
             JobTemplate(
                 id="tpl-004",
@@ -613,7 +647,7 @@ class FluentTemplatesView(QWidget):
                 timeout_hours=8,
                 script="blender -b scene.blend -o //output -a",
                 tags=["blender", "render", "animation"],
-                usage_count=78
+                usage_count=78,
             ),
             JobTemplate(
                 id="tpl-005",
@@ -626,7 +660,7 @@ class FluentTemplatesView(QWidget):
                 timeout_hours=4,
                 script="python inference.py --model model.h5 --input data/",
                 tags=["tensorflow", "inference", "batch"],
-                usage_count=234
+                usage_count=234,
             ),
             JobTemplate(
                 id="tpl-006",
@@ -639,7 +673,7 @@ class FluentTemplatesView(QWidget):
                 timeout_hours=1,
                 script="#!/bin/bash\n# Your script here",
                 tags=["custom", "script"],
-                usage_count=12
+                usage_count=12,
             ),
         ]
 

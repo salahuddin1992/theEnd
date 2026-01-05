@@ -400,6 +400,7 @@ async def _execute_distributed_task(
     )
 
     try:
+
         async def on_progress(progress: float, message: str):
             state.update_execution(execution_id, progress=progress)
             await state.notify_progress(

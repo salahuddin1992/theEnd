@@ -85,10 +85,7 @@ class TTLInvalidation(InvalidationStrategy):
     async def cleanup_expired(self) -> list[str]:
         """تنظيف المنتهية الصلاحية"""
         now = time.time()
-        expired = [
-            key for key, exp in self._expirations.items()
-            if now > exp
-        ]
+        expired = [key for key, exp in self._expirations.items() if now > exp]
         for key in expired:
             del self._expirations[key]
         return expired
@@ -179,9 +176,11 @@ class LFUInvalidation(InvalidationStrategy):
 # Write Strategies
 # =============================================================================
 
+
 @dataclass
 class WriteOperation:
     """عملية كتابة"""
+
     key: str
     value: Any
     ttl_seconds: Optional[float] = None
@@ -321,11 +320,13 @@ class WriteBehind:
 
             # Queue for store write
             async with self._lock:
-                self._queue.append(WriteOperation(
-                    key=key,
-                    value=value,
-                    ttl_seconds=ttl_seconds,
-                ))
+                self._queue.append(
+                    WriteOperation(
+                        key=key,
+                        value=value,
+                        ttl_seconds=ttl_seconds,
+                    )
+                )
 
                 # Flush if batch size reached
                 if len(self._queue) >= self.batch_size:

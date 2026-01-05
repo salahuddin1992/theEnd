@@ -38,6 +38,7 @@ class OperatorConfig:
     إعدادات المشغّل
     Operator configuration
     """
+
     # Controller
     controller: ControllerConfig = field(default_factory=ControllerConfig)
 
@@ -236,6 +237,7 @@ class ClusterOperator:
 
     async def _start_health_server(self) -> None:
         """بدء خادم الصحة"""
+
         async def handle_health(reader, writer):
             request = await reader.read(1024)
 
@@ -271,16 +273,14 @@ class ClusterOperator:
 
     async def _start_metrics_server(self) -> None:
         """بدء خادم المقاييس"""
+
         async def handle_metrics(reader, writer):
             await reader.read(1024)
 
             # Generate Prometheus metrics
             metrics = self._generate_metrics()
 
-            response = (
-                b"HTTP/1.1 200 OK\r\n"
-                b"Content-Type: text/plain; version=0.0.4\r\n\r\n"
-            ) + metrics.encode()
+            response = (b"HTTP/1.1 200 OK\r\n" b"Content-Type: text/plain; version=0.0.4\r\n\r\n") + metrics.encode()
 
             writer.write(response)
             await writer.drain()
@@ -299,61 +299,31 @@ class ClusterOperator:
         lines = []
 
         # Operator info
-        lines.append(
-            '# HELP operator_info Operator information'
-        )
-        lines.append(
-            '# TYPE operator_info gauge'
-        )
-        lines.append(
-            'operator_info{version="1.0.0"} 1'
-        )
+        lines.append("# HELP operator_info Operator information")
+        lines.append("# TYPE operator_info gauge")
+        lines.append('operator_info{version="1.0.0"} 1')
 
         # Uptime
         if self._started_at:
             uptime = (datetime.now(timezone.utc) - self._started_at).total_seconds()
-            lines.append(
-                '# HELP operator_uptime_seconds Operator uptime in seconds'
-            )
-            lines.append(
-                '# TYPE operator_uptime_seconds counter'
-            )
-            lines.append(
-                f'operator_uptime_seconds {uptime}'
-            )
+            lines.append("# HELP operator_uptime_seconds Operator uptime in seconds")
+            lines.append("# TYPE operator_uptime_seconds counter")
+            lines.append(f"operator_uptime_seconds {uptime}")
 
         # Controller metrics
         controller_status = self._controller.get_status()
 
-        lines.append(
-            '# HELP controller_reconcile_total Total number of reconciliations'
-        )
-        lines.append(
-            '# TYPE controller_reconcile_total counter'
-        )
-        lines.append(
-            f'controller_reconcile_total {controller_status["reconcile_count"]}'
-        )
+        lines.append("# HELP controller_reconcile_total Total number of reconciliations")
+        lines.append("# TYPE controller_reconcile_total counter")
+        lines.append(f'controller_reconcile_total {controller_status["reconcile_count"]}')
 
-        lines.append(
-            '# HELP controller_reconcile_errors_total Total reconciliation errors'
-        )
-        lines.append(
-            '# TYPE controller_reconcile_errors_total counter'
-        )
-        lines.append(
-            f'controller_reconcile_errors_total {controller_status["reconcile_errors"]}'
-        )
+        lines.append("# HELP controller_reconcile_errors_total Total reconciliation errors")
+        lines.append("# TYPE controller_reconcile_errors_total counter")
+        lines.append(f'controller_reconcile_errors_total {controller_status["reconcile_errors"]}')
 
-        lines.append(
-            '# HELP controller_queue_size Current reconcile queue size'
-        )
-        lines.append(
-            '# TYPE controller_queue_size gauge'
-        )
-        lines.append(
-            f'controller_queue_size {controller_status["queue_size"]}'
-        )
+        lines.append("# HELP controller_queue_size Current reconcile queue size")
+        lines.append("# TYPE controller_queue_size gauge")
+        lines.append(f'controller_queue_size {controller_status["queue_size"]}')
 
         return "\n".join(lines)
 
@@ -366,8 +336,9 @@ class ClusterOperator:
         return {
             "running": self._running,
             "started_at": self._started_at.isoformat() if self._started_at else None,
-            "uptime_seconds": (datetime.now(timezone.utc) - self._started_at).total_seconds()
-                if self._started_at else 0,
+            "uptime_seconds": (
+                (datetime.now(timezone.utc) - self._started_at).total_seconds() if self._started_at else 0
+            ),
             "config": self.config.to_dict(),
             "controller": self._controller.get_status(),
         }
@@ -377,13 +348,12 @@ class ClusterOperator:
 # CLI Entry Point
 # =============================================================================
 
+
 async def main():
     """نقطة دخول CLI"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Distributed Cluster Kubernetes Operator"
-    )
+    parser = argparse.ArgumentParser(description="Distributed Cluster Kubernetes Operator")
     parser.add_argument(
         "--kubeconfig",
         help="Path to kubeconfig file",

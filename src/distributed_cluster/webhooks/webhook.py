@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 class EventType(str, Enum):
     """نوع الحدث / Event type"""
+
     # Cluster events
     CLUSTER_CREATED = "cluster.created"
     CLUSTER_UPDATED = "cluster.updated"
@@ -65,6 +66,7 @@ class EventType(str, Enum):
 
 class WebhookStatus(str, Enum):
     """حالة الـ Webhook / Webhook status"""
+
     PENDING = "pending"
     SENDING = "sending"
     SUCCESS = "success"
@@ -78,6 +80,7 @@ class WebhookEvent:
     حدث الـ Webhook
     Webhook event
     """
+
     event_id: str
     event_type: EventType
     timestamp: datetime
@@ -117,6 +120,7 @@ class WebhookResult:
     نتيجة إرسال Webhook
     Webhook send result
     """
+
     event_id: str
     webhook_id: str
     status: WebhookStatus
@@ -146,6 +150,7 @@ class WebhookConfig:
     إعدادات الـ Webhook
     Webhook configuration
     """
+
     webhook_id: str
     url: str
     enabled: bool = True
@@ -237,9 +242,7 @@ class WebhookManager:
         self._providers: dict[str, WebhookProvider] = {}
 
         # Queue
-        self._queue: asyncio.Queue[tuple[WebhookEvent, WebhookConfig]] = asyncio.Queue(
-            maxsize=queue_size
-        )
+        self._queue: asyncio.Queue[tuple[WebhookEvent, WebhookConfig]] = asyncio.Queue(maxsize=queue_size)
 
         # Results
         self._results: list[WebhookResult] = []
@@ -345,12 +348,14 @@ class WebhookManager:
                 await self._queue.put((event, config))
             except asyncio.QueueFull:
                 logger.warning(f"Webhook queue full, dropping event {event.event_id}")
-                results.append(WebhookResult(
-                    event_id=event.event_id,
-                    webhook_id=config.webhook_id,
-                    status=WebhookStatus.FAILED,
-                    error="Queue full",
-                ))
+                results.append(
+                    WebhookResult(
+                        event_id=event.event_id,
+                        webhook_id=config.webhook_id,
+                        status=WebhookStatus.FAILED,
+                        error="Queue full",
+                    )
+                )
 
         return results
 
@@ -372,9 +377,7 @@ class WebhookManager:
         results = []
 
         webhooks = (
-            [self._webhooks[webhook_id]]
-            if webhook_id and webhook_id in self._webhooks
-            else self._webhooks.values()
+            [self._webhooks[webhook_id]] if webhook_id and webhook_id in self._webhooks else self._webhooks.values()
         )
 
         for config in webhooks:

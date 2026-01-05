@@ -280,9 +280,7 @@ class FaultInjector:
 
             self._stats["successful_injections"] += 1
 
-            logger.info(
-                f"Injected {fault_type} on {len(affected_targets)} targets"
-            )
+            logger.info(f"Injected {fault_type} on {len(affected_targets)} targets")
 
             return FaultResult(
                 fault_id=fault_id,
@@ -418,10 +416,7 @@ class FaultInjector:
         interface = config.get("interface", "eth0")
 
         # Use tc to add delay (requires root)
-        cmd = (
-            f"tc qdisc add dev {interface} root netem "
-            f"delay {delay_ms}ms {jitter_ms}ms"
-        )
+        cmd = f"tc qdisc add dev {interface} root netem " f"delay {delay_ms}ms {jitter_ms}ms"
 
         if not self.dry_run:
             process = await asyncio.create_subprocess_shell(

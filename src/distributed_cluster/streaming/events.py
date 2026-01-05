@@ -13,6 +13,7 @@ from typing import Any, Dict, Optional
 
 class EventType(Enum):
     """Types of events in the system."""
+
     # System events
     SYSTEM_STARTUP = auto()
     SYSTEM_SHUTDOWN = auto()
@@ -69,6 +70,7 @@ class EventType(Enum):
 
 class EventPriority(Enum):
     """Priority levels for events."""
+
     CRITICAL = 1
     HIGH = 2
     NORMAL = 3
@@ -79,6 +81,7 @@ class EventPriority(Enum):
 @dataclass
 class EventMetadata:
     """Metadata associated with an event."""
+
     source: str
     correlation_id: Optional[str] = None
     causation_id: Optional[str] = None
@@ -101,6 +104,7 @@ class EventMetadata:
 @dataclass
 class Event:
     """Base event class for all events in the system."""
+
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: EventType = EventType.CUSTOM
     priority: EventPriority = EventPriority.NORMAL
@@ -198,6 +202,7 @@ class Event:
 @dataclass
 class SystemEvent(Event):
     """System-level events."""
+
     component: str = "system"
     severity: str = "info"
 
@@ -210,6 +215,7 @@ class SystemEvent(Event):
 @dataclass
 class JobEvent(Event):
     """Job-related events."""
+
     job_id: str = ""
     job_name: str = ""
     worker_id: Optional[str] = None
@@ -227,6 +233,7 @@ class JobEvent(Event):
 @dataclass
 class ClusterEvent(Event):
     """Cluster-related events."""
+
     cluster_id: str = ""
     node_id: Optional[str] = None
     node_count: int = 0
@@ -242,6 +249,7 @@ class ClusterEvent(Event):
 @dataclass
 class MetricEvent(Event):
     """Metric events for monitoring."""
+
     metric_name: str = ""
     metric_value: float = 0.0
     metric_unit: str = ""
@@ -320,7 +328,7 @@ def create_event(
     source: str,
     payload: Optional[Dict[str, Any]] = None,
     priority: EventPriority = EventPriority.NORMAL,
-    **kwargs
+    **kwargs,
 ) -> Event:
     """Factory function for creating events."""
     metadata = EventMetadata(source=source, **kwargs)

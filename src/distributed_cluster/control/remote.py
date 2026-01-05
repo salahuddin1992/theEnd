@@ -18,15 +18,17 @@ import httpx
 
 class CommandType(str, Enum):
     """أنواع الأوامر"""
-    SHELL = "shell"           # أوامر Shell (bash/cmd/powershell)
-    PYTHON = "python"         # كود Python
-    SYSTEM = "system"         # أوامر النظام (restart, shutdown, etc)
-    AI = "ai"                 # أوامر الذكاء الاصطناعي
+
+    SHELL = "shell"  # أوامر Shell (bash/cmd/powershell)
+    PYTHON = "python"  # كود Python
+    SYSTEM = "system"  # أوامر النظام (restart, shutdown, etc)
+    AI = "ai"  # أوامر الذكاء الاصطناعي
 
 
 @dataclass
 class RemoteCommand:
     """أمر للتنفيذ عن بعد"""
+
     command: str
     command_type: CommandType = CommandType.SHELL
     timeout: int = 300  # 5 دقائق
@@ -39,6 +41,7 @@ class RemoteCommand:
 @dataclass
 class CommandResult:
     """نتيجة تنفيذ الأمر"""
+
     worker_id: str
     success: bool
     output: str
@@ -178,9 +181,7 @@ class RemoteController:
         for worker in workers:
             worker_id = worker["worker_id"]
             if worker_id not in exclude:
-                tasks.append(
-                    self.execute_on(worker_id, command, command_type, timeout, run_as_admin)
-                )
+                tasks.append(self.execute_on(worker_id, command, command_type, timeout, run_as_admin))
 
         if tasks:
             return await asyncio.gather(*tasks)
@@ -206,12 +207,7 @@ class RemoteController:
             # تحديد Shell حسب النظام
             if platform.system() == "Windows":
                 # PowerShell بصلاحيات كاملة
-                shell_cmd = [
-                    "powershell.exe",
-                    "-NoProfile",
-                    "-ExecutionPolicy", "Bypass",
-                    "-Command", command
-                ]
+                shell_cmd = ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command]
             else:
                 shell_cmd = command if shell else command.split()
 
@@ -228,10 +224,7 @@ class RemoteController:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=timeout
-            )
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
 
             execution_time = (datetime.now() - start_time).total_seconds()
 
@@ -284,12 +277,7 @@ class RemoteController:
             if platform.system() == "Windows":
                 # PowerShell بصلاحيات كاملة
                 result = subprocess.run(
-                    [
-                        "powershell.exe",
-                        "-NoProfile",
-                        "-ExecutionPolicy", "Bypass",
-                        "-Command", command
-                    ],
+                    ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command],
                     capture_output=True,
                     timeout=timeout,
                     text=True,

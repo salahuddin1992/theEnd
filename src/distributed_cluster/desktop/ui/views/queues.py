@@ -36,8 +36,10 @@ from ..fluent_design import FluentDesignSystem
 # DATA MODELS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class QueueStatus(Enum):
     """Queue status"""
+
     RUNNING = "Running"
     PAUSED = "Paused"
     DRAINING = "Draining"
@@ -46,6 +48,7 @@ class QueueStatus(Enum):
 
 class QueuePolicy(Enum):
     """Queue scheduling policy"""
+
     FIFO = "First In, First Out"
     PRIORITY = "Priority Based"
     FAIR_SHARE = "Fair Share"
@@ -55,6 +58,7 @@ class QueuePolicy(Enum):
 @dataclass
 class QueuedJob:
     """Job in queue"""
+
     id: str
     name: str
     user: str
@@ -68,6 +72,7 @@ class QueuedJob:
 @dataclass
 class JobQueue:
     """Job queue definition"""
+
     id: str
     name: str
     description: str
@@ -85,6 +90,7 @@ class JobQueue:
 # ═══════════════════════════════════════════════════════════════════════════════
 # QUEUE ITEM WIDGET
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class QueueJobItem(QFrame):
     """
@@ -105,7 +111,8 @@ class QueueJobItem(QFrame):
         """Setup item UI"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QueueJobItem {{
                 background-color: {colors.bg_card};
                 border: 1px solid {colors.stroke_card};
@@ -114,7 +121,8 @@ class QueueJobItem(QFrame):
             QueueJobItem:hover {{
                 background-color: {colors.fill_subtle};
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 10, 12, 10)
@@ -123,11 +131,13 @@ class QueueJobItem(QFrame):
         # Position indicator
         pos_label = QLabel(f"#{self._job.position}")
         pos_label.setFixedWidth(35)
-        pos_label.setStyleSheet(f"""
+        pos_label.setStyleSheet(
+            f"""
             color: {colors.accent};
             font-size: 14px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(pos_label)
 
         # Job info
@@ -135,18 +145,22 @@ class QueueJobItem(QFrame):
         info_layout.setSpacing(2)
 
         name_label = QLabel(self._job.name)
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 13px;
             font-weight: 500;
-        """)
+        """
+        )
         info_layout.addWidget(name_label)
 
         meta_label = QLabel(f"by {self._job.user} • ~{self._job.estimated_runtime}m")
-        meta_label.setStyleSheet(f"""
+        meta_label.setStyleSheet(
+            f"""
             color: {colors.text_tertiary};
             font-size: 11px;
-        """)
+        """
+        )
         info_layout.addWidget(meta_label)
 
         layout.addLayout(info_layout, 1)
@@ -162,24 +176,28 @@ class QueueJobItem(QFrame):
         p_color = priority_colors.get(self._job.priority, colors.text_secondary)
 
         priority_label = QLabel(f"P{self._job.priority}")
-        priority_label.setStyleSheet(f"""
+        priority_label.setStyleSheet(
+            f"""
             background-color: {p_color}20;
             color: {p_color};
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: 500;
-        """)
+        """
+        )
         layout.addWidget(priority_label)
 
         # Wait time
         wait_time = datetime.now() - self._job.submitted_at
         wait_mins = int(wait_time.total_seconds() / 60)
         wait_label = QLabel(f"{wait_mins}m wait")
-        wait_label.setStyleSheet(f"""
+        wait_label.setStyleSheet(
+            f"""
             color: {colors.text_tertiary};
             font-size: 11px;
-        """)
+        """
+        )
         layout.addWidget(wait_label)
 
         # Action buttons
@@ -203,6 +221,7 @@ class QueueJobItem(QFrame):
 # QUEUE CARD
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class QueueCard(QFrame):
     """
     Card displaying a job queue.
@@ -224,7 +243,8 @@ class QueueCard(QFrame):
 
         self.setFixedWidth(320)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QueueCard {{
                 background-color: {colors.bg_card};
                 border: 1px solid {colors.stroke_card};
@@ -233,7 +253,8 @@ class QueueCard(QFrame):
             QueueCard:hover {{
                 border-color: {colors.accent};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
@@ -243,11 +264,13 @@ class QueueCard(QFrame):
         header = QHBoxLayout()
 
         name_label = QLabel(self._queue.name)
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 16px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(name_label)
 
         header.addStretch()
@@ -273,10 +296,12 @@ class QueueCard(QFrame):
 
         # Policy badge
         policy_label = QLabel(self._queue.policy.value)
-        policy_label.setStyleSheet(f"""
+        policy_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 11px;
-        """)
+        """
+        )
         layout.addWidget(policy_label)
 
         # Stats
@@ -327,7 +352,8 @@ class QueueCard(QFrame):
         progress.setValue(int(fill_pct))
         progress.setFixedHeight(4)
         progress.setTextVisible(False)
-        progress.setStyleSheet(f"""
+        progress.setStyleSheet(
+            f"""
             QProgressBar {{
                 background-color: {colors.fill_control};
                 border-radius: 2px;
@@ -336,7 +362,8 @@ class QueueCard(QFrame):
                 background-color: {colors.accent};
                 border-radius: 2px;
             }}
-        """)
+        """
+        )
         layout.addWidget(progress)
 
         # Actions
@@ -371,6 +398,7 @@ class QueueCard(QFrame):
 # QUEUE DETAILS PANEL
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class QueueDetailsPanel(QFrame):
     """
     Panel showing queue details and job list.
@@ -390,12 +418,14 @@ class QueueDetailsPanel(QFrame):
         colors = FluentDesignSystem().colors
 
         self.setMinimumWidth(400)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QueueDetailsPanel {{
                 background-color: {colors.bg_solid_secondary};
                 border-left: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -404,11 +434,13 @@ class QueueDetailsPanel(QFrame):
         # Header
         header = QHBoxLayout()
         self._title = QLabel("Queue Details")
-        self._title.setStyleSheet(f"""
+        self._title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 18px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(self._title)
         header.addStretch()
 
@@ -511,6 +543,7 @@ class QueueDetailsPanel(QFrame):
 # QUEUES VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentQueuesView(QWidget):
     """
     Job queues management view.
@@ -541,11 +574,13 @@ class FluentQueuesView(QWidget):
         header = QHBoxLayout()
 
         title = QLabel("Job Queues")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(title)
 
         header.addStretch()
@@ -554,7 +589,8 @@ class FluentQueuesView(QWidget):
         self._status_filter = QComboBox()
         self._status_filter.addItem("All Queues")
         self._status_filter.addItems([s.value for s in QueueStatus])
-        self._status_filter.setStyleSheet(f"""
+        self._status_filter.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -563,7 +599,8 @@ class FluentQueuesView(QWidget):
                 padding: 8px 16px;
                 min-width: 130px;
             }}
-        """)
+        """
+        )
         header.addWidget(self._status_filter)
 
         # Create queue button
@@ -647,18 +684,29 @@ class FluentQueuesView(QWidget):
                 priority=10,
                 jobs=[
                     QueuedJob(
-                        "job-101", "Critical Model Training", "admin", 5,
-                        now - timedelta(minutes=3), 120, {"cpu": 8, "gpu": 2}, 1
+                        "job-101",
+                        "Critical Model Training",
+                        "admin",
+                        5,
+                        now - timedelta(minutes=3),
+                        120,
+                        {"cpu": 8, "gpu": 2},
+                        1,
                     ),
                     QueuedJob(
-                        "job-102", "Urgent Data Processing", "user1", 4,
-                        now - timedelta(minutes=8), 45, {"cpu": 16}, 2
+                        "job-102", "Urgent Data Processing", "user1", 4, now - timedelta(minutes=8), 45, {"cpu": 16}, 2
                     ),
                     QueuedJob(
-                        "job-103", "Priority Inference", "user2", 4,
-                        now - timedelta(minutes=12), 30, {"cpu": 4, "gpu": 1}, 3
+                        "job-103",
+                        "Priority Inference",
+                        "user2",
+                        4,
+                        now - timedelta(minutes=12),
+                        30,
+                        {"cpu": 4, "gpu": 1},
+                        3,
                     ),
-                ]
+                ],
             ),
             JobQueue(
                 id="queue-002",
@@ -674,22 +722,16 @@ class FluentQueuesView(QWidget):
                 priority=5,
                 jobs=[
                     QueuedJob(
-                        "job-201", "Batch Processing A", "user3", 3,
-                        now - timedelta(minutes=20), 60, {"cpu": 8}, 1
+                        "job-201", "Batch Processing A", "user3", 3, now - timedelta(minutes=20), 60, {"cpu": 8}, 1
                     ),
                     QueuedJob(
-                        "job-202", "Batch Processing B", "user4", 3,
-                        now - timedelta(minutes=18), 60, {"cpu": 8}, 2
+                        "job-202", "Batch Processing B", "user4", 3, now - timedelta(minutes=18), 60, {"cpu": 8}, 2
                     ),
+                    QueuedJob("job-203", "Analysis Job", "user1", 2, now - timedelta(minutes=15), 90, {"cpu": 4}, 3),
                     QueuedJob(
-                        "job-203", "Analysis Job", "user1", 2,
-                        now - timedelta(minutes=15), 90, {"cpu": 4}, 3
+                        "job-204", "Report Generation", "user2", 2, now - timedelta(minutes=10), 15, {"cpu": 2}, 4
                     ),
-                    QueuedJob(
-                        "job-204", "Report Generation", "user2", 2,
-                        now - timedelta(minutes=10), 15, {"cpu": 2}, 4
-                    ),
-                ]
+                ],
             ),
             JobQueue(
                 id="queue-003",
@@ -705,14 +747,12 @@ class FluentQueuesView(QWidget):
                 priority=7,
                 jobs=[
                     QueuedJob(
-                        "job-301", "Deep Learning Model", "mlteam", 3,
-                        now - timedelta(minutes=45), 240, {"gpu": 4}, 1
+                        "job-301", "Deep Learning Model", "mlteam", 3, now - timedelta(minutes=45), 240, {"gpu": 4}, 1
                     ),
                     QueuedJob(
-                        "job-302", "GAN Training", "researcher", 3,
-                        now - timedelta(minutes=30), 180, {"gpu": 2}, 2
+                        "job-302", "GAN Training", "researcher", 3, now - timedelta(minutes=30), 180, {"gpu": 2}, 2
                     ),
-                ]
+                ],
             ),
             JobQueue(
                 id="queue-004",
@@ -726,7 +766,7 @@ class FluentQueuesView(QWidget):
                 completed_today=0,
                 avg_wait_time=0,
                 priority=1,
-                jobs=[]
+                jobs=[],
             ),
         ]
 

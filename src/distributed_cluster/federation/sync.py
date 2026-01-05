@@ -32,22 +32,25 @@ logger = logging.getLogger(__name__)
 
 class SyncMode(str, Enum):
     """وضع المزامنة / Sync mode"""
-    PUSH = "push"           # دفع الحالة للكتل الأخرى
-    PULL = "pull"           # سحب الحالة من الكتل الأخرى
+
+    PUSH = "push"  # دفع الحالة للكتل الأخرى
+    PULL = "pull"  # سحب الحالة من الكتل الأخرى
     BIDIRECTIONAL = "bidirectional"  # في كلا الاتجاهين
-    EVENTUAL = "eventual"   # اتساق نهائي
+    EVENTUAL = "eventual"  # اتساق نهائي
 
 
 class ConflictResolution(str, Enum):
     """حل التعارضات / Conflict resolution"""
-    LATEST_WINS = "latest_wins"       # الأحدث يفوز
-    PRIMARY_WINS = "primary_wins"     # الكتلة الأساسية تفوز
-    MERGE = "merge"                   # دمج التغييرات
-    MANUAL = "manual"                 # حل يدوي
+
+    LATEST_WINS = "latest_wins"  # الأحدث يفوز
+    PRIMARY_WINS = "primary_wins"  # الكتلة الأساسية تفوز
+    MERGE = "merge"  # دمج التغييرات
+    MANUAL = "manual"  # حل يدوي
 
 
 class SyncStatus(str, Enum):
     """حالة المزامنة / Sync status"""
+
     IDLE = "idle"
     SYNCING = "syncing"
     SUCCESS = "success"
@@ -61,6 +64,7 @@ class SyncConfig:
     إعدادات المزامنة
     Sync Configuration
     """
+
     mode: SyncMode = SyncMode.BIDIRECTIONAL
     conflict_resolution: ConflictResolution = ConflictResolution.LATEST_WINS
 
@@ -93,6 +97,7 @@ class SyncResult:
     نتيجة المزامنة
     Sync Result
     """
+
     success: bool
     sync_id: str
     source_cluster: str
@@ -123,6 +128,7 @@ class SyncState:
     حالة المزامنة
     Sync State Entry
     """
+
     key: str
     value: Any
     version: int
@@ -276,9 +282,7 @@ class StateSync:
 
             # Trim old versions
             if len(self._state_versions[key]) > self.config.max_versions:
-                self._state_versions[key] = self._state_versions[key][
-                    -self.config.max_versions:
-                ]
+                self._state_versions[key] = self._state_versions[key][-self.config.max_versions :]
 
     def get_local(self, key: str) -> Optional[Any]:
         """الحصول على قيمة محلية"""
@@ -315,13 +319,15 @@ class StateSync:
 
             except Exception as e:
                 logger.error(f"Sync with {cluster.info.cluster_id} failed: {e}")
-                results.append(SyncResult(
-                    success=False,
-                    sync_id=str(uuid4()),
-                    source_cluster=self.cluster_id,
-                    target_cluster=cluster.info.cluster_id,
-                    error=str(e),
-                ))
+                results.append(
+                    SyncResult(
+                        success=False,
+                        sync_id=str(uuid4()),
+                        source_cluster=self.cluster_id,
+                        target_cluster=cluster.info.cluster_id,
+                        error=str(e),
+                    )
+                )
 
         # Update status
         if all(r.success for r in results):
@@ -352,6 +358,7 @@ class StateSync:
     ) -> SyncResult:
         """مزامنة مع كتلة واحدة"""
         import time
+
         start = time.time()
         sync_id = str(uuid4())
 
@@ -412,11 +419,13 @@ class StateSync:
             return 0
 
         # Push to cluster
-        success = await cluster.push_state({
-            "source_cluster": self.cluster_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "state": state_data,
-        })
+        success = await cluster.push_state(
+            {
+                "source_cluster": self.cluster_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "state": state_data,
+            }
+        )
 
         return len(state_data) if success else 0
 

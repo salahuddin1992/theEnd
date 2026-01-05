@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 class PolicyEffect(str, Enum):
     """Policy effect."""
+
     ALLOW = "allow"
     DENY = "deny"
     AUDIT = "audit"  # Log but don't enforce
@@ -39,6 +40,7 @@ class PolicyEffect(str, Enum):
 
 class PolicyPriority(int, Enum):
     """Policy priority levels."""
+
     EMERGENCY = 0  # Highest - security incidents
     CRITICAL = 10
     HIGH = 20
@@ -49,6 +51,7 @@ class PolicyPriority(int, Enum):
 
 class ConditionOperator(str, Enum):
     """Condition operators."""
+
     EQUALS = "equals"
     NOT_EQUALS = "not_equals"
     CONTAINS = "contains"
@@ -68,6 +71,7 @@ class ConditionOperator(str, Enum):
 @dataclass
 class PolicyCondition:
     """Single policy condition."""
+
     field: str  # Field to evaluate (e.g., "request.ip", "user.role")
     operator: ConditionOperator
     value: Any  # Expected value
@@ -189,6 +193,7 @@ class PolicyCondition:
 @dataclass
 class PolicyRule:
     """Policy rule with conditions and effect."""
+
     rule_id: str
     name: str
     effect: PolicyEffect
@@ -233,6 +238,7 @@ class PolicyRule:
 @dataclass
 class SecurityPolicy:
     """Security policy with multiple rules."""
+
     policy_id: str
     name: str
     description: str = ""
@@ -308,6 +314,7 @@ class SecurityPolicy:
 @dataclass
 class PolicyDecision:
     """Result of policy evaluation."""
+
     allowed: bool
     effect: PolicyEffect
     policy_id: Optional[str] = None
@@ -744,18 +751,22 @@ class RiskBasedPolicies:
         ]
 
         if for_roles:
-            conditions.append(PolicyCondition(
-                field="user.role",
-                operator=ConditionOperator.IN,
-                value=for_roles,
-            ))
+            conditions.append(
+                PolicyCondition(
+                    field="user.role",
+                    operator=ConditionOperator.IN,
+                    value=for_roles,
+                )
+            )
 
         if for_actions:
-            conditions.append(PolicyCondition(
-                field="request.action",
-                operator=ConditionOperator.IN,
-                value=for_actions,
-            ))
+            conditions.append(
+                PolicyCondition(
+                    field="request.action",
+                    operator=ConditionOperator.IN,
+                    value=for_actions,
+                )
+            )
 
         return SecurityPolicy(
             policy_id=policy_id,

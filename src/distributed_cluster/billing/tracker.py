@@ -314,10 +314,7 @@ class CostTracker:
                     self._project_entries[entry.project_id] = []
                 self._project_entries[entry.project_id].append(entry.entry_id)
 
-        logger.info(
-            f"Job {job_id} cost: ${entry.total_cost:.4f} "
-            f"({entry.duration_hours:.2f} hours)"
-        )
+        logger.info(f"Job {job_id} cost: ${entry.total_cost:.4f} " f"({entry.duration_hours:.2f} hours)")
 
         return entry
 
@@ -706,11 +703,7 @@ class CostTracker:
         removed = 0
 
         async with self._lock:
-            to_remove = [
-                eid
-                for eid, entry in self._entries.items()
-                if entry.created_at < cutoff
-            ]
+            to_remove = [eid for eid, entry in self._entries.items() if entry.created_at < cutoff]
 
             for eid in to_remove:
                 del self._entries[eid]

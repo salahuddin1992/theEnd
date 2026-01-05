@@ -29,13 +29,14 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon, QWidget
 
 # Windows-specific imports (conditionally loaded)
-IS_WINDOWS = sys.platform == 'win32'
+IS_WINDOWS = sys.platform == "win32"
 
 if IS_WINDOWS:
     try:
         import ctypes.wintypes  # noqa: F401
         import winreg
         from ctypes import byref, c_int, sizeof, windll  # noqa: F401
+
         HAS_WINREG = True
     except ImportError:
         HAS_WINREG = False
@@ -43,10 +44,12 @@ if IS_WINDOWS:
     try:
         # Windows Toast Notifications
         from win10toast_click import ToastNotifier
+
         HAS_TOAST = True
     except ImportError:
         try:
             from win10toast import ToastNotifier
+
             HAS_TOAST = True
         except ImportError:
             HAS_TOAST = False
@@ -54,6 +57,7 @@ if IS_WINDOWS:
     try:
         # Windows Credential Manager
         import keyring
+
         HAS_KEYRING = True
     except ImportError:
         HAS_KEYRING = False
@@ -63,6 +67,7 @@ if IS_WINDOWS:
         import comtypes  # noqa: F401
         from comtypes import GUID  # noqa: F401
         from comtypes.client import CreateObject  # noqa: F401
+
         HAS_COMTYPES = True
     except ImportError:
         HAS_COMTYPES = False
@@ -84,6 +89,7 @@ COMPANY_NAME = "NebulaCompute"
 
 class TaskbarProgressState(Enum):
     """Taskbar progress indicator states"""
+
     NO_PROGRESS = 0
     INDETERMINATE = 1
     NORMAL = 2
@@ -93,6 +99,7 @@ class TaskbarProgressState(Enum):
 
 class NotificationType(Enum):
     """Windows notification types"""
+
     INFO = "info"
     SUCCESS = "success"
     WARNING = "warning"
@@ -102,6 +109,7 @@ class NotificationType(Enum):
 @dataclass
 class JumpListItem:
     """Jump list item definition"""
+
     title: str
     path: str
     arguments: str = ""
@@ -112,6 +120,7 @@ class JumpListItem:
 # ═══════════════════════════════════════════════════════════════════════════════
 # DARK MODE DETECTION
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class WindowsThemeDetector(QObject):
     """
@@ -135,8 +144,7 @@ class WindowsThemeDetector(QObject):
 
         try:
             key = winreg.OpenKey(
-                winreg.HKEY_CURRENT_USER,
-                r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+                winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
             )
             value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
             winreg.CloseKey(key)
@@ -164,6 +172,7 @@ class WindowsThemeDetector(QObject):
 # ═══════════════════════════════════════════════════════════════════════════════
 # WINDOWS TOAST NOTIFICATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class WindowsToastNotifications(QObject):
     """
@@ -208,7 +217,7 @@ class WindowsToastNotifications(QObject):
         notification_type: NotificationType = NotificationType.INFO,
         duration: int = 5,
         callback: Optional[Callable] = None,
-        icon_path: str = None
+        icon_path: str = None,
     ) -> bool:
         """
         Show a Windows toast notification.
@@ -237,7 +246,7 @@ class WindowsToastNotifications(QObject):
                 icon_path=icon if icon else None,
                 duration=duration,
                 threaded=True,
-                callback_on_click=callback
+                callback_on_click=callback,
             )
             return True
         except Exception as e:
@@ -265,6 +274,7 @@ class WindowsToastNotifications(QObject):
 # TASKBAR PROGRESS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TaskbarProgress(QObject):
     """
     Windows Taskbar Progress Indicator.
@@ -290,7 +300,7 @@ class TaskbarProgress(QObject):
             # ITaskbarList3 GUID
             CLSID_TaskbarList = GUID("{56FDF344-FD6D-11d0-958A-006097C9A090}")
             self._taskbar = CreateObject(CLSID_TaskbarList)
-            if hasattr(self._taskbar, 'HrInit'):
+            if hasattr(self._taskbar, "HrInit"):
                 self._taskbar.HrInit()
         except Exception as e:
             print(f"Taskbar init error: {e}")
@@ -316,9 +326,9 @@ class TaskbarProgress(QObject):
             self._value = value
             self._state = TaskbarProgressState.NORMAL
 
-            if hasattr(self._taskbar, 'SetProgressValue'):
+            if hasattr(self._taskbar, "SetProgressValue"):
                 self._taskbar.SetProgressValue(self._hwnd, value, maximum)
-            if hasattr(self._taskbar, 'SetProgressState'):
+            if hasattr(self._taskbar, "SetProgressState"):
                 self._taskbar.SetProgressState(self._hwnd, self._state.value)
         except Exception as e:
             print(f"Taskbar progress error: {e}")
@@ -330,7 +340,7 @@ class TaskbarProgress(QObject):
 
         try:
             self._state = state
-            if hasattr(self._taskbar, 'SetProgressState'):
+            if hasattr(self._taskbar, "SetProgressState"):
                 self._taskbar.SetProgressState(self._hwnd, state.value)
         except Exception:
             pass
@@ -355,6 +365,7 @@ class TaskbarProgress(QObject):
 # ═══════════════════════════════════════════════════════════════════════════════
 # SYSTEM TRAY
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentSystemTray(QObject):
     """
@@ -469,7 +480,7 @@ class FluentSystemTray(QObject):
         title: str,
         message: str,
         icon: QSystemTrayIcon.MessageIcon = QSystemTrayIcon.MessageIcon.Information,
-        timeout: int = 5000
+        timeout: int = 5000,
     ):
         """Show tray balloon message"""
         self._tray.showMessage(title, message, icon, timeout)
@@ -501,6 +512,7 @@ class FluentSystemTray(QObject):
 # WINDOWS REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class WindowsRegistry:
     """
     Windows Registry Operations.
@@ -527,7 +539,7 @@ class WindowsRegistry:
                 winreg.HKEY_CURRENT_USER,
                 r"Software\Microsoft\Windows\CurrentVersion\Run",
                 0,
-                winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE
+                winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE,
             )
 
             if enabled:
@@ -553,10 +565,7 @@ class WindowsRegistry:
 
         try:
             key = winreg.OpenKey(
-                winreg.HKEY_CURRENT_USER,
-                r"Software\Microsoft\Windows\CurrentVersion\Run",
-                0,
-                winreg.KEY_QUERY_VALUE
+                winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_QUERY_VALUE
             )
             try:
                 winreg.QueryValueEx(key, APP_NAME)
@@ -600,18 +609,12 @@ class WindowsRegistry:
 
             # Set icon
             if icon_path:
-                icon_key = winreg.CreateKey(
-                    winreg.HKEY_CURRENT_USER,
-                    f"Software\\Classes\\{prog_id}\\DefaultIcon"
-                )
+                icon_key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, f"Software\\Classes\\{prog_id}\\DefaultIcon")
                 winreg.SetValueEx(icon_key, "", 0, winreg.REG_SZ, icon_path)
                 winreg.CloseKey(icon_key)
 
             # Set open command
-            cmd_key = winreg.CreateKey(
-                winreg.HKEY_CURRENT_USER,
-                f"Software\\Classes\\{prog_id}\\shell\\open\\command"
-            )
+            cmd_key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, f"Software\\Classes\\{prog_id}\\shell\\open\\command")
             winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, f'"{exe_path}" "%1"')
             winreg.CloseKey(cmd_key)
 
@@ -627,10 +630,7 @@ class WindowsRegistry:
             return False
 
         try:
-            reg_key = winreg.CreateKey(
-                winreg.HKEY_CURRENT_USER,
-                f"Software\\{COMPANY_NAME}\\{APP_NAME}"
-            )
+            reg_key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, f"Software\\{COMPANY_NAME}\\{APP_NAME}")
 
             if isinstance(value, bool):
                 winreg.SetValueEx(reg_key, key, 0, winreg.REG_DWORD, int(value))
@@ -655,10 +655,7 @@ class WindowsRegistry:
 
         try:
             reg_key = winreg.OpenKey(
-                winreg.HKEY_CURRENT_USER,
-                f"Software\\{COMPANY_NAME}\\{APP_NAME}",
-                0,
-                winreg.KEY_QUERY_VALUE
+                winreg.HKEY_CURRENT_USER, f"Software\\{COMPANY_NAME}\\{APP_NAME}", 0, winreg.KEY_QUERY_VALUE
             )
             value, reg_type = winreg.QueryValueEx(reg_key, key)
             winreg.CloseKey(reg_key)
@@ -679,6 +676,7 @@ class WindowsRegistry:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CREDENTIAL MANAGER
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class WindowsCredentialManager:
     """
@@ -760,6 +758,7 @@ class WindowsCredentialManager:
 # JUMP LISTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class WindowsJumpList:
     """
     Windows 11 Jump List Integration.
@@ -794,11 +793,7 @@ class WindowsJumpList:
 
         # Save recent files
         recent_data = [
-            {
-                "title": item.title,
-                "path": item.path,
-                "arguments": item.arguments
-            }
+            {"title": item.title, "path": item.path, "arguments": item.arguments}
             for item in self._recent[:10]  # Max 10 recent
         ]
         settings.setValue("recent", json.dumps(recent_data))
@@ -816,9 +811,7 @@ class WindowsJumpList:
             data = json.loads(settings.value("recent", "[]"))
             items = [
                 JumpListItem(
-                    title=item.get("title", ""),
-                    path=item.get("path", ""),
-                    arguments=item.get("arguments", "")
+                    title=item.get("title", ""), path=item.get("path", ""), arguments=item.get("arguments", "")
                 )
                 for item in data
             ]
@@ -832,6 +825,7 @@ class WindowsJumpList:
 # ═══════════════════════════════════════════════════════════════════════════════
 # WINDOWS 11 VISUAL EFFECTS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class Windows11Effects:
     """
@@ -867,10 +861,7 @@ class Windows11Effects:
         try:
             value = c_int(1 if enable else 0)
             windll.dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                Windows11Effects.DWMWA_USE_IMMERSIVE_DARK_MODE,
-                byref(value),
-                sizeof(value)
+                hwnd, Windows11Effects.DWMWA_USE_IMMERSIVE_DARK_MODE, byref(value), sizeof(value)
             )
             return True
         except Exception:
@@ -890,10 +881,7 @@ class Windows11Effects:
 
             value = c_int(pref)
             windll.dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                Windows11Effects.DWMWA_WINDOW_CORNER_PREFERENCE,
-                byref(value),
-                sizeof(value)
+                hwnd, Windows11Effects.DWMWA_WINDOW_CORNER_PREFERENCE, byref(value), sizeof(value)
             )
             return True
         except Exception:
@@ -908,10 +896,7 @@ class Windows11Effects:
         try:
             value = c_int(Windows11Effects.DWMSBT_MAINWINDOW)
             windll.dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                Windows11Effects.DWMWA_SYSTEMBACKDROP_TYPE,
-                byref(value),
-                sizeof(value)
+                hwnd, Windows11Effects.DWMWA_SYSTEMBACKDROP_TYPE, byref(value), sizeof(value)
             )
             return True
         except Exception:
@@ -926,10 +911,7 @@ class Windows11Effects:
         try:
             value = c_int(Windows11Effects.DWMSBT_TRANSIENTWINDOW)
             windll.dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                Windows11Effects.DWMWA_SYSTEMBACKDROP_TYPE,
-                byref(value),
-                sizeof(value)
+                hwnd, Windows11Effects.DWMWA_SYSTEMBACKDROP_TYPE, byref(value), sizeof(value)
             )
             return True
         except Exception:
@@ -944,10 +926,7 @@ class Windows11Effects:
         try:
             value = c_int(Windows11Effects.DWMSBT_NONE)
             windll.dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                Windows11Effects.DWMWA_SYSTEMBACKDROP_TYPE,
-                byref(value),
-                sizeof(value)
+                hwnd, Windows11Effects.DWMWA_SYSTEMBACKDROP_TYPE, byref(value), sizeof(value)
             )
             return True
         except Exception:
@@ -957,6 +936,7 @@ class Windows11Effects:
 # ═══════════════════════════════════════════════════════════════════════════════
 # INTEGRATED WINDOWS MANAGER
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class WindowsIntegrationManager(QObject):
     """
@@ -1011,18 +991,13 @@ class WindowsIntegrationManager(QObject):
         self.tray.set_tooltip(f"{APP_NAME} - Distributed Computing")
         self.tray.show()
 
-    def show_notification(
-        self,
-        title: str,
-        message: str,
-        notification_type: str = "info"
-    ):
+    def show_notification(self, title: str, message: str, notification_type: str = "info"):
         """Show a system notification"""
         type_map = {
             "info": NotificationType.INFO,
             "success": NotificationType.SUCCESS,
             "warning": NotificationType.WARNING,
-            "error": NotificationType.ERROR
+            "error": NotificationType.ERROR,
         }
         nt = type_map.get(notification_type, NotificationType.INFO)
         self.notifications.show(title, message, nt)
@@ -1054,7 +1029,6 @@ class WindowsIntegrationManager(QObject):
 __all__ = [
     # Main manager
     "WindowsIntegrationManager",
-
     # Components
     "WindowsThemeDetector",
     "WindowsToastNotifications",
@@ -1064,12 +1038,10 @@ __all__ = [
     "WindowsCredentialManager",
     "WindowsJumpList",
     "Windows11Effects",
-
     # Types
     "TaskbarProgressState",
     "NotificationType",
     "JumpListItem",
-
     # Constants
     "IS_WINDOWS",
     "APP_ID",

@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TenantManagerConfig:
     """تكوين مدير المستأجرين"""
+
     # Auto-provisioning
     auto_provision_namespace: bool = True
     namespace_prefix: str = "nc-tenant-"
@@ -548,17 +549,16 @@ class TenantManager:
         """
         try:
             # Get scheduler instance if available
-            scheduler = getattr(self, '_scheduler', None)
-            if scheduler and hasattr(scheduler, 'cancel_jobs_by_tenant'):
+            scheduler = getattr(self, "_scheduler", None)
+            if scheduler and hasattr(scheduler, "cancel_jobs_by_tenant"):
                 cancelled_count = await scheduler.cancel_jobs_by_tenant(tenant.id)
                 logger.info(f"Cancelled {cancelled_count} jobs for tenant: {tenant.name}")
                 return
 
             # Alternative: Use storage to mark jobs as cancelled
-            if self.storage and hasattr(self.storage, 'query'):
+            if self.storage and hasattr(self.storage, "query"):
                 jobs = await self.storage.query(
-                    "jobs",
-                    {"tenant_id": tenant.id, "status": {"$in": ["pending", "running"]}}
+                    "jobs", {"tenant_id": tenant.id, "status": {"$in": ["pending", "running"]}}
                 )
                 cancelled_count = 0
                 for job in jobs:

@@ -36,6 +36,7 @@ class DashboardConfig:
     إعدادات لوحة المراقبة
     Dashboard configuration
     """
+
     host: str = "0.0.0.0"
     port: int = 8080
     static_dir: Optional[str] = None
@@ -101,9 +102,7 @@ class DashboardServer:
         self._running = True
         self._started_at = datetime.now(timezone.utc)
 
-        logger.info(
-            f"Dashboard server started at http://{self.config.host}:{self.config.port}"
-        )
+        logger.info(f"Dashboard server started at http://{self.config.host}:{self.config.port}")
 
     async def stop(self) -> None:
         """إيقاف الخادم"""
@@ -288,8 +287,7 @@ class DashboardServer:
             "status": "running",
             "started_at": self._started_at.isoformat() if self._started_at else None,
             "uptime_seconds": (
-                (datetime.now(timezone.utc) - self._started_at).total_seconds()
-                if self._started_at else 0
+                (datetime.now(timezone.utc) - self._started_at).total_seconds() if self._started_at else 0
             ),
             "health": self.health.get_status(),
             "alerts": self.alerts.get_status(),
@@ -354,10 +352,7 @@ class DashboardServer:
         content = file_path.read_bytes()
 
         return (
-            f"HTTP/1.1 200 OK\r\n"
-            f"Content-Type: {content_type}\r\n"
-            f"Content-Length: {len(content)}\r\n"
-            f"\r\n"
+            f"HTTP/1.1 200 OK\r\n" f"Content-Type: {content_type}\r\n" f"Content-Length: {len(content)}\r\n" f"\r\n"
         ) + content.decode("utf-8", errors="replace")
 
     # =========================================================================
@@ -378,13 +373,12 @@ class DashboardServer:
 # CLI Entry Point
 # =============================================================================
 
+
 async def main():
     """نقطة دخول CLI"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Distributed Cluster Dashboard"
-    )
+    parser = argparse.ArgumentParser(description="Distributed Cluster Dashboard")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind")
     parser.add_argument("--port", type=int, default=8080, help="Port to bind")
     parser.add_argument("--static-dir", help="Static files directory")

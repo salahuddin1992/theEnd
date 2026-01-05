@@ -19,8 +19,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from distributed_cluster.models.job import Job, JobStatus
 from distributed_cluster.models import ResourceRequirements
+from distributed_cluster.models.job import Job, JobStatus
 from distributed_cluster.models.worker import Worker
 
 logger = logging.getLogger(__name__)

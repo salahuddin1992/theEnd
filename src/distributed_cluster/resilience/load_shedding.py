@@ -120,12 +120,8 @@ class LoadSheddingPolicy:
     queue_timeout_seconds: float = 60.0
 
     # Priority configuration
-    protect_priorities: List[PriorityLevel] = field(
-        default_factory=lambda: [PriorityLevel.CRITICAL]
-    )
-    shed_priorities: List[PriorityLevel] = field(
-        default_factory=lambda: [PriorityLevel.BEST_EFFORT, PriorityLevel.LOW]
-    )
+    protect_priorities: List[PriorityLevel] = field(default_factory=lambda: [PriorityLevel.CRITICAL])
+    shed_priorities: List[PriorityLevel] = field(default_factory=lambda: [PriorityLevel.BEST_EFFORT, PriorityLevel.LOW])
 
     # Rate limiting per client
     max_requests_per_client: int = 100
@@ -133,9 +129,7 @@ class LoadSheddingPolicy:
 
     # Degradation settings
     enable_degradation: bool = True
-    degradation_features: List[str] = field(
-        default_factory=lambda: ["caching", "compression", "pagination"]
-    )
+    degradation_features: List[str] = field(default_factory=lambda: ["caching", "compression", "pagination"])
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -172,12 +166,15 @@ class LoadMetrics:
     def overall_load(self) -> float:
         """Calculate overall system load (0.0 - 1.0)."""
         # Weighted average of different load indicators
-        return min(1.0, (
-            self.cpu_utilization * 0.4 +
-            self.memory_utilization * 0.3 +
-            min(1.0, self.queue_depth / 100) * 0.2 +
-            min(1.0, self.error_rate * 10) * 0.1
-        ))
+        return min(
+            1.0,
+            (
+                self.cpu_utilization * 0.4
+                + self.memory_utilization * 0.3
+                + min(1.0, self.queue_depth / 100) * 0.2
+                + min(1.0, self.error_rate * 10) * 0.1
+            ),
+        )
 
 
 class LoadShedder:
@@ -216,9 +213,7 @@ class LoadShedder:
         self.shed_callback = shed_callback
 
         # Request queues by priority
-        self._queues: Dict[PriorityLevel, Deque[QueuedRequest]] = {
-            p: deque() for p in PriorityLevel
-        }
+        self._queues: Dict[PriorityLevel, Deque[QueuedRequest]] = {p: deque() for p in PriorityLevel}
 
         # Client tracking
         self._client_requests: Dict[str, List[float]] = {}
@@ -376,10 +371,7 @@ class LoadShedder:
 
             # Clean old entries
             if client_id in self._client_requests:
-                self._client_requests[client_id] = [
-                    t for t in self._client_requests[client_id]
-                    if t > window_start
-                ]
+                self._client_requests[client_id] = [t for t in self._client_requests[client_id] if t > window_start]
             else:
                 self._client_requests[client_id] = []
 
@@ -480,9 +472,7 @@ class LoadShedder:
 
     async def get_queue_stats(self) -> Dict[str, Any]:
         """Get queue statistics."""
-        queue_sizes = {
-            p.name: len(self._queues[p]) for p in PriorityLevel
-        }
+        queue_sizes = {p.name: len(self._queues[p]) for p in PriorityLevel}
         return {
             "total_queued": self._total_queue_size(),
             "by_priority": queue_sizes,
@@ -494,10 +484,7 @@ class LoadShedder:
         """Get load shedder statistics."""
         avg_queue_time = 0.0
         if self._stats["requests_processed"] > 0:
-            avg_queue_time = (
-                self._stats["total_queue_time_ms"] /
-                self._stats["requests_processed"]
-            )
+            avg_queue_time = self._stats["total_queue_time_ms"] / self._stats["requests_processed"]
 
         return {
             **self._stats,
@@ -583,6 +570,7 @@ class LoadShedder:
             elif self.strategy == LoadSheddingStrategy.RANDOM:
                 # Random shedding
                 import random
+
                 all_requests = []
                 for priority in PriorityLevel:
                     if priority in self.policy.protect_priorities:

@@ -17,13 +17,14 @@ from typing import Any, Callable, Dict, List, Optional
 
 try:
     from croniter import croniter
+
     CRONITER_AVAILABLE = True
 except ImportError:
     croniter = None
     CRONITER_AVAILABLE = False
 
-from distributed_cluster.models.job import Job
 from distributed_cluster.models import ResourceRequirements
+from distributed_cluster.models.job import Job
 from distributed_cluster.scheduler.dag import (
     DAG,
     DAGBuilder,

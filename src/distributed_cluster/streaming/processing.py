@@ -23,6 +23,7 @@ R = TypeVar("R")
 
 class WindowType(Enum):
     """Types of time windows for stream processing."""
+
     TUMBLING = "tumbling"  # Fixed, non-overlapping windows
     SLIDING = "sliding"  # Overlapping windows
     SESSION = "session"  # Activity-based windows
@@ -32,6 +33,7 @@ class WindowType(Enum):
 @dataclass
 class WindowConfig:
     """Configuration for windowed processing."""
+
     window_type: WindowType = WindowType.TUMBLING
     window_size_ms: int = 60000  # 1 minute
     slide_size_ms: int = 30000  # For sliding windows
@@ -43,6 +45,7 @@ class WindowConfig:
 @dataclass
 class Window:
     """Represents a time window."""
+
     start: datetime
     end: datetime
     events: List[Event] = field(default_factory=list)
@@ -174,6 +177,7 @@ class SourceFilter(EventFilter):
 
         if self.pattern:
             import re
+
             return any(re.match(p, source) for p in self.sources)
 
         return source in self.sources
@@ -230,9 +234,7 @@ class EnrichTransformer(EventTransformer):
     """Enrich events with additional data."""
 
     def __init__(
-        self,
-        enrichments: Dict[str, Any] = None,
-        enrich_fn: Optional[Callable[[Event], Dict[str, Any]]] = None
+        self, enrichments: Dict[str, Any] = None, enrich_fn: Optional[Callable[[Event], Dict[str, Any]]] = None
     ):
         self.enrichments = enrichments or {}
         self.enrich_fn = enrich_fn
@@ -253,10 +255,7 @@ class ProjectTransformer(EventTransformer):
         self.fields = set(fields)
 
     def transform(self, event: Event) -> Optional[Event]:
-        event.payload = {
-            k: v for k, v in event.payload.items()
-            if k in self.fields
-        }
+        event.payload = {k: v for k, v in event.payload.items() if k in self.fields}
         return event
 
 
@@ -431,7 +430,7 @@ class EventAggregator:
         self,
         window_config: Optional[WindowConfig] = None,
         group_by: Optional[Callable[[Event], str]] = None,
-        aggregations: Optional[Dict[str, tuple]] = None
+        aggregations: Optional[Dict[str, tuple]] = None,
     ):
         self.window_config = window_config or WindowConfig()
         self.group_by = group_by
@@ -525,7 +524,7 @@ class StreamProcessor:
         self,
         window_config: Optional[WindowConfig] = None,
         group_by: Optional[Callable[[Event], str]] = None,
-        aggregations: Optional[Dict[str, tuple]] = None
+        aggregations: Optional[Dict[str, tuple]] = None,
     ) -> "StreamProcessor":
         """Configure aggregation."""
         self._aggregator = EventAggregator(window_config, group_by, aggregations)
@@ -596,10 +595,7 @@ class StreamProcessor:
         """Main processing loop."""
         while self._running:
             try:
-                event = await asyncio.wait_for(
-                    self._input_queue.get(),
-                    timeout=0.1
-                )
+                event = await asyncio.wait_for(self._input_queue.get(), timeout=0.1)
                 self.process_sync(event)
             except asyncio.TimeoutError:
                 continue
@@ -623,7 +619,7 @@ class StreamProcessor:
                         payload={
                             "group": group_key,
                             "aggregations": results,
-                        }
+                        },
                     )
 
                     for handler in self._output_handlers:

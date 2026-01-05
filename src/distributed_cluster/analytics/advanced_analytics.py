@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class AnomalyType(str, Enum):
     """Type of anomaly detected."""
+
     SPIKE = "spike"
     DROP = "drop"
     DRIFT = "drift"
@@ -40,6 +41,7 @@ class AnomalyType(str, Enum):
 
 class WorkloadCategory(str, Enum):
     """Workload classification category."""
+
     CPU_INTENSIVE = "cpu_intensive"
     MEMORY_INTENSIVE = "memory_intensive"
     GPU_INTENSIVE = "gpu_intensive"
@@ -51,6 +53,7 @@ class WorkloadCategory(str, Enum):
 
 class AlertSeverity(str, Enum):
     """Alert severity level."""
+
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -59,6 +62,7 @@ class AlertSeverity(str, Enum):
 @dataclass
 class Anomaly:
     """Detected anomaly."""
+
     anomaly_id: str
     anomaly_type: AnomalyType
     metric_name: str
@@ -86,6 +90,7 @@ class Anomaly:
 @dataclass
 class WorkloadProfile:
     """Workload profile for a job type."""
+
     job_type: str
     category: WorkloadCategory
     avg_cpu_usage: float
@@ -117,6 +122,7 @@ class WorkloadProfile:
 @dataclass
 class CostPrediction:
     """Cost prediction result."""
+
     prediction_id: str
     job_type: str
     estimated_cost: float
@@ -140,6 +146,7 @@ class CostPrediction:
 @dataclass
 class PatternMatch:
     """Pattern matching result."""
+
     pattern_id: str
     pattern_name: str
     confidence: float
@@ -226,9 +233,7 @@ class AnomalyDetector:
                 return None
 
             # Detect anomaly
-            anomaly = await self._detect_anomaly(
-                metric_name, value, timestamp, window, baseline
-            )
+            anomaly = await self._detect_anomaly(metric_name, value, timestamp, window, baseline)
 
             # Update baseline
             self._update_baseline(baseline, value)
@@ -357,10 +362,9 @@ class AnomalyDetector:
         return {
             **self._stats,
             "metrics_tracked": len(self._windows),
-            "active_anomalies": len([
-                a for a in self._anomalies
-                if a.timestamp > datetime.now(timezone.utc) - timedelta(hours=1)
-            ]),
+            "active_anomalies": len(
+                [a for a in self._anomalies if a.timestamp > datetime.now(timezone.utc) - timedelta(hours=1)]
+            ),
         }
 
 
@@ -507,9 +511,9 @@ class WorkloadClassifier:
         elif io_ratio > 0.4:
             return WorkloadCategory.IO_INTENSIVE
 
-                # Check for steady pattern (low variance without dominant resource)
+            # Check for steady pattern (low variance without dominant resource)
         elif variance < 0.1:
-                        return WorkloadCategory.STEADY
+            return WorkloadCategory.STEADY
         else:
             return WorkloadCategory.BALANCED
 
@@ -544,8 +548,7 @@ class WorkloadClassifier:
             "cpu_cores": max(1, profile.avg_cpu_usage / 100 * 4 * safety_margin * scale_factor),
             "memory_mb": max(512, profile.avg_memory_usage / 100 * 8192 * safety_margin * scale_factor),
             "gpu_units": (
-                profile.avg_gpu_usage / 100 * safety_margin * scale_factor
-                if profile.avg_gpu_usage > 10 else 0
+                profile.avg_gpu_usage / 100 * safety_margin * scale_factor if profile.avg_gpu_usage > 10 else 0
             ),
         }
 
@@ -734,10 +737,7 @@ class PatternAnalyzer:
 
         cascading = False
         for i in range(len(failure_times) - 2):
-            if all(
-                (failure_times[i + j + 1] - failure_times[i + j]).total_seconds() < 60
-                for j in range(2)
-            ):
+            if all((failure_times[i + j + 1] - failure_times[i + j]).total_seconds() < 60 for j in range(2)):
                 cascading = True
                 break
 
@@ -763,10 +763,7 @@ class PatternAnalyzer:
         """Detect resource exhaustion patterns."""
         import uuid
 
-        resource_events = [
-            e for e in events
-            if e.get("type") in ["high_cpu", "high_memory", "oom"]
-        ]
+        resource_events = [e for e in events if e.get("type") in ["high_cpu", "high_memory", "oom"]]
 
         if len(resource_events) < 5:
             return None
@@ -874,9 +871,7 @@ class AdvancedAnalyticsEngine:
     ) -> Optional[Anomaly]:
         """Process a metric and check for anomalies."""
         self._stats["events_processed"] += 1
-        return await self.anomaly_detector.add_data_point(
-            metric_name, value, timestamp
-        )
+        return await self.anomaly_detector.add_data_point(metric_name, value, timestamp)
 
     async def process_job_completion(
         self,
@@ -890,20 +885,20 @@ class AdvancedAnalyticsEngine:
     ) -> None:
         """Process a completed job for analytics."""
         # Update workload classifier
-        await self.workload_classifier.add_sample(
-            job_type, cpu_usage, memory_usage, gpu_usage, io_operations, duration
-        )
+        await self.workload_classifier.add_sample(job_type, cpu_usage, memory_usage, gpu_usage, io_operations, duration)
 
         # Record cost
         await self.cost_predictor.record_actual_cost(job_type, cost)
 
         # Add event for pattern analysis
-        await self.pattern_analyzer.add_event({
-            "type": "job_completion",
-            "job_type": job_type,
-            "duration": duration,
-            "cost": cost,
-        })
+        await self.pattern_analyzer.add_event(
+            {
+                "type": "job_completion",
+                "job_type": job_type,
+                "duration": duration,
+                "cost": cost,
+            }
+        )
 
     async def get_recommendations(
         self,

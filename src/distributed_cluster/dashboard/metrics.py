@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 class MetricType(str, Enum):
     """نوع المقياس / Metric type"""
+
     COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
@@ -40,6 +41,7 @@ class MetricPoint:
     نقطة بيانات المقياس
     Metric data point
     """
+
     timestamp: datetime
     value: float
     labels: dict[str, str] = field(default_factory=dict)
@@ -58,6 +60,7 @@ class MetricSeries:
     سلسلة بيانات المقياس
     Metric data series
     """
+
     name: str
     metric_type: MetricType
     description: str = ""
@@ -372,10 +375,7 @@ class MetricsCollector:
             points = [p for p in points if p.timestamp >= since]
 
         if labels:
-            points = [
-                p for p in points
-                if all(p.labels.get(k) == v for k, v in labels.items())
-            ]
+            points = [p for p in points if all(p.labels.get(k) == v for k, v in labels.items())]
 
         return points
 
@@ -399,9 +399,7 @@ class MetricsCollector:
             if series.latest_value is not None:
                 label_str = ""
                 if series.labels:
-                    labels = ",".join(
-                        f'{k}="{v}"' for k, v in series.labels.items()
-                    )
+                    labels = ",".join(f'{k}="{v}"' for k, v in series.labels.items())
                     label_str = f"{{{labels}}}"
 
                 lines.append(f"{name}{label_str} {series.latest_value}")
@@ -410,10 +408,7 @@ class MetricsCollector:
 
     def export_json(self) -> dict[str, Any]:
         """تصدير بتنسيق JSON"""
-        return {
-            name: series.to_dict()
-            for name, series in self._metrics.items()
-        }
+        return {name: series.to_dict() for name, series in self._metrics.items()}
 
     def get_summary(self) -> dict[str, Any]:
         """ملخص المقاييس"""

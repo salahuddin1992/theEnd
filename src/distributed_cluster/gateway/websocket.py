@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class WebSocketState(str, Enum):
     """WebSocket connection state."""
+
     CONNECTING = "connecting"
     OPEN = "open"
     CLOSING = "closing"
@@ -29,6 +30,7 @@ class WebSocketState(str, Enum):
 
 class MessageType(str, Enum):
     """WebSocket message types."""
+
     TEXT = "text"
     BINARY = "binary"
     PING = "ping"
@@ -39,6 +41,7 @@ class MessageType(str, Enum):
 @dataclass
 class WebSocketMessage:
     """WebSocket message."""
+
     message_id: str
     message_type: MessageType
     data: Any
@@ -46,12 +49,14 @@ class WebSocketMessage:
 
     def to_json(self) -> str:
         """Convert to JSON string."""
-        return json.dumps({
-            "id": self.message_id,
-            "type": self.message_type.value,
-            "data": self.data,
-            "timestamp": self.timestamp.isoformat(),
-        })
+        return json.dumps(
+            {
+                "id": self.message_id,
+                "type": self.message_type.value,
+                "data": self.data,
+                "timestamp": self.timestamp.isoformat(),
+            }
+        )
 
     @classmethod
     def text(cls, data: Any) -> WebSocketMessage:
@@ -77,6 +82,7 @@ class WebSocketMessage:
 @dataclass
 class WebSocketConnection:
     """Represents a WebSocket connection."""
+
     connection_id: str
     client_ip: str
     state: WebSocketState = WebSocketState.CONNECTING
@@ -241,11 +247,7 @@ class ConnectionManager:
     def get_user_connections(self, user_id: str) -> List[WebSocketConnection]:
         """Get all connections for a user."""
         connection_ids = self._user_connections.get(user_id, set())
-        return [
-            self._connections[cid]
-            for cid in connection_ids
-            if cid in self._connections
-        ]
+        return [self._connections[cid] for cid in connection_ids if cid in self._connections]
 
     async def subscribe(self, connection_id: str, channel: str) -> None:
         """Subscribe a connection to a channel."""
@@ -380,11 +382,7 @@ class ConnectionManager:
             "total_users": len(self._user_connections),
             "total_channels": len(self._channel_connections),
             "connections_by_state": {
-                state.value: sum(
-                    1 for c in self._connections.values()
-                    if c.state == state
-                )
-                for state in WebSocketState
+                state.value: sum(1 for c in self._connections.values() if c.state == state) for state in WebSocketState
             },
         }
 
@@ -394,10 +392,7 @@ class ConnectionManager:
 
     def list_channels(self) -> Dict[str, int]:
         """List channels and subscriber counts."""
-        return {
-            channel: len(connections)
-            for channel, connections in self._channel_connections.items()
-        }
+        return {channel: len(connections) for channel, connections in self._channel_connections.items()}
 
 
 class WebSocketGateway:
@@ -471,9 +466,7 @@ class WebSocketGateway:
     ) -> bool:
         """Send message to connection."""
         message = WebSocketMessage.text(data)
-        return await self.connection_manager.send_to_connection(
-            connection_id, message, send_fn
-        )
+        return await self.connection_manager.send_to_connection(connection_id, message, send_fn)
 
     async def broadcast(
         self,
@@ -484,9 +477,7 @@ class WebSocketGateway:
     ) -> int:
         """Broadcast to channel."""
         message = WebSocketMessage.text(data)
-        return await self.connection_manager.broadcast_to_channel(
-            channel, message, send_fn, exclude
-        )
+        return await self.connection_manager.broadcast_to_channel(channel, message, send_fn, exclude)
 
     async def broadcast_to_user(
         self,
@@ -496,9 +487,7 @@ class WebSocketGateway:
     ) -> int:
         """Broadcast to user."""
         message = WebSocketMessage.text(data)
-        return await self.connection_manager.broadcast_to_user(
-            user_id, message, send_fn
-        )
+        return await self.connection_manager.broadcast_to_user(user_id, message, send_fn)
 
     async def broadcast_all(
         self,
@@ -508,9 +497,7 @@ class WebSocketGateway:
     ) -> int:
         """Broadcast to all."""
         message = WebSocketMessage.text(data)
-        return await self.connection_manager.broadcast_all(
-            message, send_fn, exclude
-        )
+        return await self.connection_manager.broadcast_all(message, send_fn, exclude)
 
     def get_connection(self, connection_id: str) -> Optional[WebSocketConnection]:
         """Get connection by ID."""

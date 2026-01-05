@@ -5,8 +5,8 @@ File Transfer Module - نقل الملفات
 File transfer between Master and Workers.
 """
 
-from .manager import FileTransferManager, TransferInfo, TransferStatus
 from .chunked import ChunkedTransfer
+from .manager import FileTransferManager, TransferInfo, TransferStatus
 
 __all__ = [
     "FileTransferManager",

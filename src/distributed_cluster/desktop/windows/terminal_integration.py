@@ -38,6 +38,7 @@ if IS_WINDOWS:
 
 class TerminalType(str, Enum):
     """Terminal type enumeration"""
+
     WINDOWS_TERMINAL = "wt"
     POWERSHELL = "powershell"
     POWERSHELL_CORE = "pwsh"
@@ -51,6 +52,7 @@ class TerminalProfile:
     Windows Terminal Profile Configuration
     إعدادات ملف تعريف Windows Terminal
     """
+
     name: str
     guid: str = ""
     command_line: str = ""
@@ -105,6 +107,7 @@ class TerminalSettings:
     Windows Terminal Settings
     إعدادات Windows Terminal
     """
+
     default_profile: str = ""
     always_show_tabs: bool = True
     copy_on_select: bool = False
@@ -189,8 +192,7 @@ class WindowsTerminalManager:
 
         # Windows Terminal (Store version)
         store_path = (
-            local_app_data / "Packages" / "Microsoft.WindowsTerminal_8wekyb3d8bbwe"
-            / "LocalState" / "settings.json"
+            local_app_data / "Packages" / "Microsoft.WindowsTerminal_8wekyb3d8bbwe" / "LocalState" / "settings.json"
         )
         if store_path.exists():
             self._settings_path = store_path
@@ -198,8 +200,11 @@ class WindowsTerminalManager:
 
         # Windows Terminal Preview
         preview_path = (
-            local_app_data / "Packages" / "Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe"
-            / "LocalState" / "settings.json"
+            local_app_data
+            / "Packages"
+            / "Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe"
+            / "LocalState"
+            / "settings.json"
         )
         if preview_path.exists():
             self._settings_path = preview_path
@@ -263,6 +268,7 @@ class WindowsTerminalManager:
             ssh_cmd += f' -i "{identity_file}"'
 
         import uuid
+
         guid = "{" + str(uuid.uuid4()) + "}"
 
         return TerminalProfile(
@@ -440,6 +446,7 @@ class WindowsTerminalManager:
         try:
             if admin and IS_WINDOWS:
                 import ctypes
+
                 ctypes.windll.shell32.ShellExecuteW(
                     None,
                     "runas",

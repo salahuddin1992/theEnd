@@ -109,11 +109,7 @@ class PoolsView(QWidget):
                 self.api_client.create_pool(pool_config)
                 self.refresh_requested.emit()
             except Exception as e:
-                QMessageBox.critical(
-                    self,
-                    "Error",
-                    f"Failed to create pool: {str(e)}"
-                )
+                QMessageBox.critical(self, "Error", f"Failed to create pool: {str(e)}")
         else:
             # No API client - just emit refresh
             self.refresh_requested.emit()

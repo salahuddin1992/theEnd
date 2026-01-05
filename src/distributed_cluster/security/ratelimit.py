@@ -28,6 +28,7 @@ class RateLimitExceeded(Exception):
 @dataclass
 class RateLimitConfig:
     """Rate limit configuration."""
+
     requests_per_second: float = 10.0
     burst_size: int = 20
     window_seconds: int = 60
@@ -40,6 +41,7 @@ class RateLimitConfig:
 @dataclass
 class RateLimitInfo:
     """Rate limit status information."""
+
     limit: int
     remaining: int
     reset_at: datetime
@@ -348,15 +350,11 @@ class AdaptiveRateLimiter(RateLimiter):
         if self._load >= self.load_threshold:
             # Reduce limit under high load
             reduction = (self._load - self.load_threshold) / (1 - self.load_threshold)
-            self._current_limit = int(
-                self.base_limit * (1 - reduction * 0.5)  # Reduce up to 50%
-            )
+            self._current_limit = int(self.base_limit * (1 - reduction * 0.5))  # Reduce up to 50%
         else:
             # Increase limit under low load
             increase = 1 - (self._load / self.load_threshold)
-            self._current_limit = int(
-                self.base_limit * (1 + increase * 0.5)  # Increase up to 50%
-            )
+            self._current_limit = int(self.base_limit * (1 + increase * 0.5))  # Increase up to 50%
 
         self._current_limit = max(self.min_limit, min(self.max_limit, self._current_limit))
         self._sliding_window.limit = self._current_limit
@@ -471,11 +469,7 @@ class DistributedRateLimiter(RateLimiter):
             logger.error(f"Redis rate limit reset error: {e}")
 
 
-def rate_limit(
-    rate: float = 10.0,
-    burst: int = 20,
-    key_func: Optional[Callable[..., str]] = None
-):
+def rate_limit(rate: float = 10.0, burst: int = 20, key_func: Optional[Callable[..., str]] = None):
     """Decorator for rate limiting functions."""
     limiter = TokenBucket(rate=rate, capacity=burst)
 
@@ -485,11 +479,7 @@ def rate_limit(
 
             if not limiter.acquire(key):
                 info = limiter.get_info(key)
-                raise RateLimitExceeded(
-                    limit=info.limit,
-                    window=1,
-                    retry_after=info.retry_after or 0
-                )
+                raise RateLimitExceeded(limit=info.limit, window=1, retry_after=info.retry_after or 0)
 
             return func(*args, **kwargs)
 
@@ -498,11 +488,7 @@ def rate_limit(
 
             if not limiter.acquire(key):
                 info = limiter.get_info(key)
-                raise RateLimitExceeded(
-                    limit=info.limit,
-                    window=1,
-                    retry_after=info.retry_after or 0
-                )
+                raise RateLimitExceeded(limit=info.limit, window=1, retry_after=info.retry_after or 0)
 
             return await func(*args, **kwargs)
 

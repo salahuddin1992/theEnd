@@ -102,6 +102,7 @@ try:
         cached,
         memoize,
     )
+
     _CACHING_AVAILABLE = True
 except ImportError:
     _CACHING_AVAILABLE = False

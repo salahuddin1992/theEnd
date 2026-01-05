@@ -237,7 +237,7 @@ class TextChunker:
 
     def chunk_by_lines(self, text: str) -> List[str]:
         """تقسيم بالأسطر."""
-        lines = text.split('\n')
+        lines = text.split("\n")
 
         chunks = []
         current_chunk = []
@@ -762,9 +762,7 @@ class DistributedPromptExecutor:
         on_progress: Optional[Callable[[float, str], None]] = None,
     ) -> List[Any]:
         """تنفيذ القطع بالتوازي."""
-        max_concurrency = (
-            len(self._workers) * self.max_concurrent if self._workers else self.max_concurrent
-        )
+        max_concurrency = len(self._workers) * self.max_concurrent if self._workers else self.max_concurrent
         semaphore = asyncio.Semaphore(max_concurrency)
 
         async def execute_chunk(chunk: TaskChunk) -> Any:
@@ -944,9 +942,7 @@ class DistributedPromptExecutor:
             "total_prompts": self._total_prompts,
             "completed_prompts": self._completed_prompts,
             "failed_prompts": self._failed_prompts,
-            "success_rate": (
-                self._completed_prompts / self._total_prompts if self._total_prompts > 0 else 0
-            ),
+            "success_rate": (self._completed_prompts / self._total_prompts if self._total_prompts > 0 else 0),
             "active_workers": len(self._workers),
             "available_capacity": sum(w.available_capacity for w in self._workers.values()),
             "pending_tasks": len(self._pending_tasks),

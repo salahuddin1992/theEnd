@@ -38,6 +38,7 @@ IS_WINDOWS = platform.system() == "Windows"
 
 class StartupMethod(str, Enum):
     """طريقة التشغيل التلقائي / Auto-start method"""
+
     REGISTRY = "registry"  # Windows Registry
     TASK_SCHEDULER = "task_scheduler"  # Task Scheduler
     STARTUP_FOLDER = "startup_folder"  # Startup folder shortcut
@@ -46,6 +47,7 @@ class StartupMethod(str, Enum):
 
 class StartupTrigger(str, Enum):
     """محفز التشغيل / Startup trigger"""
+
     LOGON = "logon"  # عند تسجيل الدخول
     BOOT = "boot"  # عند بدء التشغيل
     NETWORK = "network"  # عند الاتصال بالشبكة
@@ -57,6 +59,7 @@ class StartupConfig:
     إعدادات التشغيل التلقائي
     Auto-start configuration
     """
+
     enabled: bool = True
     method: StartupMethod = StartupMethod.REGISTRY
     trigger: StartupTrigger = StartupTrigger.LOGON
@@ -105,7 +108,7 @@ class AutoStartManager:
         self.config = config or StartupConfig()
 
         # Detect if running as frozen executable
-        self._is_frozen = getattr(sys, 'frozen', False)
+        self._is_frozen = getattr(sys, "frozen", False)
         if self._is_frozen:
             self.executable_path = sys.executable
 
@@ -180,11 +183,7 @@ class AutoStartManager:
         if not IS_WINDOWS:
             return False
 
-        return (
-            self._check_registry_entry() or
-            self._check_scheduled_task() or
-            self._check_startup_shortcut()
-        )
+        return self._check_registry_entry() or self._check_scheduled_task() or self._check_startup_shortcut()
 
     def get_status(self) -> dict:
         """
@@ -319,9 +318,12 @@ class AutoStartManager:
 
             # Build command
             cmd = [
-                "schtasks", "/create",
-                "/tn", task_name,
-                "/tr", f'"{self.executable_path}"',
+                "schtasks",
+                "/create",
+                "/tn",
+                task_name,
+                "/tr",
+                f'"{self.executable_path}"',
             ] + trigger.split()
 
             if self.config.delay_seconds > 0:

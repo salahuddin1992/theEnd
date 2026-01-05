@@ -110,11 +110,7 @@ class QueuesView(QWidget):
                 self.api_client.create_queue(queue_config)
                 self.refresh_requested.emit()
             except Exception as e:
-                QMessageBox.critical(
-                    self,
-                    "Error",
-                    f"Failed to create queue: {str(e)}"
-                )
+                QMessageBox.critical(self, "Error", f"Failed to create queue: {str(e)}")
         else:
             # No API client - just emit refresh
             self.refresh_requested.emit()

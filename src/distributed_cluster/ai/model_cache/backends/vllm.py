@@ -41,6 +41,7 @@ class VLLMConfig(LoaderConfig):
     إعدادات محمل vLLM
     vLLM loader configuration
     """
+
     # Server settings
     tensor_parallel_size: int = 1
     pipeline_parallel_size: int = 1
@@ -96,15 +97,14 @@ class VLLMLoader(ModelLoader):
         """تهيئة المحمل"""
         try:
             import vllm  # noqa: F401
+
             self._vllm_available = True
 
             self._initialized = True
             logger.info("VLLMLoader initialized")
 
         except ImportError:
-            logger.warning(
-                "vLLM not installed. Install with: pip install vllm"
-            )
+            logger.warning("vLLM not installed. Install with: pip install vllm")
             self._vllm_available = False
             self._initialized = True
 
@@ -118,6 +118,7 @@ class VLLMLoader(ModelLoader):
             # Clear GPU memory
             try:
                 import torch
+
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
             except ImportError:
@@ -232,6 +233,7 @@ class VLLMLoader(ModelLoader):
             # Clear GPU memory
             try:
                 import torch
+
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
             except ImportError:
@@ -287,6 +289,7 @@ class VLLMLoader(ModelLoader):
         """تقدير استخدام ذاكرة GPU"""
         try:
             import torch
+
             if torch.cuda.is_available():
                 allocated = torch.cuda.memory_allocated()
                 return int(allocated / (1024 * 1024))
@@ -410,7 +413,7 @@ class VLLMLoader(ModelLoader):
             # Simulate streaming by yielding chunks
             chunk_size = 10
             for i in range(0, len(generated_text), chunk_size):
-                yield generated_text[i:i + chunk_size]
+                yield generated_text[i : i + chunk_size]
                 await asyncio.sleep(0.01)
 
         except Exception as e:
@@ -444,12 +447,19 @@ class VLLMLoader(ModelLoader):
             port = port or self.config.api_port
 
             cmd = [
-                sys.executable, "-m", "vllm.entrypoints.openai.api_server",
-                "--model", model_id,
-                "--host", host,
-                "--port", str(port),
-                "--tensor-parallel-size", str(self.config.tensor_parallel_size),
-                "--gpu-memory-utilization", str(self.config.gpu_memory_utilization),
+                sys.executable,
+                "-m",
+                "vllm.entrypoints.openai.api_server",
+                "--model",
+                model_id,
+                "--host",
+                host,
+                "--port",
+                str(port),
+                "--tensor-parallel-size",
+                str(self.config.tensor_parallel_size),
+                "--gpu-memory-utilization",
+                str(self.config.gpu_memory_utilization),
             ]
 
             if self.config.quantization:

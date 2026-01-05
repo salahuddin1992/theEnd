@@ -357,9 +357,7 @@ class GPUMonitor:
             metrics.memory_free_mb = mem_info.free // (1024 * 1024)
 
             # Temperature
-            metrics.temperature_gpu = pynvml.nvmlDeviceGetTemperature(
-                handle, pynvml.NVML_TEMPERATURE_GPU
-            )
+            metrics.temperature_gpu = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
 
             # Power
             try:
@@ -368,9 +366,7 @@ class GPUMonitor:
                 pass
 
             try:
-                metrics.power_limit_watts = (
-                    pynvml.nvmlDeviceGetPowerManagementLimit(handle) / 1000
-                )
+                metrics.power_limit_watts = pynvml.nvmlDeviceGetPowerManagementLimit(handle) / 1000
             except Exception:
                 pass
 
@@ -381,15 +377,9 @@ class GPUMonitor:
 
             # Clocks
             try:
-                metrics.clock_graphics_mhz = pynvml.nvmlDeviceGetClockInfo(
-                    handle, pynvml.NVML_CLOCK_GRAPHICS
-                )
-                metrics.clock_memory_mhz = pynvml.nvmlDeviceGetClockInfo(
-                    handle, pynvml.NVML_CLOCK_MEM
-                )
-                metrics.clock_sm_mhz = pynvml.nvmlDeviceGetClockInfo(
-                    handle, pynvml.NVML_CLOCK_SM
-                )
+                metrics.clock_graphics_mhz = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_GRAPHICS)
+                metrics.clock_memory_mhz = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_MEM)
+                metrics.clock_sm_mhz = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM)
             except Exception:
                 pass
 
@@ -615,11 +605,7 @@ class GPUMonitor:
 
         async with self._lock:
             for gpu_index in self._metrics_history:
-                self._metrics_history[gpu_index] = [
-                    m
-                    for m in self._metrics_history[gpu_index]
-                    if m.timestamp > cutoff
-                ]
+                self._metrics_history[gpu_index] = [m for m in self._metrics_history[gpu_index] if m.timestamp > cutoff]
 
     async def get_metrics(self, gpu_index: int) -> Optional[GPUMetrics]:
         """Get latest metrics for a GPU."""
@@ -690,9 +676,7 @@ class GPUMonitor:
             "nvml_available": self._nvml_initialized,
             "monitoring_active": self._running,
             "poll_interval": self.poll_interval,
-            "health_status": {
-                idx: status.value for idx, status in self._health_status.items()
-            },
+            "health_status": {idx: status.value for idx, status in self._health_status.items()},
             "active_alerts": len([a for a in self._alerts.values() if not a.resolved]),
             "total_alerts": len(self._alerts),
         }

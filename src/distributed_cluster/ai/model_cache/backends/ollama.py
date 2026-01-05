@@ -42,6 +42,7 @@ class OllamaConfig(LoaderConfig):
     إعدادات محمل Ollama
     Ollama loader configuration
     """
+
     host: str = "http://localhost:11434"
     timeout_seconds: int = 300
     keep_alive: str = "5m"  # How long to keep model loaded
@@ -244,6 +245,7 @@ class OllamaLoader(ModelLoader):
             async for line in response.aiter_lines():
                 if line:
                     import json
+
                     data = json.loads(line)
                     if "error" in data:
                         raise Exception(data["error"])

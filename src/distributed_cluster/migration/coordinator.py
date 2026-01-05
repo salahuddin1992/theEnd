@@ -290,9 +290,7 @@ class MigrationCoordinator:
         async with self._lock:
             self._plans[plan.plan_id] = plan
 
-        logger.info(
-            f"Created maintenance plan {plan.plan_id} with {len(plan.steps)} steps"
-        )
+        logger.info(f"Created maintenance plan {plan.plan_id} with {len(plan.steps)} steps")
 
         return plan
 
@@ -382,8 +380,7 @@ class MigrationCoordinator:
             self._plans[plan.plan_id] = plan
 
         logger.warning(
-            f"Created emergency preemption plan {plan.plan_id} "
-            f"for {worker_id} with {len(plan.steps)} jobs"
+            f"Created emergency preemption plan {plan.plan_id} " f"for {worker_id} with {len(plan.steps)} jobs"
         )
 
         return plan
@@ -466,9 +463,7 @@ class MigrationCoordinator:
                 total_steps=len(plan.steps),
                 completed_steps=len(plan.completed_steps),
                 failed_steps=len(plan.failed_steps),
-                total_duration_seconds=(
-                    plan.completed_at - plan.started_at
-                ).total_seconds(),
+                total_duration_seconds=(plan.completed_at - plan.started_at).total_seconds(),
                 total_downtime_ms=0,
                 total_bytes_transferred=0,
                 errors=[str(e)],
@@ -488,9 +483,7 @@ class MigrationCoordinator:
         while plan.pending_steps and not failed:
             # Find executable steps (all dependencies satisfied)
             executable = [
-                step
-                for step in plan.pending_steps
-                if all(dep in completed_steps for dep in step.dependencies)
+                step for step in plan.pending_steps if all(dep in completed_steps for dep in step.dependencies)
             ]
 
             if not executable:
@@ -515,9 +508,7 @@ class MigrationCoordinator:
 
                     # Wait for migration to complete
                     while True:
-                        record = await self.migration_manager.get_migration_status(
-                            request_id
-                        )
+                        record = await self.migration_manager.get_migration_status(request_id)
                         if record is None:
                             step.status = MigrationState.FAILED
                             step.error_message = "Migration record not found"
@@ -530,17 +521,13 @@ class MigrationCoordinator:
                             total_bytes += record.progress.bytes_transferred
 
                             if self._on_step_complete:
-                                await self._safe_callback(
-                                    self._on_step_complete, plan, step
-                                )
+                                await self._safe_callback(self._on_step_complete, plan, step)
                             break
 
                         if record.progress.state == MigrationState.FAILED:
                             step.status = MigrationState.FAILED
                             step.error_message = record.progress.error_message
-                            errors.append(
-                                f"Step {step.step_id} failed: {step.error_message}"
-                            )
+                            errors.append(f"Step {step.step_id} failed: {step.error_message}")
 
                             if plan.rollback_on_failure:
                                 failed = True
@@ -722,8 +709,7 @@ class MigrationCoordinator:
             "executing_plans": len(self._executing_plans),
             "scheduled_plans": len(self._scheduled_tasks),
             "plans_by_status": {
-                status.value: len([p for p in self._plans.values() if p.status == status])
-                for status in PlanStatus
+                status.value: len([p for p in self._plans.values() if p.status == status]) for status in PlanStatus
             },
             "plans_by_trigger": {
                 trigger.value: len([p for p in self._plans.values() if p.trigger == trigger])

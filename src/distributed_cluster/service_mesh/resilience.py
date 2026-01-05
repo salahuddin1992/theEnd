@@ -20,6 +20,7 @@ T = TypeVar("T")
 
 class RetryStrategy(Enum):
     """Retry strategies."""
+
     FIXED = "fixed"
     EXPONENTIAL = "exponential"
     LINEAR = "linear"
@@ -29,6 +30,7 @@ class RetryStrategy(Enum):
 @dataclass
 class RetryPolicy:
     """Configuration for retry behavior."""
+
     max_attempts: int = 3
     strategy: RetryStrategy = RetryStrategy.EXPONENTIAL
     base_delay_ms: int = 100
@@ -86,6 +88,7 @@ class RetryPolicy:
 @dataclass
 class TimeoutPolicy:
     """Configuration for timeout behavior."""
+
     timeout_ms: int = 5000
     cancel_on_timeout: bool = True
     fallback: Optional[Callable[[], Any]] = None
@@ -98,6 +101,7 @@ class TimeoutPolicy:
 @dataclass
 class FallbackPolicy:
     """Configuration for fallback behavior."""
+
     fallback_fn: Callable[..., Any]
     fallback_exceptions: List[type] = field(default_factory=list)
     fallback_on_result: Optional[Callable[[Any], bool]] = None
@@ -118,6 +122,7 @@ class FallbackPolicy:
 @dataclass
 class ResiliencePolicy:
     """Combined resilience policy with multiple strategies."""
+
     name: str
     retry: Optional[RetryPolicy] = None
     timeout: Optional[TimeoutPolicy] = None
@@ -146,24 +151,14 @@ class Resilience:
     def _initialize(self):
         """Initialize resilience components."""
         if self.policy.circuit_breaker:
-            self._circuit_breaker = CircuitBreaker(
-                f"{self.policy.name}-cb",
-                self.policy.circuit_breaker
-            )
+            self._circuit_breaker = CircuitBreaker(f"{self.policy.name}-cb", self.policy.circuit_breaker)
 
         if self.policy.bulkhead:
-            self._bulkhead = Bulkhead(
-                f"{self.policy.name}-bulkhead",
-                max_concurrent=self.policy.bulkhead
-            )
+            self._bulkhead = Bulkhead(f"{self.policy.name}-bulkhead", max_concurrent=self.policy.bulkhead)
 
         if self.policy.rate_limit:
             rate, capacity = self.policy.rate_limit
-            self._rate_limiter = RateLimiter(
-                f"{self.policy.name}-ratelimit",
-                rate=rate,
-                capacity=capacity
-            )
+            self._rate_limiter = RateLimiter(f"{self.policy.name}-ratelimit", rate=rate, capacity=capacity)
 
     def execute(self, func: Callable[[], T]) -> T:
         """Execute a function with resilience policies."""
@@ -244,9 +239,7 @@ class Resilience:
     def _execute_with_circuit_breaker(self, func: Callable[[], T]) -> T:
         """Execute with circuit breaker."""
         if self._circuit_breaker:
-            return self._circuit_breaker.execute(
-                lambda: self._execute_with_timeout(func)
-            )
+            return self._circuit_breaker.execute(lambda: self._execute_with_timeout(func))
         return self._execute_with_timeout(func)
 
     def _execute_with_timeout(self, func: Callable[[], T]) -> T:
@@ -352,15 +345,11 @@ class Resilience:
 
         try:
             if asyncio.iscoroutinefunction(func):
-                return await asyncio.wait_for(
-                    func(),
-                    timeout=self.policy.timeout.timeout_seconds
-                )
+                return await asyncio.wait_for(func(), timeout=self.policy.timeout.timeout_seconds)
             else:
                 loop = asyncio.get_event_loop()
                 return await asyncio.wait_for(
-                    loop.run_in_executor(None, func),
-                    timeout=self.policy.timeout.timeout_seconds
+                    loop.run_in_executor(None, func), timeout=self.policy.timeout.timeout_seconds
                 )
         except asyncio.TimeoutError:
             self._stats.timeouts += 1
@@ -390,6 +379,7 @@ class Resilience:
 @dataclass
 class ResilienceStats:
     """Statistics for resilience execution."""
+
     total_calls: int = 0
     successful_calls: int = 0
     failed_calls: int = 0
@@ -429,9 +419,10 @@ def resilient(
     fallback: Optional[Callable] = None,
     circuit_breaker: Optional[CircuitBreakerConfig] = None,
     bulkhead: Optional[int] = None,
-    rate_limit: Optional[tuple] = None
+    rate_limit: Optional[tuple] = None,
 ):
     """Decorator for applying resilience policies to a function."""
+
     def decorator(func: Callable) -> Callable:
         policy = ResiliencePolicy(
             name=f"{func.__module__}.{func.__qualname__}",

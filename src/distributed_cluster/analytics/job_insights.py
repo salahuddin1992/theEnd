@@ -216,10 +216,7 @@ class PerformanceSummary:
             "total_memory_gb_hours": round(self.total_memory_gb_hours, 2),
             "total_gpu_hours": round(self.total_gpu_hours, 2),
             "busiest_hour": self.busiest_hour,
-            "top_failure_reasons": [
-                {"reason": reason, "count": count}
-                for reason, count in self.top_failure_reasons
-            ],
+            "top_failure_reasons": [{"reason": reason, "count": count} for reason, count in self.top_failure_reasons],
             "jobs_by_status": self.jobs_by_status,
             "jobs_by_worker": self.jobs_by_worker,
         }
@@ -336,7 +333,7 @@ class JobInsightsEngine:
             path.parent.mkdir(parents=True, exist_ok=True)
 
             data = {
-                "records": [r.to_dict() for r in self._records[-self.max_records:]],
+                "records": [r.to_dict() for r in self._records[-self.max_records :]],
                 "saved_at": datetime.now(timezone.utc).isoformat(),
             }
 
@@ -386,8 +383,8 @@ class JobInsightsEngine:
 
             # Trim if needed
             if len(self._records) > self.max_records:
-                removed = self._records[:-self.max_records]
-                self._records = self._records[-self.max_records:]
+                removed = self._records[: -self.max_records]
+                self._records = self._records[-self.max_records :]
                 for r in removed:
                     self._records_by_id.pop(r.job_id, None)
 
@@ -420,10 +417,7 @@ class JobInsightsEngine:
         start = start_date or (end - timedelta(days=days))
 
         # Filter records in range
-        records = [
-            r for r in self._records
-            if r.submitted_at >= start and r.submitted_at <= end
-        ]
+        records = [r for r in self._records if r.submitted_at >= start and r.submitted_at <= end]
 
         if not records:
             return PerformanceSummary(
@@ -453,14 +447,8 @@ class JobInsightsEngine:
         timeout = [r for r in records if r.status == JobStatus.TIMEOUT]
 
         # Execution times
-        execution_times = [
-            r.execution_time_seconds for r in completed
-            if r.execution_time_seconds is not None
-        ]
-        queue_times = [
-            r.queue_time_seconds for r in records
-            if r.queue_time_seconds is not None
-        ]
+        execution_times = [r.execution_time_seconds for r in completed if r.execution_time_seconds is not None]
+        queue_times = [r.queue_time_seconds for r in records if r.queue_time_seconds is not None]
 
         # Calculate percentiles
         sorted_exec = sorted(execution_times) if execution_times else [0]
@@ -470,16 +458,14 @@ class JobInsightsEngine:
 
         # Resource usage
         total_cpu_hours = sum(
-            (r.cpu_used or r.cpu_requested) * (r.execution_time_seconds or 0) / 3600
-            for r in completed
+            (r.cpu_used or r.cpu_requested) * (r.execution_time_seconds or 0) / 3600 for r in completed
         )
         total_memory_gb_hours = sum(
             (r.memory_used_mb or r.memory_requested_mb) / 1024 * (r.execution_time_seconds or 0) / 3600
             for r in completed
         )
         total_gpu_hours = sum(
-            (r.gpu_used or r.gpu_requested) * (r.execution_time_seconds or 0) / 3600
-            for r in completed
+            (r.gpu_used or r.gpu_requested) * (r.execution_time_seconds or 0) / 3600 for r in completed
         )
 
         # Jobs by hour
@@ -494,11 +480,7 @@ class JobInsightsEngine:
             reason = self._extract_failure_reason(r.error_message)
             failure_reasons[reason] += 1
 
-        top_failures = sorted(
-            failure_reasons.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )[:10]
+        top_failures = sorted(failure_reasons.items(), key=lambda x: x[1], reverse=True)[:10]
 
         # Jobs by status
         jobs_by_status = defaultdict(int)
@@ -597,74 +579,84 @@ class JobInsightsEngine:
         # 1. Check success rate
         if summary.total_jobs >= 10:
             if summary.success_rate < 0.8:
-                insights.append(self._create_insight(
-                    type=InsightType.FAILURE,
-                    priority=InsightPriority.CRITICAL if summary.success_rate < 0.5 else InsightPriority.HIGH,
-                    title="Low Job Success Rate",
-                    description=(
-                        f"Only {summary.success_rate:.1%} of jobs completed successfully "
-                        f"in the last {days} days"
-                    ),
-                    metric_value=summary.success_rate * 100,
-                    metric_unit="percent",
-                    threshold=80.0,
-                    recommendation="Investigate top failure reasons and address root causes",
-                ))
+                insights.append(
+                    self._create_insight(
+                        type=InsightType.FAILURE,
+                        priority=InsightPriority.CRITICAL if summary.success_rate < 0.5 else InsightPriority.HIGH,
+                        title="Low Job Success Rate",
+                        description=(
+                            f"Only {summary.success_rate:.1%} of jobs completed successfully "
+                            f"in the last {days} days"
+                        ),
+                        metric_value=summary.success_rate * 100,
+                        metric_unit="percent",
+                        threshold=80.0,
+                        recommendation="Investigate top failure reasons and address root causes",
+                    )
+                )
 
         # 2. Check queue times
         if summary.avg_queue_time_seconds > 300:  # > 5 minutes
-            insights.append(self._create_insight(
-                type=InsightType.PERFORMANCE,
-                priority=InsightPriority.MEDIUM if summary.avg_queue_time_seconds < 600 else InsightPriority.HIGH,
-                title="High Queue Wait Times",
-                description=f"Average queue time is {summary.avg_queue_time_seconds / 60:.1f} minutes",
-                metric_value=summary.avg_queue_time_seconds,
-                metric_unit="seconds",
-                threshold=300.0,
-                recommendation="Consider scaling up worker capacity or optimizing scheduling",
-            ))
+            insights.append(
+                self._create_insight(
+                    type=InsightType.PERFORMANCE,
+                    priority=InsightPriority.MEDIUM if summary.avg_queue_time_seconds < 600 else InsightPriority.HIGH,
+                    title="High Queue Wait Times",
+                    description=f"Average queue time is {summary.avg_queue_time_seconds / 60:.1f} minutes",
+                    metric_value=summary.avg_queue_time_seconds,
+                    metric_unit="seconds",
+                    threshold=300.0,
+                    recommendation="Consider scaling up worker capacity or optimizing scheduling",
+                )
+            )
 
         # 3. Check execution time variance
         if summary.p95_execution_time_seconds > summary.avg_execution_time_seconds * 3:
-            insights.append(self._create_insight(
-                type=InsightType.PERFORMANCE,
-                priority=InsightPriority.MEDIUM,
-                title="High Execution Time Variance",
-                description=(
-                    f"P95 execution time ({summary.p95_execution_time_seconds:.0f}s) is 3x higher "
-                    f"than average ({summary.avg_execution_time_seconds:.0f}s)"
-                ),
-                metric_value=summary.p95_execution_time_seconds,
-                metric_unit="seconds",
-                recommendation="Investigate outlier jobs and consider setting execution time limits",
-            ))
+            insights.append(
+                self._create_insight(
+                    type=InsightType.PERFORMANCE,
+                    priority=InsightPriority.MEDIUM,
+                    title="High Execution Time Variance",
+                    description=(
+                        f"P95 execution time ({summary.p95_execution_time_seconds:.0f}s) is 3x higher "
+                        f"than average ({summary.avg_execution_time_seconds:.0f}s)"
+                    ),
+                    metric_value=summary.p95_execution_time_seconds,
+                    metric_unit="seconds",
+                    recommendation="Investigate outlier jobs and consider setting execution time limits",
+                )
+            )
 
         # 4. Check retry rate
         if summary.avg_retries > 0.5:
-            insights.append(self._create_insight(
-                type=InsightType.FAILURE,
-                priority=InsightPriority.MEDIUM,
-                title="High Retry Rate",
-                description=f"Average retries per job is {summary.avg_retries:.2f}",
-                metric_value=summary.avg_retries,
-                metric_unit="retries",
-                threshold=0.5,
-                recommendation="Investigate retry causes; consider improving error handling or resource allocation",
-            ))
+            insights.append(
+                self._create_insight(
+                    type=InsightType.FAILURE,
+                    priority=InsightPriority.MEDIUM,
+                    title="High Retry Rate",
+                    description=f"Average retries per job is {summary.avg_retries:.2f}",
+                    metric_value=summary.avg_retries,
+                    metric_unit="retries",
+                    threshold=0.5,
+                    recommendation="Investigate retry causes; consider improving error handling or resource allocation",
+                )
+            )
 
         # 5. Analyze top failure reasons
         for reason, count in summary.top_failure_reasons[:3]:
             failure_rate = count / summary.total_jobs if summary.total_jobs > 0 else 0
             if failure_rate > 0.05:  # More than 5% of jobs
-                insights.append(self._create_insight(
-                    type=InsightType.FAILURE,
-                    priority=InsightPriority.HIGH if failure_rate > 0.1 else InsightPriority.MEDIUM,
-                    title=f"Frequent Failure: {reason}",
-                    description=f"{count} jobs ({failure_rate:.1%}) failed with: {reason}",
-                    metric_value=count,
-                    metric_unit="jobs",
-                    recommendation=self._get_failure_recommendation(reason),
-                ))
+                insights.append(
+                    self._create_insight(
+                        type=InsightType.FAILURE,
+                        priority=InsightPriority.HIGH if failure_rate > 0.1 else InsightPriority.MEDIUM,
+                        title=f"Frequent Failure: {reason}",
+                        description=f"{count} jobs ({failure_rate:.1%}) failed with: {reason}",
+                        metric_value=count,
+                        metric_unit="jobs",
+                        recommendation=self._get_failure_recommendation(reason),
+                    )
+                )
 
         # 6. Check worker distribution
         if summary.jobs_by_worker:
@@ -673,38 +665,43 @@ class JobInsightsEngine:
                 max_jobs = max(worker_counts)
                 min_jobs = min(worker_counts)
                 if max_jobs > min_jobs * 3:  # Significant imbalance
-                    insights.append(self._create_insight(
-                        type=InsightType.RESOURCE,
-                        priority=InsightPriority.MEDIUM,
-                        title="Uneven Worker Load Distribution",
-                        description=f"Highest loaded worker has {max_jobs} jobs vs {min_jobs} for the lowest",
-                        recommendation="Review scheduling strategy; consider load-aware scheduling",
-                    ))
+                    insights.append(
+                        self._create_insight(
+                            type=InsightType.RESOURCE,
+                            priority=InsightPriority.MEDIUM,
+                            title="Uneven Worker Load Distribution",
+                            description=f"Highest loaded worker has {max_jobs} jobs vs {min_jobs} for the lowest",
+                            recommendation="Review scheduling strategy; consider load-aware scheduling",
+                        )
+                    )
 
         # 7. Check timeout rate
         if summary.timeout_jobs > summary.total_jobs * 0.05:
-            insights.append(self._create_insight(
-                type=InsightType.FAILURE,
-                priority=InsightPriority.HIGH,
-                title="High Timeout Rate",
-                description=(
-                    f"{summary.timeout_jobs} jobs "
-                    f"({summary.timeout_jobs / summary.total_jobs:.1%}) timed out"
-                ),
-                metric_value=summary.timeout_jobs,
-                metric_unit="jobs",
-                recommendation="Review timeout settings; optimize job execution or increase limits",
-            ))
+            insights.append(
+                self._create_insight(
+                    type=InsightType.FAILURE,
+                    priority=InsightPriority.HIGH,
+                    title="High Timeout Rate",
+                    description=(
+                        f"{summary.timeout_jobs} jobs " f"({summary.timeout_jobs / summary.total_jobs:.1%}) timed out"
+                    ),
+                    metric_value=summary.timeout_jobs,
+                    metric_unit="jobs",
+                    recommendation="Review timeout settings; optimize job execution or increase limits",
+                )
+            )
 
         # 8. Peak hour analysis
         if summary.busiest_hour is not None:
-            insights.append(self._create_insight(
-                type=InsightType.TREND,
-                priority=InsightPriority.INFO,
-                title="Peak Usage Pattern Detected",
-                description=f"Busiest hour is {summary.busiest_hour:02d}:00",
-                recommendation="Consider pre-scaling workers before peak hours",
-            ))
+            insights.append(
+                self._create_insight(
+                    type=InsightType.TREND,
+                    priority=InsightPriority.INFO,
+                    title="Peak Usage Pattern Detected",
+                    description=f"Busiest hour is {summary.busiest_hour:02d}:00",
+                    recommendation="Consider pre-scaling workers before peak hours",
+                )
+            )
 
         # Filter by priority
         priority_order = {
@@ -792,10 +789,7 @@ class JobInsightsEngine:
         start = end - timedelta(days=days)
 
         failed_records = [
-            r for r in self._records
-            if r.status == JobStatus.FAILED
-            and r.submitted_at >= start
-            and r.error_message
+            r for r in self._records if r.status == JobStatus.FAILED and r.submitted_at >= start and r.error_message
         ]
 
         # Group by error signature
@@ -827,18 +821,20 @@ class JobInsightsEngine:
             else:
                 severity = "medium"
 
-            patterns.append(FailurePattern(
-                pattern_id=f"pattern-{pattern_counter:04d}",
-                error_signature=signature,
-                occurrence_count=len(records),
-                first_seen=min(r.submitted_at for r in records),
-                last_seen=max(r.submitted_at for r in records),
-                affected_job_ids=[r.job_id for r in records],
-                affected_workers=workers,
-                common_tags=common_tags,
-                severity=severity,
-                suggested_action=self._get_failure_recommendation(signature),
-            ))
+            patterns.append(
+                FailurePattern(
+                    pattern_id=f"pattern-{pattern_counter:04d}",
+                    error_signature=signature,
+                    occurrence_count=len(records),
+                    first_seen=min(r.submitted_at for r in records),
+                    last_seen=max(r.submitted_at for r in records),
+                    affected_job_ids=[r.job_id for r in records],
+                    affected_workers=workers,
+                    common_tags=common_tags,
+                    severity=severity,
+                    suggested_action=self._get_failure_recommendation(signature),
+                )
+            )
 
         # Sort by occurrence count
         patterns.sort(key=lambda x: x.occurrence_count, reverse=True)
@@ -874,10 +870,7 @@ class JobInsightsEngine:
         end = datetime.now(timezone.utc)
         start = end - timedelta(days=days)
 
-        records = [
-            r for r in self._records
-            if r.submitted_at >= start and r.worker_id
-        ]
+        records = [r for r in self._records if r.submitted_at >= start and r.worker_id]
 
         worker_stats: Dict[str, Dict[str, Any]] = {}
 
@@ -886,10 +879,7 @@ class JobInsightsEngine:
             completed = [r for r in worker_records if r.status == JobStatus.COMPLETED]
             failed = [r for r in worker_records if r.status == JobStatus.FAILED]
 
-            exec_times = [
-                r.execution_time_seconds for r in completed
-                if r.execution_time_seconds is not None
-            ]
+            exec_times = [r.execution_time_seconds for r in completed if r.execution_time_seconds is not None]
 
             worker_stats[worker_id] = {
                 "total_jobs": len(worker_records),
@@ -898,8 +888,7 @@ class JobInsightsEngine:
                 "success_rate": len(completed) / len(worker_records) if worker_records else 0,
                 "avg_execution_time": statistics.mean(exec_times) if exec_times else 0,
                 "total_cpu_hours": sum(
-                    (r.cpu_used or r.cpu_requested) * (r.execution_time_seconds or 0) / 3600
-                    for r in completed
+                    (r.cpu_used or r.cpu_requested) * (r.execution_time_seconds or 0) / 3600 for r in completed
                 ),
                 "total_retries": sum(r.retry_count for r in worker_records),
             }
@@ -919,15 +908,9 @@ class JobInsightsEngine:
         end = datetime.now(timezone.utc)
         start = end - timedelta(days=days)
 
-        records = [
-            r for r in self._records
-            if r.submitted_at >= start
-        ]
+        records = [r for r in self._records if r.submitted_at >= start]
 
-        distribution: Dict[int, Dict[str, int]] = {
-            h: {"submitted": 0, "completed": 0, "failed": 0}
-            for h in range(24)
-        }
+        distribution: Dict[int, Dict[str, int]] = {h: {"submitted": 0, "completed": 0, "failed": 0} for h in range(24)}
 
         for r in records:
             hour = r.submitted_at.hour
@@ -969,30 +952,26 @@ class JobInsightsEngine:
 
         while current < end:
             next_period = current + delta
-            period_records = [
-                r for r in self._records
-                if r.submitted_at >= current and r.submitted_at < next_period
-            ]
+            period_records = [r for r in self._records if r.submitted_at >= current and r.submitted_at < next_period]
 
             if period_records:
                 if metric == "success_rate":
                     completed = sum(1 for r in period_records if r.status == JobStatus.COMPLETED)
                     value = completed / len(period_records)
                 elif metric == "avg_execution_time":
-                    times = [
-                        r.execution_time_seconds for r in period_records
-                        if r.execution_time_seconds is not None
-                    ]
+                    times = [r.execution_time_seconds for r in period_records if r.execution_time_seconds is not None]
                     value = statistics.mean(times) if times else 0
                 elif metric == "job_count":
                     value = len(period_records)
                 else:
                     value = 0
 
-                data_points.append({
-                    "timestamp": current.isoformat(),
-                    "value": round(value, 4),
-                })
+                data_points.append(
+                    {
+                        "timestamp": current.isoformat(),
+                        "value": round(value, 4),
+                    }
+                )
 
             current = next_period
 
@@ -1014,52 +993,60 @@ class JobInsightsEngine:
 
         # Resource optimization
         if summary.total_cpu_hours > 0:
-            recommendations.append({
-                "category": "resource_optimization",
-                "title": "Resource Usage Summary",
-                "description": (
-                    f"Total compute: {summary.total_cpu_hours:.1f} CPU-hours, "
-                    f"{summary.total_memory_gb_hours:.1f} GB-hours, "
-                    f"{summary.total_gpu_hours:.1f} GPU-hours"
-                ),
-                "priority": "info",
-                "impact": "awareness",
-            })
+            recommendations.append(
+                {
+                    "category": "resource_optimization",
+                    "title": "Resource Usage Summary",
+                    "description": (
+                        f"Total compute: {summary.total_cpu_hours:.1f} CPU-hours, "
+                        f"{summary.total_memory_gb_hours:.1f} GB-hours, "
+                        f"{summary.total_gpu_hours:.1f} GPU-hours"
+                    ),
+                    "priority": "info",
+                    "impact": "awareness",
+                }
+            )
 
         # Scaling recommendation
         if summary.avg_queue_time_seconds > 60:
             workers_needed = int(summary.avg_queue_time_seconds / 60)
-            recommendations.append({
-                "category": "scaling",
-                "title": "Consider Adding Workers",
-                "description": f"Queue times suggest adding {workers_needed} more workers could help",
-                "priority": "medium" if summary.avg_queue_time_seconds < 300 else "high",
-                "impact": f"Could reduce queue time by ~{summary.avg_queue_time_seconds * 0.5:.0f}s",
-            })
+            recommendations.append(
+                {
+                    "category": "scaling",
+                    "title": "Consider Adding Workers",
+                    "description": f"Queue times suggest adding {workers_needed} more workers could help",
+                    "priority": "medium" if summary.avg_queue_time_seconds < 300 else "high",
+                    "impact": f"Could reduce queue time by ~{summary.avg_queue_time_seconds * 0.5:.0f}s",
+                }
+            )
 
         # Failure prevention
         if patterns:
             top_pattern = patterns[0]
-            recommendations.append({
-                "category": "reliability",
-                "title": f"Address '{top_pattern.error_signature}' Failures",
-                "description": f"{top_pattern.occurrence_count} jobs affected. {top_pattern.suggested_action}",
-                "priority": top_pattern.severity,
-                "impact": f"Could prevent {top_pattern.occurrence_count} failures",
-            })
+            recommendations.append(
+                {
+                    "category": "reliability",
+                    "title": f"Address '{top_pattern.error_signature}' Failures",
+                    "description": f"{top_pattern.occurrence_count} jobs affected. {top_pattern.suggested_action}",
+                    "priority": top_pattern.severity,
+                    "impact": f"Could prevent {top_pattern.occurrence_count} failures",
+                }
+            )
 
         # Timeout tuning
         if summary.timeout_jobs > 0:
-            recommendations.append({
-                "category": "configuration",
-                "title": "Review Timeout Settings",
-                "description": (
-                    f"{summary.timeout_jobs} jobs timed out. Consider adjusting timeouts "
-                    f"based on P95 execution time ({summary.p95_execution_time_seconds:.0f}s)"
-                ),
-                "priority": "medium",
-                "impact": f"Could save {summary.timeout_jobs} jobs from timeout",
-            })
+            recommendations.append(
+                {
+                    "category": "configuration",
+                    "title": "Review Timeout Settings",
+                    "description": (
+                        f"{summary.timeout_jobs} jobs timed out. Consider adjusting timeouts "
+                        f"based on P95 execution time ({summary.p95_execution_time_seconds:.0f}s)"
+                    ),
+                    "priority": "medium",
+                    "impact": f"Could save {summary.timeout_jobs} jobs from timeout",
+                }
+            )
 
         return recommendations
 

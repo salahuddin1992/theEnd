@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class ResourceType(Enum):
     """Types of system resources."""
+
     CPU = "cpu"
     MEMORY = "memory"
     DISK_IO = "disk_io"
@@ -38,6 +39,7 @@ class ResourceType(Enum):
 
 class BottleneckType(Enum):
     """Types of performance bottlenecks."""
+
     CPU_BOUND = "cpu_bound"
     MEMORY_BOUND = "memory_bound"
     IO_BOUND = "io_bound"
@@ -50,15 +52,17 @@ class BottleneckType(Enum):
 
 class OptimizationLevel(Enum):
     """Levels of optimization aggressiveness."""
-    MINIMAL = "minimal"       # Only critical optimizations
-    MODERATE = "moderate"     # Balanced approach
-    AGGRESSIVE = "aggressive" # Maximum optimization
-    ADAPTIVE = "adaptive"     # Dynamically adjust based on conditions
+
+    MINIMAL = "minimal"  # Only critical optimizations
+    MODERATE = "moderate"  # Balanced approach
+    AGGRESSIVE = "aggressive"  # Maximum optimization
+    ADAPTIVE = "adaptive"  # Dynamically adjust based on conditions
 
 
 @dataclass
 class ResourceMetrics:
     """Snapshot of resource utilization metrics."""
+
     timestamp: datetime = field(default_factory=datetime.now)
     cpu_percent: float = 0.0
     memory_percent: float = 0.0
@@ -75,6 +79,7 @@ class ResourceMetrics:
 @dataclass
 class PerformanceMetrics:
     """Application-level performance metrics."""
+
     timestamp: datetime = field(default_factory=datetime.now)
     request_count: int = 0
     error_count: int = 0
@@ -90,6 +95,7 @@ class PerformanceMetrics:
 @dataclass
 class OptimizationAction:
     """Represents a performance optimization action."""
+
     action_type: str
     target: str
     parameters: Dict[str, Any]
@@ -103,6 +109,7 @@ class OptimizationAction:
 @dataclass
 class PerformanceProfile:
     """Performance profile for different workload types."""
+
     name: str
     cpu_target: float = 70.0
     memory_target: float = 80.0
@@ -270,13 +277,13 @@ class BottleneckDetector:
             bottlenecks.append((BottleneckType.MEMORY_BOUND, severity))
 
         # Disk I/O bottleneck
-        disk_io_rate = (metrics.disk_read_bytes + metrics.disk_write_bytes)
+        disk_io_rate = metrics.disk_read_bytes + metrics.disk_write_bytes
         if disk_io_rate > self.disk_io_threshold:
             severity = min(1.0, (disk_io_rate - self.disk_io_threshold) / self.disk_io_threshold)
             bottlenecks.append((BottleneckType.IO_BOUND, severity))
 
         # Network I/O bottleneck
-        network_io_rate = (metrics.network_recv_bytes + metrics.network_sent_bytes)
+        network_io_rate = metrics.network_recv_bytes + metrics.network_sent_bytes
         if network_io_rate > self.network_io_threshold:
             severity = min(1.0, (network_io_rate - self.network_io_threshold) / self.network_io_threshold)
             bottlenecks.append((BottleneckType.NETWORK_BOUND, severity))
@@ -287,10 +294,9 @@ class BottleneckDetector:
             bottlenecks.append((BottleneckType.CONNECTION_EXHAUSTION, severity))
 
         if bottlenecks:
-            self.bottleneck_history.append({
-                'timestamp': datetime.now().isoformat(),
-                'bottlenecks': [(b.value, s) for b, s in bottlenecks]
-            })
+            self.bottleneck_history.append(
+                {"timestamp": datetime.now().isoformat(), "bottlenecks": [(b.value, s) for b, s in bottlenecks]}
+            )
 
         return bottlenecks
 
@@ -304,7 +310,7 @@ class AdaptiveConnectionPool:
         max_size: int = 1000,
         initial_size: int = 50,
         scale_up_threshold: float = 0.8,
-        scale_down_threshold: float = 0.3
+        scale_down_threshold: float = 0.3,
     ):
         self.min_size = min_size
         self.max_size = max_size
@@ -324,10 +330,12 @@ class AdaptiveConnectionPool:
         with self._lock:
             self.active_connections = active
             self.peak_connections = max(self.peak_connections, active)
-            self.connection_requests.append({
-                'timestamp': time.time(),
-                'active': active,
-            })
+            self.connection_requests.append(
+                {
+                    "timestamp": time.time(),
+                    "active": active,
+                }
+            )
             self.wait_times.append(wait_time_ms)
 
     def get_recommended_size(self) -> int:
@@ -341,16 +349,11 @@ class AdaptiveConnectionPool:
 
             # Scale up if high utilization
             if utilization > self.scale_up_threshold:
-                new_size = min(
-                    int(self.current_size * 1.5),
-                    self.max_size
-                )
+                new_size = min(int(self.current_size * 1.5), self.max_size)
             # Scale down if low utilization
             elif utilization < self.scale_down_threshold and self.current_size > self.min_size:
                 new_size = max(
-                    int(self.current_size * 0.8),
-                    self.min_size,
-                    self.peak_connections + 10  # Keep some headroom
+                    int(self.current_size * 0.8), self.min_size, self.peak_connections + 10  # Keep some headroom
                 )
             else:
                 new_size = self.current_size
@@ -371,11 +374,7 @@ class AdaptiveThreadPool:
     """Adaptive thread pool that adjusts size based on workload."""
 
     def __init__(
-        self,
-        min_workers: int = 4,
-        max_workers: int = 200,
-        initial_workers: int = 20,
-        queue_threshold: int = 50
+        self, min_workers: int = 4, max_workers: int = 200, initial_workers: int = 20, queue_threshold: int = 50
     ):
         self.min_workers = min_workers
         self.max_workers = max_workers
@@ -420,10 +419,7 @@ class AdaptiveThreadPool:
                 new_workers = min(int(self.current_workers * scale_factor), self.max_workers)
             # Low utilization - scale down
             elif self.queue_size == 0 and self.active_tasks < self.current_workers * 0.3:
-                new_workers = max(
-                    int(self.current_workers * 0.8),
-                    self.min_workers
-                )
+                new_workers = max(int(self.current_workers * 0.8), self.min_workers)
             else:
                 new_workers = self.current_workers
 
@@ -443,12 +439,14 @@ class QueryOptimizer:
     """Optimizes query patterns for better performance."""
 
     def __init__(self):
-        self.query_stats: Dict[str, Dict[str, Any]] = defaultdict(lambda: {
-            'count': 0,
-            'total_time_ms': 0.0,
-            'avg_time_ms': 0.0,
-            'result_sizes': [],
-        })
+        self.query_stats: Dict[str, Dict[str, Any]] = defaultdict(
+            lambda: {
+                "count": 0,
+                "total_time_ms": 0.0,
+                "avg_time_ms": 0.0,
+                "result_sizes": [],
+            }
+        )
         self.slow_query_threshold_ms = 100.0
         self.slow_queries: deque = deque(maxlen=100)
         self._lock = threading.Lock()
@@ -457,19 +455,21 @@ class QueryOptimizer:
         """Record query execution statistics."""
         with self._lock:
             stats = self.query_stats[query_hash]
-            stats['count'] += 1
-            stats['total_time_ms'] += execution_time_ms
-            stats['avg_time_ms'] = stats['total_time_ms'] / stats['count']
-            stats['result_sizes'].append(result_size)
-            if len(stats['result_sizes']) > 100:
-                stats['result_sizes'] = stats['result_sizes'][-100:]
+            stats["count"] += 1
+            stats["total_time_ms"] += execution_time_ms
+            stats["avg_time_ms"] = stats["total_time_ms"] / stats["count"]
+            stats["result_sizes"].append(result_size)
+            if len(stats["result_sizes"]) > 100:
+                stats["result_sizes"] = stats["result_sizes"][-100:]
 
             if execution_time_ms > self.slow_query_threshold_ms:
-                self.slow_queries.append({
-                    'query_hash': query_hash,
-                    'execution_time_ms': execution_time_ms,
-                    'timestamp': datetime.now().isoformat(),
-                })
+                self.slow_queries.append(
+                    {
+                        "query_hash": query_hash,
+                        "execution_time_ms": execution_time_ms,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                )
 
     def get_optimization_suggestions(self) -> List[Dict[str, Any]]:
         """Get query optimization suggestions."""
@@ -477,37 +477,43 @@ class QueryOptimizer:
 
         with self._lock:
             for query_hash, stats in self.query_stats.items():
-                if stats['count'] < 10:
+                if stats["count"] < 10:
                     continue
 
                 # Frequent slow queries
-                if stats['avg_time_ms'] > self.slow_query_threshold_ms:
-                    suggestions.append({
-                        'type': 'slow_query',
-                        'query_hash': query_hash,
-                        'avg_time_ms': stats['avg_time_ms'],
-                        'count': stats['count'],
-                        'suggestion': 'Consider caching results or optimizing query',
-                    })
+                if stats["avg_time_ms"] > self.slow_query_threshold_ms:
+                    suggestions.append(
+                        {
+                            "type": "slow_query",
+                            "query_hash": query_hash,
+                            "avg_time_ms": stats["avg_time_ms"],
+                            "count": stats["count"],
+                            "suggestion": "Consider caching results or optimizing query",
+                        }
+                    )
 
                 # Large result sets
-                avg_result_size = statistics.mean(stats['result_sizes']) if stats['result_sizes'] else 0
+                avg_result_size = statistics.mean(stats["result_sizes"]) if stats["result_sizes"] else 0
                 if avg_result_size > 10000:
-                    suggestions.append({
-                        'type': 'large_result',
-                        'query_hash': query_hash,
-                        'avg_result_size': avg_result_size,
-                        'suggestion': 'Consider pagination or result limiting',
-                    })
+                    suggestions.append(
+                        {
+                            "type": "large_result",
+                            "query_hash": query_hash,
+                            "avg_result_size": avg_result_size,
+                            "suggestion": "Consider pagination or result limiting",
+                        }
+                    )
 
                 # High frequency queries
-                if stats['count'] > 1000:
-                    suggestions.append({
-                        'type': 'high_frequency',
-                        'query_hash': query_hash,
-                        'count': stats['count'],
-                        'suggestion': 'Consider caching or batching',
-                    })
+                if stats["count"] > 1000:
+                    suggestions.append(
+                        {
+                            "type": "high_frequency",
+                            "query_hash": query_hash,
+                            "count": stats["count"],
+                            "suggestion": "Consider caching or batching",
+                        }
+                    )
 
         return suggestions
 
@@ -519,9 +525,7 @@ class PerformanceOptimizer:
     """
 
     def __init__(
-        self,
-        level: OptimizationLevel = OptimizationLevel.ADAPTIVE,
-        profile: Optional[PerformanceProfile] = None
+        self, level: OptimizationLevel = OptimizationLevel.ADAPTIVE, profile: Optional[PerformanceProfile] = None
     ):
         self.level = level
         self.profile = profile or PerformanceProfile(name="default")
@@ -654,62 +658,70 @@ class PerformanceOptimizer:
         for bottleneck, severity in bottlenecks:
             if bottleneck == BottleneckType.CPU_BOUND:
                 if severity > 0.5:
-                    actions.append(OptimizationAction(
-                        action_type='reduce_cpu_load',
-                        target='thread_pool',
-                        parameters={'action': 'reduce_workers', 'factor': 0.8},
-                        priority=int(severity * 10),
-                        estimated_impact=severity * 20,
-                        risk_level='low',
-                        reversible=True,
-                        description='Reduce thread pool size to lower CPU usage'
-                    ))
+                    actions.append(
+                        OptimizationAction(
+                            action_type="reduce_cpu_load",
+                            target="thread_pool",
+                            parameters={"action": "reduce_workers", "factor": 0.8},
+                            priority=int(severity * 10),
+                            estimated_impact=severity * 20,
+                            risk_level="low",
+                            reversible=True,
+                            description="Reduce thread pool size to lower CPU usage",
+                        )
+                    )
 
             elif bottleneck == BottleneckType.MEMORY_BOUND:
                 if severity > 0.3:
-                    actions.append(OptimizationAction(
-                        action_type='reduce_memory',
-                        target='cache',
-                        parameters={'action': 'evict', 'percentage': severity * 30},
-                        priority=int(severity * 10),
-                        estimated_impact=severity * 25,
-                        risk_level='medium',
-                        reversible=False,
-                        description='Evict cache entries to free memory'
-                    ))
+                    actions.append(
+                        OptimizationAction(
+                            action_type="reduce_memory",
+                            target="cache",
+                            parameters={"action": "evict", "percentage": severity * 30},
+                            priority=int(severity * 10),
+                            estimated_impact=severity * 25,
+                            risk_level="medium",
+                            reversible=False,
+                            description="Evict cache entries to free memory",
+                        )
+                    )
 
             elif bottleneck == BottleneckType.CONNECTION_EXHAUSTION:
-                actions.append(OptimizationAction(
-                    action_type='optimize_connections',
-                    target='connection_pool',
-                    parameters={'action': 'expand', 'factor': 1.5},
-                    priority=int(severity * 10),
-                    estimated_impact=severity * 30,
-                    risk_level='low',
-                    reversible=True,
-                    description='Expand connection pool to handle more connections'
-                ))
+                actions.append(
+                    OptimizationAction(
+                        action_type="optimize_connections",
+                        target="connection_pool",
+                        parameters={"action": "expand", "factor": 1.5},
+                        priority=int(severity * 10),
+                        estimated_impact=severity * 30,
+                        risk_level="low",
+                        reversible=True,
+                        description="Expand connection pool to handle more connections",
+                    )
+                )
 
             elif bottleneck == BottleneckType.IO_BOUND:
-                actions.append(OptimizationAction(
-                    action_type='optimize_io',
-                    target='batching',
-                    parameters={'enable': True, 'batch_size': 100},
-                    priority=int(severity * 10),
-                    estimated_impact=severity * 20,
-                    risk_level='low',
-                    reversible=True,
-                    description='Enable I/O batching to reduce overhead'
-                ))
+                actions.append(
+                    OptimizationAction(
+                        action_type="optimize_io",
+                        target="batching",
+                        parameters={"enable": True, "batch_size": 100},
+                        priority=int(severity * 10),
+                        estimated_impact=severity * 20,
+                        risk_level="low",
+                        reversible=True,
+                        description="Enable I/O batching to reduce overhead",
+                    )
+                )
 
         return sorted(actions, key=lambda a: a.priority, reverse=True)
 
     def _should_apply_action(self, action: OptimizationAction) -> bool:
         """Determine if an action should be applied based on optimization level."""
         if self.level == OptimizationLevel.MINIMAL:
-            return action.priority >= 8 and action.risk_level == 'low'
+            return action.priority >= 8 and action.risk_level == "low"
         elif self.level == OptimizationLevel.MODERATE:
-            return action.priority >= 5 and action.risk_level in ['low', 'medium']
+            return action.priority >= 5 and action.risk_level in ["low", "medium"]
         elif self.level == OptimizationLevel.AGGRESSIVE:
             return action.priority >= 3
         else:  # ADAPTIVE
@@ -720,8 +732,8 @@ class PerformanceOptimizer:
                 if resource_metrics.cpu_percent > 90 or resource_metrics.memory_percent > 90:
                     return action.priority >= 3
                 elif resource_metrics.cpu_percent > 70 or resource_metrics.memory_percent > 80:
-                    return action.priority >= 5 and action.risk_level in ['low', 'medium']
-            return action.priority >= 7 and action.risk_level == 'low'
+                    return action.priority >= 5 and action.risk_level in ["low", "medium"]
+            return action.priority >= 7 and action.risk_level == "low"
 
     async def _apply_action(self, action: OptimizationAction):
         """Apply an optimization action."""
@@ -729,12 +741,14 @@ class PerformanceOptimizer:
             logger.info(f"Applying optimization: {action.description}")
 
             # Record the action
-            self.applied_actions.append({
-                'timestamp': datetime.now().isoformat(),
-                'action': action.action_type,
-                'target': action.target,
-                'parameters': action.parameters,
-            })
+            self.applied_actions.append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "action": action.action_type,
+                    "target": action.target,
+                    "parameters": action.parameters,
+                }
+            )
 
             # Notify callbacks
             for callback in self.optimization_callbacks:
@@ -760,44 +774,46 @@ class PerformanceOptimizer:
         query_suggestions = self.query_optimizer.get_optimization_suggestions()
 
         return {
-            'resource_metrics': {
-                'cpu_percent': resource_metrics.cpu_percent if resource_metrics else 0,
-                'memory_percent': resource_metrics.memory_percent if resource_metrics else 0,
-                'memory_available_mb': resource_metrics.memory_available_mb if resource_metrics else 0,
-                'open_connections': resource_metrics.open_connections if resource_metrics else 0,
-                'active_threads': resource_metrics.active_threads if resource_metrics else 0,
-            } if resource_metrics else {},
-            'performance_metrics': {
-                'request_count': performance_metrics.request_count,
-                'avg_latency_ms': performance_metrics.avg_latency_ms,
-                'p95_latency_ms': performance_metrics.p95_latency_ms,
-                'p99_latency_ms': performance_metrics.p99_latency_ms,
-                'throughput_rps': performance_metrics.throughput_rps,
+            "resource_metrics": (
+                {
+                    "cpu_percent": resource_metrics.cpu_percent if resource_metrics else 0,
+                    "memory_percent": resource_metrics.memory_percent if resource_metrics else 0,
+                    "memory_available_mb": resource_metrics.memory_available_mb if resource_metrics else 0,
+                    "open_connections": resource_metrics.open_connections if resource_metrics else 0,
+                    "active_threads": resource_metrics.active_threads if resource_metrics else 0,
+                }
+                if resource_metrics
+                else {}
+            ),
+            "performance_metrics": {
+                "request_count": performance_metrics.request_count,
+                "avg_latency_ms": performance_metrics.avg_latency_ms,
+                "p95_latency_ms": performance_metrics.p95_latency_ms,
+                "p99_latency_ms": performance_metrics.p99_latency_ms,
+                "throughput_rps": performance_metrics.throughput_rps,
             },
-            'bottlenecks': [
-                {'type': b.value, 'severity': s}
-                for b, s in bottlenecks
-            ],
-            'connection_pool': {
-                'current_size': self.connection_pool.current_size,
-                'active_connections': self.connection_pool.active_connections,
-                'recommended_size': self.connection_pool.get_recommended_size(),
+            "bottlenecks": [{"type": b.value, "severity": s} for b, s in bottlenecks],
+            "connection_pool": {
+                "current_size": self.connection_pool.current_size,
+                "active_connections": self.connection_pool.active_connections,
+                "recommended_size": self.connection_pool.get_recommended_size(),
             },
-            'thread_pool': {
-                'current_workers': self.thread_pool.current_workers,
-                'queue_size': self.thread_pool.queue_size,
-                'recommended_workers': self.thread_pool.get_recommended_workers(),
+            "thread_pool": {
+                "current_workers": self.thread_pool.current_workers,
+                "queue_size": self.thread_pool.queue_size,
+                "recommended_workers": self.thread_pool.get_recommended_workers(),
             },
-            'query_suggestions': query_suggestions[:10],
-            'applied_actions': self.applied_actions[-20:],
-            'optimization_level': self.level.value,
-            'profile': self.profile.name,
+            "query_suggestions": query_suggestions[:10],
+            "applied_actions": self.applied_actions[-20:],
+            "optimization_level": self.level.value,
+            "profile": self.profile.name,
         }
 
 
 # Performance decorator for automatic optimization tracking
 def track_performance(optimizer: PerformanceOptimizer):
     """Decorator to track performance of functions."""
+
     def decorator(func):
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -830,4 +846,5 @@ def track_performance(optimizer: PerformanceOptimizer):
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
+
     return decorator

@@ -26,6 +26,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
@@ -40,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 class CommandType(str, Enum):
     """أنواع الأوامر."""
+
     STATUS = "status"
     JOBS = "jobs"
     WORKERS = "workers"
@@ -55,6 +57,7 @@ class CommandType(str, Enum):
 @dataclass
 class BotCommand:
     """أمر بوت."""
+
     command_type: CommandType
     args: List[str] = field(default_factory=list)
     kwargs: Dict[str, str] = field(default_factory=dict)
@@ -67,6 +70,7 @@ class BotCommand:
 @dataclass
 class BotResponse:
     """رد البوت."""
+
     text: str
     blocks: Optional[List[Dict[str, Any]]] = None  # Slack blocks / Discord embeds
     attachments: Optional[List[Dict[str, Any]]] = None
@@ -77,6 +81,7 @@ class BotResponse:
 @dataclass
 class InteractiveAction:
     """إجراء تفاعلي (زر، قائمة، إلخ)."""
+
     action_id: str
     action_type: str  # button, select, etc.
     value: str
@@ -442,11 +447,14 @@ class SlackBot(BotHandler):
             return False  # Request too old
 
         sig_basestring = f"v0:{timestamp}:{body.decode('utf-8')}"
-        my_signature = "v0=" + hmac.new(
-            self.signing_secret.encode(),
-            sig_basestring.encode(),
-            hashlib.sha256,
-        ).hexdigest()
+        my_signature = (
+            "v0="
+            + hmac.new(
+                self.signing_secret.encode(),
+                sig_basestring.encode(),
+                hashlib.sha256,
+            ).hexdigest()
+        )
 
         return hmac.compare_digest(my_signature, signature)
 
@@ -558,22 +566,24 @@ class SlackBot(BotHandler):
         ]
 
         if include_actions and status in ("pending", "running"):
-            blocks.append({
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "Cancel"},
-                        "style": "danger",
-                        "action_id": f"cancel_job_{job_id}",
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "View Logs"},
-                        "action_id": f"view_logs_{job_id}",
-                    },
-                ],
-            })
+            blocks.append(
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "Cancel"},
+                            "style": "danger",
+                            "action_id": f"cancel_job_{job_id}",
+                        },
+                        {
+                            "type": "button",
+                            "text": {"type": "plain_text", "text": "View Logs"},
+                            "action_id": f"view_logs_{job_id}",
+                        },
+                    ],
+                }
+            )
 
         return {"blocks": blocks}
 

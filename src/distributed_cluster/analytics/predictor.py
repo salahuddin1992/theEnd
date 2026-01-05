@@ -193,9 +193,7 @@ class JobPredictor:
         feature_vector = self._extract_feature_vector(features)
 
         # Make prediction
-        predicted_value, confidence, lower, upper = await self._predict(
-            model_data, feature_vector, model
-        )
+        predicted_value, confidence, lower, upper = await self._predict(model_data, feature_vector, model)
 
         # Use historical average as fallback
         if features.historical_avg_duration and confidence < 0.5:
@@ -217,10 +215,7 @@ class JobPredictor:
             self._predictions[result.prediction_id] = result
             self._stats["predictions_made"] += 1
 
-        logger.debug(
-            f"Duration prediction for {job_type}: "
-            f"{predicted_value:.1f}s (confidence: {confidence:.2f})"
-        )
+        logger.debug(f"Duration prediction for {job_type}: " f"{predicted_value:.1f}s (confidence: {confidence:.2f})")
 
         return result
 
@@ -240,9 +235,7 @@ class JobPredictor:
         model_data = await self._get_model(job_type, resource_type)
         feature_vector = self._extract_feature_vector(features)
 
-        predicted_value, confidence, lower, upper = await self._predict(
-            model_data, feature_vector, self.default_model
-        )
+        predicted_value, confidence, lower, upper = await self._predict(model_data, feature_vector, self.default_model)
 
         result = PredictionResult(
             prediction_id=str(uuid.uuid4()),
@@ -396,10 +389,9 @@ class JobPredictor:
     ) -> Tuple[float, float, float, float]:
         """Polynomial regression prediction."""
         # For simplicity, use quadratic terms
-        extended_features = np.concatenate([features, features ** 2])
+        extended_features = np.concatenate([features, features**2])
         return self._predict_linear(
-            {**model_data, "coefficients": model_data.get("poly_coefficients", [])},
-            extended_features
+            {**model_data, "coefficients": model_data.get("poly_coefficients", [])}, extended_features
         )
 
     def _predict_exponential_smoothing(
@@ -438,15 +430,10 @@ class JobPredictor:
         # Extract training data
         durations = [d.actual_duration for d in data]
         mean_duration = sum(durations) / len(durations)
-        std_duration = math.sqrt(
-            sum((d - mean_duration) ** 2 for d in durations) / len(durations)
-        )
+        std_duration = math.sqrt(sum((d - mean_duration) ** 2 for d in durations) / len(durations))
 
         # Simple linear regression
-        X = np.array([
-            self._extract_feature_vector(d.features)
-            for d in data
-        ])
+        X = np.array([self._extract_feature_vector(d.features) for d in data])
         y = np.array(durations)
 
         # Compute coefficients using normal equation
@@ -480,25 +467,24 @@ class JobPredictor:
         }
 
         self._stats["models_trained"] += 1
-        logger.info(
-            f"Retrained model for {job_type}: "
-            f"R² = {r_squared:.3f}, samples = {len(data)}"
-        )
+        logger.info(f"Retrained model for {job_type}: " f"R² = {r_squared:.3f}, samples = {len(data)}")
 
     def _extract_feature_vector(self, features: JobFeatures) -> np.ndarray:
         """Extract feature vector from JobFeatures."""
-        return np.array([
-            features.input_size_mb,
-            features.cpu_requested,
-            features.memory_requested_mb / 1024,  # Normalize to GB
-            features.gpu_requested,
-            features.priority,
-            features.dependencies_count,
-            features.queue_depth,
-            features.cluster_load,
-            features.time_of_day / 24,  # Normalize to 0-1
-            features.day_of_week / 7,  # Normalize to 0-1
-        ])
+        return np.array(
+            [
+                features.input_size_mb,
+                features.cpu_requested,
+                features.memory_requested_mb / 1024,  # Normalize to GB
+                features.gpu_requested,
+                features.priority,
+                features.dependencies_count,
+                features.queue_depth,
+                features.cluster_load,
+                features.time_of_day / 24,  # Normalize to 0-1
+                features.day_of_week / 7,  # Normalize to 0-1
+            ]
+        )
 
     def _get_feature_names(self) -> List[str]:
         """Get list of feature names."""
@@ -545,20 +531,14 @@ class JobPredictor:
     async def get_statistics(self) -> Dict[str, Any]:
         """Get predictor statistics."""
         predictions_made = self._stats["predictions_made"]
-        avg_accuracy = (
-            self._stats["accuracy_sum"] / predictions_made
-            if predictions_made > 0
-            else 0.0
-        )
+        avg_accuracy = self._stats["accuracy_sum"] / predictions_made if predictions_made > 0 else 0.0
 
         return {
             **self._stats,
             "average_accuracy": avg_accuracy,
             "job_types_tracked": len(self._training_data),
             "models_count": len(self._models),
-            "total_training_samples": sum(
-                len(data) for data in self._training_data.values()
-            ),
+            "total_training_samples": sum(len(data) for data in self._training_data.values()),
         }
 
     async def shutdown(self) -> None:

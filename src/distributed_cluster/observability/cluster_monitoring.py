@@ -146,11 +146,7 @@ class PrometheusCounter:
             else:
                 for label_values, value in self._values.items():
                     if label_values:
-                        label_str = ",".join(
-                            f'{self.labels[i]}="{v}"'
-                            for i, v in enumerate(label_values)
-                            if v
-                        )
+                        label_str = ",".join(f'{self.labels[i]}="{v}"' for i, v in enumerate(label_values) if v)
                         lines.append(f"{self.name}{{{label_str}}} {value}")
                     else:
                         lines.append(f"{self.name} {value}")
@@ -211,11 +207,7 @@ class PrometheusGauge:
             else:
                 for label_values, value in self._values.items():
                     if label_values:
-                        label_str = ",".join(
-                            f'{self.labels[i]}="{v}"'
-                            for i, v in enumerate(label_values)
-                            if v
-                        )
+                        label_str = ",".join(f'{self.labels[i]}="{v}"' for i, v in enumerate(label_values) if v)
                         lines.append(f"{self.name}{{{label_str}}} {value}")
                     else:
                         lines.append(f"{self.name} {value}")
@@ -290,11 +282,7 @@ class PrometheusHistogram:
                 for label_values, data in self._data.items():
                     base_labels = ""
                     if label_values:
-                        base_labels = ",".join(
-                            f'{self.labels[i]}="{v}"'
-                            for i, v in enumerate(label_values)
-                            if v
-                        ) + ","
+                        base_labels = ",".join(f'{self.labels[i]}="{v}"' for i, v in enumerate(label_values) if v) + ","
 
                     cumulative = 0
                     for bucket in self.buckets:
@@ -372,11 +360,7 @@ class PrometheusSummary:
 
                 base_labels = ""
                 if label_values:
-                    base_labels = ",".join(
-                        f'{self.labels[i]}="{v}"'
-                        for i, v in enumerate(label_values)
-                        if v
-                    ) + ","
+                    base_labels = ",".join(f'{self.labels[i]}="{v}"' for i, v in enumerate(label_values) if v) + ","
 
                 for q in self.quantiles:
                     qv = self._calculate_quantile(values, q)
@@ -466,13 +450,13 @@ class ConsoleLogHandler(LogHandler):
     """Console log handler with optional color support."""
 
     COLORS = {
-        LogLevel.TRACE: "\033[37m",      # White
-        LogLevel.DEBUG: "\033[36m",      # Cyan
-        LogLevel.INFO: "\033[32m",       # Green
-        LogLevel.WARNING: "\033[33m",    # Yellow
-        LogLevel.ERROR: "\033[31m",      # Red
-        LogLevel.CRITICAL: "\033[35m",   # Magenta
-        LogLevel.FATAL: "\033[41m",      # Red background
+        LogLevel.TRACE: "\033[37m",  # White
+        LogLevel.DEBUG: "\033[36m",  # Cyan
+        LogLevel.INFO: "\033[32m",  # Green
+        LogLevel.WARNING: "\033[33m",  # Yellow
+        LogLevel.ERROR: "\033[31m",  # Red
+        LogLevel.CRITICAL: "\033[35m",  # Magenta
+        LogLevel.FATAL: "\033[41m",  # Red background
     }
     RESET = "\033[0m"
 
@@ -730,6 +714,7 @@ class CentralizedLogger:
 
         if exc_info:
             import traceback
+
             record.exception = traceback.format_exc()
 
         for handler in self.handlers:
@@ -1194,9 +1179,7 @@ class ClusterMonitor:
         with self._lock:
             self._task_queue_times[task_id] = time.time()
 
-        self.metrics.get_metric("tasks_submitted_total").inc(
-            labels={"task_type": task_type, "user_id": user_id}
-        )
+        self.metrics.get_metric("tasks_submitted_total").inc(labels={"task_type": task_type, "user_id": user_id})
 
         self.logger.debug(
             f"Task submitted: {task_id}",
@@ -1227,9 +1210,7 @@ class ClusterMonitor:
                 )
 
         # Update running tasks gauge
-        self.metrics.get_metric("tasks_running").inc(
-            labels={"task_type": task_type, "worker_id": worker_id}
-        )
+        self.metrics.get_metric("tasks_running").inc(labels={"task_type": task_type, "worker_id": worker_id})
 
         self.logger.info(
             f"Task started: {task_id} on worker {worker_id}",
@@ -1274,9 +1255,7 @@ class ClusterMonitor:
             labels={"task_type": task_type, "status": status, "worker_id": worker_id}
         )
 
-        self.metrics.get_metric("tasks_running").dec(
-            labels={"task_type": task_type, "worker_id": worker_id}
-        )
+        self.metrics.get_metric("tasks_running").dec(labels={"task_type": task_type, "worker_id": worker_id})
 
         # Record error if failed
         if not success:
@@ -1305,9 +1284,7 @@ class ClusterMonitor:
         retry_count: int = 1,
     ) -> None:
         """Record a task retry."""
-        self.metrics.get_metric("tasks_retried_total").inc(
-            labels={"task_type": task_type, "reason": reason}
-        )
+        self.metrics.get_metric("tasks_retried_total").inc(labels={"task_type": task_type, "reason": reason})
 
         self.logger.warning(
             f"Task retry: {task_id} (attempt {retry_count})",
@@ -1517,9 +1494,7 @@ class ClusterMonitor:
 
     def record_queue_item_added(self, queue_name: str) -> None:
         """Record an item added to queue."""
-        self.metrics.get_metric("queue_items_added_total").inc(
-            labels={"queue_name": queue_name}
-        )
+        self.metrics.get_metric("queue_items_added_total").inc(labels={"queue_name": queue_name})
 
     def record_queue_item_processed(
         self,
@@ -1527,9 +1502,7 @@ class ClusterMonitor:
         wait_time_seconds: float,
     ) -> None:
         """Record an item processed from queue."""
-        self.metrics.get_metric("queue_items_processed_total").inc(
-            labels={"queue_name": queue_name}
-        )
+        self.metrics.get_metric("queue_items_processed_total").inc(labels={"queue_name": queue_name})
 
         self.metrics.get_metric("queue_wait_time_seconds").observe(
             wait_time_seconds,
@@ -1587,9 +1560,7 @@ class ClusterMonitor:
         timeout_seconds: float,
     ) -> None:
         """Record a timeout error."""
-        self.metrics.get_metric("timeouts_total").inc(
-            labels={"operation": operation, "component": component}
-        )
+        self.metrics.get_metric("timeouts_total").inc(labels={"operation": operation, "component": component})
 
         self.record_error(
             error_type="timeout",
@@ -1605,9 +1576,7 @@ class ClusterMonitor:
         message: Optional[str] = None,
     ) -> None:
         """Record a connection error."""
-        self.metrics.get_metric("connection_errors_total").inc(
-            labels={"target": target, "error_type": error_type}
-        )
+        self.metrics.get_metric("connection_errors_total").inc(labels={"target": target, "error_type": error_type})
 
         self.record_error(
             error_type="connection_error",
@@ -1622,9 +1591,7 @@ class ClusterMonitor:
         max_retries: int,
     ) -> None:
         """Record when an operation exhausts all retries."""
-        self.metrics.get_metric("retry_exhausted_total").inc(
-            labels={"operation": operation}
-        )
+        self.metrics.get_metric("retry_exhausted_total").inc(labels={"operation": operation})
 
         self.record_error(
             error_type="retry_exhausted",
@@ -1738,6 +1705,7 @@ class ClusterMonitor:
         worker_id: Optional[str] = None,
     ):
         """Decorator to track task execution."""
+
         def decorator(func: Callable) -> Callable:
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
@@ -1750,14 +1718,13 @@ class ClusterMonitor:
                 try:
                     result = func(*args, **kwargs)
                     duration = time.time() - start_time
-                    self.record_task_completed(
-                        task_id, wid, duration=duration, success=True, task_type=task_type
-                    )
+                    self.record_task_completed(task_id, wid, duration=duration, success=True, task_type=task_type)
                     return result
                 except Exception as e:
                     duration = time.time() - start_time
                     self.record_task_completed(
-                        task_id, wid,
+                        task_id,
+                        wid,
                         duration=duration,
                         success=False,
                         task_type=task_type,
@@ -1776,14 +1743,13 @@ class ClusterMonitor:
                 try:
                     result = await func(*args, **kwargs)
                     duration = time.time() - start_time
-                    self.record_task_completed(
-                        task_id, wid, duration=duration, success=True, task_type=task_type
-                    )
+                    self.record_task_completed(task_id, wid, duration=duration, success=True, task_type=task_type)
                     return result
                 except Exception as e:
                     duration = time.time() - start_time
                     self.record_task_completed(
-                        task_id, wid,
+                        task_id,
+                        wid,
                         duration=duration,
                         success=False,
                         task_type=task_type,
@@ -1799,6 +1765,7 @@ class ClusterMonitor:
 
     def track_api(self, endpoint: Optional[str] = None):
         """Decorator to track API request metrics."""
+
         def decorator(func: Callable) -> Callable:
             ep = endpoint or func.__name__
 

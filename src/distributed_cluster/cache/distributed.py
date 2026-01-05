@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CacheNode:
     """Represents a cache node in the cluster."""
+
     node_id: str
     host: str
     port: int
@@ -193,18 +194,12 @@ class CacheReplication:
             return False
 
         # Write to all replica nodes
-        tasks = [
-            send_func(node, "SET", key, value, ttl)
-            for node in nodes[:self.replication_factor]
-        ]
+        tasks = [send_func(node, "SET", key, value, ttl) for node in nodes[: self.replication_factor]]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Count successful writes
-        success_count = sum(
-            1 for r in results
-            if not isinstance(r, Exception) and r is True
-        )
+        success_count = sum(1 for r in results if not isinstance(r, Exception) and r is True)
 
         return success_count >= self.write_quorum
 
@@ -223,18 +218,12 @@ class CacheReplication:
             return None
 
         # Read from all replica nodes
-        tasks = [
-            send_func(node, "GET", key)
-            for node in nodes[:self.replication_factor]
-        ]
+        tasks = [send_func(node, "GET", key) for node in nodes[: self.replication_factor]]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Collect successful reads
-        values = [
-            r for r in results
-            if not isinstance(r, Exception) and r is not None
-        ]
+        values = [r for r in results if not isinstance(r, Exception) and r is not None]
 
         if len(values) < self.read_quorum:
             return None
@@ -436,10 +425,7 @@ class DistributedCache:
             return False
 
         # Delete from all replicas
-        tasks = [
-            self._send_to_node(node, "DELETE", key)
-            for node in nodes
-        ]
+        tasks = [self._send_to_node(node, "DELETE", key) for node in nodes]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
         return any(r is True for r in results)
@@ -449,11 +435,7 @@ class DistributedCache:
         tasks = [(key, self.get(key)) for key in keys]
         results = await asyncio.gather(*[t[1] for t in tasks])
 
-        return {
-            key: value
-            for key, value in zip(keys, results)
-            if value is not None
-        }
+        return {key: value for key, value in zip(keys, results) if value is not None}
 
     async def mset(
         self,
@@ -477,10 +459,7 @@ class DistributedCache:
         nodes = self._ring.get_all_nodes()
 
         healthy_count = sum(1 for n in nodes if n.is_healthy)
-        avg_latency = (
-            sum(n.latency_ms for n in nodes) / len(nodes)
-            if nodes else 0
-        )
+        avg_latency = sum(n.latency_ms for n in nodes) / len(nodes) if nodes else 0
 
         return {
             "total_nodes": len(nodes),

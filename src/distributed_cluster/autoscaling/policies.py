@@ -228,7 +228,7 @@ class QueueBasedPolicy(ScalingPolicy):
         # تحديث التاريخ
         self._history.append(queue_depth)
         if len(self._history) > self.evaluation_periods:
-            self._history = self._history[-self.evaluation_periods:]
+            self._history = self._history[-self.evaluation_periods :]
 
         # التحقق من وقت الانتظار أولاً (أولوية عالية)
         if wait_time > self.max_wait_time_seconds:
@@ -271,10 +271,7 @@ class QueueBasedPolicy(ScalingPolicy):
             if all(d <= self.scale_down_threshold for d in self._history):
                 if current_workers > self.min_workers:
                     # حساب العمال المطلوبين
-                    required = max(
-                        math.ceil(queue_depth / max(self.jobs_per_worker, 1)),
-                        self.min_workers
-                    )
+                    required = max(math.ceil(queue_depth / max(self.jobs_per_worker, 1)), self.min_workers)
                     target = self._clamp_worker_count(required)
 
                     if target < current_workers:
@@ -296,14 +293,16 @@ class QueueBasedPolicy(ScalingPolicy):
     def get_config(self) -> dict[str, Any]:
         """الحصول على إعدادات السياسة"""
         config = super().get_config()
-        config.update({
-            "target_queue_depth": self.target_queue_depth,
-            "scale_up_threshold": self.scale_up_threshold,
-            "scale_down_threshold": self.scale_down_threshold,
-            "max_wait_time_seconds": self.max_wait_time_seconds,
-            "jobs_per_worker": self.jobs_per_worker,
-            "evaluation_periods": self.evaluation_periods,
-        })
+        config.update(
+            {
+                "target_queue_depth": self.target_queue_depth,
+                "scale_up_threshold": self.scale_up_threshold,
+                "scale_down_threshold": self.scale_down_threshold,
+                "max_wait_time_seconds": self.max_wait_time_seconds,
+                "jobs_per_worker": self.jobs_per_worker,
+                "evaluation_periods": self.evaluation_periods,
+            }
+        )
         return config
 
 
@@ -445,16 +444,18 @@ class ResourceBasedPolicy(ScalingPolicy):
     def get_config(self) -> dict[str, Any]:
         """الحصول على إعدادات السياسة"""
         config = super().get_config()
-        config.update({
-            "cpu_scale_up_threshold": self.cpu_scale_up_threshold,
-            "cpu_scale_down_threshold": self.cpu_scale_down_threshold,
-            "memory_scale_up_threshold": self.memory_scale_up_threshold,
-            "memory_scale_down_threshold": self.memory_scale_down_threshold,
-            "gpu_scale_up_threshold": self.gpu_scale_up_threshold,
-            "gpu_scale_down_threshold": self.gpu_scale_down_threshold,
-            "gpu_enabled": self.gpu_enabled,
-            "evaluation_periods": self.evaluation_periods,
-        })
+        config.update(
+            {
+                "cpu_scale_up_threshold": self.cpu_scale_up_threshold,
+                "cpu_scale_down_threshold": self.cpu_scale_down_threshold,
+                "memory_scale_up_threshold": self.memory_scale_up_threshold,
+                "memory_scale_down_threshold": self.memory_scale_down_threshold,
+                "gpu_scale_up_threshold": self.gpu_scale_up_threshold,
+                "gpu_scale_down_threshold": self.gpu_scale_down_threshold,
+                "gpu_enabled": self.gpu_enabled,
+                "evaluation_periods": self.evaluation_periods,
+            }
+        )
         return config
 
 
@@ -673,11 +674,13 @@ class CompositePolicy(ScalingPolicy):
     def get_config(self) -> dict[str, Any]:
         """الحصول على إعدادات السياسة"""
         config = super().get_config()
-        config.update({
-            "combine_mode": self.combine_mode.value,
-            "policies": [p.get_config() for p in self.policies],
-            "weights": self.weights,
-        })
+        config.update(
+            {
+                "combine_mode": self.combine_mode.value,
+                "policies": [p.get_config() for p in self.policies],
+                "weights": self.weights,
+            }
+        )
         return config
 
 
@@ -729,9 +732,7 @@ class CostAwarePolicy(ScalingPolicy):
 
         # الحصول على القرار من السياسة الأساسية
         if self.base_policy:
-            base_decision = await self.base_policy.evaluate(
-                metrics, current_workers, metrics_collector
-            )
+            base_decision = await self.base_policy.evaluate(metrics, current_workers, metrics_collector)
         else:
             base_decision = self._no_scaling("No base policy")
 
@@ -743,7 +744,7 @@ class CostAwarePolicy(ScalingPolicy):
         if jobs_per_hour > 0:
             cost_per_job = current_hourly_cost / jobs_per_hour
         else:
-            cost_per_job = float('inf') if current_workers > 0 else 0
+            cost_per_job = float("inf") if current_workers > 0 else 0
 
         # التحقق من الميزانية
         if base_decision.direction == ScalingDirection.UP:
@@ -807,12 +808,14 @@ class CostAwarePolicy(ScalingPolicy):
     def get_config(self) -> dict[str, Any]:
         """الحصول على إعدادات السياسة"""
         config = super().get_config()
-        config.update({
-            "cost_per_worker_hour": self.cost_per_worker_hour,
-            "max_hourly_budget": self.max_hourly_budget,
-            "target_cost_per_job": self.target_cost_per_job,
-            "base_policy": self.base_policy.get_config() if self.base_policy else None,
-        })
+        config.update(
+            {
+                "cost_per_worker_hour": self.cost_per_worker_hour,
+                "max_hourly_budget": self.max_hourly_budget,
+                "target_cost_per_job": self.target_cost_per_job,
+                "base_policy": self.base_policy.get_config() if self.base_policy else None,
+            }
+        )
         return config
 
 
@@ -942,11 +945,13 @@ class PredictivePolicy(ScalingPolicy):
     def get_config(self) -> dict[str, Any]:
         """الحصول على إعدادات السياسة"""
         config = super().get_config()
-        config.update({
-            "prediction_window_seconds": self.prediction_window_seconds,
-            "trend_threshold": self.trend_threshold,
-            "queue_growth_threshold": self.queue_growth_threshold,
-        })
+        config.update(
+            {
+                "prediction_window_seconds": self.prediction_window_seconds,
+                "trend_threshold": self.trend_threshold,
+                "queue_growth_threshold": self.queue_growth_threshold,
+            }
+        )
         return config
 
 
@@ -969,6 +974,7 @@ class ScheduleBasedPolicy(ScalingPolicy):
     @dataclass
     class ScheduleEntry:
         """إدخال في الجدول / Schedule entry"""
+
         start_time: dtime  # وقت البدء
         end_time: dtime  # وقت الانتهاء
         target_workers: int  # العدد المستهدف
@@ -1076,20 +1082,22 @@ class ScheduleBasedPolicy(ScalingPolicy):
     def get_config(self) -> dict[str, Any]:
         """الحصول على إعدادات السياسة"""
         config = super().get_config()
-        config.update({
-            "default_workers": self.default_workers,
-            "transition_increment": self.transition_increment,
-            "schedules": [
-                {
-                    "name": s.name,
-                    "start_time": s.start_time.isoformat(),
-                    "end_time": s.end_time.isoformat(),
-                    "target_workers": s.target_workers,
-                    "days": s.days,
-                }
-                for s in self.schedules
-            ],
-        })
+        config.update(
+            {
+                "default_workers": self.default_workers,
+                "transition_increment": self.transition_increment,
+                "schedules": [
+                    {
+                        "name": s.name,
+                        "start_time": s.start_time.isoformat(),
+                        "end_time": s.end_time.isoformat(),
+                        "target_workers": s.target_workers,
+                        "days": s.days,
+                    }
+                    for s in self.schedules
+                ],
+            }
+        )
         return config
 
 

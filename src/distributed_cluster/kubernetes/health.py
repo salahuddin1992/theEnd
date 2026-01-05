@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class HealthStatus(str, Enum):
     """حالة الصحة / Health status"""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -35,6 +36,7 @@ class HealthStatus(str, Enum):
 
 class RecoveryAction(str, Enum):
     """إجراء التعافي / Recovery action"""
+
     NONE = "none"
     RESTART_POD = "restart_pod"
     SCALE_UP = "scale_up"
@@ -50,6 +52,7 @@ class HealthCheck:
     فحص صحة
     Health check definition
     """
+
     name: str
     check_fn: Callable[[], bool]
     interval_seconds: int = 30
@@ -73,6 +76,7 @@ class ComponentHealth:
     صحة المكون
     Component health
     """
+
     name: str
     status: HealthStatus = HealthStatus.UNKNOWN
     message: str = ""
@@ -88,10 +92,8 @@ class ComponentHealth:
             "checks": {
                 name: {
                     "status": check.status.value,
-                    "lastSuccess": check.last_success_time.isoformat()
-                        if check.last_success_time else None,
-                    "lastFailure": check.last_failure_time.isoformat()
-                        if check.last_failure_time else None,
+                    "lastSuccess": check.last_success_time.isoformat() if check.last_success_time else None,
+                    "lastFailure": check.last_failure_time.isoformat() if check.last_failure_time else None,
                     "consecutiveFailures": check.consecutive_failures,
                 }
                 for name, check in self.checks.items()
@@ -304,9 +306,7 @@ class HealthMonitor:
         check.consecutive_successes = 0
         check.last_failure_time = datetime.now(timezone.utc)
 
-        logger.warning(
-            f"Health check failed: {component.name}/{check.name}: {message}"
-        )
+        logger.warning(f"Health check failed: {component.name}/{check.name}: {message}")
 
         if check.consecutive_failures >= check.failure_threshold:
             check.status = HealthStatus.UNHEALTHY
@@ -329,10 +329,7 @@ class HealthMonitor:
             component.status = HealthStatus.HEALTHY
             component.message = "All checks passing"
         elif any(s == HealthStatus.UNHEALTHY for s in statuses):
-            unhealthy = [
-                name for name, check in component.checks.items()
-                if check.status == HealthStatus.UNHEALTHY
-            ]
+            unhealthy = [name for name, check in component.checks.items() if check.status == HealthStatus.UNHEALTHY]
             component.status = HealthStatus.UNHEALTHY
             component.message = f"Failed checks: {', '.join(unhealthy)}"
         elif any(s == HealthStatus.DEGRADED for s in statuses):
@@ -359,10 +356,7 @@ class HealthMonitor:
             logger.warning(f"No handler for recovery action: {action}")
             return
 
-        logger.info(
-            f"Triggering recovery action {action.value} for "
-            f"{component.name}/{check.name}"
-        )
+        logger.info(f"Triggering recovery action {action.value} for " f"{component.name}/{check.name}")
 
         self._recoveries_triggered += 1
 
@@ -384,8 +378,7 @@ class HealthMonitor:
     ) -> None:
         """معالج التنبيه"""
         logger.error(
-            f"ALERT: Component {component.name} check {check.name} "
-            f"failed {check.consecutive_failures} times"
+            f"ALERT: Component {component.name} check {check.name} " f"failed {check.consecutive_failures} times"
         )
         # Here you would integrate with your alerting system
 
@@ -409,10 +402,7 @@ class HealthMonitor:
             "total_checks": self._total_checks,
             "failed_checks": self._failed_checks,
             "recoveries_triggered": self._recoveries_triggered,
-            "components": {
-                name: component.to_dict()
-                for name, component in self._components.items()
-            },
+            "components": {name: component.to_dict() for name, component in self._components.items()},
         }
 
     def get_component_status(
@@ -427,24 +417,19 @@ class HealthMonitor:
         if not self._components:
             return True
 
-        return all(
-            c.status == HealthStatus.HEALTHY
-            for c in self._components.values()
-        )
+        return all(c.status == HealthStatus.HEALTHY for c in self._components.values())
 
     async def check_now(self) -> dict[str, HealthStatus]:
         """تشغيل جميع الفحوصات الآن"""
         await self._run_all_checks()
 
-        return {
-            name: component.status
-            for name, component in self._components.items()
-        }
+        return {name: component.status for name, component in self._components.items()}
 
 
 # =============================================================================
 # Predefined Health Checks
 # =============================================================================
+
 
 def create_http_health_check(
     name: str,
@@ -474,6 +459,7 @@ def create_tcp_health_check(
     timeout: int = 5,
 ) -> HealthCheck:
     """إنشاء فحص صحة TCP"""
+
     async def check():
         try:
             _, writer = await asyncio.wait_for(

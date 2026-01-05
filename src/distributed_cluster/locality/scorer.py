@@ -297,9 +297,7 @@ class LocalityScorer(LocalityScorerBase):
 
         # Normalize
         weight_sum = (
-            self.config.local_data_weight
-            + self.config.transfer_cost_weight
-            + self.config.access_pattern_weight
+            self.config.local_data_weight + self.config.transfer_cost_weight + self.config.access_pattern_weight
         )
         if weight_sum > 0:
             total_score /= weight_sum
@@ -513,10 +511,7 @@ class LocalityScorer(LocalityScorerBase):
             return 1.0 - (0.3 * ratio)
         elif transfer_mb <= self.config.high_transfer_threshold_mb:
             # Linear decrease from 0.7 to 0.2
-            range_size = (
-                self.config.high_transfer_threshold_mb
-                - self.config.low_transfer_threshold_mb
-            )
+            range_size = self.config.high_transfer_threshold_mb - self.config.low_transfer_threshold_mb
             ratio = (transfer_mb - self.config.low_transfer_threshold_mb) / range_size
             return 0.7 - (0.5 * ratio)
         else:
@@ -618,11 +613,7 @@ class SimpleLocalityScorer(LocalityScorerBase):
         # Get required block IDs from job labels
         required_blocks = []
         if "required_blocks" in job.submission.labels:
-            required_blocks = [
-                b.strip()
-                for b in job.submission.labels["required_blocks"].split(",")
-                if b.strip()
-            ]
+            required_blocks = [b.strip() for b in job.submission.labels["required_blocks"].split(",") if b.strip()]
 
         if not required_blocks:
             return LocalityScoreResult(
@@ -644,9 +635,7 @@ class SimpleLocalityScorer(LocalityScorerBase):
         return LocalityScoreResult(
             worker_id=worker.worker_id,
             total_score=score,
-            locality_level=(
-                LocalityLevel.NODE_LOCAL if score > 0.7 else LocalityLevel.REMOTE
-            ),
+            locality_level=(LocalityLevel.NODE_LOCAL if score > 0.7 else LocalityLevel.REMOTE),
             local_data_score=score,
             total_blocks_required=len(required_blocks),
         )
@@ -687,9 +676,7 @@ class CompositeLocalityScorer(LocalityScorerBase):
             result = await scorer.score(job, worker, tracker)
             weighted_score += result.total_score * weight
 
-            if self._level_priority(result.locality_level) > self._level_priority(
-                best_level
-            ):
+            if self._level_priority(result.locality_level) > self._level_priority(best_level):
                 best_level = result.locality_level
 
         final_score = weighted_score / total_weight if total_weight > 0 else 0.5

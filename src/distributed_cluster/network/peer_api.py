@@ -46,8 +46,10 @@ _websocket_clients: List[WebSocket] = []
 
 # === Pydantic Models ===
 
+
 class PeerResponse(BaseModel):
     """معلومات Peer."""
+
     peer_id: str
     hostname: str
     platform: str
@@ -61,6 +63,7 @@ class PeerResponse(BaseModel):
 
 class MyInfoResponse(BaseModel):
     """معلوماتي."""
+
     peer_id: str
     hostname: str
     platform: str
@@ -73,11 +76,13 @@ class MyInfoResponse(BaseModel):
 
 class ConnectRequest(BaseModel):
     """طلب اتصال."""
+
     peer_id: str
 
 
 class MessageRequest(BaseModel):
     """طلب إرسال رسالة."""
+
     peer_id: str
     content: str
     metadata: Optional[Dict] = None
@@ -85,12 +90,14 @@ class MessageRequest(BaseModel):
 
 class BroadcastRequest(BaseModel):
     """طلب بث رسالة."""
+
     content: str
     metadata: Optional[Dict] = None
 
 
 class PeerEvent(BaseModel):
     """حدث Peer."""
+
     event_type: str  # discovered, connected, disconnected, message, connection_request
     peer_id: str
     data: Optional[Dict] = None
@@ -98,19 +105,23 @@ class PeerEvent(BaseModel):
 
 # === Internet P2P Models ===
 
+
 class InternetConnectRequest(BaseModel):
     """طلب اتصال عبر الإنترنت."""
+
     address: str
     port: int = 5960
 
 
 class ConnectByCodeRequest(BaseModel):
     """اتصال باستخدام كود."""
+
     code: str
 
 
 class ConnectionRequestResponse(BaseModel):
     """طلب اتصال وارد."""
+
     request_id: str
     requester_id: str
     requester_hostname: str
@@ -124,11 +135,13 @@ class ConnectionRequestResponse(BaseModel):
 
 class ApproveRejectRequest(BaseModel):
     """موافقة/رفض طلب اتصال."""
+
     request_id: str
     reason: str = ""
 
 
 # === Helper Functions ===
+
 
 def get_peer_manager() -> PeerManager:
     """الحصول على مدير الاتصالات المحلية."""
@@ -177,6 +190,7 @@ def peer_to_response(peer: PeerInfo) -> PeerResponse:
 
 # === Initialization ===
 
+
 async def init_peer_manager(
     app_name: str = "NebulaCompute",
     app_version: str = "1.0.0",
@@ -197,37 +211,53 @@ async def init_peer_manager(
     )
 
     # Setup local callbacks
-    _peer_manager.on_peer_discovered(lambda p: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="discovered",
-            peer_id=p.peer_id,
-            data=p.to_dict(),
-        ))
-    ))
+    _peer_manager.on_peer_discovered(
+        lambda p: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="discovered",
+                    peer_id=p.peer_id,
+                    data=p.to_dict(),
+                )
+            )
+        )
+    )
 
-    _peer_manager.on_peer_connected(lambda p: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="connected",
-            peer_id=p.peer_id,
-            data=p.to_dict(),
-        ))
-    ))
+    _peer_manager.on_peer_connected(
+        lambda p: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="connected",
+                    peer_id=p.peer_id,
+                    data=p.to_dict(),
+                )
+            )
+        )
+    )
 
-    _peer_manager.on_peer_disconnected(lambda p: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="disconnected",
-            peer_id=p.peer_id,
-            data=p.to_dict(),
-        ))
-    ))
+    _peer_manager.on_peer_disconnected(
+        lambda p: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="disconnected",
+                    peer_id=p.peer_id,
+                    data=p.to_dict(),
+                )
+            )
+        )
+    )
 
-    _peer_manager.on_message(lambda m: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="message",
-            peer_id=m.sender_id,
-            data={"content": m.payload.get("content"), "metadata": m.payload.get("metadata")},
-        ))
-    ))
+    _peer_manager.on_message(
+        lambda m: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="message",
+                    peer_id=m.sender_id,
+                    data={"content": m.payload.get("content"), "metadata": m.payload.get("metadata")},
+                )
+            )
+        )
+    )
 
     # === Internet P2P Manager ===
     _internet_manager = InternetP2PManager(
@@ -237,41 +267,58 @@ async def init_peer_manager(
     )
 
     # Setup internet callbacks
-    _internet_manager.on_connection_request(lambda req: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="connection_request",
-            peer_id=req.requester_id,
-            data=req.to_dict(),
-        ))
-    ))
+    _internet_manager.on_connection_request(
+        lambda req: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="connection_request",
+                    peer_id=req.requester_id,
+                    data=req.to_dict(),
+                )
+            )
+        )
+    )
 
-    _internet_manager.on_connected(lambda conn: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="internet_connected",
-            peer_id=conn.peer_id,
-            data=conn.peer_info.to_dict() if conn.peer_info else {},
-        ))
-    ))
+    _internet_manager.on_connected(
+        lambda conn: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="internet_connected",
+                    peer_id=conn.peer_id,
+                    data=conn.peer_info.to_dict() if conn.peer_info else {},
+                )
+            )
+        )
+    )
 
-    _internet_manager.on_disconnected(lambda peer_id: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="internet_disconnected",
-            peer_id=peer_id,
-            data={},
-        ))
-    ))
+    _internet_manager.on_disconnected(
+        lambda peer_id: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="internet_disconnected",
+                    peer_id=peer_id,
+                    data={},
+                )
+            )
+        )
+    )
 
-    _internet_manager.on_message(lambda m: asyncio.create_task(
-        broadcast_event(PeerEvent(
-            event_type="internet_message",
-            peer_id=m.sender_id,
-            data={"content": m.payload.get("content"), "metadata": m.payload.get("metadata")},
-        ))
-    ))
+    _internet_manager.on_message(
+        lambda m: asyncio.create_task(
+            broadcast_event(
+                PeerEvent(
+                    event_type="internet_message",
+                    peer_id=m.sender_id,
+                    data={"content": m.payload.get("content"), "metadata": m.payload.get("metadata")},
+                )
+            )
+        )
+    )
 
     # === Network Stack ===
     if network_stack_enabled:
         import socket
+
         hostname = socket.gethostname()
         _network_stack = NetworkStackManager(name=hostname, domain="nebula.local")
         _network_stack.set_p2p_manager(_internet_manager)
@@ -302,6 +349,7 @@ async def shutdown_peer_manager() -> None:
 
 
 # === API Endpoints ===
+
 
 @router.get("/me", response_model=MyInfoResponse)
 async def get_my_info():
@@ -425,6 +473,7 @@ async def unblock_peer(peer_id: str):
 
 
 # === Internet P2P Endpoints ===
+
 
 @router.get("/internet/code")
 async def get_connection_code():
@@ -568,6 +617,7 @@ async def get_internet_my_info():
 
 # === Network Stack Endpoints ===
 
+
 @router.get("/network/status")
 async def get_network_status():
     """حالة مكدس الشبكة."""
@@ -652,6 +702,7 @@ async def get_network_identity():
 
 # === WebSocket for Real-time Updates ===
 
+
 @router.websocket("/ws")
 async def peer_websocket(websocket: WebSocket):
     """WebSocket للتحديثات المباشرة."""
@@ -687,10 +738,12 @@ async def peer_websocket(websocket: WebSocket):
                 "relay_sessions": _network_stack.get_relay_sessions(),
             }
 
-        await websocket.send_json({
-            "event_type": "init",
-            "data": init_data,
-        })
+        await websocket.send_json(
+            {
+                "event_type": "init",
+                "data": init_data,
+            }
+        )
 
         # Keep connection alive
         while True:
@@ -1523,4 +1576,5 @@ DASHBOARD_HTML = """
 async def get_dashboard():
     """لوحة تحكم الاتصالات."""
     from fastapi.responses import HTMLResponse
+
     return HTMLResponse(content=DASHBOARD_HTML)

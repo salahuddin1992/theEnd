@@ -124,38 +124,72 @@ class CommandPolicy:
     allowed_patterns: List[str] = field(default_factory=list)
 
     # Blocked command patterns (checked first)
-    blocked_patterns: List[str] = field(default_factory=lambda: [
-        r"rm\s+-rf\s+/",  # Prevent recursive root deletion
-        r"mkfs\.",  # Prevent filesystem formatting
-        r"dd\s+if=.*of=/dev/",  # Prevent device overwrites
-        r":\(\)\{:\|:&\};:",  # Fork bomb
-        r"wget.*\|.*sh",  # Remote code execution
-        r"curl.*\|.*sh",
-        r"chmod\s+777",  # Overly permissive permissions
-        r"sudo\s+su\s*$",  # Root escalation
-        r"nc\s+-e",  # Netcat reverse shell
-        r"python.*-c.*import\s+os.*exec",  # Python code injection
-    ])
+    blocked_patterns: List[str] = field(
+        default_factory=lambda: [
+            r"rm\s+-rf\s+/",  # Prevent recursive root deletion
+            r"mkfs\.",  # Prevent filesystem formatting
+            r"dd\s+if=.*of=/dev/",  # Prevent device overwrites
+            r":\(\)\{:\|:&\};:",  # Fork bomb
+            r"wget.*\|.*sh",  # Remote code execution
+            r"curl.*\|.*sh",
+            r"chmod\s+777",  # Overly permissive permissions
+            r"sudo\s+su\s*$",  # Root escalation
+            r"nc\s+-e",  # Netcat reverse shell
+            r"python.*-c.*import\s+os.*exec",  # Python code injection
+        ]
+    )
 
     # Allowed command prefixes
-    allowed_commands: Set[str] = field(default_factory=lambda: {
-        "echo", "cat", "ls", "pwd", "date", "whoami", "hostname",
-        "python", "python3", "pip", "pip3",
-        "node", "npm", "npx",
-        "git", "docker",
-        "curl", "wget",  # Without piping to shell
-    })
+    allowed_commands: Set[str] = field(
+        default_factory=lambda: {
+            "echo",
+            "cat",
+            "ls",
+            "pwd",
+            "date",
+            "whoami",
+            "hostname",
+            "python",
+            "python3",
+            "pip",
+            "pip3",
+            "node",
+            "npm",
+            "npx",
+            "git",
+            "docker",
+            "curl",
+            "wget",  # Without piping to shell
+        }
+    )
 
     # Blocked commands entirely
-    blocked_commands: Set[str] = field(default_factory=lambda: {
-        "rm", "rmdir", "mkfs", "fdisk", "shutdown", "reboot",
-        "init", "systemctl", "service",
-        "passwd", "useradd", "userdel", "groupadd",
-        "chown", "chmod",  # File permission changes
-        "kill", "killall", "pkill",
-        "iptables", "ufw",
-        "mount", "umount",
-    })
+    blocked_commands: Set[str] = field(
+        default_factory=lambda: {
+            "rm",
+            "rmdir",
+            "mkfs",
+            "fdisk",
+            "shutdown",
+            "reboot",
+            "init",
+            "systemctl",
+            "service",
+            "passwd",
+            "useradd",
+            "userdel",
+            "groupadd",
+            "chown",
+            "chmod",  # File permission changes
+            "kill",
+            "killall",
+            "pkill",
+            "iptables",
+            "ufw",
+            "mount",
+            "umount",
+        }
+    )
 
     # Maximum command length
     max_length: int = 10000
@@ -171,12 +205,8 @@ class CommandValidator:
 
     def __init__(self, policy: Optional[CommandPolicy] = None):
         self.policy = policy or CommandPolicy()
-        self._compiled_blocked = [
-            re.compile(p, re.IGNORECASE) for p in self.policy.blocked_patterns
-        ]
-        self._compiled_allowed = [
-            re.compile(p, re.IGNORECASE) for p in self.policy.allowed_patterns
-        ]
+        self._compiled_blocked = [re.compile(p, re.IGNORECASE) for p in self.policy.blocked_patterns]
+        self._compiled_allowed = [re.compile(p, re.IGNORECASE) for p in self.policy.allowed_patterns]
 
     def validate(self, command: str) -> tuple[bool, str]:
         """
@@ -365,7 +395,7 @@ class AuditLogger:
 
             # Trim old entries
             if len(self._entries) > self.max_entries:
-                self._entries = self._entries[-self.max_entries:]
+                self._entries = self._entries[-self.max_entries :]
 
             # Write to file
             if self.log_file:
@@ -409,17 +439,19 @@ class AuditLogger:
 
         try:
             async with aiofiles.open(self.log_file, "a") as f:
-                line = json.dumps({
-                    "timestamp": entry.timestamp.isoformat(),
-                    "event_type": entry.event_type,
-                    "client_ip": entry.client_ip,
-                    "api_key_id": entry.api_key_id,
-                    "command": entry.command,
-                    "success": entry.success,
-                    "error_message": entry.error_message,
-                    "execution_time": entry.execution_time,
-                    **entry.metadata,
-                })
+                line = json.dumps(
+                    {
+                        "timestamp": entry.timestamp.isoformat(),
+                        "event_type": entry.event_type,
+                        "client_ip": entry.client_ip,
+                        "api_key_id": entry.api_key_id,
+                        "command": entry.command,
+                        "success": entry.success,
+                        "error_message": entry.error_message,
+                        "execution_time": entry.execution_time,
+                        **entry.metadata,
+                    }
+                )
                 await f.write(line + "\n")
         except Exception as e:
             logger.error(f"Failed to write audit log: {e}")

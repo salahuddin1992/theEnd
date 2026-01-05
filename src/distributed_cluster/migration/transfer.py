@@ -252,19 +252,14 @@ class StateTransfer:
         self._sessions[session_id] = session
         self._stats["total_transfers"] += 1
 
-        logger.info(
-            f"Starting file transfer {session_id}: "
-            f"{file_path} -> {target_host}:{target_port}"
-        )
+        logger.info(f"Starting file transfer {session_id}: " f"{file_path} -> {target_host}:{target_port}")
 
         try:
             session.status = TransferStatus.CONNECTING
             session.started_at = datetime.now(timezone.utc)
 
             # Connect to target
-            reader, writer = await asyncio.open_connection(
-                target_host, target_port
-            )
+            reader, writer = await asyncio.open_connection(target_host, target_port)
 
             session.status = TransferStatus.TRANSFERRING
 
@@ -318,9 +313,7 @@ class StateTransfer:
                     # Calculate rate
                     elapsed = time.monotonic() - window_start
                     if elapsed >= 1.0:
-                        session.progress.current_rate_mbps = (
-                            bytes_sent_window * 8 / 1_000_000
-                        )
+                        session.progress.current_rate_mbps = bytes_sent_window * 8 / 1_000_000
                         bytes_sent_window = 0
                         window_start = time.monotonic()
 
@@ -350,9 +343,7 @@ class StateTransfer:
             session.completed_at = datetime.now(timezone.utc)
 
             total_time = time.monotonic() - start_time
-            session.progress.average_rate_mbps = (
-                file_size * 8 / (total_time * 1_000_000)
-            )
+            session.progress.average_rate_mbps = file_size * 8 / (total_time * 1_000_000)
 
             self._stats["successful_transfers"] += 1
             self._stats["total_bytes_transferred"] += file_size
@@ -443,16 +434,12 @@ class StateTransfer:
                         # nosec B324 - MD5 used for data integrity check, not security
                         calculated = hashlib.md5(chunk.data, usedforsecurity=False).hexdigest()
                         if calculated != chunk.checksum:
-                            raise RuntimeError(
-                                f"Checksum mismatch for chunk {chunk.chunk_id}"
-                            )
+                            raise RuntimeError(f"Checksum mismatch for chunk {chunk.chunk_id}")
 
                     # Decompress if needed
                     data = chunk.data
                     if metadata.get("compression") != "none":
-                        data = self._decompress(
-                            data, CompressionType(metadata["compression"])
-                        )
+                        data = self._decompress(data, CompressionType(metadata["compression"]))
 
                     f.write(data)
 
@@ -524,9 +511,7 @@ class StateTransfer:
         session.started_at = datetime.now(timezone.utc)
 
         try:
-            reader, writer = await asyncio.open_connection(
-                target_host, target_port
-            )
+            reader, writer = await asyncio.open_connection(target_host, target_port)
 
             # Send header
             header = {
@@ -674,9 +659,7 @@ class StateTransfer:
         """Receive a chunk."""
         try:
             header = await reader.readexactly(53)  # 8 + 8 + 4 + 32 + 1
-            chunk_id, offset, size, checksum, is_last = struct.unpack(
-                "!QQI32s?", header
-            )
+            chunk_id, offset, size, checksum, is_last = struct.unpack("!QQI32s?", header)
 
             if size == 0:
                 return None
@@ -747,9 +730,7 @@ class StateTransfer:
         """Get transfer statistics."""
         return {
             **self._stats,
-            "active_transfers": len(
-                [s for s in self._sessions.values() if s.status == TransferStatus.TRANSFERRING]
-            ),
+            "active_transfers": len([s for s in self._sessions.values() if s.status == TransferStatus.TRANSFERRING]),
             "protocol": self.protocol.value,
             "compression": self.compression.value,
             "chunk_size": self.chunk_size,

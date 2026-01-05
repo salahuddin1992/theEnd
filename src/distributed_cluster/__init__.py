@@ -33,26 +33,28 @@ logger = logging.getLogger(__name__)
 
 # Custom Exceptions
 class AuthenticationError(Exception):
-        """Raised when authentication fails."""
-        pass
+    """Raised when authentication fails."""
+
+    pass
 
 
 class CircuitBreakerOpenError(Exception):
-        """Raised when circuit breaker is open."""
-        pass
+    """Raised when circuit breaker is open."""
+
+    pass
 
 
 # AI Provider Enum
 class AIProvider(Enum):
-        """Supported AI providers."""
-        OLLAMA = auto()
-        OPENAI = auto()
-        CLAUDE = auto()
-        GEMINI = auto()
-        GROQ = auto()
-        MISTRAL = auto()
-        CUSTOM = auto()
+    """Supported AI providers."""
 
+    OLLAMA = auto()
+    OPENAI = auto()
+    CLAUDE = auto()
+    GEMINI = auto()
+    GROQ = auto()
+    MISTRAL = auto()
+    CUSTOM = auto()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -392,6 +394,7 @@ class OllamaProvider(LLMProvider):
                 async for line in response.content:
                     if line:
                         import json
+
                         data = json.loads(line)
                         if content := data.get("message", {}).get("content"):
                             yield content
@@ -538,6 +541,7 @@ class OpenAIProvider(LLMProvider):
                     line_str = line.decode("utf-8").strip()
                     if line_str.startswith("data: ") and line_str != "data: [DONE]":
                         import json
+
                         data = json.loads(line_str[6:])
                         if content := data["choices"][0]["delta"].get("content"):
                             yield content
@@ -707,6 +711,7 @@ class ClaudeProvider(LLMProvider):
                     line_str = line.decode("utf-8").strip()
                     if line_str.startswith("data: "):
                         import json
+
                         try:
                             data = json.loads(line_str[6:])
                             if data.get("type") == "content_block_delta":
@@ -752,10 +757,12 @@ class GeminiProvider(LLMProvider):
                 system_instruction = m.content
             else:
                 role = "user" if m.role == "user" else "model"
-                contents.append({
-                    "role": role,
-                    "parts": [{"text": m.content}],
-                })
+                contents.append(
+                    {
+                        "role": role,
+                        "parts": [{"text": m.content}],
+                    }
+                )
 
         payload = {
             "contents": contents,
@@ -825,10 +832,12 @@ class GeminiProvider(LLMProvider):
         for m in messages:
             if m.role != "system":
                 role = "user" if m.role == "user" else "model"
-                contents.append({
-                    "role": role,
-                    "parts": [{"text": m.content}],
-                })
+                contents.append(
+                    {
+                        "role": role,
+                        "parts": [{"text": m.content}],
+                    }
+                )
 
         payload = {
             "contents": contents,
@@ -857,6 +866,7 @@ class GeminiProvider(LLMProvider):
                     line_str = line.decode("utf-8").strip()
                     if line_str.startswith("data: "):
                         import json
+
                         try:
                             data = json.loads(line_str[6:])
                             for candidate in data.get("candidates", []):
@@ -981,6 +991,7 @@ class GroqProvider(LLMProvider):
                     line_str = line.decode("utf-8").strip()
                     if line_str.startswith("data: ") and line_str != "data: [DONE]":
                         import json
+
                         data = json.loads(line_str[6:])
                         if content := data["choices"][0]["delta"].get("content"):
                             yield content
@@ -1172,9 +1183,7 @@ class MultiProviderManager:
         """Get ordered list of providers to try."""
         if self.routing_strategy == RoutingStrategy.FALLBACK:
             if preferred and preferred in self._providers:
-                return [preferred] + [
-                    p for p in self._priority_order if p != preferred
-                ]
+                return [preferred] + [p for p in self._priority_order if p != preferred]
             return list(self._priority_order)
 
         elif self.routing_strategy == RoutingStrategy.ROUND_ROBIN:
@@ -1189,6 +1198,7 @@ class MultiProviderManager:
             return result
 
         elif self.routing_strategy == RoutingStrategy.LEAST_LATENCY:
+
             def avg_latency(p: AIProvider) -> float:
                 lats = self._latencies.get(p, [])
                 return sum(lats) / len(lats) if lats else float("inf")

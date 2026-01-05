@@ -46,7 +46,7 @@ class PluginInfo:
         description: str = "",
         author: str = "Unknown",
         enabled: bool = True,
-        module: Any = None
+        module: Any = None,
     ):
         self.name = name
         self.path = path
@@ -120,10 +120,10 @@ class PluginLoader(QThread):
         spec.loader.exec_module(module)
 
         # Extract plugin metadata
-        name = getattr(module, 'PLUGIN_NAME', module_name)
-        version = getattr(module, 'PLUGIN_VERSION', '1.0.0')
-        description = getattr(module, 'PLUGIN_DESCRIPTION', getattr(module, '__doc__', '') or '')
-        author = getattr(module, 'PLUGIN_AUTHOR', 'Unknown')
+        name = getattr(module, "PLUGIN_NAME", module_name)
+        version = getattr(module, "PLUGIN_VERSION", "1.0.0")
+        description = getattr(module, "PLUGIN_DESCRIPTION", getattr(module, "__doc__", "") or "")
+        author = getattr(module, "PLUGIN_AUTHOR", "Unknown")
 
         return PluginInfo(
             name=name,
@@ -132,7 +132,7 @@ class PluginLoader(QThread):
             description=description.strip(),
             author=author,
             enabled=True,
-            module=module
+            module=module,
         )
 
 
@@ -151,7 +151,8 @@ class PluginCard(QFrame):
 
     def _setup_ui(self):
         """Setup the card UI"""
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border: 1px solid {COLORS['border']};
@@ -161,7 +162,8 @@ class PluginCard(QFrame):
             QFrame:hover {{
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
@@ -172,9 +174,7 @@ class PluginCard(QFrame):
         # Enable checkbox
         self.enable_checkbox = QCheckBox()
         self.enable_checkbox.setChecked(self.plugin.enabled)
-        self.enable_checkbox.toggled.connect(
-            lambda checked: self.toggle_requested.emit(self.plugin.name, checked)
-        )
+        self.enable_checkbox.toggled.connect(lambda checked: self.toggle_requested.emit(self.plugin.name, checked))
         header_layout.addWidget(self.enable_checkbox)
 
         # Plugin icon and name
@@ -183,31 +183,37 @@ class PluginCard(QFrame):
         header_layout.addWidget(icon_label)
 
         name_label = QLabel(self.plugin.name)
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             font-size: 16px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         header_layout.addWidget(name_label)
 
         version_label = QLabel(f"v{self.plugin.version}")
-        version_label.setStyleSheet(f"""
+        version_label.setStyleSheet(
+            f"""
             font-size: 11px;
             color: {COLORS['text_muted']};
             background-color: {COLORS['bg_light']};
             padding: 2px 8px;
             border-radius: 4px;
-        """)
+        """
+        )
         header_layout.addWidget(version_label)
 
         header_layout.addStretch()
 
         # Status indicator
         self.status_label = QLabel("●")
-        self.status_label.setStyleSheet(f"""
+        self.status_label.setStyleSheet(
+            f"""
             font-size: 10px;
             color: {COLORS['success'] if self.plugin.enabled else COLORS['text_muted']};
-        """)
+        """
+        )
         header_layout.addWidget(self.status_label)
 
         layout.addLayout(header_layout)
@@ -216,10 +222,12 @@ class PluginCard(QFrame):
         if self.plugin.description:
             desc_label = QLabel(self.plugin.description)
             desc_label.setWordWrap(True)
-            desc_label.setStyleSheet(f"""
+            desc_label.setStyleSheet(
+                f"""
                 color: {COLORS['text_secondary']};
                 font-size: 12px;
-            """)
+            """
+            )
             layout.addWidget(desc_label)
 
         # Author and path
@@ -271,7 +279,8 @@ class PluginCard(QFrame):
 
         # Unload button
         unload_btn = QPushButton("❌ Unload")
-        unload_btn.setStyleSheet(f"""
+        unload_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['bg_light']};
                 color: {COLORS['danger']};
@@ -285,7 +294,8 @@ class PluginCard(QFrame):
                 color: white;
                 border-color: {COLORS['danger']};
             }}
-        """)
+        """
+        )
         unload_btn.clicked.connect(lambda: self.unload_requested.emit(self.plugin.name))
         btn_layout.addWidget(unload_btn)
 
@@ -295,10 +305,12 @@ class PluginCard(QFrame):
         """Update the plugin status display"""
         self.plugin.enabled = enabled
         self.enable_checkbox.setChecked(enabled)
-        self.status_label.setStyleSheet(f"""
+        self.status_label.setStyleSheet(
+            f"""
             font-size: 10px;
             color: {COLORS['success'] if enabled else COLORS['text_muted']};
-        """)
+        """
+        )
 
 
 class PluginManagerView(QWidget):
@@ -363,23 +375,27 @@ class PluginManagerView(QWidget):
     def _create_toolbar(self) -> QFrame:
         """Create the toolbar"""
         toolbar = QFrame()
-        toolbar.setStyleSheet(f"""
+        toolbar.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS['bg_medium']};
                 border-bottom: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(toolbar)
         layout.setContentsMargins(16, 12, 16, 12)
 
         # Title
         title = QLabel("🔌 Plugin Manager")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS['text_primary']};
-        """)
+        """
+        )
         layout.addWidget(title)
 
         layout.addSpacing(24)
@@ -388,7 +404,8 @@ class PluginManagerView(QWidget):
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("🔍 Search plugins...")
         self.search_input.setMaximumWidth(300)
-        self.search_input.setStyleSheet(f"""
+        self.search_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -399,7 +416,8 @@ class PluginManagerView(QWidget):
             QLineEdit:focus {{
                 border-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         self.search_input.textChanged.connect(self._filter_plugins)
         layout.addWidget(self.search_input)
 
@@ -447,7 +465,8 @@ class PluginManagerView(QWidget):
 
         # Refresh
         refresh_btn = QPushButton("🔄 Refresh All")
-        refresh_btn.setStyleSheet(f"""
+        refresh_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS['success']};
                 color: white;
@@ -459,7 +478,8 @@ class PluginManagerView(QWidget):
             QPushButton:hover {{
                 background-color: #2e7d32;
             }}
-        """)
+        """
+        )
         refresh_btn.clicked.connect(self._refresh_plugins)
         layout.addWidget(refresh_btn)
 
@@ -476,7 +496,8 @@ class PluginManagerView(QWidget):
 
         # Category tabs
         self.category_tabs = QTabWidget()
-        self.category_tabs.setStyleSheet(f"""
+        self.category_tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: none;
                 background-color: transparent;
@@ -493,7 +514,8 @@ class PluginManagerView(QWidget):
                 color: {COLORS['text_primary']};
                 border-bottom: 2px solid {COLORS['primary']};
             }}
-        """)
+        """
+        )
 
         # All plugins tab
         all_scroll = QScrollArea()
@@ -513,7 +535,8 @@ class PluginManagerView(QWidget):
         enabled_widget = QWidget()
         enabled_layout = QVBoxLayout(enabled_widget)
         self.enabled_list = QListWidget()
-        self.enabled_list.setStyleSheet(f"""
+        self.enabled_list.setStyleSheet(
+            f"""
             QListWidget {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
@@ -526,7 +549,8 @@ class PluginManagerView(QWidget):
             QListWidget::item:selected {{
                 background-color: {COLORS['primary']};
             }}
-        """)
+        """
+        )
         enabled_layout.addWidget(self.enabled_list)
         self.category_tabs.addTab(enabled_widget, "✅ Enabled")
 
@@ -545,12 +569,14 @@ class PluginManagerView(QWidget):
     def _create_details_container(self) -> QWidget:
         """Create the details panel"""
         container = QWidget()
-        container.setStyleSheet(f"""
+        container.setStyleSheet(
+            f"""
             QWidget {{
                 background-color: {COLORS['bg_dark']};
                 border-left: 1px solid {COLORS['border']};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -558,7 +584,8 @@ class PluginManagerView(QWidget):
 
         # Details tabs
         details_tabs = QTabWidget()
-        details_tabs.setStyleSheet(f"""
+        details_tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: none;
                 background-color: {COLORS['bg_dark']};
@@ -574,7 +601,8 @@ class PluginManagerView(QWidget):
                 color: {COLORS['text_primary']};
                 border-bottom: 2px solid {COLORS['primary']};
             }}
-        """)
+        """
+        )
 
         # Logs tab
         logs_widget = QWidget()
@@ -583,7 +611,8 @@ class PluginManagerView(QWidget):
 
         self.logs_console = QPlainTextEdit()
         self.logs_console.setReadOnly(True)
-        self.logs_console.setStyleSheet(f"""
+        self.logs_console.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: #1a1a1a;
                 color: {COLORS['text_primary']};
@@ -591,7 +620,8 @@ class PluginManagerView(QWidget):
                 font-family: 'Consolas', 'Monaco', monospace;
                 font-size: 11px;
             }}
-        """)
+        """
+        )
         self.logs_console.setPlaceholderText("Plugin activity logs will appear here...")
         logs_layout.addWidget(self.logs_console)
 
@@ -632,13 +662,15 @@ class PluginManagerView(QWidget):
 
         help_text = QTextEdit()
         help_text.setReadOnly(True)
-        help_text.setStyleSheet(f"""
+        help_text.setStyleSheet(
+            f"""
             QTextEdit {{
                 background-color: {COLORS['bg_dark']};
                 color: {COLORS['text_primary']};
                 border: none;
             }}
-        """)
+        """
+        )
         help_text.setHtml(self._get_help_html())
         help_layout.addWidget(help_text)
 
@@ -751,7 +783,7 @@ def on_job_submitted(job):
         self._watcher.addPath(plugin.path)
 
         # Call on_load if exists
-        if plugin.module and hasattr(plugin.module, 'on_load'):
+        if plugin.module and hasattr(plugin.module, "on_load"):
             try:
                 plugin.module.on_load()
             except Exception as e:
@@ -803,7 +835,7 @@ def on_job_submitted(job):
 
         try:
             # Call on_unload if exists
-            if plugin.module and hasattr(plugin.module, 'on_unload'):
+            if plugin.module and hasattr(plugin.module, "on_unload"):
                 plugin.module.on_unload()
 
             # Reload the module
@@ -812,7 +844,7 @@ def on_job_submitted(job):
                 plugin.last_reload = datetime.now()
 
             # Call on_load if exists
-            if plugin.module and hasattr(plugin.module, 'on_load'):
+            if plugin.module and hasattr(plugin.module, "on_load"):
                 plugin.module.on_load()
 
             self._log(f"✅ Reloaded: {name}")
@@ -828,9 +860,7 @@ def on_job_submitted(job):
             return
 
         reply = QMessageBox.question(
-            self, "Unload Plugin",
-            f"Are you sure you want to unload '{name}'?",
-            QMessageBox.Yes | QMessageBox.No
+            self, "Unload Plugin", f"Are you sure you want to unload '{name}'?", QMessageBox.Yes | QMessageBox.No
         )
 
         if reply != QMessageBox.Yes:
@@ -840,7 +870,7 @@ def on_job_submitted(job):
 
         try:
             # Call on_unload if exists
-            if plugin.module and hasattr(plugin.module, 'on_unload'):
+            if plugin.module and hasattr(plugin.module, "on_unload"):
                 plugin.module.on_unload()
 
             # Remove from tracking
@@ -873,16 +903,13 @@ def on_job_submitted(job):
         plugin = self._plugins[name]
 
         # Check if plugin has configure method
-        if plugin.module and hasattr(plugin.module, 'configure'):
+        if plugin.module and hasattr(plugin.module, "configure"):
             try:
                 plugin.module.configure()
             except Exception as e:
                 self._log(f"❌ Configure error: {e}")
         else:
-            QMessageBox.information(
-                self, "Configure",
-                f"Plugin '{name}' does not have a configure() method."
-            )
+            QMessageBox.information(self, "Configure", f"Plugin '{name}' does not have a configure() method.")
 
     def _filter_plugins(self, text: str):
         """Filter plugins by search text"""
@@ -924,8 +951,7 @@ def on_job_submitted(job):
     def _install_plugin(self):
         """Install a plugin from file"""
         filename, _ = QFileDialog.getOpenFileName(
-            self, "Install Plugin",
-            "", "Python Files (*.py);;ZIP Archives (*.zip)"
+            self, "Install Plugin", "", "Python Files (*.py);;ZIP Archives (*.zip)"
         )
 
         if not filename:
@@ -933,6 +959,7 @@ def on_job_submitted(job):
 
         try:
             import shutil
+
             dest = Path(self._plugin_dir) / Path(filename).name
             shutil.copy(filename, dest)
             self._log(f"📥 Installed: {Path(filename).name}")
@@ -942,10 +969,11 @@ def on_job_submitted(job):
 
     def _create_plugin(self):
         """Create a new plugin from template"""
-        name, ok = QMessageBox.getText(
-            self, "Create Plugin",
-            "Enter plugin name:"
-        ) if hasattr(QMessageBox, 'getText') else (None, False)
+        name, ok = (
+            QMessageBox.getText(self, "Create Plugin", "Enter plugin name:")
+            if hasattr(QMessageBox, "getText")
+            else (None, False)
+        )
 
         # Fallback if getText doesn't exist
         if not ok or not name:

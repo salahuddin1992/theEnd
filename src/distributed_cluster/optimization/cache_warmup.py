@@ -22,26 +22,29 @@ logger = logging.getLogger(__name__)
 
 class WarmupStrategy(Enum):
     """Cache warmup strategies."""
-    EAGER = "eager"               # Load all data at startup
-    LAZY = "lazy"                 # Load on first access
-    PREDICTIVE = "predictive"     # Load based on access patterns
-    SCHEDULED = "scheduled"       # Load at scheduled times
-    TIERED = "tiered"             # Priority-based loading
-    ADAPTIVE = "adaptive"         # Dynamically adjust strategy
+
+    EAGER = "eager"  # Load all data at startup
+    LAZY = "lazy"  # Load on first access
+    PREDICTIVE = "predictive"  # Load based on access patterns
+    SCHEDULED = "scheduled"  # Load at scheduled times
+    TIERED = "tiered"  # Priority-based loading
+    ADAPTIVE = "adaptive"  # Dynamically adjust strategy
 
 
 class WarmupPriority(Enum):
     """Priority levels for cache warmup."""
-    CRITICAL = 4    # Must be in cache before service starts
-    HIGH = 3        # Should be warmed first
-    MEDIUM = 2      # Standard priority
-    LOW = 1         # Warm when resources available
+
+    CRITICAL = 4  # Must be in cache before service starts
+    HIGH = 3  # Should be warmed first
+    MEDIUM = 2  # Standard priority
+    LOW = 1  # Warm when resources available
     BACKGROUND = 0  # Warm in background only
 
 
 @dataclass
 class WarmupItem:
     """Represents an item to be warmed in the cache."""
+
     key: str
     loader: Callable[[], Awaitable[Any]]
     priority: WarmupPriority = WarmupPriority.MEDIUM
@@ -61,6 +64,7 @@ class WarmupItem:
 @dataclass
 class WarmupResult:
     """Result of a warmup operation."""
+
     key: str
     success: bool
     load_time_ms: float
@@ -72,6 +76,7 @@ class WarmupResult:
 @dataclass
 class WarmupStats:
     """Statistics for warmup operations."""
+
     total_items: int = 0
     warmed_items: int = 0
     failed_items: int = 0
@@ -132,7 +137,7 @@ class HistoricalWarmupSource(WarmupDataSource):
         access_history: Dict[str, List[datetime]],
         loader: Callable[[str], Awaitable[Any]],
         min_access_count: int = 5,
-        lookback_hours: int = 24
+        lookback_hours: int = 24,
     ):
         self.access_history = access_history
         self.loader = loader
@@ -147,13 +152,15 @@ class HistoricalWarmupSource(WarmupDataSource):
             recent_accesses = [a for a in accesses if a > cutoff]
             if len(recent_accesses) >= self.min_access_count:
                 priority = self._calculate_priority(len(recent_accesses))
-                items.append(WarmupItem(
-                    key=key,
-                    loader=lambda k=key: self.loader(k),
-                    priority=priority,
-                    access_count=len(recent_accesses),
-                    last_accessed=max(recent_accesses) if recent_accesses else None,
-                ))
+                items.append(
+                    WarmupItem(
+                        key=key,
+                        loader=lambda k=key: self.loader(k),
+                        priority=priority,
+                        access_count=len(recent_accesses),
+                        last_accessed=max(recent_accesses) if recent_accesses else None,
+                    )
+                )
 
         return items
 
@@ -249,7 +256,7 @@ class CacheWarmer:
         strategy: WarmupStrategy = WarmupStrategy.ADAPTIVE,
         max_concurrent: int = 10,
         batch_size: int = 100,
-        timeout_seconds: float = 60.0
+        timeout_seconds: float = 60.0,
     ):
         self.cache_set = cache_set
         self.strategy = strategy
@@ -379,15 +386,11 @@ class CacheWarmer:
         self._semaphore = asyncio.Semaphore(self.max_concurrent)
 
         # Sort by priority and access count
-        sorted_items = sorted(
-            items,
-            key=lambda x: (x.priority.value, x.access_count),
-            reverse=True
-        )
+        sorted_items = sorted(items, key=lambda x: (x.priority.value, x.access_count), reverse=True)
 
         # Warm in batches with adaptive concurrency
         for i in range(0, len(sorted_items), self.batch_size):
-            batch = sorted_items[i:i + self.batch_size]
+            batch = sorted_items[i : i + self.batch_size]
             tasks = [self._warm_item(item) for item in batch]
             await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -416,10 +419,7 @@ class CacheWarmer:
 
                 # Load the value with timeout
                 try:
-                    value = await asyncio.wait_for(
-                        item.loader(),
-                        timeout=self.timeout_seconds
-                    )
+                    value = await asyncio.wait_for(item.loader(), timeout=self.timeout_seconds)
                 except asyncio.TimeoutError:
                     result.error = "Load timeout"
                     self.failed_keys[item.key] = result.error
@@ -487,9 +487,7 @@ class CacheWarmer:
             return
 
         self._running = True
-        self._warmup_task = asyncio.create_task(
-            self._background_loop(interval_seconds)
-        )
+        self._warmup_task = asyncio.create_task(self._background_loop(interval_seconds))
         logger.info("Started background cache warming")
 
     async def stop_background_warming(self):
@@ -509,10 +507,7 @@ class CacheWarmer:
             try:
                 # Check scheduled warmups
                 now = datetime.now()
-                due_warmups = [
-                    (when, items) for when, items in self.scheduled_warmups
-                    if when <= now
-                ]
+                due_warmups = [(when, items) for when, items in self.scheduled_warmups if when <= now]
 
                 for when, items in due_warmups:
                     logger.info(f"Executing scheduled warmup with {len(items)} items")
@@ -550,22 +545,22 @@ class CacheWarmer:
     def get_stats(self) -> Dict[str, Any]:
         """Get warmup statistics."""
         return {
-            'strategy': self.strategy.value,
-            'total_items': self.current_stats.total_items,
-            'warmed_items': self.current_stats.warmed_items,
-            'failed_items': self.current_stats.failed_items,
-            'success_rate': self.current_stats.success_rate,
-            'total_load_time_ms': self.current_stats.total_load_time_ms,
-            'total_size_bytes': self.current_stats.total_size_bytes,
-            'duration_seconds': self.current_stats.duration_seconds,
-            'warmed_keys_count': len(self.warmed_keys),
-            'pending_scheduled': len(self.scheduled_warmups),
-            'recent_results': [
+            "strategy": self.strategy.value,
+            "total_items": self.current_stats.total_items,
+            "warmed_items": self.current_stats.warmed_items,
+            "failed_items": self.current_stats.failed_items,
+            "success_rate": self.current_stats.success_rate,
+            "total_load_time_ms": self.current_stats.total_load_time_ms,
+            "total_size_bytes": self.current_stats.total_size_bytes,
+            "duration_seconds": self.current_stats.duration_seconds,
+            "warmed_keys_count": len(self.warmed_keys),
+            "pending_scheduled": len(self.scheduled_warmups),
+            "recent_results": [
                 {
-                    'key': r.key,
-                    'success': r.success,
-                    'load_time_ms': r.load_time_ms,
-                    'error': r.error,
+                    "key": r.key,
+                    "success": r.success,
+                    "load_time_ms": r.load_time_ms,
+                    "error": r.error,
                 }
                 for r in list(self.warmup_results)[-20:]
             ],
@@ -582,7 +577,7 @@ class IncrementalWarmer:
         self,
         cache_set: Callable[[str, Any, Optional[int]], Awaitable[bool]],
         items_per_second: float = 10.0,
-        max_memory_mb: int = 1024
+        max_memory_mb: int = 1024,
     ):
         self.cache_set = cache_set
         self.items_per_second = items_per_second
@@ -658,7 +653,7 @@ class CacheRefresher:
         self,
         cache_get: Callable[[str], Awaitable[Any]],
         cache_set: Callable[[str, Any, Optional[int]], Awaitable[bool]],
-        refresh_threshold: float = 0.8  # Refresh when 80% of TTL elapsed
+        refresh_threshold: float = 0.8,  # Refresh when 80% of TTL elapsed
     ):
         self.cache_get = cache_get
         self.cache_set = cache_set
@@ -670,18 +665,13 @@ class CacheRefresher:
         self._running = False
         self._task: Optional[asyncio.Task] = None
 
-    def track(
-        self,
-        key: str,
-        loader: Callable[[], Awaitable[Any]],
-        ttl_seconds: int
-    ):
+    def track(self, key: str, loader: Callable[[], Awaitable[Any]], ttl_seconds: int):
         """Track a key for automatic refresh."""
         with self._lock:
             self.tracked_items[key] = {
-                'loader': loader,
-                'ttl_seconds': ttl_seconds,
-                'last_refresh': time.time(),
+                "loader": loader,
+                "ttl_seconds": ttl_seconds,
+                "last_refresh": time.time(),
             }
 
     def untrack(self, key: str):
@@ -718,8 +708,8 @@ class CacheRefresher:
 
                 with self._lock:
                     for key, info in self.tracked_items.items():
-                        elapsed = current_time - info['last_refresh']
-                        threshold = info['ttl_seconds'] * self.refresh_threshold
+                        elapsed = current_time - info["last_refresh"]
+                        threshold = info["ttl_seconds"] * self.refresh_threshold
 
                         if elapsed >= threshold:
                             items_to_refresh.append((key, info))
@@ -727,12 +717,12 @@ class CacheRefresher:
                 # Refresh items
                 for key, info in items_to_refresh:
                     try:
-                        value = await info['loader']()
-                        await self.cache_set(key, value, info['ttl_seconds'])
+                        value = await info["loader"]()
+                        await self.cache_set(key, value, info["ttl_seconds"])
 
                         with self._lock:
                             if key in self.tracked_items:
-                                self.tracked_items[key]['last_refresh'] = current_time
+                                self.tracked_items[key]["last_refresh"] = current_time
 
                         logger.debug(f"Refreshed cache key: {key}")
 

@@ -41,8 +41,10 @@ from .fluent_design import FluentDesignSystem, RevealEffect
 # BUTTON VARIANTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ButtonVariant(Enum):
     """Button style variants"""
+
     DEFAULT = "default"
     ACCENT = "accent"
     SUBTLE = "subtle"
@@ -53,6 +55,7 @@ class ButtonVariant(Enum):
 
 class ButtonSize(Enum):
     """Button size variants"""
+
     SMALL = "small"
     MEDIUM = "medium"
     LARGE = "large"
@@ -63,16 +66,21 @@ class ButtonSize(Enum):
 # زر Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentButton(QPushButton):
     """
     Modern Fluent Design button with reveal effect.
     زر حديث بتصميم Fluent مع تأثير Reveal
     """
 
-    def __init__(self, text: str = "", icon: str = "",
-                 variant: ButtonVariant = ButtonVariant.DEFAULT,
-                 size: ButtonSize = ButtonSize.MEDIUM,
-                 parent=None):
+    def __init__(
+        self,
+        text: str = "",
+        icon: str = "",
+        variant: ButtonVariant = ButtonVariant.DEFAULT,
+        size: ButtonSize = ButtonSize.MEDIUM,
+        parent=None,
+    ):
         super().__init__(text, parent)
 
         self._icon_char = icon
@@ -208,7 +216,8 @@ class FluentButton(QPushButton):
             ButtonSize.LARGE: 16,
         }
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {bg};
                 color: {text};
@@ -218,7 +227,8 @@ class FluentButton(QPushButton):
                 font-weight: 500;
                 padding: 0px 16px;
             }}
-        """)
+        """
+        )
 
     def paintEvent(self, event):
         """Custom paint with icon and loading state"""
@@ -273,12 +283,7 @@ class FluentButton(QPushButton):
         painter.setPen(pen)
         painter.setBrush(Qt.NoBrush)
 
-        rect = QRectF(
-            center.x() - radius,
-            center.y() - radius,
-            radius * 2,
-            radius * 2
-        )
+        rect = QRectF(center.x() - radius, center.y() - radius, radius * 2, radius * 2)
 
         painter.drawArc(rect, self._loading_angle * 16, 270 * 16)
 
@@ -308,6 +313,7 @@ class FluentButton(QPushButton):
 # بطاقة Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentCard(QFrame):
     """
     Modern Fluent Design card with elevation.
@@ -316,9 +322,9 @@ class FluentCard(QFrame):
 
     clicked = Signal()
 
-    def __init__(self, title: str = "", subtitle: str = "",
-                 clickable: bool = False, elevated: bool = False,
-                 parent=None):
+    def __init__(
+        self, title: str = "", subtitle: str = "", clickable: bool = False, elevated: bool = False, parent=None
+    ):
         super().__init__(parent)
 
         self._title = title
@@ -348,24 +354,28 @@ class FluentCard(QFrame):
         # Title
         if self._title:
             self._title_label = QLabel(self._title)
-            self._title_label.setStyleSheet(f"""
+            self._title_label.setStyleSheet(
+                f"""
                 QLabel {{
                     color: {colors.text_primary};
                     font-size: 16px;
                     font-weight: 600;
                 }}
-            """)
+            """
+            )
             layout.addWidget(self._title_label)
 
         # Subtitle
         if self._subtitle:
             self._subtitle_label = QLabel(self._subtitle)
-            self._subtitle_label.setStyleSheet(f"""
+            self._subtitle_label.setStyleSheet(
+                f"""
                 QLabel {{
                     color: {colors.text_secondary};
                     font-size: 12px;
                 }}
-            """)
+            """
+            )
             layout.addWidget(self._subtitle_label)
 
         # Content area
@@ -410,13 +420,15 @@ class FluentCard(QFrame):
             else:
                 bg = colors.bg_card_default
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             #{self.objectName()} {{
                 background-color: {bg};
                 border: 1px solid {colors.stroke_surface};
                 border-radius: 12px;
             }}
-        """)
+        """
+        )
 
     def enterEvent(self, event):
         self._hovered = True
@@ -436,7 +448,7 @@ class FluentCard(QFrame):
     def paintEvent(self, event):
         super().paintEvent(event)
 
-        if self._clickable and hasattr(self, '_reveal'):
+        if self._clickable and hasattr(self, "_reveal"):
             painter = QPainter(self)
             painter.setRenderHint(QPainter.Antialiasing)
             self._reveal.paint(painter, self.rect())
@@ -448,6 +460,7 @@ class FluentCard(QFrame):
 # حقل إدخال Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentInput(QWidget):
     """
     Modern Fluent Design text input with label and validation.
@@ -457,8 +470,7 @@ class FluentInput(QWidget):
     text_changed = Signal(str)
     return_pressed = Signal()
 
-    def __init__(self, label: str = "", placeholder: str = "",
-                 icon: str = "", parent=None):
+    def __init__(self, label: str = "", placeholder: str = "", icon: str = "", parent=None):
         super().__init__(parent)
 
         self._label = label
@@ -480,13 +492,15 @@ class FluentInput(QWidget):
         # Label
         if self._label:
             self._label_widget = QLabel(self._label)
-            self._label_widget.setStyleSheet(f"""
+            self._label_widget.setStyleSheet(
+                f"""
                 QLabel {{
                     color: {colors.text_primary};
                     font-size: 14px;
                     font-weight: 500;
                 }}
-            """)
+            """
+            )
             layout.addWidget(self._label_widget)
 
         # Input container
@@ -500,7 +514,8 @@ class FluentInput(QWidget):
             icon_label = QLabel()
             icon_label.setFixedWidth(40)
             icon_label.setAlignment(Qt.AlignCenter)
-            icon_label.setStyleSheet(f"""
+            icon_label.setStyleSheet(
+                f"""
                 QLabel {{
                     font-family: 'Segoe Fluent Icons';
                     font-size: 14px;
@@ -511,7 +526,8 @@ class FluentInput(QWidget):
                     border-radius: 6px 0 0 6px;
                     padding: 8px;
                 }}
-            """)
+            """
+            )
             icon_label.setText(self._icon)
             input_layout.addWidget(icon_label)
 
@@ -526,12 +542,14 @@ class FluentInput(QWidget):
 
         # Error message
         self._error_label = QLabel()
-        self._error_label.setStyleSheet(f"""
+        self._error_label.setStyleSheet(
+            f"""
             QLabel {{
                 color: {colors.error};
                 font-size: 12px;
             }}
-        """)
+        """
+        )
         self._error_label.setVisible(False)
         layout.addWidget(self._error_label)
 
@@ -546,7 +564,8 @@ class FluentInput(QWidget):
 
         has_icon_radius = "0" if self._icon else "6px"
 
-        self._input.setStyleSheet(f"""
+        self._input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -566,7 +585,8 @@ class FluentInput(QWidget):
             QLineEdit::placeholder {{
                 color: {colors.text_tertiary};
             }}
-        """)
+        """
+        )
 
     def text(self) -> str:
         """Get input text"""
@@ -597,6 +617,7 @@ class FluentInput(QWidget):
 # FLUENT SWITCH (TOGGLE)
 # مفتاح تبديل Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentSwitch(QAbstractButton):
     """
@@ -698,6 +719,7 @@ class FluentSwitch(QAbstractButton):
 # منزلق Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentSlider(QSlider):
     """
     Modern Fluent Design slider.
@@ -713,7 +735,8 @@ class FluentSlider(QSlider):
         """Setup slider style"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QSlider::groove:horizontal {{
                 background-color: {colors.stroke_control};
                 height: 4px;
@@ -734,7 +757,8 @@ class FluentSlider(QSlider):
                 background-color: {colors.accent};
                 border-radius: 2px;
             }}
-        """)
+        """
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -742,14 +766,14 @@ class FluentSlider(QSlider):
 # حلقة تقدم Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentProgressRing(QWidget):
     """
     Modern Fluent Design progress ring (circular progress).
     حلقة تقدم حديثة بتصميم Fluent
     """
 
-    def __init__(self, size: int = 32, thickness: int = 3,
-                 indeterminate: bool = False, parent=None):
+    def __init__(self, size: int = 32, thickness: int = 3, indeterminate: bool = False, parent=None):
         super().__init__(parent)
 
         self._size = size
@@ -785,9 +809,7 @@ class FluentProgressRing(QWidget):
 
         # Calculate dimensions
         margin = self._thickness
-        rect = QRectF(margin, margin,
-                     self._size - 2 * margin,
-                     self._size - 2 * margin)
+        rect = QRectF(margin, margin, self._size - 2 * margin, self._size - 2 * margin)
 
         # Draw background track
         pen = QPen(QColor(colors.stroke_control))
@@ -819,8 +841,10 @@ class FluentProgressRing(QWidget):
 # شارة Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class BadgeVariant(Enum):
     """Badge color variants"""
+
     DEFAULT = "default"
     SUCCESS = "success"
     WARNING = "warning"
@@ -834,8 +858,7 @@ class FluentBadge(QLabel):
     شارة/علامة حديثة بتصميم Fluent
     """
 
-    def __init__(self, text: str = "", variant: BadgeVariant = BadgeVariant.DEFAULT,
-                 parent=None):
+    def __init__(self, text: str = "", variant: BadgeVariant = BadgeVariant.DEFAULT, parent=None):
         super().__init__(text, parent)
 
         self._variant = variant
@@ -855,7 +878,8 @@ class FluentBadge(QLabel):
 
         bg, text = variant_colors[self._variant]
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QLabel {{
                 background-color: {bg};
                 color: {text};
@@ -864,7 +888,8 @@ class FluentBadge(QLabel):
                 padding: 4px 8px;
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
 
         self.setAlignment(Qt.AlignCenter)
 
@@ -874,6 +899,7 @@ class FluentBadge(QLabel):
 # صورة رمزية Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentAvatar(QWidget):
     """
     Modern Fluent Design avatar/profile picture.
@@ -882,8 +908,7 @@ class FluentAvatar(QWidget):
 
     clicked = Signal()
 
-    def __init__(self, name: str = "", image_path: str = "",
-                 size: int = 40, parent=None):
+    def __init__(self, name: str = "", image_path: str = "", size: int = 40, parent=None):
         super().__init__(parent)
 
         self._name = name
@@ -908,9 +933,7 @@ class FluentAvatar(QWidget):
         if self._image_path:
             # Draw image
             pixmap = QPixmap(self._image_path)
-            scaled = pixmap.scaled(self._size, self._size,
-                                  Qt.KeepAspectRatioByExpanding,
-                                  Qt.SmoothTransformation)
+            scaled = pixmap.scaled(self._size, self._size, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
             painter.drawPixmap(0, 0, scaled)
         else:
             # Draw initials
@@ -939,6 +962,7 @@ class FluentAvatar(QWidget):
 # تلميح Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentTooltip(QLabel):
     """
     Modern Fluent Design tooltip.
@@ -957,7 +981,8 @@ class FluentTooltip(QLabel):
         """Setup tooltip style"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QLabel {{
                 background-color: {colors.bg_solid_tertiary};
                 color: {colors.text_primary};
@@ -966,7 +991,8 @@ class FluentTooltip(QLabel):
                 padding: 8px 12px;
                 font-size: 12px;
             }}
-        """)
+        """
+        )
 
         # Shadow effect
         shadow = QGraphicsDropShadowEffect()
@@ -981,14 +1007,14 @@ class FluentTooltip(QLabel):
 # هيكل التحميل
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SkeletonLoader(QWidget):
     """
     Skeleton loading placeholder with shimmer animation.
     عنصر نائب للتحميل مع تأثير لمعان
     """
 
-    def __init__(self, width: int = 100, height: int = 20,
-                 rounded: bool = False, parent=None):
+    def __init__(self, width: int = 100, height: int = 20, rounded: bool = False, parent=None):
         super().__init__(parent)
 
         self._width = width

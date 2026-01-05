@@ -328,9 +328,7 @@ class ChaosEngine:
                 raise RuntimeError("Experiment requires approval")
 
             if len(self._running_experiments) >= self.max_concurrent:
-                raise RuntimeError(
-                    f"Maximum concurrent experiments ({self.max_concurrent}) reached"
-                )
+                raise RuntimeError(f"Maximum concurrent experiments ({self.max_concurrent}) reached")
 
             # Validate blast radius
             if self.safety_enabled:
@@ -391,9 +389,7 @@ class ChaosEngine:
                 for condition in experiment.abort_conditions:
                     if await self._check_abort_condition(condition):
                         abort_triggered = True
-                        observations.append(
-                            f"Abort condition triggered: {condition.get('name', 'unknown')}"
-                        )
+                        observations.append(f"Abort condition triggered: {condition.get('name', 'unknown')}")
                         break
 
                 # Check for pause/stop
@@ -427,9 +423,7 @@ class ChaosEngine:
             metrics["recovery_time_seconds"] = recovery_time
 
             # Validate hypothesis
-            hypothesis_validated = await self._validate_hypothesis(
-                experiment.hypothesis, metrics, observations
-            )
+            hypothesis_validated = await self._validate_hypothesis(experiment.hypothesis, metrics, observations)
 
             # Create result
             result = ExperimentResult(
@@ -439,17 +433,11 @@ class ChaosEngine:
                 metrics=metrics,
                 recovery_time_seconds=recovery_time,
                 impact_assessment=self._assess_impact(metrics),
-                recommendations=self._generate_recommendations(
-                    experiment, hypothesis_validated, metrics
-                ),
+                recommendations=self._generate_recommendations(experiment, hypothesis_validated, metrics),
             )
 
             experiment.result = result
-            experiment.status = (
-                ExperimentStatus.COMPLETED
-                if result.success
-                else ExperimentStatus.FAILED
-            )
+            experiment.status = ExperimentStatus.COMPLETED if result.success else ExperimentStatus.FAILED
 
             if result.success:
                 self._stats["successful_experiments"] += 1
@@ -566,16 +554,12 @@ class ChaosEngine:
         recommendations = []
 
         if not hypothesis_validated:
-            recommendations.append(
-                "System behavior did not match expected. "
-                "Review fault tolerance mechanisms."
-            )
+            recommendations.append("System behavior did not match expected. " "Review fault tolerance mechanisms.")
 
         recovery_time = metrics.get("recovery_time_seconds", 0)
         if recovery_time > 60:
             recommendations.append(
-                f"Recovery time ({recovery_time:.0f}s) exceeds 60s target. "
-                "Consider improving failover mechanisms."
+                f"Recovery time ({recovery_time:.0f}s) exceeds 60s target. " "Consider improving failover mechanisms."
             )
 
         return recommendations
@@ -662,9 +646,7 @@ class ChaosEngine:
             experiments = [e for e in experiments if e.target_type == target_type]
 
         if tags:
-            experiments = [
-                e for e in experiments if any(t in e.tags for t in tags)
-            ]
+            experiments = [e for e in experiments if any(t in e.tags for t in tags)]
 
         return experiments
 

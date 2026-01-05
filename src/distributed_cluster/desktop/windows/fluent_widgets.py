@@ -56,6 +56,7 @@ try:
         QVBoxLayout,
         QWidget,
     )
+
     HAS_QT = True
 except ImportError:
     HAS_QT = False
@@ -65,6 +66,7 @@ except ImportError:
 # =============================================================================
 # Color Palette / لوحة الألوان
 # =============================================================================
+
 
 class FluentColors:
     """ألوان Fluent Design / Fluent Design colors"""
@@ -188,7 +190,8 @@ if HAS_QT:
                 text_color = FluentColors.TEXT_PRIMARY
                 border = FluentColors.BORDER
 
-            self.setStyleSheet(f"""
+            self.setStyleSheet(
+                f"""
                 QPushButton {{
                     background-color: {bg};
                     color: {text_color};
@@ -206,7 +209,8 @@ if HAS_QT:
                     background-color: #F0F0F0;
                     color: {FluentColors.TEXT_DISABLED};
                 }}
-            """)
+            """
+            )
 
         def set_variant(self, variant: str):
             """تغيير نوع الزر"""
@@ -217,7 +221,6 @@ if HAS_QT:
             """تفعيل الوضع الداكن"""
             self._dark_mode = enabled
             self._apply_style()
-
 
     # =========================================================================
     # FluentCard / بطاقة Fluent
@@ -280,7 +283,8 @@ if HAS_QT:
             if self._clickable:
                 self.setCursor(Qt.PointingHandCursor)
 
-            self.setStyleSheet(f"""
+            self.setStyleSheet(
+                f"""
                 FluentCard {{
                     background-color: {FluentColors.BACKGROUND_PRIMARY};
                     border: 1px solid {FluentColors.BORDER};
@@ -290,7 +294,8 @@ if HAS_QT:
                     background-color: {FluentColors.BACKGROUND_TERTIARY};
                     border-color: {FluentColors.BORDER_FOCUS};
                 }}
-            """)
+            """
+            )
 
         def _setup_shadow(self):
             """إعداد الظل"""
@@ -320,7 +325,6 @@ if HAS_QT:
             if self._clickable:
                 self.clicked.emit()
             super().mousePressEvent(event)
-
 
     # =========================================================================
     # FluentProgressBar / شريط تقدم Fluent
@@ -353,7 +357,8 @@ if HAS_QT:
             self.setMinimumHeight(4)
             self.setMaximumHeight(4)
 
-            self.setStyleSheet(f"""
+            self.setStyleSheet(
+                f"""
                 QProgressBar {{
                     background-color: {FluentColors.BACKGROUND_SECONDARY};
                     border: none;
@@ -363,7 +368,8 @@ if HAS_QT:
                     background-color: {FluentColors.ACCENT};
                     border-radius: 2px;
                 }}
-            """)
+            """
+            )
 
         def _setup_indeterminate_animation(self):
             """إعداد رسوم متحركة غير محددة"""
@@ -404,7 +410,6 @@ if HAS_QT:
             else:
                 if hasattr(self, "_animation"):
                     self._animation.stop()
-
 
     # =========================================================================
     # FluentToggleSwitch / مفتاح تبديل Fluent
@@ -492,7 +497,6 @@ if HAS_QT:
             self._animation.setEndValue(1.0 if checked else 0.0)
             self._animation.start()
 
-
     # =========================================================================
     # FluentTextBox / مربع نص Fluent
     # =========================================================================
@@ -518,7 +522,8 @@ if HAS_QT:
             self.setMinimumHeight(32)
             self.setFont(QFont("Segoe UI Variable", 10))
 
-            self.setStyleSheet(f"""
+            self.setStyleSheet(
+                f"""
                 QLineEdit {{
                     background-color: {FluentColors.BACKGROUND_PRIMARY};
                     color: {FluentColors.TEXT_PRIMARY};
@@ -537,8 +542,8 @@ if HAS_QT:
                     background-color: #F0F0F0;
                     color: {FluentColors.TEXT_DISABLED};
                 }}
-            """)
-
+            """
+            )
 
     # =========================================================================
     # FluentComboBox / قائمة منسدلة Fluent
@@ -559,7 +564,8 @@ if HAS_QT:
             self.setMinimumHeight(32)
             self.setFont(QFont("Segoe UI Variable", 10))
 
-            self.setStyleSheet(f"""
+            self.setStyleSheet(
+                f"""
                 QComboBox {{
                     background-color: {FluentColors.BACKGROUND_PRIMARY};
                     color: {FluentColors.TEXT_PRIMARY};
@@ -590,8 +596,8 @@ if HAS_QT:
                     border-radius: 4px;
                     selection-background-color: {FluentColors.ACCENT};
                 }}
-            """)
-
+            """
+            )
 
     # =========================================================================
     # FluentSpinner / مؤشر تحميل Fluent
@@ -659,13 +665,11 @@ if HAS_QT:
             pen.setCapStyle(Qt.RoundCap)
             painter.setPen(pen)
 
-            rect = QRect(-self._size // 2 + 4, -self._size // 2 + 4,
-                         self._size - 8, self._size - 8)
+            rect = QRect(-self._size // 2 + 4, -self._size // 2 + 4, self._size - 8, self._size - 8)
 
             painter.drawArc(rect, 0, 270 * 16)
 
             painter.end()
-
 
     # =========================================================================
     # FluentBadge / شارة Fluent
@@ -704,20 +708,21 @@ if HAS_QT:
 
             bg, text_color = colors.get(self._variant, colors["default"])
 
-            self.setStyleSheet(f"""
+            self.setStyleSheet(
+                f"""
                 QLabel {{
                     background-color: {bg};
                     color: {text_color};
                     border-radius: 10px;
                     padding: 2px 8px;
                 }}
-            """)
+            """
+            )
 
         def set_variant(self, variant: str):
             """تغيير نوع الشارة"""
             self._variant = variant
             self._setup_style()
-
 
 else:
     # Fallback classes when Qt is not available

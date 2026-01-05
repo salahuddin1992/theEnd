@@ -44,6 +44,7 @@ class BackupConfig:
     إعدادات النسخ الاحتياطي
     Backup Configuration
     """
+
     # Cluster info
     cluster_id: str
     cluster_name: str
@@ -77,6 +78,7 @@ class BackupResult:
     نتيجة النسخ الاحتياطي
     Backup Result
     """
+
     success: bool
     snapshot_id: Optional[str] = None
     snapshot_type: SnapshotType = SnapshotType.FULL
@@ -105,6 +107,7 @@ class RestoreResult:
     نتيجة الاستعادة
     Restore Result
     """
+
     success: bool
     snapshot_id: str
     restored_items: dict[str, int] = field(default_factory=dict)
@@ -177,10 +180,12 @@ class BackupManager:
 
         elif self.config.storage_type == "s3":
             from distributed_cluster.backup.storage import S3Storage
+
             return S3Storage(bucket=self.config.s3_bucket)
 
         elif self.config.storage_type == "azure":
             from distributed_cluster.backup.storage import AzureStorage
+
             return AzureStorage(container_name=self.config.azure_container)
 
         else:
@@ -368,9 +373,7 @@ class BackupManager:
         for name, provider in self._state_providers.items():
             if hasattr(provider, "get_cache_data"):
                 try:
-                    keys, data = await self._call_async_or_sync(
-                        provider.get_cache_data
-                    )
+                    keys, data = await self._call_async_or_sync(provider.get_cache_data)
                     cache_keys.extend(keys)
                     cache_data.update(data)
                 except Exception as e:
@@ -485,22 +488,16 @@ class BackupManager:
             try:
                 if restore_config and hasattr(provider, "set_config"):
                     config = snapshot.data.config.get(name, {})
-                    await self._call_async_or_sync(
-                        lambda: provider.set_config(config)
-                    )
+                    await self._call_async_or_sync(lambda: provider.set_config(config))
                     restored[f"{name}_config"] = len(config)
 
                 if restore_state and hasattr(provider, "set_state"):
                     state = snapshot.data.cluster_state.get(name, {})
-                    await self._call_async_or_sync(
-                        lambda: provider.set_state(state)
-                    )
+                    await self._call_async_or_sync(lambda: provider.set_state(state))
                     restored[f"{name}_state"] = len(state)
 
                 if restore_jobs and hasattr(provider, "restore_jobs"):
-                    await self._call_async_or_sync(
-                        lambda: provider.restore_jobs(snapshot.data.jobs)
-                    )
+                    await self._call_async_or_sync(lambda: provider.restore_jobs(snapshot.data.jobs))
                     restored["jobs"] = len(snapshot.data.jobs)
 
             except Exception as e:
@@ -526,10 +523,7 @@ class BackupManager:
         )
 
         if snapshot_type:
-            snapshots = [
-                s for s in snapshots
-                if s.snapshot_type == snapshot_type
-            ]
+            snapshots = [s for s in snapshots if s.snapshot_type == snapshot_type]
 
         return snapshots
 
@@ -578,6 +572,7 @@ class BackupManager:
                 output_path.write_text(json.dumps(config_data, indent=2))
             elif format == "yaml":
                 import yaml
+
                 output_path.write_text(yaml.dump(config_data))
 
             logger.info(f"Config exported to {output_path}")
@@ -611,6 +606,7 @@ class BackupManager:
                 config_data = json.loads(input_path.read_text())
             elif format == "yaml":
                 import yaml
+
                 config_data = yaml.safe_load(input_path.read_text())
             else:
                 raise ValueError(f"Unsupported format: {format}")
@@ -622,9 +618,7 @@ class BackupManager:
                         current.update(config_data[name])
                         config_data[name] = current
 
-                    await self._call_async_or_sync(
-                        lambda: provider.set_config(config_data[name])
-                    )
+                    await self._call_async_or_sync(lambda: provider.set_config(config_data[name]))
 
             logger.info(f"Config imported from {input_path}")
             return True
@@ -658,9 +652,7 @@ class BackupManager:
             by_type[s.snapshot_type].append(s)
 
         # Calculate total size
-        total_size_gb = sum(
-            s.compressed_size_bytes for s in snapshots
-        ) / (1024 ** 3)
+        total_size_gb = sum(s.compressed_size_bytes for s in snapshots) / (1024**3)
 
         for snapshot_type, type_snapshots in by_type.items():
             # Sort oldest first
@@ -677,7 +669,7 @@ class BackupManager:
                 ):
                     if await self._storage.delete(snapshot.snapshot_id):
                         deleted += 1
-                        total_size_gb -= snapshot.compressed_size_bytes / (1024 ** 3)
+                        total_size_gb -= snapshot.compressed_size_bytes / (1024**3)
                         logger.info(f"Deleted old backup: {snapshot.snapshot_id}")
 
         return deleted

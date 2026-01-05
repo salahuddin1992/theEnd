@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class InferenceConfig:
     """إعدادات الاستنتاج."""
+
     max_tokens: int = 1024
     temperature: float = 0.7
     top_p: float = 0.9
@@ -137,7 +138,7 @@ class DistributedInferenceTask:
         # Process in batches
         batch_size = config.batch_size
         for i in range(0, total, batch_size):
-            batch = prompts[i:i + batch_size]
+            batch = prompts[i : i + batch_size]
             progress = 10 + (80 * (i + batch_size) / total)
             task.update_progress(progress, f"Processing batch {i//batch_size + 1}")
 
@@ -174,6 +175,7 @@ class DistributedInferenceTask:
         """تحويل إلى إعدادات التوليد."""
         try:
             from distributed_cluster.ai.llm.provider import GenerationConfig
+
             return GenerationConfig(
                 max_tokens=config.max_tokens,
                 temperature=config.temperature,

@@ -178,10 +178,7 @@ class ExcelExporter(ReportExporter):
         row += 1
 
         ws.cell(row=row, column=1, value="Period:")
-        period_value = (
-            f"{report.start_time.strftime('%Y-%m-%d')} - "
-            f"{report.end_time.strftime('%Y-%m-%d')}"
-        )
+        period_value = f"{report.start_time.strftime('%Y-%m-%d')} - " f"{report.end_time.strftime('%Y-%m-%d')}"
         ws.cell(row=row, column=2, value=period_value)
         row += 2
 
@@ -270,7 +267,8 @@ class PDFExporter(ReportExporter):
         html_content = report.to_html()
 
         # Add PDF-specific CSS
-        pdf_css = CSS(string="""
+        pdf_css = CSS(
+            string="""
             @page {
                 size: A4;
                 margin: 2cm;
@@ -287,7 +285,8 @@ class PDFExporter(ReportExporter):
             table {
                 page-break-inside: avoid;
             }
-        """)
+        """
+        )
 
         # Generate PDF
         html = HTML(string=html_content)

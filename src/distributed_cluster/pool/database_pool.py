@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DatabaseConfig:
     """Configuration for database connection pool."""
+
     # Connection settings
     dsn: str = ""
     host: str = "localhost"
@@ -49,10 +50,7 @@ class DatabaseConfig:
 
         ssl_param = "?sslmode=require" if self.ssl else ""
 
-        return (
-            f"postgresql://{self.user}:{self.password}"
-            f"@{self.host}:{self.port}/{self.database}{ssl_param}"
-        )
+        return f"postgresql://{self.user}:{self.password}" f"@{self.host}:{self.port}/{self.database}{ssl_param}"
 
 
 class DatabasePool:
@@ -131,9 +129,7 @@ class DatabasePool:
 
             # SQLite doesn't support true pooling
             # Use a single connection with async access
-            self._pool = await aiosqlite.connect(
-                self.config.database or ":memory:"
-            )
+            self._pool = await aiosqlite.connect(self.config.database or ":memory:")
 
         except ImportError:
             raise RuntimeError("aiosqlite not installed for SQLite support")
@@ -202,6 +198,7 @@ class DatabasePool:
             Query result
         """
         import time
+
         start = time.perf_counter()
 
         try:
@@ -296,24 +293,20 @@ class DatabasePool:
             "db_type": self._db_type,
             "query_count": self._query_count,
             "error_count": self._error_count,
-            "error_rate": (
-                self._error_count / self._query_count
-                if self._query_count else 0
-            ),
-            "avg_query_time_ms": (
-                (self._total_time / self._query_count * 1000)
-                if self._query_count else 0
-            ),
+            "error_rate": (self._error_count / self._query_count if self._query_count else 0),
+            "avg_query_time_ms": ((self._total_time / self._query_count * 1000) if self._query_count else 0),
         }
 
         # Add pool-specific stats
         if self._db_type == "postgresql" and self._pool:
-            stats.update({
-                "pool_size": self._pool.get_size(),
-                "pool_free": self._pool.get_idle_size(),
-                "pool_min": self._pool.get_min_size(),
-                "pool_max": self._pool.get_max_size(),
-            })
+            stats.update(
+                {
+                    "pool_size": self._pool.get_size(),
+                    "pool_free": self._pool.get_idle_size(),
+                    "pool_min": self._pool.get_min_size(),
+                    "pool_max": self._pool.get_max_size(),
+                }
+            )
 
         return stats
 

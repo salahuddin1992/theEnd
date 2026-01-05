@@ -32,6 +32,7 @@ class StorageConfig:
     إعدادات التخزين
     Storage configuration
     """
+
     # Connection
     connection_timeout_seconds: int = 30
     read_timeout_seconds: int = 60
@@ -51,21 +52,25 @@ class StorageConfig:
 
 class StorageError(Exception):
     """خطأ في التخزين / Storage error"""
+
     pass
 
 
 class ConnectionError(StorageError):
     """خطأ في الاتصال / Connection error"""
+
     pass
 
 
 class WriteError(StorageError):
     """خطأ في الكتابة / Write error"""
+
     pass
 
 
 class ReadError(StorageError):
     """خطأ في القراءة / Read error"""
+
     pass
 
 

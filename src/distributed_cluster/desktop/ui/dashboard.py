@@ -29,6 +29,7 @@ from .titlebar import FluentIcons
 # بطاقة إحصائيات متحركة
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class AnimatedStatCard(QFrame):
     """
     Animated statistics card with number counter effect.
@@ -37,9 +38,16 @@ class AnimatedStatCard(QFrame):
 
     clicked = Signal()
 
-    def __init__(self, title: str, value: int = 0, icon: str = "",
-                 trend: float = 0, trend_label: str = "",
-                 color: str = None, parent=None):
+    def __init__(
+        self,
+        title: str,
+        value: int = 0,
+        icon: str = "",
+        trend: float = 0,
+        trend_label: str = "",
+        color: str = None,
+        parent=None,
+    ):
         super().__init__(parent)
 
         self._title = title
@@ -67,7 +75,8 @@ class AnimatedStatCard(QFrame):
 
         accent = self._color or colors.accent
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             #stat_card {{
                 background-color: {colors.bg_card_default};
                 border: 1px solid {colors.stroke_surface};
@@ -77,7 +86,8 @@ class AnimatedStatCard(QFrame):
                 background-color: {colors.bg_card_secondary};
                 border-color: {accent};
             }}
-        """)
+        """
+        )
 
         # Shadow
         shadow = QGraphicsDropShadowEffect()
@@ -99,20 +109,24 @@ class AnimatedStatCard(QFrame):
         if self._icon:
             icon_container = QWidget()
             icon_container.setFixedSize(36, 36)
-            icon_container.setStyleSheet(f"""
+            icon_container.setStyleSheet(
+                f"""
                 background-color: {accent}20;
                 border-radius: 8px;
-            """)
+            """
+            )
             icon_layout = QVBoxLayout(icon_container)
             icon_layout.setContentsMargins(0, 0, 0, 0)
 
             icon_label = QLabel()
             icon_label.setAlignment(Qt.AlignCenter)
-            icon_label.setStyleSheet(f"""
+            icon_label.setStyleSheet(
+                f"""
                 font-family: 'Segoe Fluent Icons';
                 font-size: 16px;
                 color: {accent};
-            """)
+            """
+            )
             icon_label.setText(self._icon)
             icon_layout.addWidget(icon_label)
 
@@ -120,11 +134,13 @@ class AnimatedStatCard(QFrame):
 
         # Title
         title_label = QLabel(self._title)
-        title_label.setStyleSheet(f"""
+        title_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 13px;
             font-weight: 500;
-        """)
+        """
+        )
         header.addWidget(title_label)
         header.addStretch()
 
@@ -132,11 +148,13 @@ class AnimatedStatCard(QFrame):
 
         # Value
         self._value_label = QLabel("0")
-        self._value_label.setStyleSheet(f"""
+        self._value_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 36px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(self._value_label)
 
         # Trend
@@ -144,31 +162,37 @@ class AnimatedStatCard(QFrame):
             trend_layout = QHBoxLayout()
             trend_layout.setSpacing(4)
 
-            trend_icon = "\uE70E" if self._trend > 0 else "\uE70D"  # Up/Down arrows
+            trend_icon = "\ue70e" if self._trend > 0 else "\ue70d"  # Up/Down arrows
             trend_color = colors.success if self._trend > 0 else colors.error
 
             trend_icon_label = QLabel(trend_icon)
-            trend_icon_label.setStyleSheet(f"""
+            trend_icon_label.setStyleSheet(
+                f"""
                 font-family: 'Segoe Fluent Icons';
                 font-size: 12px;
                 color: {trend_color};
-            """)
+            """
+            )
             trend_layout.addWidget(trend_icon_label)
 
             trend_value = QLabel(f"{abs(self._trend):.1f}%")
-            trend_value.setStyleSheet(f"""
+            trend_value.setStyleSheet(
+                f"""
                 color: {trend_color};
                 font-size: 12px;
                 font-weight: 500;
-            """)
+            """
+            )
             trend_layout.addWidget(trend_value)
 
             if self._trend_label:
                 trend_text = QLabel(self._trend_label)
-                trend_text.setStyleSheet(f"""
+                trend_text.setStyleSheet(
+                    f"""
                     color: {colors.text_tertiary};
                     font-size: 12px;
-                """)
+                """
+                )
                 trend_layout.addWidget(trend_text)
 
             trend_layout.addStretch()
@@ -226,15 +250,16 @@ class AnimatedStatCard(QFrame):
 # مخطط تقدم دائري
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class CircularProgressChart(QWidget):
     """
     Circular progress chart with animation.
     مخطط تقدم دائري متحرك
     """
 
-    def __init__(self, title: str = "", value: float = 0,
-                 max_value: float = 100, size: int = 120,
-                 color: str = None, parent=None):
+    def __init__(
+        self, title: str = "", value: float = 0, max_value: float = 100, size: int = 120, color: str = None, parent=None
+    ):
         super().__init__(parent)
 
         self._title = title
@@ -288,12 +313,7 @@ class CircularProgressChart(QWidget):
         thickness = 10
 
         # Background circle
-        rect = QRectF(
-            center_x - radius,
-            center_y - radius,
-            radius * 2,
-            radius * 2
-        )
+        rect = QRectF(center_x - radius, center_y - radius, radius * 2, radius * 2)
 
         pen = QPen(QColor(colors.stroke_control))
         pen.setWidth(thickness)
@@ -320,22 +340,14 @@ class CircularProgressChart(QWidget):
         painter.setPen(QColor(colors.text_primary))
         font = QFont("Segoe UI", 24, QFont.DemiBold)
         painter.setFont(font)
-        painter.drawText(
-            QRectF(center_x - 40, center_y - 20, 80, 40),
-            Qt.AlignCenter,
-            f"{percentage}%"
-        )
+        painter.drawText(QRectF(center_x - 40, center_y - 20, 80, 40), Qt.AlignCenter, f"{percentage}%")
 
         # Title below
         if self._title:
             painter.setPen(QColor(colors.text_secondary))
             font = QFont("Segoe UI", 12)
             painter.setFont(font)
-            painter.drawText(
-                QRectF(0, self.height() - 30, self.width(), 24),
-                Qt.AlignCenter,
-                self._title
-            )
+            painter.drawText(QRectF(0, self.height() - 30, self.width(), 24), Qt.AlignCenter, self._title)
 
         painter.end()
 
@@ -345,14 +357,14 @@ class CircularProgressChart(QWidget):
 # مخطط خطي
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class LineChart(QWidget):
     """
     Animated line chart with gradient fill.
     مخطط خطي متحرك مع تعبئة متدرجة
     """
 
-    def __init__(self, title: str = "", data: List[float] = None,
-                 color: str = None, parent=None):
+    def __init__(self, title: str = "", data: List[float] = None, color: str = None, parent=None):
         super().__init__(parent)
 
         self._title = title
@@ -404,10 +416,7 @@ class LineChart(QWidget):
         # Chart area
         margin = 10
         chart_rect = QRectF(
-            margin,
-            margin + 20,  # Space for title
-            self.width() - 2 * margin,
-            self.height() - 2 * margin - 20
+            margin, margin + 20, self.width() - 2 * margin, self.height() - 2 * margin - 20  # Space for title
         )
 
         # Title
@@ -415,11 +424,7 @@ class LineChart(QWidget):
             painter.setPen(QColor(colors.text_secondary))
             font = QFont("Segoe UI", 12, QFont.DemiBold)
             painter.setFont(font)
-            painter.drawText(
-                QRectF(margin, 0, chart_rect.width(), 24),
-                Qt.AlignLeft | Qt.AlignVCenter,
-                self._title
-            )
+            painter.drawText(QRectF(margin, 0, chart_rect.width(), 24), Qt.AlignLeft | Qt.AlignVCenter, self._title)
 
         # Calculate points
         max_val = max(self._data) if self._data else 1
@@ -477,9 +482,11 @@ class LineChart(QWidget):
 # عنصر النشاط
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ActivityItemData:
     """Activity item data"""
+
     icon: str
     title: str
     description: str
@@ -500,7 +507,8 @@ class ActivityItem(QFrame):
         """Setup activity item UI"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: transparent;
                 border-radius: 8px;
@@ -509,7 +517,8 @@ class ActivityItem(QFrame):
             QFrame:hover {{
                 background-color: {colors.fill_subtle};
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
@@ -527,21 +536,25 @@ class ActivityItem(QFrame):
         # Icon
         icon_container = QWidget()
         icon_container.setFixedSize(32, 32)
-        icon_container.setStyleSheet(f"""
+        icon_container.setStyleSheet(
+            f"""
             background-color: {accent}20;
             border-radius: 6px;
-        """)
+        """
+        )
 
         icon_layout = QVBoxLayout(icon_container)
         icon_layout.setContentsMargins(0, 0, 0, 0)
 
         icon_label = QLabel()
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setStyleSheet(f"""
+        icon_label.setStyleSheet(
+            f"""
             font-family: 'Segoe Fluent Icons';
             font-size: 14px;
             color: {accent};
-        """)
+        """
+        )
         icon_label.setText(self._data.icon)
         icon_layout.addWidget(icon_label)
 
@@ -553,28 +566,34 @@ class ActivityItem(QFrame):
         content_layout.setSpacing(2)
 
         title = QLabel(self._data.title)
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 13px;
             font-weight: 500;
-        """)
+        """
+        )
         content_layout.addWidget(title)
 
         description = QLabel(self._data.description)
-        description.setStyleSheet(f"""
+        description.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 12px;
-        """)
+        """
+        )
         content_layout.addWidget(description)
 
         layout.addLayout(content_layout, 1)
 
         # Time
         time_label = QLabel(self._data.time)
-        time_label.setStyleSheet(f"""
+        time_label.setStyleSheet(
+            f"""
             color: {colors.text_tertiary};
             font-size: 11px;
-        """)
+        """
+        )
         layout.addWidget(time_label)
 
 
@@ -582,6 +601,7 @@ class ActivityItem(QFrame):
 # ACTIVITY FEED
 # تغذية النشاط
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class ActivityFeed(FluentCard):
     """
@@ -635,6 +655,7 @@ class ActivityFeed(FluentCard):
 # بطاقة صحة النظام
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SystemHealthCard(FluentCard):
     """
     System health overview card.
@@ -682,6 +703,7 @@ class SystemHealthCard(FluentCard):
 # عرض لوحة القيادة بتصميم Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentDashboard(QWidget):
     """
     Complete Fluent Design dashboard view.
@@ -713,11 +735,13 @@ class FluentDashboard(QWidget):
 
         # Header
         header = QLabel("Dashboard")
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         main_layout.addWidget(header)
 
         # Stats cards row
@@ -725,34 +749,22 @@ class FluentDashboard(QWidget):
         stats_layout.setSpacing(16)
 
         self._jobs_card = AnimatedStatCard(
-            "Active Jobs", 0,
-            icon=FluentIcons.JOBS,
-            trend=12.5, trend_label="vs last week",
-            color=colors.accent
+            "Active Jobs", 0, icon=FluentIcons.JOBS, trend=12.5, trend_label="vs last week", color=colors.accent
         )
         stats_layout.addWidget(self._jobs_card)
 
         self._workers_card = AnimatedStatCard(
-            "Workers", 0,
-            icon=FluentIcons.WORKERS,
-            trend=5.2, trend_label="vs last week",
-            color=colors.success
+            "Workers", 0, icon=FluentIcons.WORKERS, trend=5.2, trend_label="vs last week", color=colors.success
         )
         stats_layout.addWidget(self._workers_card)
 
         self._pending_card = AnimatedStatCard(
-            "Pending", 0,
-            icon="\uE823",  # Clock icon
-            trend=-8.3, trend_label="vs last week",
-            color=colors.warning
+            "Pending", 0, icon="\ue823", trend=-8.3, trend_label="vs last week", color=colors.warning  # Clock icon
         )
         stats_layout.addWidget(self._pending_card)
 
         self._failed_card = AnimatedStatCard(
-            "Failed", 0,
-            icon=FluentIcons.ERROR,
-            trend=-15.0, trend_label="vs last week",
-            color=colors.error
+            "Failed", 0, icon=FluentIcons.ERROR, trend=-15.0, trend_label="vs last week", color=colors.error
         )
         stats_layout.addWidget(self._failed_card)
 
@@ -804,10 +816,8 @@ class FluentDashboard(QWidget):
         """Update system health"""
         self._health_card.update_metrics(cpu, memory, disk)
 
-    def add_activity(self, icon: str, title: str, description: str,
-                     time: str, type: str = "info"):
+    def add_activity(self, icon: str, title: str, description: str, time: str, type: str = "info"):
         """Add activity to feed"""
-        self._activity_feed.add_activity(ActivityItemData(
-            icon=icon, title=title, description=description,
-            time=time, type=type
-        ))
+        self._activity_feed.add_activity(
+            ActivityItemData(icon=icon, title=title, description=description, time=time, type=type)
+        )

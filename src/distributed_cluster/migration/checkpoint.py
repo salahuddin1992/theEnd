@@ -214,10 +214,7 @@ class CheckpointManager:
             metadata=metadata or {},
         )
 
-        logger.info(
-            f"Creating {checkpoint_type.value} checkpoint for "
-            f"job={job_id}, pid={process_id}"
-        )
+        logger.info(f"Creating {checkpoint_type.value} checkpoint for " f"job={job_id}, pid={process_id}")
 
         start_time = time.monotonic()
 
@@ -249,9 +246,7 @@ class CheckpointManager:
             checkpoint.checksum = await self._calculate_checksum(checkpoint)
 
             # Update timing
-            checkpoint.checkpoint_duration_ms = int(
-                (time.monotonic() - start_time) * 1000
-            )
+            checkpoint.checkpoint_duration_ms = int((time.monotonic() - start_time) * 1000)
             checkpoint.status = CheckpointStatus.READY
 
             # Store checkpoint
@@ -439,9 +434,7 @@ class CheckpointManager:
             raise ValueError(f"Checkpoint {checkpoint_id} not found")
 
         if checkpoint.status != CheckpointStatus.READY:
-            raise ValueError(
-                f"Checkpoint {checkpoint_id} not ready: {checkpoint.status.value}"
-            )
+            raise ValueError(f"Checkpoint {checkpoint_id} not ready: {checkpoint.status.value}")
 
         logger.info(f"Restoring checkpoint {checkpoint_id}")
 
@@ -554,11 +547,7 @@ class CheckpointManager:
             # Remove from job list
             job_id = checkpoint.job_id
             if job_id in self._job_checkpoints:
-                self._job_checkpoints[job_id] = [
-                    cid
-                    for cid in self._job_checkpoints[job_id]
-                    if cid != checkpoint_id
-                ]
+                self._job_checkpoints[job_id] = [cid for cid in self._job_checkpoints[job_id] if cid != checkpoint_id]
 
             # Delete files
             checkpoint_path = Path(checkpoint.path)
@@ -588,11 +577,7 @@ class CheckpointManager:
     async def get_job_checkpoints(self, job_id: str) -> List[Checkpoint]:
         """Get all checkpoints for a job."""
         checkpoint_ids = self._job_checkpoints.get(job_id, [])
-        return [
-            self._checkpoints[cid]
-            for cid in checkpoint_ids
-            if cid in self._checkpoints
-        ]
+        return [self._checkpoints[cid] for cid in checkpoint_ids if cid in self._checkpoints]
 
     async def get_latest_checkpoint(self, job_id: str) -> Optional[Checkpoint]:
         """Get latest checkpoint for a job."""

@@ -45,6 +45,7 @@ from .windows_integration import IS_WINDOWS, WindowsIntegrationManager
 # النافذة الرئيسية بتصميم Fluent
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentMainWindow(FramelessWindow):
     """
     Advanced Fluent Design main window.
@@ -109,14 +110,16 @@ class FluentMainWindow(FramelessWindow):
         # Splitter for content and terminal
         self._splitter = QSplitter(Qt.Vertical)
         self._splitter.setHandleWidth(1)
-        self._splitter.setStyleSheet(f"""
+        self._splitter.setStyleSheet(
+            f"""
             QSplitter::handle {{
                 background-color: {colors.stroke_divider};
             }}
             QSplitter::handle:hover {{
                 background-color: {colors.accent};
             }}
-        """)
+        """
+        )
 
         # Content stack
         self._content_stack = QStackedWidget()
@@ -127,12 +130,14 @@ class FluentMainWindow(FramelessWindow):
 
         # Terminal (placeholder - hidden by default)
         self._terminal = QFrame()
-        self._terminal.setStyleSheet(f"""
+        self._terminal.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_solid_base};
                 border-top: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
         self._terminal.setMinimumHeight(150)
         self._terminal.setVisible(False)
         self._splitter.addWidget(self._terminal)
@@ -208,11 +213,13 @@ class FluentMainWindow(FramelessWindow):
         layout.setSpacing(16)
 
         header = QLabel(title)
-        header.setStyleSheet(f"""
+        header.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(header)
 
         # Loading skeleton
@@ -239,12 +246,14 @@ class FluentMainWindow(FramelessWindow):
 
         status_bar = QWidget()
         status_bar.setFixedHeight(24)
-        status_bar.setStyleSheet(f"""
+        status_bar.setStyleSheet(
+            f"""
             QWidget {{
                 background-color: {colors.bg_solid_secondary};
                 border-top: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(status_bar)
         layout.setContentsMargins(12, 0, 12, 0)
@@ -257,20 +266,24 @@ class FluentMainWindow(FramelessWindow):
         layout.addWidget(self._connection_indicator)
 
         self._status_label = QLabel("Disconnected")
-        self._status_label.setStyleSheet(f"""
+        self._status_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(self._status_label)
 
         layout.addStretch()
 
         # Version
         version_label = QLabel("v0.1.0")
-        version_label.setStyleSheet(f"""
+        version_label.setStyleSheet(
+            f"""
             color: {colors.text_tertiary};
             font-size: 11px;
-        """)
+        """
+        )
         layout.addWidget(version_label)
 
         return status_bar
@@ -280,19 +293,21 @@ class FluentMainWindow(FramelessWindow):
         colors = FluentDesignSystem().colors
         color = colors.success if self._connected else colors.text_disabled
 
-        self._connection_indicator.setStyleSheet(f"""
+        self._connection_indicator.setStyleSheet(
+            f"""
             background-color: {color};
             border-radius: 4px;
-        """)
+        """
+        )
 
     def _setup_shortcuts(self):
         """Setup keyboard shortcuts"""
         # Navigation
-        for i, page_id in enumerate(["dashboard", "jobs", "workers", "templates",
-                                     "pools", "queues", "logs", "metrics"], 1):
+        for i, page_id in enumerate(
+            ["dashboard", "jobs", "workers", "templates", "pools", "queues", "logs", "metrics"], 1
+        ):
             if i <= 9:
-                QShortcut(QKeySequence(f"Ctrl+{i}"), self,
-                         lambda p=page_id: self._navigate_to(p))
+                QShortcut(QKeySequence(f"Ctrl+{i}"), self, lambda p=page_id: self._navigate_to(p))
 
         # Actions
         QShortcut(QKeySequence("F5"), self, self._refresh)
@@ -337,7 +352,7 @@ class FluentMainWindow(FramelessWindow):
             "Quit",
             "Cancel",
             ConfirmationType.QUESTION,
-            self
+            self,
         )
         if dialog.exec():
             QApplication.quit()
@@ -364,46 +379,23 @@ class FluentMainWindow(FramelessWindow):
     def _load_demo_data(self):
         """Load demo data for preview"""
         # Update dashboard with demo data
-        self._dashboard.update_stats(
-            jobs=42,
-            workers=8,
-            pending=12,
-            failed=3
-        )
+        self._dashboard.update_stats(jobs=42, workers=8, pending=12, failed=3)
 
-        self._dashboard.update_chart([
-            15, 22, 18, 25, 32, 28, 35, 42, 38, 45, 52, 48
-        ])
+        self._dashboard.update_chart([15, 22, 18, 25, 32, 28, 35, 42, 38, 45, 52, 48])
 
-        self._dashboard.update_health(
-            cpu=45.5,
-            memory=62.3,
-            disk=38.7
-        )
+        self._dashboard.update_health(cpu=45.5, memory=62.3, disk=38.7)
 
         # Add some activities
         self._dashboard.add_activity(
-            FluentIcons.CHECKMARK,
-            "Job Completed",
-            "Training job #1234 finished successfully",
-            "2m ago",
-            "success"
+            FluentIcons.CHECKMARK, "Job Completed", "Training job #1234 finished successfully", "2m ago", "success"
         )
 
         self._dashboard.add_activity(
-            FluentIcons.PLAY,
-            "Job Started",
-            "Inference job #1235 started on worker-03",
-            "5m ago",
-            "info"
+            FluentIcons.PLAY, "Job Started", "Inference job #1235 started on worker-03", "5m ago", "info"
         )
 
         self._dashboard.add_activity(
-            FluentIcons.WARNING,
-            "Worker Warning",
-            "Worker-05 memory usage above 90%",
-            "12m ago",
-            "warning"
+            FluentIcons.WARNING, "Worker Warning", "Worker-05 memory usage above 90%", "12m ago", "warning"
         )
 
     # ═══════════════════════════════════════════════════════════════════════════
@@ -458,11 +450,7 @@ class FluentMainWindow(FramelessWindow):
 
         # Show notification
         if self._windows:
-            self._windows.show_notification(
-                "Connected",
-                f"Successfully connected to {host}:{port}",
-                "success"
-            )
+            self._windows.show_notification("Connected", f"Successfully connected to {host}:{port}", "success")
 
     def set_connected(self, connected: bool, server_name: str = ""):
         """Update connection state"""
@@ -519,8 +507,7 @@ class FluentMainWindow(FramelessWindow):
     # PUBLIC API
     # ═══════════════════════════════════════════════════════════════════════════
 
-    def show_notification(self, title: str, message: str = "",
-                          type: str = "info"):
+    def show_notification(self, title: str, message: str = "", type: str = "info"):
         """Show a notification"""
         if type == "success":
             self._notifications.success(title, message)
@@ -537,7 +524,7 @@ class FluentMainWindow(FramelessWindow):
             jobs=stats.get("running_jobs", 0),
             workers=stats.get("active_workers", 0),
             pending=stats.get("pending_jobs", 0),
-            failed=stats.get("failed_jobs", 0)
+            failed=stats.get("failed_jobs", 0),
         )
 
 
@@ -545,6 +532,7 @@ class FluentMainWindow(FramelessWindow):
 # ENTRY POINT
 # نقطة الدخول
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def create_fluent_app(show_splash: bool = True):
     """
@@ -568,9 +556,7 @@ def create_fluent_app(show_splash: bool = True):
         sys.exit(1)
 
     # High DPI support
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-    )
+    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
     app = QApplication(sys.argv)
 

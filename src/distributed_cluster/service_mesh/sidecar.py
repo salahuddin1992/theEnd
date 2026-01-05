@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ProxyMode(Enum):
     """Sidecar proxy modes."""
+
     SIDECAR = "sidecar"
     GATEWAY = "gateway"
     ROUTER = "router"
@@ -22,6 +23,7 @@ class ProxyMode(Enum):
 
 class TrafficDirection(Enum):
     """Traffic interception direction."""
+
     INBOUND = "inbound"
     OUTBOUND = "outbound"
     BOTH = "both"
@@ -30,6 +32,7 @@ class TrafficDirection(Enum):
 @dataclass
 class TLSConfig:
     """TLS configuration for proxy."""
+
     enabled: bool = True
     mode: str = "ISTIO_MUTUAL"  # DISABLE, SIMPLE, MUTUAL, ISTIO_MUTUAL
     client_certificate: Optional[str] = None
@@ -42,6 +45,7 @@ class TLSConfig:
 @dataclass
 class AccessLogConfig:
     """Access logging configuration."""
+
     enabled: bool = True
     format: str = "JSON"  # JSON, TEXT
     path: str = "/dev/stdout"
@@ -53,6 +57,7 @@ class AccessLogConfig:
 @dataclass
 class TracingConfig:
     """Distributed tracing configuration."""
+
     enabled: bool = True
     provider: str = "zipkin"  # zipkin, jaeger, lightstep, datadog
     sampling_rate: float = 1.0
@@ -63,6 +68,7 @@ class TracingConfig:
 @dataclass
 class ProxyConfig:
     """General proxy configuration."""
+
     mode: ProxyMode = ProxyMode.SIDECAR
     direction: TrafficDirection = TrafficDirection.BOTH
     concurrency: int = 2
@@ -95,6 +101,7 @@ class ProxyConfig:
 @dataclass
 class EnvoyCluster:
     """Envoy cluster configuration."""
+
     name: str
     type: str = "STRICT_DNS"  # STATIC, STRICT_DNS, LOGICAL_DNS, EDS
     lb_policy: str = "ROUND_ROBIN"
@@ -109,6 +116,7 @@ class EnvoyCluster:
 @dataclass
 class EnvoyListener:
     """Envoy listener configuration."""
+
     name: str
     address: str = "0.0.0.0"
     port: int = 8080
@@ -119,6 +127,7 @@ class EnvoyListener:
 @dataclass
 class EnvoyRoute:
     """Envoy route configuration."""
+
     name: str
     domains: List[str] = field(default_factory=lambda: ["*"])
     routes: List[Dict[str, Any]] = field(default_factory=list)
@@ -222,10 +231,7 @@ class EnvoyConfig:
         return {
             "version_info": str(int(time.time())),
             "resources": [
-                {
-                    "@type": "type.googleapis.com/envoy.config.cluster.v3.Cluster",
-                    **self._generate_cluster(c)
-                }
+                {"@type": "type.googleapis.com/envoy.config.cluster.v3.Cluster", **self._generate_cluster(c)}
                 for c in self._clusters
             ],
         }
@@ -234,6 +240,7 @@ class EnvoyConfig:
         """Export configuration as YAML."""
         try:
             import yaml
+
             return yaml.dump(self.generate_bootstrap(), default_flow_style=False)
         except ImportError:
             return json.dumps(self.generate_bootstrap(), indent=2)
@@ -242,6 +249,7 @@ class EnvoyConfig:
 @dataclass
 class IstioDestinationRule:
     """Istio DestinationRule configuration."""
+
     name: str
     host: str
     traffic_policy: Optional[Dict[str, Any]] = None
@@ -263,6 +271,7 @@ class IstioDestinationRule:
 @dataclass
 class IstioVirtualService:
     """Istio VirtualService configuration."""
+
     name: str
     hosts: List[str]
     http_routes: List[Dict[str, Any]] = field(default_factory=list)
@@ -309,11 +318,7 @@ class IstioConfig:
         self._virtual_services.append(service)
 
     def create_canary_config(
-        self,
-        service_name: str,
-        stable_version: str,
-        canary_version: str,
-        canary_weight: int = 10
+        self, service_name: str, stable_version: str, canary_version: str, canary_weight: int = 10
     ) -> tuple:
         """Create canary deployment configuration."""
         destination_rule = IstioDestinationRule(
@@ -351,7 +356,7 @@ class IstioConfig:
         max_requests: int = 1000,
         max_retries: int = 3,
         consecutive_errors: int = 5,
-        base_ejection_time: str = "30s"
+        base_ejection_time: str = "30s",
     ) -> IstioDestinationRule:
         """Create circuit breaker configuration."""
         destination_rule = IstioDestinationRule(
@@ -392,8 +397,10 @@ class IstioConfig:
 
             return "---\n".join(yaml.dump(c, default_flow_style=False) for c in configs)
         except ImportError:
-            return json.dumps([dr.to_dict() for dr in self._destination_rules] +
-                            [vs.to_dict() for vs in self._virtual_services], indent=2)
+            return json.dumps(
+                [dr.to_dict() for dr in self._destination_rules] + [vs.to_dict() for vs in self._virtual_services],
+                indent=2,
+            )
 
 
 class TrafficInterceptor:
@@ -459,11 +466,7 @@ class TrafficInterceptor:
 class SidecarProxy:
     """Main sidecar proxy implementation."""
 
-    def __init__(
-        self,
-        service_name: str,
-        config: Optional[ProxyConfig] = None
-    ):
+    def __init__(self, service_name: str, config: Optional[ProxyConfig] = None):
         self.service_name = service_name
         self.config = config or ProxyConfig()
         self.envoy_config = EnvoyConfig(service_name, config)

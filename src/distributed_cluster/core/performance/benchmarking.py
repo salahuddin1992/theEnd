@@ -183,10 +183,7 @@ class BenchmarkReport:
         lines.append("--- Memory Results ---")
 
         for mr in self.memory_results:
-            lines.append(
-                f"  {mr.name}: peak={mr.peak_memory_mb:.2f}MB, "
-                f"diff={mr.memory_diff_bytes / 1024:.2f}KB"
-            )
+            lines.append(f"  {mr.name}: peak={mr.peak_memory_mb:.2f}MB, " f"diff={mr.memory_diff_bytes / 1024:.2f}KB")
 
         return "\n".join(lines)
 
@@ -485,12 +482,8 @@ class Benchmarker:
         )
 
         # Calculate throughput
-        write_throughput_mbps = (
-            data_size_mb * iterations / results["write"].total_time
-        )
-        read_throughput_mbps = (
-            data_size_mb * iterations / results["read"].total_time
-        )
+        write_throughput_mbps = data_size_mb * iterations / results["write"].total_time
+        read_throughput_mbps = data_size_mb * iterations / results["read"].total_time
 
         self._metadata["io_write_throughput_mbps"] = write_throughput_mbps
         self._metadata["io_read_throughput_mbps"] = read_throughput_mbps
@@ -646,10 +639,7 @@ def timed(
                     if log_result:
                         logger.debug(f"{func_name} took {elapsed_ms:.2f}ms")
                     if threshold_ms and elapsed_ms > threshold_ms:
-                        logger.warning(
-                            f"{func_name} exceeded threshold: "
-                            f"{elapsed_ms:.2f}ms > {threshold_ms}ms"
-                        )
+                        logger.warning(f"{func_name} exceeded threshold: " f"{elapsed_ms:.2f}ms > {threshold_ms}ms")
 
             return async_wrapper  # type: ignore[return-value]
         else:
@@ -664,10 +654,7 @@ def timed(
                     if log_result:
                         logger.debug(f"{func_name} took {elapsed_ms:.2f}ms")
                     if threshold_ms and elapsed_ms > threshold_ms:
-                        logger.warning(
-                            f"{func_name} exceeded threshold: "
-                            f"{elapsed_ms:.2f}ms > {threshold_ms}ms"
-                        )
+                        logger.warning(f"{func_name} exceeded threshold: " f"{elapsed_ms:.2f}ms > {threshold_ms}ms")
 
             return sync_wrapper  # type: ignore[return-value]
 
@@ -713,10 +700,7 @@ def profile_memory(
                     if log_result:
                         logger.debug(f"{func_name} peak memory: {peak_mb:.2f}MB")
                     if threshold_mb and peak_mb > threshold_mb:
-                        logger.warning(
-                            f"{func_name} exceeded memory threshold: "
-                            f"{peak_mb:.2f}MB > {threshold_mb}MB"
-                        )
+                        logger.warning(f"{func_name} exceeded memory threshold: " f"{peak_mb:.2f}MB > {threshold_mb}MB")
 
             return async_wrapper  # type: ignore[return-value]
         else:
@@ -734,10 +718,7 @@ def profile_memory(
                     if log_result:
                         logger.debug(f"{func_name} peak memory: {peak_mb:.2f}MB")
                     if threshold_mb and peak_mb > threshold_mb:
-                        logger.warning(
-                            f"{func_name} exceeded memory threshold: "
-                            f"{peak_mb:.2f}MB > {threshold_mb}MB"
-                        )
+                        logger.warning(f"{func_name} exceeded memory threshold: " f"{peak_mb:.2f}MB > {threshold_mb}MB")
 
             return sync_wrapper  # type: ignore[return-value]
 
@@ -847,20 +828,14 @@ class PerformanceMonitor:
         return {
             "sample_count": len(self._samples),
             "duration_seconds": (
-                self._samples[-1]["timestamp"] - self._samples[0]["timestamp"]
-                if len(self._samples) > 1
-                else 0
+                self._samples[-1]["timestamp"] - self._samples[0]["timestamp"] if len(self._samples) > 1 else 0
             ),
             "avg_cpu_percent": avg("cpu_percent"),
             "avg_memory_percent": avg("memory_percent"),
-            "max_rss_mb": max(
-                s.get("max_rss_kb", 0) for s in self._samples
-            ) / 1024,
+            "max_rss_mb": max(s.get("max_rss_kb", 0) for s in self._samples) / 1024,
             "avg_threads": avg("num_threads"),
             "total_ctx_switches": sum(
-                s.get("voluntary_ctx_switches", 0)
-                + s.get("involuntary_ctx_switches", 0)
-                for s in self._samples
+                s.get("voluntary_ctx_switches", 0) + s.get("involuntary_ctx_switches", 0) for s in self._samples
             ),
         }
 

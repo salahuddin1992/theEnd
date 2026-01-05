@@ -59,9 +59,7 @@ class DataLoader(Generic[K, V]):
         # Schedule batch if not already scheduled
         if not self._batch_scheduled:
             self._batch_scheduled = True
-            asyncio.get_event_loop().call_soon(
-                lambda: asyncio.create_task(self._dispatch_batch())
-            )
+            asyncio.get_event_loop().call_soon(lambda: asyncio.create_task(self._dispatch_batch()))
 
         return await future
 
@@ -83,8 +81,8 @@ class DataLoader(Generic[K, V]):
             return
 
         # Take items from queue
-        batch = self._queue[:self._max_batch_size]
-        self._queue = self._queue[self._max_batch_size:]
+        batch = self._queue[: self._max_batch_size]
+        self._queue = self._queue[self._max_batch_size :]
 
         keys = [item[0] for item in batch]
         futures = [item[1] for item in batch]
@@ -95,10 +93,7 @@ class DataLoader(Generic[K, V]):
 
             # Handle results
             if len(values) != len(keys):
-                error = ValueError(
-                    f"DataLoader batch function returned {len(values)} values "
-                    f"for {len(keys)} keys"
-                )
+                error = ValueError(f"DataLoader batch function returned {len(values)} values " f"for {len(keys)} keys")
                 for future in futures:
                     if not future.done():
                         future.set_exception(error)
@@ -120,9 +115,7 @@ class DataLoader(Generic[K, V]):
         # Schedule next batch if queue is not empty
         if self._queue and not self._batch_scheduled:
             self._batch_scheduled = True
-            asyncio.get_event_loop().call_soon(
-                lambda: asyncio.create_task(self._dispatch_batch())
-            )
+            asyncio.get_event_loop().call_soon(lambda: asyncio.create_task(self._dispatch_batch()))
 
     def clear(self, key: Optional[K] = None) -> None:
         """
@@ -232,9 +225,7 @@ class DataLoaders:
             logger.error(f"Error batch loading backups: {e}")
             return [None] * len(backup_ids)
 
-    async def _batch_load_jobs_by_worker(
-        self, worker_ids: List[str]
-    ) -> List[List[Any]]:
+    async def _batch_load_jobs_by_worker(self, worker_ids: List[str]) -> List[List[Any]]:
         """تحميل مهام كل عامل"""
         if not self.services or not self.services.job_service:
             return [[] for _ in worker_ids]
@@ -254,9 +245,7 @@ class DataLoaders:
             logger.error(f"Error batch loading jobs by worker: {e}")
             return [[] for _ in worker_ids]
 
-    async def _batch_load_jobs_by_tenant(
-        self, tenant_ids: List[str]
-    ) -> List[List[Any]]:
+    async def _batch_load_jobs_by_tenant(self, tenant_ids: List[str]) -> List[List[Any]]:
         """تحميل مهام كل مستأجر"""
         if not self.services or not self.services.job_service:
             return [[] for _ in tenant_ids]

@@ -19,26 +19,29 @@ from typing import Any, Dict, List, Optional
 
 class TenantStatus(str, Enum):
     """حالة المستأجر"""
-    PENDING = "pending"          # قيد الإنشاء
-    ACTIVE = "active"            # نشط
-    SUSPENDED = "suspended"      # معلق
+
+    PENDING = "pending"  # قيد الإنشاء
+    ACTIVE = "active"  # نشط
+    SUSPENDED = "suspended"  # معلق
     QUOTA_EXCEEDED = "quota_exceeded"  # تجاوز الحصة
     TERMINATING = "terminating"  # قيد الإنهاء
-    TERMINATED = "terminated"    # منتهي
+    TERMINATED = "terminated"  # منتهي
 
 
 class TenantTier(str, Enum):
     """مستوى المستأجر"""
-    FREE = "free"                # مجاني
-    STARTER = "starter"          # مبتدئ
+
+    FREE = "free"  # مجاني
+    STARTER = "starter"  # مبتدئ
     PROFESSIONAL = "professional"  # محترف
-    ENTERPRISE = "enterprise"    # مؤسسة
-    CUSTOM = "custom"            # مخصص
+    ENTERPRISE = "enterprise"  # مؤسسة
+    CUSTOM = "custom"  # مخصص
 
 
 @dataclass
 class TenantQuotas:
     """حصص المستأجر"""
+
     # Job limits
     max_concurrent_jobs: int = 10
     max_jobs_per_day: int = 100
@@ -129,6 +132,7 @@ class TenantQuotas:
 @dataclass
 class TenantUsage:
     """استخدام المستأجر الحالي"""
+
     # Jobs
     active_jobs: int = 0
     jobs_today: int = 0
@@ -178,6 +182,7 @@ class TenantUsage:
 @dataclass
 class TenantConfig:
     """تكوين المستأجر"""
+
     # Scheduling
     default_priority: int = 50
     priority_boost: int = 0
@@ -227,6 +232,7 @@ class Tenant:
     نموذج المستأجر
     Tenant Model
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     display_name: str = ""
@@ -290,6 +296,7 @@ class Tenant:
     @property
     def quota_usage_percent(self) -> Dict[str, float]:
         """نسبة استخدام الحصص"""
+
         def safe_percent(used: float, max_val: float) -> float:
             return (used / max_val * 100) if max_val > 0 else 0
 

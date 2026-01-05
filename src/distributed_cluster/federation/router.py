@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 class RoutingStrategy(str, Enum):
     """استراتيجية التوجيه / Routing strategy"""
+
     ROUND_ROBIN = "round_robin"
     LEAST_LOADED = "least_loaded"
     LOWEST_LATENCY = "lowest_latency"
@@ -45,6 +46,7 @@ class RoutingStrategy(str, Enum):
 
 class RoutingStatus(str, Enum):
     """حالة التوجيه / Routing status"""
+
     SUCCESS = "success"
     FAILED = "failed"
     NO_CLUSTER = "no_cluster"
@@ -57,6 +59,7 @@ class RoutingResult:
     نتيجة التوجيه
     Routing Result
     """
+
     status: RoutingStatus
     cluster_id: Optional[str] = None
     cluster_name: Optional[str] = None
@@ -85,6 +88,7 @@ class RoutingPolicy:
     سياسة التوجيه
     Routing Policy
     """
+
     strategy: RoutingStrategy = RoutingStrategy.LEAST_LOADED
 
     # Retry settings
@@ -166,10 +170,7 @@ class LeastLoadedRouter(RoutingAlgorithm):
             return None
 
         # Filter by load threshold
-        eligible = [
-            c for c in clusters
-            if c.info.capacity.get_load_score() < policy.max_load_score
-        ]
+        eligible = [c for c in clusters if c.info.capacity.get_load_score() < policy.max_load_score]
 
         if not eligible:
             eligible = clusters
@@ -246,19 +247,13 @@ class LocalityRouter(RoutingAlgorithm):
 
         # Prefer local region
         if policy.local_region:
-            local = [
-                c for c in clusters
-                if c.info.region == policy.local_region
-            ]
+            local = [c for c in clusters if c.info.region == policy.local_region]
             if local:
                 return min(local, key=lambda c: c.info.capacity.get_load_score())
 
         # Prefer preferred regions
         if policy.preferred_regions:
-            preferred = [
-                c for c in clusters
-                if c.info.region in policy.preferred_regions
-            ]
+            preferred = [c for c in clusters if c.info.region in policy.preferred_regions]
             if preferred:
                 return min(preferred, key=lambda c: c.info.capacity.get_load_score())
 
@@ -376,6 +371,7 @@ class JobRouter:
             try:
                 # Submit job
                 import time
+
                 start = time.time()
                 result = await cluster.submit_job(job_data)
                 latency = (time.time() - start) * 1000
@@ -394,9 +390,7 @@ class JobRouter:
             except Exception as e:
                 last_error = str(e)
                 self._stats["retries"] += 1
-                logger.warning(
-                    f"Routing attempt {attempts} failed for {cluster.info.cluster_id}: {e}"
-                )
+                logger.warning(f"Routing attempt {attempts} failed for {cluster.info.cluster_id}: {e}")
 
                 # Remove from eligible for next attempt
                 eligible = [c for c in eligible if c != cluster]
@@ -431,10 +425,7 @@ class JobRouter:
 
             # Check required features
             if policy.required_features:
-                if not all(
-                    f in cluster.info.supported_features
-                    for f in policy.required_features
-                ):
+                if not all(f in cluster.info.supported_features for f in policy.required_features):
                     continue
 
             # Check capacity
@@ -476,9 +467,7 @@ class JobRouter:
             return algorithm.select(clusters, policy, job_data)
 
         # Default to least loaded
-        return self._algorithms[RoutingStrategy.LEAST_LOADED].select(
-            clusters, policy, job_data
-        )
+        return self._algorithms[RoutingStrategy.LEAST_LOADED].select(clusters, policy, job_data)
 
     # =========================================================================
     # Batch Routing
@@ -517,20 +506,13 @@ class JobRouter:
 
     def get_stats(self) -> dict[str, Any]:
         """الحصول على الإحصائيات"""
-        success_rate = (
-            self._stats["successful"] / self._stats["total_routed"]
-            if self._stats["total_routed"] > 0
-            else 0
-        )
+        success_rate = self._stats["successful"] / self._stats["total_routed"] if self._stats["total_routed"] > 0 else 0
 
         return {
             **self._stats,
             "success_rate": success_rate,
             "cluster_count": len(self._clusters),
-            "clusters": {
-                cid: c.get_stats()
-                for cid, c in self._clusters.items()
-            },
+            "clusters": {cid: c.get_stats() for cid, c in self._clusters.items()},
         }
 
     def get_cluster_stats(self) -> dict[str, dict[str, Any]]:

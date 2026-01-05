@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TrainingConfig:
     """إعدادات التدريب."""
+
     epochs: int = 3
     batch_size: int = 32
     learning_rate: float = 1e-4
@@ -43,6 +44,7 @@ class TrainingConfig:
 @dataclass
 class TrainingMetrics:
     """مقاييس التدريب."""
+
     epoch: int = 0
     step: int = 0
     loss: float = 0.0
@@ -106,10 +108,7 @@ class DistributedTrainingTask:
 
             for epoch in range(config.epochs):
                 metrics.epoch = epoch + 1
-                task.update_progress(
-                    10 + (80 * epoch / config.epochs),
-                    f"Training epoch {epoch + 1}/{config.epochs}"
-                )
+                task.update_progress(10 + (80 * epoch / config.epochs), f"Training epoch {epoch + 1}/{config.epochs}")
 
                 # Simulate epoch
                 for step in range(100):
@@ -123,8 +122,7 @@ class DistributedTrainingTask:
                     if step % config.log_steps == 0:
                         progress = 10 + (80 * metrics.step / total_steps)
                         task.update_progress(
-                            progress,
-                            f"Epoch {epoch+1}/{config.epochs}, Step {step}, Loss: {loss:.4f}"
+                            progress, f"Epoch {epoch+1}/{config.epochs}, Step {step}, Loss: {loss:.4f}"
                         )
 
                     # Checkpoint
@@ -135,11 +133,13 @@ class DistributedTrainingTask:
                     await asyncio.sleep(0.01)
 
                 # Record epoch metrics
-                metrics.history.append({
-                    "epoch": epoch + 1,
-                    "loss": metrics.loss,
-                    "samples_processed": metrics.samples_processed,
-                })
+                metrics.history.append(
+                    {
+                        "epoch": epoch + 1,
+                        "loss": metrics.loss,
+                        "samples_processed": metrics.samples_processed,
+                    }
+                )
 
             task.update_progress(95, "Saving final model")
 
@@ -184,6 +184,7 @@ class DistributedTrainingTask:
         """خطوة تدريب واحدة."""
         # Simulate loss decreasing over time
         import random
+
         base_loss = 2.0 - (1.5 * metrics.step / (task.config.get("training", {}).get("epochs", 3) * 100))
         loss = max(0.1, base_loss + random.uniform(-0.1, 0.1))
 

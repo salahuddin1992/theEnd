@@ -31,15 +31,17 @@ logger = logging.getLogger(__name__)
 
 class SnapshotType(str, Enum):
     """نوع اللقطة / Snapshot type"""
-    FULL = "full"                    # نسخة كاملة
-    INCREMENTAL = "incremental"      # نسخة تزايدية
-    DIFFERENTIAL = "differential"    # نسخة تفاضلية
-    CONFIG_ONLY = "config_only"      # الإعدادات فقط
-    STATE_ONLY = "state_only"        # الحالة فقط
+
+    FULL = "full"  # نسخة كاملة
+    INCREMENTAL = "incremental"  # نسخة تزايدية
+    DIFFERENTIAL = "differential"  # نسخة تفاضلية
+    CONFIG_ONLY = "config_only"  # الإعدادات فقط
+    STATE_ONLY = "state_only"  # الحالة فقط
 
 
 class CompressionType(str, Enum):
     """نوع الضغط / Compression type"""
+
     NONE = "none"
     GZIP = "gzip"
     LZ4 = "lz4"
@@ -48,6 +50,7 @@ class CompressionType(str, Enum):
 
 class EncryptionType(str, Enum):
     """نوع التشفير / Encryption type"""
+
     NONE = "none"
     AES_256_GCM = "aes-256-gcm"
     CHACHA20_POLY1305 = "chacha20-poly1305"
@@ -59,6 +62,7 @@ class SnapshotMetadata:
     بيانات وصفية للقطة
     Snapshot metadata
     """
+
     snapshot_id: str
     snapshot_type: SnapshotType
     created_at: datetime
@@ -151,6 +155,7 @@ class SnapshotData:
     بيانات اللقطة
     Snapshot data contents
     """
+
     # Configuration
     config: dict[str, Any] = field(default_factory=dict)
 
@@ -368,9 +373,7 @@ class Snapshot:
     def get_size_info(self) -> dict[str, Any]:
         """الحصول على معلومات الحجم"""
         compression_ratio = (
-            1 - (self.metadata.compressed_size_bytes / self.metadata.size_bytes)
-            if self.metadata.size_bytes > 0
-            else 0
+            1 - (self.metadata.compressed_size_bytes / self.metadata.size_bytes) if self.metadata.size_bytes > 0 else 0
         )
 
         return {

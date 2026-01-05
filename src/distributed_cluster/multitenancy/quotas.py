@@ -22,13 +22,15 @@ logger = logging.getLogger(__name__)
 
 class QuotaType(str, Enum):
     """نوع الحصة"""
-    HARD = "hard"      # لا يمكن تجاوزها
-    SOFT = "soft"      # يمكن تجاوزها مع تحذير
-    BURST = "burst"    # يمكن تجاوزها مؤقتاً
+
+    HARD = "hard"  # لا يمكن تجاوزها
+    SOFT = "soft"  # يمكن تجاوزها مع تحذير
+    BURST = "burst"  # يمكن تجاوزها مؤقتاً
 
 
 class QuotaScope(str, Enum):
     """نطاق الحصة"""
+
     TENANT = "tenant"
     USER = "user"
     NAMESPACE = "namespace"
@@ -41,6 +43,7 @@ class ResourceQuota:
     حصة المورد
     Resource Quota
     """
+
     name: str
     resource: str
     limit: float
@@ -131,6 +134,7 @@ class ResourceQuota:
 @dataclass
 class QuotaViolation:
     """انتهاك الحصة"""
+
     quota_name: str
     resource: str
     requested: float
@@ -345,9 +349,7 @@ class QuotaEnforcer:
         violations = []
 
         for resource, amount in resources.items():
-            allowed, violation = await self.quota_manager.check_quota(
-                scope_id, resource, amount
-            )
+            allowed, violation = await self.quota_manager.check_quota(scope_id, resource, amount)
             if not allowed and violation:
                 violations.append(violation)
 

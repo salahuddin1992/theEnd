@@ -220,9 +220,7 @@ class GPUSharingManager:
         async with self._lock:
             await self._discover_gpus()
             await self._create_default_partitions()
-            logger.info(
-                f"GPU Sharing Manager initialized with {len(self._gpus)} GPUs"
-            )
+            logger.info(f"GPU Sharing Manager initialized with {len(self._gpus)} GPUs")
 
     async def _discover_gpus(self) -> None:
         """Discover available GPUs."""
@@ -276,10 +274,7 @@ class GPUSharingManager:
                     "compute_capability": self._get_compute_capability(handle),
                 }
 
-                logger.info(
-                    f"Discovered GPU {i}: {name} "
-                    f"({self._gpus[i]['memory_total_mb']}MB)"
-                )
+                logger.info(f"Discovered GPU {i}: {name} " f"({self._gpus[i]['memory_total_mb']}MB)")
 
         except Exception as e:
             logger.error(f"Error discovering GPUs: {e}")
@@ -385,22 +380,15 @@ class GPUSharingManager:
                 return self._allocations[job_id]
 
             # Find suitable partition
-            partition = await self._find_best_partition(
-                memory_mb, compute_percentage, gpu_index
-            )
+            partition = await self._find_best_partition(memory_mb, compute_percentage, gpu_index)
 
             if partition is None:
                 # Try with oversubscription
-                partition = await self._find_partition_with_oversubscription(
-                    memory_mb, compute_percentage, gpu_index
-                )
+                partition = await self._find_partition_with_oversubscription(memory_mb, compute_percentage, gpu_index)
 
             if partition is None:
                 self._stats["failed_allocations"] += 1
-                logger.warning(
-                    f"No GPU partition available for job {job_id} "
-                    f"(requested {memory_mb}MB)"
-                )
+                logger.warning(f"No GPU partition available for job {job_id} " f"(requested {memory_mb}MB)")
                 return None
 
             # Create slice
@@ -479,9 +467,7 @@ class GPUSharingManager:
         score += slice_score * 0.3
 
         # Prefer best-fit allocation (minimize fragmentation)
-        fit_score = 1.0 - abs(
-            partition.available_memory_mb - memory_mb
-        ) / partition.total_memory_mb
+        fit_score = 1.0 - abs(partition.available_memory_mb - memory_mb) / partition.total_memory_mb
         score += fit_score * 0.3
 
         return score
@@ -503,9 +489,7 @@ class GPUSharingManager:
 
             if total_allocated + memory_mb <= max_allowed:
                 self._stats["oversubscription_events"] += 1
-                logger.info(
-                    f"Using oversubscription on partition {partition.partition_id}"
-                )
+                logger.info(f"Using oversubscription on partition {partition.partition_id}")
                 return partition
 
         return None
@@ -552,9 +536,7 @@ class GPUSharingManager:
             gpu_slice = self._allocations[job_id]
             if gpu_slice.expires_at:
                 gpu_slice.expires_at += timedelta(seconds=additional_seconds)
-                logger.debug(
-                    f"Extended allocation for job {job_id} by {additional_seconds}s"
-                )
+                logger.debug(f"Extended allocation for job {job_id} by {additional_seconds}s")
             return True
 
     async def cleanup_expired(self) -> List[str]:
@@ -568,11 +550,7 @@ class GPUSharingManager:
         """
         released = []
         async with self._lock:
-            expired_jobs = [
-                job_id
-                for job_id, allocation in self._allocations.items()
-                if allocation.is_expired
-            ]
+            expired_jobs = [job_id for job_id, allocation in self._allocations.items() if allocation.is_expired]
 
             for job_id in expired_jobs:
                 await self.release_slice(job_id)
@@ -596,15 +574,11 @@ class GPUSharingManager:
         gpu_info = self._gpus[gpu_index].copy()
 
         # Find partitions for this GPU
-        gpu_partitions = [
-            p for p in self._partitions.values() if p.gpu_index == gpu_index
-        ]
+        gpu_partitions = [p for p in self._partitions.values() if p.gpu_index == gpu_index]
 
         gpu_info["partitions"] = [p.to_dict() for p in gpu_partitions]
         gpu_info["total_slices"] = sum(len(p.slices) for p in gpu_partitions)
-        gpu_info["allocated_slices"] = sum(
-            len(p.allocated_slices) for p in gpu_partitions
-        )
+        gpu_info["allocated_slices"] = sum(len(p.allocated_slices) for p in gpu_partitions)
 
         # Get current memory usage from NVML
         if self._nvml_initialized:
@@ -613,9 +587,7 @@ class GPUSharingManager:
                 memory_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
                 gpu_info["memory_used_mb"] = memory_info.used // (1024 * 1024)
                 gpu_info["memory_free_mb"] = memory_info.free // (1024 * 1024)
-                gpu_info["utilization"] = pynvml.nvmlDeviceGetUtilizationRates(
-                    handle
-                ).gpu
+                gpu_info["utilization"] = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
             except Exception as e:
                 logger.warning(f"Failed to get GPU {gpu_index} status: {e}")
 
@@ -658,12 +630,14 @@ class GPUSharingManager:
             partition_stats = []
             for partition in self._partitions.values():
                 fragmentation = self._calculate_fragmentation(partition)
-                partition_stats.append({
-                    "partition": partition,
-                    "fragmentation": fragmentation,
-                    "utilization": partition.utilization,
-                    "free_memory": partition.available_memory_mb,
-                })
+                partition_stats.append(
+                    {
+                        "partition": partition,
+                        "fragmentation": fragmentation,
+                        "utilization": partition.utilization,
+                        "free_memory": partition.available_memory_mb,
+                    }
+                )
 
             # Sort partitions: highly fragmented first
             partition_stats.sort(key=lambda x: x["fragmentation"], reverse=True)
@@ -710,7 +684,7 @@ class GPUSharingManager:
 
         avg_size = sum(slice_sizes) / len(slice_sizes)
         variance = sum((s - avg_size) ** 2 for s in slice_sizes) / len(slice_sizes)
-        std_dev = variance ** 0.5
+        std_dev = variance**0.5
 
         # Normalize by average size
         fragmentation = std_dev / avg_size if avg_size > 0 else 0.0
@@ -753,9 +727,7 @@ class GPUSharingManager:
                 time_diff = abs((current.expires_at - next_slice.expires_at).total_seconds())
                 if time_diff < 300:  # Within 5 minutes
                     # These could potentially be merged in a future optimization
-                    logger.debug(
-                        f"Identified mergeable slices: {current.slice_id}, {next_slice.slice_id}"
-                    )
+                    logger.debug(f"Identified mergeable slices: {current.slice_id}, {next_slice.slice_id}")
 
             i += 1
 
@@ -791,9 +763,9 @@ class GPUSharingManager:
 
                 # Find slices that could be moved
                 movable_slices = [
-                    s for s in over_partition.allocated_slices
-                    if s.memory_mb <= under_partition.available_memory_mb
-                    and not s.is_expired
+                    s
+                    for s in over_partition.allocated_slices
+                    if s.memory_mb <= under_partition.available_memory_mb and not s.is_expired
                 ]
 
                 if movable_slices:

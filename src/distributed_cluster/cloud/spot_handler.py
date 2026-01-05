@@ -279,9 +279,7 @@ class SpotInstanceHandler:
 
         while self._running and worker_id in self._workers:
             try:
-                notification = await self._check_termination(
-                    worker_id, instance_id, provider
-                )
+                notification = await self._check_termination(worker_id, instance_id, provider)
 
                 if notification:
                     await self._handle_termination(notification)
@@ -327,16 +325,12 @@ class SpotInstanceHandler:
         async with httpx.AsyncClient(timeout=2.0) as client:
             try:
                 # Check spot termination time
-                response = await client.get(
-                    self.METADATA_ENDPOINTS[SpotProvider.AWS]
-                )
+                response = await client.get(self.METADATA_ENDPOINTS[SpotProvider.AWS])
 
                 if response.status_code == 200:
                     # Termination notice received
                     termination_time_str = response.text.strip()
-                    termination_time = datetime.fromisoformat(
-                        termination_time_str.replace("Z", "+00:00")
-                    )
+                    termination_time = datetime.fromisoformat(termination_time_str.replace("Z", "+00:00"))
 
                     return SpotNotification(
                         notification_id=f"aws-{instance_id}-{int(time.time())}",
@@ -422,9 +416,7 @@ class SpotInstanceHandler:
                         event_type = event.get("EventType", "")
                         if event_type in ["Preempt", "Terminate"]:
                             not_before = event.get("NotBefore", "")
-                            termination_time = datetime.fromisoformat(
-                                not_before.replace("Z", "+00:00")
-                            )
+                            termination_time = datetime.fromisoformat(not_before.replace("Z", "+00:00"))
 
                             return SpotNotification(
                                 notification_id=f"azure-{instance_id}-{event.get('EventId', '')}",
@@ -486,10 +478,7 @@ class SpotInstanceHandler:
         else:
             self._stats["failed_evacuations"] += 1
             self._stats["jobs_lost"] += result.jobs_lost
-            logger.error(
-                f"Evacuation failed for {worker_id}: "
-                f"lost={result.jobs_lost}, errors={result.errors}"
-            )
+            logger.error(f"Evacuation failed for {worker_id}: " f"lost={result.jobs_lost}, errors={result.errors}")
 
         self._stats["total_evacuation_time_seconds"] += result.duration_seconds
 
@@ -605,11 +594,7 @@ class SpotInstanceHandler:
 
         return {
             **worker,
-            "notifications": [
-                n.to_dict()
-                for n in self._notifications.values()
-                if n.worker_id == worker_id
-            ],
+            "notifications": [n.to_dict() for n in self._notifications.values() if n.worker_id == worker_id],
         }
 
     async def get_all_notifications(self) -> List[SpotNotification]:
@@ -623,9 +608,7 @@ class SpotInstanceHandler:
             "registered_workers": len(self._workers),
             "spot_workers": len([w for w in self._workers.values() if w["is_spot"]]),
             "active_monitors": len(self._monitor_tasks),
-            "pending_notifications": len(
-                [n for n in self._notifications.values() if n.time_remaining_seconds > 0]
-            ),
+            "pending_notifications": len([n for n in self._notifications.values() if n.time_remaining_seconds > 0]),
             "provider": self.provider.value,
         }
 

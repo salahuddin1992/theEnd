@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AnalyticsConfig:
     """Analytics configuration."""
+
     enabled: bool = True
 
     # Logging
@@ -57,6 +58,7 @@ class AnalyticsConfig:
 @dataclass
 class RequestMetrics:
     """Metrics for a single request."""
+
     request_id: str
     timestamp: datetime
     method: str
@@ -92,6 +94,7 @@ class RequestMetrics:
 @dataclass
 class EndpointMetrics:
     """Aggregated metrics for an endpoint."""
+
     path: str
     method: str
 
@@ -194,6 +197,7 @@ class RequestLogger:
         # Check sample rate
         if self.config.sample_rate < 1.0:
             import random
+
             if random.random() > self.config.sample_rate:
                 return False
 
@@ -344,7 +348,7 @@ class MetricsCollector:
             # Store recent requests
             self._recent_requests.append(metrics)
             if len(self._recent_requests) > self._max_recent:
-                self._recent_requests = self._recent_requests[-self._max_recent:]
+                self._recent_requests = self._recent_requests[-self._max_recent :]
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get global metrics."""
@@ -355,9 +359,7 @@ class MetricsCollector:
             "total_requests": self._total_requests,
             "requests_per_second": round(rps, 2),
             "avg_latency_ms": round(
-                self._total_latency_ms / self._total_requests
-                if self._total_requests > 0 else 0,
-                2
+                self._total_latency_ms / self._total_requests if self._total_requests > 0 else 0, 2
             ),
             "status_codes": dict(self._status_counts),
             "uptime_seconds": round(uptime, 2),
@@ -374,10 +376,7 @@ class MetricsCollector:
                     results[key] = metrics.to_dict()
             return results
         else:
-            return {
-                key: metrics.to_dict()
-                for key, metrics in self._endpoint_metrics.items()
-            }
+            return {key: metrics.to_dict() for key, metrics in self._endpoint_metrics.items()}
 
     def get_recent_requests(
         self,

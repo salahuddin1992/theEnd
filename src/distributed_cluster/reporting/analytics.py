@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class AggregationType(str, Enum):
     """نوع التجميع"""
+
     SUM = "sum"
     AVG = "avg"
     MIN = "min"
@@ -37,6 +38,7 @@ class AggregationType(str, Enum):
 
 class TimeGranularity(str, Enum):
     """دقة الوقت"""
+
     MINUTE = "minute"
     HOUR = "hour"
     DAY = "day"
@@ -47,6 +49,7 @@ class TimeGranularity(str, Enum):
 @dataclass
 class MetricPoint:
     """نقطة قياس"""
+
     timestamp: datetime
     value: float
     labels: Dict[str, str] = field(default_factory=dict)
@@ -55,16 +58,19 @@ class MetricPoint:
 @dataclass
 class MetricSeries:
     """سلسلة قياسات"""
+
     name: str
     points: List[MetricPoint] = field(default_factory=list)
     labels: Dict[str, str] = field(default_factory=dict)
 
     def add_point(self, value: float, timestamp: Optional[datetime] = None) -> None:
         """إضافة نقطة"""
-        self.points.append(MetricPoint(
-            timestamp=timestamp or datetime.now(timezone.utc),
-            value=value,
-        ))
+        self.points.append(
+            MetricPoint(
+                timestamp=timestamp or datetime.now(timezone.utc),
+                value=value,
+            )
+        )
 
     def get_values(self) -> List[float]:
         """الحصول على القيم"""
@@ -80,6 +86,7 @@ class MetricSeries:
 @dataclass
 class AnalyticsResult:
     """نتيجة التحليل"""
+
     metric_name: str
     aggregation: AggregationType
     value: float
@@ -338,10 +345,12 @@ class TrendAnalyzer:
         all_points[-1].timestamp
         for i in range(1, periods_ahead + 1):
             predicted_value = slope * (n + i) + intercept
-            predictions.append({
-                "period": i,
-                "value": max(0, predicted_value),  # Ensure non-negative
-            })
+            predictions.append(
+                {
+                    "period": i,
+                    "value": max(0, predicted_value),  # Ensure non-negative
+                }
+            )
 
         return {
             "metricName": metric_name,
@@ -382,12 +391,14 @@ class TrendAnalyzer:
         for point in all_points:
             z_score = (point.value - mean) / stddev if stddev > 0 else 0
             if abs(z_score) > threshold_stddev:
-                anomalies.append({
-                    "timestamp": point.timestamp.isoformat(),
-                    "value": point.value,
-                    "zScore": z_score,
-                    "severity": "high" if abs(z_score) > 3 else "medium",
-                })
+                anomalies.append(
+                    {
+                        "timestamp": point.timestamp.isoformat(),
+                        "value": point.value,
+                        "zScore": z_score,
+                        "severity": "high" if abs(z_score) > 3 else "medium",
+                    }
+                )
 
         return {
             "metricName": metric_name,
@@ -414,14 +425,16 @@ class TrendAnalyzer:
         result = []
         for time_key in sorted(grouped.keys()):
             values = grouped[time_key]
-            result.append({
-                "time": time_key,
-                "count": len(values),
-                "sum": sum(values),
-                "avg": statistics.mean(values),
-                "min": min(values),
-                "max": max(values),
-            })
+            result.append(
+                {
+                    "time": time_key,
+                    "count": len(values),
+                    "sum": sum(values),
+                    "avg": statistics.mean(values),
+                    "min": min(values),
+                    "max": max(values),
+                }
+            )
 
         return result
 
@@ -522,9 +535,7 @@ class AnalyticsEngine:
         labels: Optional[Dict[str, str]] = None,
     ) -> Optional[AnalyticsResult]:
         """استعلام"""
-        return self.aggregator.aggregate(
-            metric_name, aggregation, labels, start_time, end_time
-        )
+        return self.aggregator.aggregate(metric_name, aggregation, labels, start_time, end_time)
 
     async def get_trend(
         self,

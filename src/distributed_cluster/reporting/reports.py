@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ReportType(str, Enum):
     """نوع التقرير"""
+
     CLUSTER_OVERVIEW = "cluster_overview"
     JOB_SUMMARY = "job_summary"
     WORKER_PERFORMANCE = "worker_performance"
@@ -36,6 +37,7 @@ class ReportType(str, Enum):
 
 class ReportFormat(str, Enum):
     """تنسيق التقرير"""
+
     JSON = "json"
     HTML = "html"
     PDF = "pdf"
@@ -45,6 +47,7 @@ class ReportFormat(str, Enum):
 
 class ReportStatus(str, Enum):
     """حالة التقرير"""
+
     PENDING = "pending"
     GENERATING = "generating"
     COMPLETED = "completed"
@@ -54,6 +57,7 @@ class ReportStatus(str, Enum):
 @dataclass
 class ReportSection:
     """قسم التقرير"""
+
     title: str
     content: Any
     section_type: str = "text"  # text, table, chart, metric
@@ -66,6 +70,7 @@ class Report:
     التقرير
     Report
     """
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     report_type: ReportType = ReportType.CUSTOM
@@ -100,11 +105,13 @@ class Report:
         section_type: str = "text",
     ) -> None:
         """إضافة قسم"""
-        self.sections.append(ReportSection(
-            title=title,
-            content=content,
-            section_type=section_type,
-        ))
+        self.sections.append(
+            ReportSection(
+                title=title,
+                content=content,
+                section_type=section_type,
+            )
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """تحويل لقاموس"""
@@ -232,51 +239,51 @@ class Report:
                 html += '<div class="metrics">\n'
                 if isinstance(section.content, dict):
                     for key, value in section.content.items():
-                        html += f'''
+                        html += f"""
                         <div class="metric">
                             <div class="metric-value">{value}</div>
                             <div class="metric-label">{key}</div>
                         </div>
-'''
-                html += '</div>\n'
+"""
+                html += "</div>\n"
 
             elif section.section_type == "table":
                 if isinstance(section.content, list) and section.content:
-                    html += '<table>\n<thead><tr>\n'
+                    html += "<table>\n<thead><tr>\n"
                     for key in section.content[0].keys():
-                        html += f'<th>{key}</th>\n'
-                    html += '</tr></thead>\n<tbody>\n'
+                        html += f"<th>{key}</th>\n"
+                    html += "</tr></thead>\n<tbody>\n"
                     for row in section.content:
-                        html += '<tr>\n'
+                        html += "<tr>\n"
                         for value in row.values():
-                            html += f'<td>{value}</td>\n'
-                        html += '</tr>\n'
-                    html += '</tbody></table>\n'
+                            html += f"<td>{value}</td>\n"
+                        html += "</tr>\n"
+                    html += "</tbody></table>\n"
 
             else:
-                html += f'<p>{section.content}</p>\n'
+                html += f"<p>{section.content}</p>\n"
 
-            html += '</div>\n'
+            html += "</div>\n"
 
         # Summary
         if self.summary:
             html += '<div class="section">\n<h2>ملخص</h2>\n<div class="metrics">\n'
             for key, value in self.summary.items():
-                html += f'''
+                html += f"""
                 <div class="metric">
                     <div class="metric-value">{value}</div>
                     <div class="metric-label">{key}</div>
                 </div>
-'''
-            html += '</div>\n</div>\n'
+"""
+            html += "</div>\n</div>\n"
 
-        html += f'''
+        html += f"""
     <div class="footer">
         تم إنشاؤه في {self.generated_at.strftime('%Y-%m-%d %H:%M:%S') if self.generated_at else 'N/A'} | NebulaCompute
     </div>
 </body>
 </html>
-'''
+"""
         return html
 
 
@@ -625,7 +632,7 @@ class ReportGenerator:
                 "status": "online",
                 "jobs_completed": 150 - i * 10,
                 "success_rate": 95 - i,
-                "cpu_usage": 60 + i * 3
+                "cpu_usage": 60 + i * 3,
             }
             for i in range(10)
         ]
@@ -654,7 +661,7 @@ class ReportGenerator:
                 "total_jobs": 300 - i * 50,
                 "cpu_used": 20 - i * 2,
                 "memory_used_gb": 64 - i * 8,
-                "cost": 250 - i * 30
+                "cost": 250 - i * 30,
             }
             for i in range(5)
         ]

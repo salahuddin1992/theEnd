@@ -95,10 +95,7 @@ def list_secrets(
         # Filter expired if needed
         now = datetime.now(timezone.utc)
         if not show_expired:
-            secrets = [
-                s for s in secrets
-                if not s.get("expires_at") or datetime.fromisoformat(s["expires_at"]) > now
-            ]
+            secrets = [s for s in secrets if not s.get("expires_at") or datetime.fromisoformat(s["expires_at"]) > now]
 
         table = Table(title=f"Secrets ({len(secrets)})")
         table.add_column("Name", style="cyan")
@@ -188,7 +185,7 @@ def create_secret(
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
-                data[k.strip()] = v.strip().strip('"\'')
+                data[k.strip()] = v.strip().strip("\"'")
     else:
         # Prompt for value
         secret_value = typer.prompt("Enter secret value", hide_input=True)
@@ -394,12 +391,14 @@ def export_secrets(
         for s_meta in secrets_list:
             secret_data = await manager.get_secret(s_meta["name"], s_meta.get("namespace", "default"))
             if secret_data:
-                export_data.append({
-                    "name": s_meta["name"],
-                    "namespace": s_meta.get("namespace", "default"),
-                    "type": s_meta.get("type", "opaque"),
-                    "data": secret_data,
-                })
+                export_data.append(
+                    {
+                        "name": s_meta["name"],
+                        "namespace": s_meta.get("namespace", "default"),
+                        "type": s_meta.get("type", "opaque"),
+                        "data": secret_data,
+                    }
+                )
 
         if format == "env":
             # Export as .env file
@@ -520,17 +519,20 @@ def check_expiry(
                     expiring.append(s)
 
         if output == "json":
-            console.print(json.dumps({
-                "expired": expired,
-                "expiring_soon": expiring,
-            }, indent=2, default=str))
+            console.print(
+                json.dumps(
+                    {
+                        "expired": expired,
+                        "expiring_soon": expiring,
+                    },
+                    indent=2,
+                    default=str,
+                )
+            )
             return
 
         if expired:
-            console.print(Panel.fit(
-                f"[bold red]{len(expired)} Expired Secrets[/bold red]",
-                border_style="red"
-            ))
+            console.print(Panel.fit(f"[bold red]{len(expired)} Expired Secrets[/bold red]", border_style="red"))
 
             table = Table(show_header=True)
             table.add_column("Name", style="red")
@@ -548,10 +550,9 @@ def check_expiry(
             console.print()
 
         if expiring:
-            console.print(Panel.fit(
-                f"[bold yellow]{len(expiring)} Secrets Expiring Soon[/bold yellow]",
-                border_style="yellow"
-            ))
+            console.print(
+                Panel.fit(f"[bold yellow]{len(expiring)} Secrets Expiring Soon[/bold yellow]", border_style="yellow")
+            )
 
             table = Table(show_header=True)
             table.add_column("Name", style="yellow")
@@ -604,6 +605,7 @@ def generate_secret(
             value = manager.generate_api_key(prefix or "neb")
         elif secret_type == "token":
             import secrets as py_secrets
+
             value = py_secrets.token_urlsafe(length)
         else:
             console.print(f"[red]Unknown type: {secret_type}[/red]")
@@ -612,6 +614,7 @@ def generate_secret(
         generated.append(value)
 
     if save_as:
+
         async def do_save():
             if count == 1:
                 data = {"value": generated[0]}
@@ -741,10 +744,7 @@ def vault_sync(
                 vault_data = {}
 
                 for s_meta in secrets_list:
-                    secret_data = await manager.get_secret(
-                        s_meta["name"],
-                        s_meta.get("namespace", "default")
-                    )
+                    secret_data = await manager.get_secret(s_meta["name"], s_meta.get("namespace", "default"))
                     if secret_data:
                         # Use first value or flatten
                         if len(secret_data) == 1:

@@ -32,6 +32,7 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ec, rsa
     from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
     from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
+
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
@@ -41,6 +42,7 @@ logger = logging.getLogger(__name__)
 
 class CertificateType(str, Enum):
     """Certificate types."""
+
     CA = "ca"  # Certificate Authority
     SERVER = "server"  # Server/Master certificate
     CLIENT = "client"  # Client/Worker certificate
@@ -49,6 +51,7 @@ class CertificateType(str, Enum):
 
 class CertificateStatus(str, Enum):
     """Certificate status."""
+
     VALID = "valid"
     EXPIRED = "expired"
     REVOKED = "revoked"
@@ -58,6 +61,7 @@ class CertificateStatus(str, Enum):
 
 class KeyAlgorithm(str, Enum):
     """Key generation algorithms."""
+
     RSA_2048 = "rsa_2048"
     RSA_4096 = "rsa_4096"
     ECDSA_P256 = "ecdsa_p256"
@@ -67,6 +71,7 @@ class KeyAlgorithm(str, Enum):
 @dataclass
 class CertificateInfo:
     """Certificate information."""
+
     serial_number: str
     subject: Dict[str, str]
     issuer: Dict[str, str]
@@ -93,10 +98,7 @@ class CertificateInfo:
     @property
     def is_valid(self) -> bool:
         now = datetime.now(timezone.utc)
-        return (
-            self.status == CertificateStatus.VALID and
-            self.not_before <= now <= self.not_after
-        )
+        return self.status == CertificateStatus.VALID and self.not_before <= now <= self.not_after
 
     @property
     def days_until_expiry(self) -> int:
@@ -124,6 +126,7 @@ class CertificateInfo:
 @dataclass
 class CertificateBundle:
     """Certificate bundle with key material."""
+
     certificate_pem: bytes
     private_key_pem: bytes
     ca_certificate_pem: Optional[bytes] = None
@@ -257,6 +260,7 @@ class FileCertificateStore(CertificateStore):
 
     def _load_index(self) -> None:
         import json
+
         self._index: Dict[str, Dict] = {}
         self._revoked: Set[str] = set()
 
@@ -270,6 +274,7 @@ class FileCertificateStore(CertificateStore):
 
     def _save_index(self) -> None:
         import json
+
         with open(self._index_file, "w") as f:
             json.dump(self._index, f, indent=2, default=str)
 
@@ -416,10 +421,12 @@ class CertificateAuthority:
         """Generate a new CA certificate."""
         self._ca_key = self._generate_key()
 
-        subject = issuer = x509.Name([
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, self.organization),
-            x509.NameAttribute(NameOID.COMMON_NAME, f"{self.organization} Root CA"),
-        ])
+        subject = issuer = x509.Name(
+            [
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, self.organization),
+                x509.NameAttribute(NameOID.COMMON_NAME, f"{self.organization} Root CA"),
+            ]
+        )
 
         now = datetime.now(timezone.utc)
         self._ca_cert = (
@@ -479,11 +486,13 @@ class CertificateAuthority:
             f.write(self._ca_cert.public_bytes(serialization.Encoding.PEM))
 
         with open(key_path, "wb") as f:
-            f.write(self._ca_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption(),
-            ))
+            f.write(
+                self._ca_key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.PKCS8,
+                    encryption_algorithm=serialization.NoEncryption(),
+                )
+            )
         os.chmod(key_path, 0o600)
 
     @property
@@ -519,10 +528,12 @@ class CertificateAuthority:
         with self._lock:
             private_key = self._generate_key()
 
-            subject = x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, self.organization),
-                x509.NameAttribute(NameOID.COMMON_NAME, common_name),
-            ])
+            subject = x509.Name(
+                [
+                    x509.NameAttribute(NameOID.ORGANIZATION_NAME, self.organization),
+                    x509.NameAttribute(NameOID.COMMON_NAME, common_name),
+                ]
+            )
 
             now = datetime.now(timezone.utc)
             days = validity_days or self.validity_days
@@ -544,9 +555,7 @@ class CertificateAuthority:
                     critical=False,
                 )
                 .add_extension(
-                    x509.AuthorityKeyIdentifier.from_issuer_public_key(
-                        self._ca_key.public_key()
-                    ),
+                    x509.AuthorityKeyIdentifier.from_issuer_public_key(self._ca_key.public_key()),
                     critical=False,
                 )
             )
@@ -606,10 +615,12 @@ class CertificateAuthority:
                     critical=True,
                 )
                 builder = builder.add_extension(
-                    x509.ExtendedKeyUsage([
-                        ExtendedKeyUsageOID.SERVER_AUTH,
-                        ExtendedKeyUsageOID.CLIENT_AUTH,
-                    ]),
+                    x509.ExtendedKeyUsage(
+                        [
+                            ExtendedKeyUsageOID.SERVER_AUTH,
+                            ExtendedKeyUsageOID.CLIENT_AUTH,
+                        ]
+                    ),
                     critical=False,
                 )
 
@@ -618,10 +629,7 @@ class CertificateAuthority:
             if dns_names:
                 san_list.extend([x509.DNSName(name) for name in dns_names])
             if ip_addresses:
-                san_list.extend([
-                    x509.IPAddress(ipaddress.ip_address(ip))
-                    for ip in ip_addresses
-                ])
+                san_list.extend([x509.IPAddress(ipaddress.ip_address(ip)) for ip in ip_addresses])
             if san_list:
                 builder = builder.add_extension(
                     x509.SubjectAlternativeName(san_list),
@@ -759,11 +767,11 @@ class CertificateAuthority:
         context.minimum_version = ssl.TLSVersion.TLSv1_2
 
         # Write certificate and key to temp files
-        with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.pem') as cert_file:
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".pem") as cert_file:
             cert_file.write(cert_bundle.certificate_pem)
             cert_path = cert_file.name
 
-        with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.key') as key_file:
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".key") as key_file:
             key_file.write(cert_bundle.private_key_pem)
             key_path = key_file.name
 
@@ -776,7 +784,7 @@ class CertificateAuthority:
         if verify_client and cert_bundle.ca_certificate_pem:
             context.verify_mode = ssl.CERT_REQUIRED
 
-            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.pem') as ca_file:
+            with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".pem") as ca_file:
                 ca_file.write(cert_bundle.ca_certificate_pem)
                 ca_path = ca_file.name
 

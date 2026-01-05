@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Dict, List, Optional
 
-from .mdns import MDNSDiscovery, ServiceInfo, MASTER_SERVICE, WORKER_SERVICE
 from .broadcast import BroadcastDiscovery, BroadcastMessage
+from .mdns import MASTER_SERVICE, WORKER_SERVICE, MDNSDiscovery, ServiceInfo
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DiscoveredService:
     """خدمة مكتشفة موحدة."""
+
     service_id: str
     service_type: str  # "master" or "worker"
     name: str

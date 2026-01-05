@@ -32,6 +32,7 @@ from PySide6.QtCore import QObject, QTimer, Signal
 # Check for optional dependencies
 try:
     import aiohttp
+
     HAS_AIOHTTP = True
 except ImportError:
     HAS_AIOHTTP = False
@@ -52,8 +53,10 @@ APP_AUTHOR = "NebulaCompute Team"
 # الأنواع والتعدادات
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class UpdateChannel(Enum):
     """Update release channels"""
+
     STABLE = "stable"
     BETA = "beta"
     NIGHTLY = "nightly"
@@ -62,6 +65,7 @@ class UpdateChannel(Enum):
 
 class UpdateState(Enum):
     """Update process state"""
+
     IDLE = auto()
     CHECKING = auto()
     AVAILABLE = auto()
@@ -75,23 +79,22 @@ class UpdateState(Enum):
 
 class UpdateError(Exception):
     """Base exception for update errors."""
+
     pass
 
 
 class UpdateAPIError(UpdateError):
     """Error communicating with update API."""
+
     def __init__(self, status_code: int, message: str = ""):
         self.status_code = status_code
-        error_msg = (
-            f"API error (status {status_code}): {message}"
-            if message
-            else f"API returned status {status_code}"
-        )
+        error_msg = f"API error (status {status_code}): {message}" if message else f"API returned status {status_code}"
         super().__init__(error_msg)
 
 
 class UpdateDownloadError(UpdateError):
     """Error downloading update."""
+
     def __init__(self, status_code: int = 0, message: str = ""):
         self.status_code = status_code
         super().__init__(f"Download failed (status {status_code}): {message}" if status_code else message)
@@ -99,6 +102,7 @@ class UpdateDownloadError(UpdateError):
 
 class UpdateVerificationError(UpdateError):
     """Error verifying update checksum."""
+
     def __init__(self, expected: str = "", actual: str = ""):
         self.expected = expected
         self.actual = actual
@@ -110,6 +114,7 @@ class UpdateVerificationError(UpdateError):
 
 class UpdateInstallError(UpdateError):
     """Error installing update."""
+
     def __init__(self, message: str = "Installation failed", details: str = ""):
         self.details = details
         super().__init__(f"{message}: {details}" if details else message)
@@ -118,6 +123,7 @@ class UpdateInstallError(UpdateError):
 @dataclass
 class VersionInfo:
     """Parsed version information"""
+
     major: int
     minor: int
     patch: int
@@ -174,10 +180,10 @@ class VersionInfo:
         if not isinstance(other, VersionInfo):
             return False
         return (
-            self.major == other.major and
-            self.minor == other.minor and
-            self.patch == other.patch and
-            self.prerelease == other.prerelease
+            self.major == other.major
+            and self.minor == other.minor
+            and self.patch == other.patch
+            and self.prerelease == other.prerelease
         )
 
     def __le__(self, other: "VersionInfo") -> bool:
@@ -187,6 +193,7 @@ class VersionInfo:
 @dataclass
 class UpdateAsset:
     """Update download asset"""
+
     name: str
     url: str
     size: int
@@ -198,6 +205,7 @@ class UpdateAsset:
 @dataclass
 class UpdateInfo:
     """Available update information"""
+
     version: str
     channel: UpdateChannel
     release_date: datetime
@@ -252,6 +260,7 @@ class UpdateInfo:
 @dataclass
 class UpdateProgress:
     """Update download/install progress"""
+
     state: UpdateState
     downloaded_bytes: int = 0
     total_bytes: int = 0
@@ -269,6 +278,7 @@ class UpdateProgress:
 # UPDATE MANAGER
 # مدير التحديثات
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class UpdateManager(QObject):
     """
@@ -388,7 +398,7 @@ class UpdateManager(QObject):
                 async with session.get(
                     self.UPDATE_URL,
                     headers={"Accept": "application/vnd.github.v3+json"},
-                    timeout=aiohttp.ClientTimeout(total=30)
+                    timeout=aiohttp.ClientTimeout(total=30),
                 ) as response:
                     if response.status != 200:
                         raise UpdateAPIError(response.status)
@@ -437,12 +447,14 @@ class UpdateManager(QObject):
             # Parse assets
             assets = []
             for asset in release.get("assets", []):
-                assets.append(UpdateAsset(
-                    name=asset["name"],
-                    url=asset["browser_download_url"],
-                    size=asset["size"],
-                    content_type=asset["content_type"],
-                ))
+                assets.append(
+                    UpdateAsset(
+                        name=asset["name"],
+                        url=asset["browser_download_url"],
+                        size=asset["size"],
+                        content_type=asset["content_type"],
+                    )
+                )
 
             return UpdateInfo(
                 version=version,
@@ -485,7 +497,7 @@ class UpdateManager(QObject):
                 state=UpdateState.DOWNLOADING,
                 total_bytes=asset.size,
                 current_file=asset.name,
-                message=f"Downloading {asset.name}..."
+                message=f"Downloading {asset.name}...",
             )
 
             async with aiohttp.ClientSession() as session:
@@ -613,8 +625,7 @@ class UpdateManager(QObject):
         if self._downloaded_path.suffix == ".exe":
             # Run installer
             subprocess.Popen(
-                [str(self._downloaded_path), "/SILENT", "/NORESTART"],
-                creationflags=subprocess.DETACHED_PROCESS
+                [str(self._downloaded_path), "/SILENT", "/NORESTART"], creationflags=subprocess.DETACHED_PROCESS
             )
             return True
         elif self._downloaded_path.suffix == ".zip":
@@ -644,6 +655,7 @@ class UpdateManager(QObject):
 
         if self._downloaded_path.suffix in (".tar.gz", ".tgz"):
             import tarfile
+
             with tarfile.open(self._downloaded_path, "r:gz") as tar:
                 # nosec B202 - extracting from verified update package
                 tar.extractall(Path(sys.executable).parent, filter="data")
@@ -716,11 +728,7 @@ class UpdateManager(QObject):
 
     def cleanup_old_backups(self, keep_count: int = 3) -> None:
         """Clean up old backups, keeping only the most recent"""
-        backups = sorted(
-            self._backup_dir.iterdir(),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True
-        )
+        backups = sorted(self._backup_dir.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True)
 
         for backup in backups[keep_count:]:
             try:
@@ -769,6 +777,7 @@ update_manager = UpdateManager()
 # نقطة الدخول الرئيسية
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def main():
     """
     Main entry point for the desktop application.
@@ -776,6 +785,7 @@ def main():
     """
     # Import here to avoid circular imports
     from distributed_cluster.desktop.app_entry import cli_main
+
     cli_main()
 
 

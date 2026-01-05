@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class WebSocketState(Enum):
     """WebSocket connection state."""
+
     CONNECTING = "connecting"
     CONNECTED = "connected"
     RECONNECTING = "reconnecting"
@@ -31,6 +32,7 @@ class WebSocketState(Enum):
 @dataclass
 class WebSocketConfig:
     """Configuration for WebSocket connection pool."""
+
     # Connection settings
     max_connections: int = 100
     max_connections_per_endpoint: int = 10
@@ -55,6 +57,7 @@ class WebSocketConfig:
 @dataclass
 class WebSocketConnection:
     """WebSocket connection wrapper with metadata."""
+
     ws: Any
     endpoint: str
     state: WebSocketState = WebSocketState.CONNECTING
@@ -166,9 +169,7 @@ class WebSocketPool:
             # Check connection limit
             current = len(self._connections.get(endpoint, []))
             if current >= self.config.max_connections_per_endpoint:
-                raise ConnectionError(
-                    f"Connection limit reached for {endpoint}"
-                )
+                raise ConnectionError(f"Connection limit reached for {endpoint}")
 
             # Create new connection
             return await self._create_connection(endpoint)
@@ -260,6 +261,7 @@ class WebSocketPool:
         async with self.connection(endpoint) as ws:
             if isinstance(message, (dict, list)):
                 import json
+
                 message = json.dumps(message)
 
             await ws.send(message)
@@ -343,6 +345,7 @@ class WebSocketPool:
                 await asyncio.sleep(delay)
 
                 import websockets
+
                 ws = await asyncio.wait_for(
                     websockets.connect(conn.endpoint),
                     timeout=self.config.connection_timeout,
@@ -413,10 +416,7 @@ class WebSocketPool:
         endpoint_stats = {}
 
         for endpoint, connections in self._connections.items():
-            connected = sum(
-                1 for c in connections
-                if c.state == WebSocketState.CONNECTED
-            )
+            connected = sum(1 for c in connections if c.state == WebSocketState.CONNECTED)
 
             endpoint_stats[endpoint] = {
                 "total": len(connections),

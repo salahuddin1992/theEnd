@@ -51,6 +51,7 @@ class FederationConfig:
     إعدادات الاتحاد
     Federation Configuration
     """
+
     # Local cluster
     cluster_id: str
     cluster_name: str
@@ -119,12 +120,16 @@ class FederationManager:
 
         self._router = JobRouter()
 
-        self._sync = StateSync(
-            cluster_id=config.cluster_id,
-            config=SyncConfig(
-                sync_interval_seconds=config.sync_interval_seconds,
-            ),
-        ) if config.enable_sync else None
+        self._sync = (
+            StateSync(
+                cluster_id=config.cluster_id,
+                config=SyncConfig(
+                    sync_interval_seconds=config.sync_interval_seconds,
+                ),
+            )
+            if config.enable_sync
+            else None
+        )
 
         # Clusters
         self._clusters: dict[str, FederatedCluster] = {}
@@ -412,9 +417,7 @@ class FederationManager:
                     logger.warning(f"Cluster {cluster.info.cluster_id} is unreachable")
 
             except Exception as e:
-                logger.warning(
-                    f"Health check failed for {cluster.info.cluster_id}: {e}"
-                )
+                logger.warning(f"Health check failed for {cluster.info.cluster_id}: {e}")
                 cluster.info.status = ClusterStatus.UNHEALTHY
 
     # =========================================================================
@@ -427,10 +430,7 @@ class FederationManager:
 
     def get_healthy_clusters(self) -> list[ClusterInfo]:
         """الحصول على الكتل الصحية"""
-        return [
-            c.info for c in self._clusters.values()
-            if c.info.is_healthy()
-        ]
+        return [c.info for c in self._clusters.values() if c.info.is_healthy()]
 
     def get_cluster(self, cluster_id: str) -> Optional[ClusterInfo]:
         """الحصول على معلومات كتلة"""
@@ -446,10 +446,7 @@ class FederationManager:
         return {
             "running": self._running,
             "local_cluster": self.local_cluster.to_dict(),
-            "clusters": {
-                cid: c.info.to_dict()
-                for cid, c in self._clusters.items()
-            },
+            "clusters": {cid: c.info.to_dict() for cid, c in self._clusters.items()},
             "cluster_count": len(self._clusters),
             "healthy_count": len(self.get_healthy_clusters()),
             "stats": self._stats,
@@ -465,12 +462,14 @@ class FederationManager:
 
         for cluster in self._clusters.values():
             nodes.append(cluster.info.to_dict())
-            edges.append({
-                "source": self.config.cluster_id,
-                "target": cluster.info.cluster_id,
-                "latency_ms": cluster.info.latency_ms,
-                "status": cluster.info.status.value,
-            })
+            edges.append(
+                {
+                    "source": self.config.cluster_id,
+                    "target": cluster.info.cluster_id,
+                    "latency_ms": cluster.info.latency_ms,
+                    "status": cluster.info.status.value,
+                }
+            )
 
         return {
             "nodes": nodes,
@@ -504,6 +503,7 @@ class FederationManager:
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def create_federation_manager(
     cluster_id: str,

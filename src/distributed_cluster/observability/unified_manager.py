@@ -307,20 +307,14 @@ class UnifiedObservabilityManager:
         """بدء المهام الخلفية."""
         # Start health check loop
         if self._health_manager:
-            await self._health_manager.start_background_checks(
-                interval=self.config.health_check_interval
-            )
+            await self._health_manager.start_background_checks(interval=self.config.health_check_interval)
 
         # Start heartbeat task
-        self._tasks.append(
-            asyncio.create_task(self._heartbeat_loop())
-        )
+        self._tasks.append(asyncio.create_task(self._heartbeat_loop()))
 
         # Start metrics collection task
         if self._metrics_aggregator:
-            self._tasks.append(
-                asyncio.create_task(self._metrics_collection_loop())
-            )
+            self._tasks.append(asyncio.create_task(self._metrics_collection_loop()))
 
     async def _heartbeat_loop(self) -> None:
         """حلقة نبضات القلب."""
@@ -643,9 +637,7 @@ def create_observability_middleware(manager: UnifiedObservabilityManager):
 
     async def observability_middleware(request, call_next):
         # Generate correlation ID
-        correlation_id = (
-            request.headers.get("X-Correlation-ID") or generate_correlation_id()
-        )
+        correlation_id = request.headers.get("X-Correlation-ID") or generate_correlation_id()
 
         start_time = time.time()
 

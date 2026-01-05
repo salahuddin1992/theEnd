@@ -55,6 +55,7 @@ class ConnectionFactory(ABC, Generic[T]):
 @dataclass
 class ConnectionWrapper(Generic[T]):
     """Wrapper for connection with metadata."""
+
     connection: Connection[T]
     created_at: datetime = field(default_factory=datetime.now)
     last_used: datetime = field(default_factory=datetime.now)

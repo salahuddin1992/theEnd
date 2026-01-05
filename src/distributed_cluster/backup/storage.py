@@ -37,6 +37,7 @@ class StorageStats:
     إحصائيات التخزين
     Storage statistics
     """
+
     total_snapshots: int = 0
     total_size_bytes: int = 0
     oldest_snapshot: Optional[datetime] = None
@@ -255,7 +256,7 @@ class LocalStorage(BackupStorage):
         snapshots.sort(key=lambda s: s.created_at, reverse=True)
 
         # Apply pagination
-        return snapshots[offset:offset + limit]
+        return snapshots[offset : offset + limit]
 
     async def get_stats(self) -> StorageStats:
         """الحصول على إحصائيات التخزين"""
@@ -475,7 +476,7 @@ class S3Storage(BackupStorage):
 
         # Sort and paginate
         snapshots.sort(key=lambda s: s.created_at, reverse=True)
-        return snapshots[offset:offset + limit]
+        return snapshots[offset : offset + limit]
 
     async def get_stats(self) -> StorageStats:
         """الحصول على إحصائيات التخزين"""
@@ -547,9 +548,7 @@ class AzureStorage(BackupStorage):
                 from azure.storage.blob.aio import BlobServiceClient
 
                 if self.connection_string:
-                    self._client = BlobServiceClient.from_connection_string(
-                        self.connection_string
-                    )
+                    self._client = BlobServiceClient.from_connection_string(self.connection_string)
                 else:
                     account_url = f"https://{self.account_name}.blob.core.windows.net"
                     self._client = BlobServiceClient(
@@ -661,7 +660,7 @@ class AzureStorage(BackupStorage):
 
         # Sort and paginate
         snapshots.sort(key=lambda s: s.created_at, reverse=True)
-        return snapshots[offset:offset + limit]
+        return snapshots[offset : offset + limit]
 
     async def get_stats(self) -> StorageStats:
         """الحصول على إحصائيات التخزين"""

@@ -14,8 +14,9 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
-from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QFrame,
     QGridLayout,
@@ -23,12 +24,11 @@ from PySide6.QtWidgets import (
     QLabel,
     QPlainTextEdit,
     QScrollArea,
+    QSpinBox,
     QStackedWidget,
     QTabWidget,
     QVBoxLayout,
     QWidget,
-    QCheckBox,
-    QSpinBox,
 )
 
 from ..components import (
@@ -41,7 +41,6 @@ from ..components import (
 )
 from ..fluent_design import FluentDesignSystem
 from ..titlebar import FluentIcons
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # AI TASK CARD
@@ -86,11 +85,13 @@ class AITaskCard(FluentCard):
         # Name
         name = self.task_data.get("name_ar", self.task_data.get("name", "Task"))
         name_label = QLabel(name)
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 14px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(name_label)
         header.addStretch()
 
@@ -100,10 +101,12 @@ class AITaskCard(FluentCard):
         desc = self.task_data.get("description_ar", self.task_data.get("description", ""))
         desc_label = QLabel(desc[:80] + "..." if len(desc) > 80 else desc)
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"""
+        desc_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(desc_label)
 
         layout.addStretch()
@@ -166,21 +169,25 @@ class TaskParameterWidget(QWidget):
             label_text += " *"
 
         label = QLabel(label_text)
-        label.setStyleSheet(f"""
+        label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 13px;
             font-weight: 500;
-        """)
+        """
+        )
         layout.addWidget(label)
 
         # Description
         if self.param.get("description"):
             desc = QLabel(self.param["description"])
             desc.setWordWrap(True)
-            desc.setStyleSheet(f"""
+            desc.setStyleSheet(
+                f"""
                 color: {colors.text_secondary};
                 font-size: 11px;
-            """)
+            """
+            )
             layout.addWidget(desc)
 
         # Input widget based on type
@@ -190,7 +197,8 @@ class TaskParameterWidget(QWidget):
             self._input_widget = QPlainTextEdit()
             self._input_widget.setPlaceholderText(self.param.get("placeholder", ""))
             self._input_widget.setMinimumHeight(100)
-            self._input_widget.setStyleSheet(f"""
+            self._input_widget.setStyleSheet(
+                f"""
                 QPlainTextEdit {{
                     background-color: {colors.bg_solid_secondary};
                     color: {colors.text_primary};
@@ -202,7 +210,8 @@ class TaskParameterWidget(QWidget):
                 QPlainTextEdit:focus {{
                     border-color: {colors.accent_default};
                 }}
-            """)
+            """
+            )
             if self.param.get("default"):
                 self._input_widget.setPlainText(str(self.param["default"]))
             self._input_widget.textChanged.connect(self.value_changed.emit)
@@ -214,7 +223,8 @@ class TaskParameterWidget(QWidget):
                 index = self._input_widget.findText(str(self.param["default"]))
                 if index >= 0:
                     self._input_widget.setCurrentIndex(index)
-            self._input_widget.setStyleSheet(f"""
+            self._input_widget.setStyleSheet(
+                f"""
                 QComboBox {{
                     background-color: {colors.bg_solid_secondary};
                     color: {colors.text_primary};
@@ -223,7 +233,8 @@ class TaskParameterWidget(QWidget):
                     padding: 8px;
                     min-height: 32px;
                 }}
-            """)
+            """
+            )
             self._input_widget.currentTextChanged.connect(self.value_changed.emit)
 
         elif param_type == "boolean":
@@ -234,13 +245,11 @@ class TaskParameterWidget(QWidget):
 
         elif param_type in ["number", "integer"]:
             self._input_widget = QSpinBox()
-            self._input_widget.setRange(
-                int(self.param.get("min_value", 0)),
-                int(self.param.get("max_value", 999999))
-            )
+            self._input_widget.setRange(int(self.param.get("min_value", 0)), int(self.param.get("max_value", 999999)))
             if self.param.get("default"):
                 self._input_widget.setValue(int(self.param["default"]))
-            self._input_widget.setStyleSheet(f"""
+            self._input_widget.setStyleSheet(
+                f"""
                 QSpinBox {{
                     background-color: {colors.bg_solid_secondary};
                     color: {colors.text_primary};
@@ -248,7 +257,8 @@ class TaskParameterWidget(QWidget):
                     border-radius: 4px;
                     padding: 8px;
                 }}
-            """)
+            """
+            )
             self._input_widget.valueChanged.connect(self.value_changed.emit)
 
         elif param_type == "multi_select":
@@ -321,11 +331,13 @@ class TaskExecutionPanel(QFrame):
         """Setup panel UI"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card_default};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -347,19 +359,23 @@ class TaskExecutionPanel(QFrame):
         title_layout.setSpacing(2)
 
         self._title_label = QLabel("AI Task")
-        self._title_label.setStyleSheet(f"""
+        self._title_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 20px;
             font-weight: 600;
-        """)
+        """
+        )
         title_layout.addWidget(self._title_label)
 
         self._desc_label = QLabel("")
         self._desc_label.setWordWrap(True)
-        self._desc_label.setStyleSheet(f"""
+        self._desc_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 13px;
-        """)
+        """
+        )
         title_layout.addWidget(self._desc_label)
 
         header.addLayout(title_layout)
@@ -407,7 +423,8 @@ class TaskExecutionPanel(QFrame):
         self._model_combo = QComboBox()
         self._model_combo.addItems(["llama3.2", "mistral", "codellama", "deepseek-coder"])
         self._model_combo.setMinimumWidth(200)
-        self._model_combo.setStyleSheet(f"""
+        self._model_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.bg_solid_secondary};
                 color: {colors.text_primary};
@@ -415,7 +432,8 @@ class TaskExecutionPanel(QFrame):
                 border-radius: 4px;
                 padding: 6px 12px;
             }}
-        """)
+        """
+        )
         model_layout.addWidget(self._model_combo)
         model_layout.addStretch()
 
@@ -507,11 +525,13 @@ class ExecutionResultsPanel(QFrame):
         """Setup panel UI"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card_default};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -526,11 +546,13 @@ class ExecutionResultsPanel(QFrame):
         header.addWidget(back_btn)
 
         self._title_label = QLabel("نتائج التنفيذ")
-        self._title_label.setStyleSheet(f"""
+        self._title_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 20px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(self._title_label)
         header.addStretch()
 
@@ -546,30 +568,36 @@ class ExecutionResultsPanel(QFrame):
 
         # Progress bar area
         self._progress_label = QLabel("التقدم: 0%")
-        self._progress_label.setStyleSheet(f"""
+        self._progress_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 14px;
             font-weight: 500;
-        """)
+        """
+        )
         progress_layout.addWidget(self._progress_label)
 
         self._progress_bar = QFrame()
         self._progress_bar.setFixedHeight(8)
-        self._progress_bar.setStyleSheet(f"""
+        self._progress_bar.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_solid_secondary};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
 
         self._progress_fill = QFrame(self._progress_bar)
         self._progress_fill.setFixedHeight(8)
-        self._progress_fill.setStyleSheet(f"""
+        self._progress_fill.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.accent_default};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
         self._progress_fill.setFixedWidth(0)
 
         progress_layout.addWidget(self._progress_bar)
@@ -585,16 +613,19 @@ class ExecutionResultsPanel(QFrame):
 
         # Results
         results_label = QLabel("النتيجة:")
-        results_label.setStyleSheet(f"""
+        results_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 14px;
             font-weight: 500;
-        """)
+        """
+        )
         layout.addWidget(results_label)
 
         self._results_text = QPlainTextEdit()
         self._results_text.setReadOnly(True)
-        self._results_text.setStyleSheet(f"""
+        self._results_text.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: {colors.bg_solid_secondary};
                 color: {colors.text_primary};
@@ -604,7 +635,8 @@ class ExecutionResultsPanel(QFrame):
                 font-family: 'Cascadia Code', 'Consolas', monospace;
                 font-size: 13px;
             }}
-        """)
+        """
+        )
         layout.addWidget(self._results_text, 1)
 
         # Metadata
@@ -631,20 +663,24 @@ class ExecutionResultsPanel(QFrame):
         # Update status badge
         if status == "completed":
             self._status_badge.setText("مكتمل ✓")
-            self._status_badge.setStyleSheet("""
+            self._status_badge.setStyleSheet(
+                """
                 background-color: #10b981;
                 color: white;
                 padding: 4px 12px;
                 border-radius: 12px;
-            """)
+            """
+            )
         elif status == "failed":
             self._status_badge.setText("فشل ✗")
-            self._status_badge.setStyleSheet("""
+            self._status_badge.setStyleSheet(
+                """
                 background-color: #ef4444;
                 color: white;
                 padding: 4px 12px;
                 border-radius: 12px;
-            """)
+            """
+            )
         else:
             self._status_badge.setText("جاري التنفيذ")
 
@@ -689,11 +725,13 @@ class DistributedPromptsPanel(QFrame):
         """Setup panel UI"""
         colors = FluentDesignSystem().colors
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card_default};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
@@ -701,11 +739,13 @@ class DistributedPromptsPanel(QFrame):
 
         # Title
         title = QLabel("إرسال Prompts موزعة")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 20px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(title)
 
         desc = QLabel("أرسل prompts مخصصة يتم تقسيمها وتوزيعها على عدة Workers تلقائياً")
@@ -721,7 +761,8 @@ class DistributedPromptsPanel(QFrame):
         self._system_prompt = QPlainTextEdit()
         self._system_prompt.setMaximumHeight(80)
         self._system_prompt.setPlaceholderText("أدخل system prompt هنا...")
-        self._system_prompt.setStyleSheet(f"""
+        self._system_prompt.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: {colors.bg_solid_secondary};
                 color: {colors.text_primary};
@@ -729,7 +770,8 @@ class DistributedPromptsPanel(QFrame):
                 border-radius: 4px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         layout.addWidget(self._system_prompt)
 
         # Main prompt
@@ -739,7 +781,8 @@ class DistributedPromptsPanel(QFrame):
 
         self._prompt_input = QPlainTextEdit()
         self._prompt_input.setPlaceholderText("أدخل الـ prompt هنا... يمكنك إدخال نص طويل وسيتم تقسيمه تلقائياً")
-        self._prompt_input.setStyleSheet(f"""
+        self._prompt_input.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: {colors.bg_solid_secondary};
                 color: {colors.text_primary};
@@ -748,7 +791,8 @@ class DistributedPromptsPanel(QFrame):
                 padding: 12px;
                 font-size: 13px;
             }}
-        """)
+        """
+        )
         layout.addWidget(self._prompt_input, 1)
 
         # Options
@@ -762,7 +806,8 @@ class DistributedPromptsPanel(QFrame):
         self._model_combo = QComboBox()
         self._model_combo.addItems(["llama3.2", "mistral", "gpt-4", "codellama"])
         self._model_combo.setMinimumWidth(150)
-        self._model_combo.setStyleSheet(f"""
+        self._model_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.bg_solid_secondary};
                 color: {colors.text_primary};
@@ -770,7 +815,8 @@ class DistributedPromptsPanel(QFrame):
                 border-radius: 4px;
                 padding: 6px 12px;
             }}
-        """)
+        """
+        )
         options_layout.addWidget(self._model_combo)
 
         options_layout.addSpacing(20)
@@ -784,7 +830,8 @@ class DistributedPromptsPanel(QFrame):
         self._temp_spin.setRange(0, 100)
         self._temp_spin.setValue(70)
         self._temp_spin.setSuffix("%")
-        self._temp_spin.setStyleSheet(f"""
+        self._temp_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.bg_solid_secondary};
                 color: {colors.text_primary};
@@ -792,7 +839,8 @@ class DistributedPromptsPanel(QFrame):
                 border-radius: 4px;
                 padding: 6px;
             }}
-        """)
+        """
+        )
         options_layout.addWidget(self._temp_spin)
 
         options_layout.addStretch()
@@ -866,7 +914,8 @@ class AITasksView(QWidget):
 
         # Tabs
         self._tabs = QTabWidget()
-        self._tabs.setStyleSheet(f"""
+        self._tabs.setStyleSheet(
+            f"""
             QTabWidget::pane {{
                 border: none;
                 background-color: {colors.bg_primary};
@@ -885,7 +934,8 @@ class AITasksView(QWidget):
             QTabBar::tab:hover {{
                 color: {colors.text_primary};
             }}
-        """)
+        """
+        )
 
         # Tab 1: Built-in Tasks
         tasks_tab = QWidget()
@@ -934,11 +984,13 @@ class AITasksView(QWidget):
         header = QHBoxLayout()
 
         title = QLabel("مهام AI الجاهزة")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 24px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(title)
 
         header.addStretch()
@@ -954,7 +1006,8 @@ class AITasksView(QWidget):
         self._category_combo = QComboBox()
         self._category_combo.addItems(["جميع الفئات", "معالجة النصوص", "البرمجة", "التحليل", "الترجمة", "التوليد"])
         self._category_combo.setMinimumWidth(150)
-        self._category_combo.setStyleSheet(f"""
+        self._category_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.bg_solid_secondary};
                 color: {colors.text_primary};
@@ -962,7 +1015,8 @@ class AITasksView(QWidget):
                 border-radius: 4px;
                 padding: 8px 12px;
             }}
-        """)
+        """
+        )
         self._category_combo.currentTextChanged.connect(self._filter_tasks)
         header.addWidget(self._category_combo)
 
@@ -998,9 +1052,27 @@ class AITasksView(QWidget):
                 "tags": ["text", "summarization"],
                 "supports_distributed": True,
                 "parameters": [
-                    {"name": "text", "label": "النص", "type": "text", "required": True, "placeholder": "أدخل النص هنا..."},
-                    {"name": "style", "label": "الأسلوب", "type": "select", "options": ["concise", "detailed", "bullet_points"], "default": "concise"},
-                    {"name": "length", "label": "الطول", "type": "select", "options": ["short", "medium", "long"], "default": "medium"},
+                    {
+                        "name": "text",
+                        "label": "النص",
+                        "type": "text",
+                        "required": True,
+                        "placeholder": "أدخل النص هنا...",
+                    },
+                    {
+                        "name": "style",
+                        "label": "الأسلوب",
+                        "type": "select",
+                        "options": ["concise", "detailed", "bullet_points"],
+                        "default": "concise",
+                    },
+                    {
+                        "name": "length",
+                        "label": "الطول",
+                        "type": "select",
+                        "options": ["short", "medium", "long"],
+                        "default": "medium",
+                    },
                 ],
                 "recommended_models": ["llama3.2", "mistral"],
             },
@@ -1016,8 +1088,20 @@ class AITasksView(QWidget):
                 "supports_distributed": True,
                 "parameters": [
                     {"name": "text", "label": "النص", "type": "text", "required": True},
-                    {"name": "source_language", "label": "اللغة المصدر", "type": "select", "options": ["auto", "english", "arabic", "french"], "default": "auto"},
-                    {"name": "target_language", "label": "اللغة الهدف", "type": "select", "options": ["english", "arabic", "french", "spanish"], "default": "english"},
+                    {
+                        "name": "source_language",
+                        "label": "اللغة المصدر",
+                        "type": "select",
+                        "options": ["auto", "english", "arabic", "french"],
+                        "default": "auto",
+                    },
+                    {
+                        "name": "target_language",
+                        "label": "اللغة الهدف",
+                        "type": "select",
+                        "options": ["english", "arabic", "french", "spanish"],
+                        "default": "english",
+                    },
                 ],
                 "recommended_models": ["llama3.2", "mistral"],
             },
@@ -1033,7 +1117,13 @@ class AITasksView(QWidget):
                 "supports_distributed": True,
                 "parameters": [
                     {"name": "description", "label": "الوصف", "type": "text", "required": True},
-                    {"name": "language", "label": "اللغة", "type": "select", "options": ["python", "javascript", "java", "go"], "default": "python"},
+                    {
+                        "name": "language",
+                        "label": "اللغة",
+                        "type": "select",
+                        "options": ["python", "javascript", "java", "go"],
+                        "default": "python",
+                    },
                     {"name": "include_comments", "label": "إضافة تعليقات", "type": "boolean", "default": True},
                 ],
                 "recommended_models": ["codellama", "deepseek-coder"],
@@ -1050,7 +1140,13 @@ class AITasksView(QWidget):
                 "supports_distributed": True,
                 "parameters": [
                     {"name": "text", "label": "النص", "type": "text", "required": True},
-                    {"name": "detail_level", "label": "مستوى التفصيل", "type": "select", "options": ["basic", "medium", "detailed"], "default": "medium"},
+                    {
+                        "name": "detail_level",
+                        "label": "مستوى التفصيل",
+                        "type": "select",
+                        "options": ["basic", "medium", "detailed"],
+                        "default": "medium",
+                    },
                 ],
                 "recommended_models": ["llama3.2", "mistral"],
             },
@@ -1066,8 +1162,20 @@ class AITasksView(QWidget):
                 "supports_distributed": True,
                 "parameters": [
                     {"name": "topic", "label": "الموضوع", "type": "string", "required": True},
-                    {"name": "content_type", "label": "نوع المحتوى", "type": "select", "options": ["article", "blog_post", "email", "story"], "default": "article"},
-                    {"name": "tone", "label": "النبرة", "type": "select", "options": ["professional", "casual", "formal"], "default": "professional"},
+                    {
+                        "name": "content_type",
+                        "label": "نوع المحتوى",
+                        "type": "select",
+                        "options": ["article", "blog_post", "email", "story"],
+                        "default": "article",
+                    },
+                    {
+                        "name": "tone",
+                        "label": "النبرة",
+                        "type": "select",
+                        "options": ["professional", "casual", "formal"],
+                        "default": "professional",
+                    },
                 ],
                 "recommended_models": ["llama3.2", "mistral", "gpt-4"],
             },
@@ -1083,7 +1191,13 @@ class AITasksView(QWidget):
                 "supports_distributed": True,
                 "parameters": [
                     {"name": "code", "label": "الكود", "type": "text", "required": True},
-                    {"name": "language", "label": "اللغة", "type": "select", "options": ["python", "javascript", "java"], "default": "python"},
+                    {
+                        "name": "language",
+                        "label": "اللغة",
+                        "type": "select",
+                        "options": ["python", "javascript", "java"],
+                        "default": "python",
+                    },
                 ],
                 "recommended_models": ["codellama", "deepseek-coder"],
             },

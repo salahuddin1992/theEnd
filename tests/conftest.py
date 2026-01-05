@@ -118,7 +118,7 @@ def sample_job_submission() -> JobSubmission:
 @pytest.fixture
 def multiple_workers(sample_resources: ResourceSpec) -> list[WorkerInfo]:
     """Create multiple workers with varying resources."""
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     workers = []
     now = datetime.now(timezone.utc)

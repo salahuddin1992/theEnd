@@ -58,11 +58,13 @@ class FluentLogsView(QWidget):
         header = QHBoxLayout()
 
         title = QLabel("Logs")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(title)
 
         header.addStretch()
@@ -76,7 +78,8 @@ class FluentLogsView(QWidget):
         self._level_combo.addItems(["All", "Debug", "Info", "Warning", "Error"])
         self._level_combo.setMinimumWidth(120)
         self._level_combo.currentTextChanged.connect(self._filter_logs)
-        self._level_combo.setStyleSheet(f"""
+        self._level_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -84,7 +87,8 @@ class FluentLogsView(QWidget):
                 border-radius: 6px;
                 padding: 6px 12px;
             }}
-        """)
+        """
+        )
         header.addWidget(self._level_combo)
 
         # Auto-scroll
@@ -110,7 +114,8 @@ class FluentLogsView(QWidget):
         self._log_view = QPlainTextEdit()
         self._log_view.setReadOnly(True)
         self._log_view.setMaximumBlockCount(10000)
-        self._log_view.setStyleSheet(f"""
+        self._log_view.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 background-color: {colors.bg_solid_base};
                 color: {colors.text_primary};
@@ -120,7 +125,8 @@ class FluentLogsView(QWidget):
                 border-radius: 8px;
                 padding: 12px;
             }}
-        """)
+        """
+        )
         layout.addWidget(self._log_view, 1)
 
         # Status bar
@@ -145,73 +151,73 @@ class FluentLogsView(QWidget):
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "master",
-                "message": "Master node started on 0.0.0.0:8765"
+                "message": "Master node started on 0.0.0.0:8765",
             },
             {
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "worker-01",
-                "message": "Worker connected from 192.168.1.101"
+                "message": "Worker connected from 192.168.1.101",
             },
             {
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "worker-02",
-                "message": "Worker connected from 192.168.1.102"
+                "message": "Worker connected from 192.168.1.102",
             },
             {
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "scheduler",
-                "message": "Scheduler initialized with 'best-fit' policy"
+                "message": "Scheduler initialized with 'best-fit' policy",
             },
             {
                 "level": "debug",
                 "timestamp": datetime.now(),
                 "source": "api",
-                "message": "API endpoint /jobs registered"
+                "message": "API endpoint /jobs registered",
             },
             {
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "master",
-                "message": "Job job-001 submitted: 'Training Model v2'"
+                "message": "Job job-001 submitted: 'Training Model v2'",
             },
             {
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "scheduler",
-                "message": "Job job-001 assigned to worker-01"
+                "message": "Job job-001 assigned to worker-01",
             },
             {
                 "level": "debug",
                 "timestamp": datetime.now(),
                 "source": "worker-01",
-                "message": "Starting container for job-001"
+                "message": "Starting container for job-001",
             },
             {
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "worker-01",
-                "message": "Job job-001 started execution"
+                "message": "Job job-001 started execution",
             },
             {
                 "level": "warning",
                 "timestamp": datetime.now(),
                 "source": "worker-02",
-                "message": "Memory usage above 80% threshold"
+                "message": "Memory usage above 80% threshold",
             },
             {
                 "level": "info",
                 "timestamp": datetime.now(),
                 "source": "master",
-                "message": "Job job-002 completed successfully"
+                "message": "Job job-002 completed successfully",
             },
             {
                 "level": "error",
                 "timestamp": datetime.now(),
                 "source": "worker-03",
-                "message": "Connection lost to worker-03"
+                "message": "Connection lost to worker-03",
             },
         ]
 

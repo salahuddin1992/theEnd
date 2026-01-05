@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class ClusterStatus(str, Enum):
     """حالة الكتلة / Cluster status"""
+
     UNKNOWN = "unknown"
     HEALTHY = "healthy"
     DEGRADED = "degraded"
@@ -38,6 +39,7 @@ class ClusterStatus(str, Enum):
 
 class ClusterRole(str, Enum):
     """دور الكتلة / Cluster role"""
+
     PRIMARY = "primary"
     SECONDARY = "secondary"
     OBSERVER = "observer"
@@ -50,6 +52,7 @@ class ClusterCapacity:
     سعة الكتلة
     Cluster Capacity
     """
+
     # Workers
     total_workers: int = 0
     available_workers: int = 0
@@ -159,6 +162,7 @@ class ClusterInfo:
     معلومات الكتلة
     Cluster Information
     """
+
     cluster_id: str
     cluster_name: str
     endpoint: str  # API endpoint
@@ -463,11 +467,7 @@ class FederatedCluster:
 
     def get_stats(self) -> dict[str, Any]:
         """الحصول على الإحصائيات"""
-        avg_latency = (
-            self._total_latency_ms / self._request_count
-            if self._request_count > 0
-            else 0
-        )
+        avg_latency = self._total_latency_ms / self._request_count if self._request_count > 0 else 0
 
         return {
             "cluster_id": self.info.cluster_id,
@@ -475,11 +475,7 @@ class FederatedCluster:
             "status": self.info.status.value,
             "request_count": self._request_count,
             "error_count": self._error_count,
-            "error_rate": (
-                self._error_count / self._request_count
-                if self._request_count > 0
-                else 0
-            ),
+            "error_rate": (self._error_count / self._request_count if self._request_count > 0 else 0),
             "avg_latency_ms": avg_latency,
             "last_error": self._last_error,
         }

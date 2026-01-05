@@ -58,10 +58,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-EvaluationFn = Callable[
-    [Dict[str, np.ndarray], int],
-    Tuple[float, Dict[str, float]]
-]
+EvaluationFn = Callable[[Dict[str, np.ndarray], int], Tuple[float, Dict[str, float]]]
 
 
 # =============================================================================
@@ -72,6 +69,7 @@ EvaluationFn = Callable[
 @dataclass
 class CoordinatorState:
     """Internal coordinator state."""
+
     is_running: bool = False
     current_round: int = 0
     total_rounds: int = 0
@@ -268,8 +266,7 @@ class FederatedCoordinator:
             if len(selection_result.selected_clients) < self.config.min_clients:
                 result.status = RoundStatus.FAILED
                 result.error_message = (
-                    f"Not enough clients: {len(selection_result.selected_clients)} "
-                    f"< {self.config.min_clients}"
+                    f"Not enough clients: {len(selection_result.selected_clients)} " f"< {self.config.min_clients}"
                 )
                 return result
 
@@ -331,10 +328,7 @@ class FederatedCoordinator:
             # Check minimum participation
             if len(updates) < self.config.min_clients:
                 result.status = RoundStatus.FAILED
-                result.error_message = (
-                    f"Not enough updates: {len(updates)} "
-                    f"< {self.config.min_clients}"
-                )
+                result.error_message = f"Not enough updates: {len(updates)} " f"< {self.config.min_clients}"
                 return result
 
             # Step 4: Aggregation
@@ -353,9 +347,11 @@ class FederatedCoordinator:
 
             # Calculate metrics
             result.total_samples = sum(u.num_samples for u in updates)
-            result.aggregated_loss = sum(
-                u.training_loss * u.num_samples for u in updates
-            ) / result.total_samples if result.total_samples > 0 else 0.0
+            result.aggregated_loss = (
+                sum(u.training_loss * u.num_samples for u in updates) / result.total_samples
+                if result.total_samples > 0
+                else 0.0
+            )
 
             # Update server
             await self._server.submit_update(updates[0])  # Trigger update
@@ -477,27 +473,16 @@ class FederatedCoordinator:
                         f"clients={len(result.participating_clients)}"
                     )
                 else:
-                    logger.warning(
-                        f"Round {round_num}/{total_rounds} failed: "
-                        f"{result.error_message}"
-                    )
+                    logger.warning(f"Round {round_num}/{total_rounds} failed: " f"{result.error_message}")
 
                 # Evaluation
-                if (
-                    round_num % self.config.evaluate_every == 0
-                    and result.status == RoundStatus.COMPLETED
-                ):
+                if round_num % self.config.evaluate_every == 0 and result.status == RoundStatus.COMPLETED:
                     eval_result = await self._evaluate(round_num)
                     if eval_result:
-                        logger.info(
-                            f"Evaluation: loss={eval_result['loss']:.4f}"
-                        )
+                        logger.info(f"Evaluation: loss={eval_result['loss']:.4f}")
 
                 # Checkpointing
-                if (
-                    round_num % self.config.checkpoint_every == 0
-                    and result.status == RoundStatus.COMPLETED
-                ):
+                if round_num % self.config.checkpoint_every == 0 and result.status == RoundStatus.COMPLETED:
                     await self._save_checkpoint(round_num)
 
                 # Early stopping
@@ -519,9 +504,7 @@ class FederatedCoordinator:
                     logger.error(f"Training complete callback error: {e}")
 
         logger.info(
-            f"Training completed: "
-            f"rounds={self._metrics.current_round}, "
-            f"best_loss={self._metrics.best_loss:.4f}"
+            f"Training completed: " f"rounds={self._metrics.current_round}, " f"best_loss={self._metrics.best_loss:.4f}"
         )
 
         return self._metrics
@@ -531,7 +514,7 @@ class FederatedCoordinator:
         if len(self._metrics.loss_history) < self.config.early_stopping_rounds:
             return False
 
-        recent = self._metrics.loss_history[-self.config.early_stopping_rounds:]
+        recent = self._metrics.loss_history[-self.config.early_stopping_rounds :]
         improvement = recent[0] - min(recent)
 
         return improvement < self.config.early_stopping_threshold
@@ -577,13 +560,9 @@ class FederatedCoordinator:
 
             # Restore server model
             if checkpoint["global_model"]:
-                await self._server.initialize_model(
-                    checkpoint["global_model"].weights
-                )
+                await self._server.initialize_model(checkpoint["global_model"].weights)
 
-            logger.info(
-                f"Loaded checkpoint from round {checkpoint['round']}"
-            )
+            logger.info(f"Loaded checkpoint from round {checkpoint['round']}")
             return True
 
         except Exception as e:
@@ -626,14 +605,8 @@ class FederatedCoordinator:
             "global_loss": self._metrics.global_loss,
             "best_loss": self._metrics.best_loss,
             "best_round": self._metrics.best_round,
-            "started_at": (
-                self._state.started_at.isoformat()
-                if self._state.started_at else None
-            ),
-            "completed_at": (
-                self._state.completed_at.isoformat()
-                if self._state.completed_at else None
-            ),
+            "started_at": (self._state.started_at.isoformat() if self._state.started_at else None),
+            "completed_at": (self._state.completed_at.isoformat() if self._state.completed_at else None),
         }
 
     async def get_round_history(self) -> List[Dict[str, Any]]:
@@ -676,10 +649,7 @@ def create_coordinator(
         total_rounds=total_rounds,
         aggregation_strategy=aggregation_strategy,
         selection_strategy=selection_strategy,
-        **{
-            k: v for k, v in kwargs.items()
-            if k in FederatedConfig.__dataclass_fields__
-        },
+        **{k: v for k, v in kwargs.items() if k in FederatedConfig.__dataclass_fields__},
     )
 
     return FederatedCoordinator(

@@ -178,6 +178,7 @@ class StringTemplate(NotificationTemplate):
 
     def _process_conditionals(self, template: str, context: TemplateContext) -> str:
         """Process {% if %} blocks."""
+
         def replace_if(match):
             condition = match.group(1)
             content = match.group(2)
@@ -190,6 +191,7 @@ class StringTemplate(NotificationTemplate):
 
     def _process_loops(self, template: str, context: TemplateContext) -> str:
         """Process {% for %} blocks."""
+
         def replace_for(match):
             item_name = match.group(1)
             items_name = match.group(2)
@@ -212,6 +214,7 @@ class StringTemplate(NotificationTemplate):
 
     def _process_variables(self, template: str, context: TemplateContext) -> str:
         """Process {{variable}} substitutions."""
+
         def replace_var(match):
             var_name = match.group(1)
             filter_name = match.group(2)
@@ -386,14 +389,17 @@ class TemplateEngine:
     def _register_builtin_templates(self) -> None:
         """Register built-in templates."""
         # Plain text templates
-        self.register(StringTemplate(
-            name="plain_simple",
-            template="{{emoji}} {{title}}\n\n{{message}}",
-        ))
+        self.register(
+            StringTemplate(
+                name="plain_simple",
+                template="{{emoji}} {{title}}\n\n{{message}}",
+            )
+        )
 
-        self.register(StringTemplate(
-            name="plain_detailed",
-            template="""{{emoji}} {{title}}
+        self.register(
+            StringTemplate(
+                name="plain_detailed",
+                template="""{{emoji}} {{title}}
 =====================================
 
 {{message}}
@@ -405,17 +411,21 @@ Source: {{source}}
 Time: {{timestamp|datetime}}
 ID: {{notification_id}}
 """,
-        ))
+            )
+        )
 
         # Markdown templates
-        self.register(MarkdownTemplate(
-            name="markdown_simple",
-            template="# {{emoji}} {{title}}\n\n{{message}}",
-        ))
+        self.register(
+            MarkdownTemplate(
+                name="markdown_simple",
+                template="# {{emoji}} {{title}}\n\n{{message}}",
+            )
+        )
 
-        self.register(MarkdownTemplate(
-            name="markdown_detailed",
-            template="""# {{emoji}} {{title}}
+        self.register(
+            MarkdownTemplate(
+                name="markdown_detailed",
+                template="""# {{emoji}} {{title}}
 
 {{message}}
 
@@ -430,12 +440,14 @@ ID: {{notification_id}}
 
 _Notification ID: `{{notification_id}}`_
 """,
-        ))
+            )
+        )
 
         # Slack template
-        self.register(StringTemplate(
-            name="slack_block",
-            template="""{
+        self.register(
+            StringTemplate(
+                name="slack_block",
+                template="""{
     "blocks": [
         {
             "type": "header",
@@ -453,13 +465,15 @@ _Notification ID: `{{notification_id}}`_
         }
     ]
 }""",
-            template_format=TemplateFormat.SLACK,
-        ))
+                template_format=TemplateFormat.SLACK,
+            )
+        )
 
         # HTML email template
-        self.register(HTMLTemplate(
-            name="email_modern",
-            template="""
+        self.register(
+            HTMLTemplate(
+                name="email_modern",
+                template="""
 <div class="header" style="background: {{color}}; color: white;">
     <div style="font-size: 48px;">{{emoji}}</div>
     <h1>{{title}}</h1>
@@ -482,12 +496,14 @@ _Notification ID: `{{notification_id}}`_
     Powered by Dawood AI Assistant
 </div>
 """,
-        ))
+            )
+        )
 
         # RTL Arabic template
-        self.register(RTLTemplate(
-            name="arabic_notification",
-            template="""{{emoji}} {{title}}
+        self.register(
+            RTLTemplate(
+                name="arabic_notification",
+                template="""{{emoji}} {{title}}
 =====================================
 
 {{message}}
@@ -498,12 +514,14 @@ _Notification ID: `{{notification_id}}`_
 المصدر: {{source}}
 الوقت: {{timestamp|datetime}}
 """,
-        ))
+            )
+        )
 
         # Discord embed template
-        self.register(StringTemplate(
-            name="discord_embed",
-            template="""{
+        self.register(
+            StringTemplate(
+                name="discord_embed",
+                template="""{
     "embeds": [{
         "title": "{{emoji}} {{title}}",
         "description": "{{message}}",
@@ -516,8 +534,9 @@ _Notification ID: `{{notification_id}}`_
         "timestamp": "{{timestamp}}"
     }]
 }""",
-            template_format=TemplateFormat.DISCORD,
-        ))
+                template_format=TemplateFormat.DISCORD,
+            )
+        )
 
     def register(self, template: NotificationTemplate) -> None:
         """Register a template."""

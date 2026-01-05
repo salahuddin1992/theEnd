@@ -31,6 +31,7 @@ class OAuth2Error(Exception):
 
 class GrantType(Enum):
     """OAuth2 grant types."""
+
     AUTHORIZATION_CODE = "authorization_code"
     CLIENT_CREDENTIALS = "client_credentials"
     REFRESH_TOKEN = "refresh_token"
@@ -41,6 +42,7 @@ class GrantType(Enum):
 
 class TokenType(Enum):
     """Token types."""
+
     BEARER = "Bearer"
     MAC = "mac"
 
@@ -48,6 +50,7 @@ class TokenType(Enum):
 @dataclass
 class OAuth2Config:
     """OAuth2 configuration."""
+
     client_id: str
     client_secret: Optional[str] = None
     authorization_endpoint: str = ""
@@ -76,6 +79,7 @@ class OAuth2Config:
 @dataclass
 class TokenInfo:
     """OAuth2 token information."""
+
     access_token: str
     token_type: TokenType = TokenType.BEARER
     expires_in: int = 3600
@@ -113,10 +117,7 @@ class JWTHandler:
 
     def encode(self, payload: Dict[str, Any], expires_in: int = 3600) -> str:
         """Encode a JWT token."""
-        header = {
-            "alg": self.algorithm,
-            "typ": "JWT"
-        }
+        header = {"alg": self.algorithm, "typ": "JWT"}
 
         now = int(time.time())
         payload = {
@@ -167,11 +168,7 @@ class JWTHandler:
     def _sign(self, message: str) -> bytes:
         """Sign a message."""
         if self.algorithm == "HS256":
-            return hmac.new(
-                self.secret_key.encode(),
-                message.encode(),
-                hashlib.sha256
-            ).digest()
+            return hmac.new(self.secret_key.encode(), message.encode(), hashlib.sha256).digest()
         else:
             raise OAuth2Error("unsupported_algorithm", f"Algorithm {self.algorithm} not supported")
 
@@ -199,12 +196,7 @@ class TokenManager:
         self._lock = threading.RLock()
 
     def create_token(
-        self,
-        user_id: str,
-        scopes: List[str],
-        client_id: str,
-        expires_in: int = 3600,
-        include_refresh: bool = True
+        self, user_id: str, scopes: List[str], client_id: str, expires_in: int = 3600, include_refresh: bool = True
     ) -> TokenInfo:
         """Create a new access token."""
         payload = {
@@ -265,7 +257,7 @@ class TokenManager:
                 scopes=old_payload.get("scope", "").split(),
                 client_id=old_payload.get("client_id", ""),
                 expires_in=old_token_info.expires_in,
-                include_refresh=True
+                include_refresh=True,
             )
 
             # Revoke old tokens
@@ -345,12 +337,7 @@ class OAuth2Client:
 
             return code_verifier
 
-    async def exchange_code(
-        self,
-        code: str,
-        state: str,
-        http_client: Any
-    ) -> TokenInfo:
+    async def exchange_code(self, code: str, state: str, http_client: Any) -> TokenInfo:
         """Exchange authorization code for tokens."""
         code_verifier = self.validate_state(state)
         if code_verifier is None and self.config.pkce_enabled:
@@ -370,17 +357,11 @@ class OAuth2Client:
             data["code_verifier"] = code_verifier
 
         try:
-            response = await http_client.post(
-                self.config.token_endpoint,
-                data=data
-            )
+            response = await http_client.post(self.config.token_endpoint, data=data)
             token_data = response.json()
 
             if "error" in token_data:
-                raise OAuth2Error(
-                    token_data["error"],
-                    token_data.get("error_description", "")
-                )
+                raise OAuth2Error(token_data["error"], token_data.get("error_description", ""))
 
             return TokenInfo(
                 access_token=token_data["access_token"],
@@ -399,12 +380,7 @@ class OAuth2Client:
 class OIDCProvider:
     """OpenID Connect provider for user authentication."""
 
-    def __init__(
-        self,
-        issuer: str,
-        jwt_handler: JWTHandler,
-        token_manager: TokenManager
-    ):
+    def __init__(self, issuer: str, jwt_handler: JWTHandler, token_manager: TokenManager):
         self.issuer = issuer
         self.jwt_handler = jwt_handler
         self.token_manager = token_manager
@@ -419,7 +395,7 @@ class OIDCProvider:
         client_secret: str,
         redirect_uris: List[str],
         grant_types: List[str] = None,
-        scopes: List[str] = None
+        scopes: List[str] = None,
     ):
         """Register an OAuth2 client."""
         with self._lock:
@@ -443,7 +419,7 @@ class OIDCProvider:
         redirect_uri: str,
         scopes: List[str],
         code_challenge: Optional[str] = None,
-        code_challenge_method: str = "S256"
+        code_challenge_method: str = "S256",
     ) -> str:
         """Create an authorization code."""
         code = secrets.token_urlsafe(32)
@@ -462,12 +438,7 @@ class OIDCProvider:
         return code
 
     def exchange_code(
-        self,
-        code: str,
-        client_id: str,
-        client_secret: str,
-        redirect_uri: str,
-        code_verifier: Optional[str] = None
+        self, code: str, client_id: str, client_secret: str, redirect_uri: str, code_verifier: Optional[str] = None
     ) -> TokenInfo:
         """Exchange authorization code for tokens."""
         with self._lock:

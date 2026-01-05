@@ -37,6 +37,7 @@ IS_WINDOWS = platform.system() == "Windows"
 
 class NotificationType(str, Enum):
     """نوع الإشعار / Notification type"""
+
     INFO = "info"
     SUCCESS = "success"
     WARNING = "warning"
@@ -46,6 +47,7 @@ class NotificationType(str, Enum):
 
 class NotificationPriority(str, Enum):
     """أولوية الإشعار / Notification priority"""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -58,6 +60,7 @@ class NotificationAction:
     إجراء الإشعار
     Notification action button
     """
+
     action_id: str
     label: str
     icon: Optional[str] = None
@@ -70,6 +73,7 @@ class NotificationProgress:
     بيانات تقدم الإشعار
     Notification progress data
     """
+
     title: str = ""
     status: str = ""
     value: float = 0.0  # 0.0 to 1.0
@@ -82,6 +86,7 @@ class Notification:
     إشعار كامل
     Complete notification
     """
+
     notification_id: str
     title: str
     message: str
@@ -172,18 +177,14 @@ class WinRTNotificationManager:
             )
 
             # Create notifier
-            self._notifier = ToastNotificationManager.create_toast_notifier(
-                self.app_id
-            )
+            self._notifier = ToastNotificationManager.create_toast_notifier(self.app_id)
 
             self._initialized = True
             logger.info("WinRT notification manager initialized")
             return True
 
         except ImportError:
-            logger.warning(
-                "winsdk not installed. Install with: pip install winsdk"
-            )
+            logger.warning("winsdk not installed. Install with: pip install winsdk")
             return False
         except Exception as e:
             logger.error(f"Failed to initialize WinRT notifications: {e}")
@@ -269,9 +270,7 @@ class WinRTNotificationManager:
 
             # Set event handlers
             if notification.on_activated:
-                self._action_callbacks[notification.notification_id] = (
-                    notification.on_activated
-                )
+                self._action_callbacks[notification.notification_id] = notification.on_activated
 
             # Show notification
             self._notifier.show(toast)
@@ -327,9 +326,7 @@ class WinRTNotificationManager:
         """بناء XML إشعار مع أزرار"""
         actions_xml = ""
         for action in notification.actions:
-            args = "&".join(
-                f"{k}={v}" for k, v in action.arguments.items()
-            )
+            args = "&".join(f"{k}={v}" for k, v in action.arguments.items())
             actions_xml += f"""
             <action
                 content="{self._escape_xml(action.label)}"
@@ -385,10 +382,10 @@ class WinRTNotificationManager:
             return ""
         return (
             text.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace('"', "&quot;")
-                .replace("'", "&apos;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&apos;")
         )
 
     def _send_fallback_notification(

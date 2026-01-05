@@ -297,9 +297,7 @@ class ChaosScheduler:
                 return
 
         # Select random experiment
-        experiments = await self.engine.list_experiments(
-            status=ExperimentStatus.SCHEDULED
-        )
+        experiments = await self.engine.list_experiments(status=ExperimentStatus.SCHEDULED)
 
         if experiments:
             experiment = random.choice(experiments)
@@ -452,9 +450,7 @@ class ChaosScheduler:
         for experiment_id in game_day.experiments:
             try:
                 result = await self.engine.run_experiment(experiment_id, wait=True)
-                game_day.results["experiments"][experiment_id] = (
-                    result.to_dict() if result else None
-                )
+                game_day.results["experiments"][experiment_id] = result.to_dict() if result else None
             except Exception as e:
                 logger.error(f"Game Day experiment failed: {e}")
                 game_day.results["experiments"][experiment_id] = {"error": str(e)}
@@ -490,9 +486,7 @@ class ChaosScheduler:
             **self._stats,
             "active_schedules": len([s for s in self._schedules.values() if s.enabled]),
             "total_schedules": len(self._schedules),
-            "upcoming_game_days": len(
-                [g for g in self._game_days.values() if g.status == "scheduled"]
-            ),
+            "upcoming_game_days": len([g for g in self._game_days.values() if g.status == "scheduled"]),
             "continuous_chaos_enabled": self.continuous_chaos,
             "running": self._running,
         }

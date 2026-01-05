@@ -421,10 +421,7 @@ class SLAMonitor:
         previous = self._evaluations.get(sla.sla_id)
 
         if previous and previous.status != evaluation.status:
-            logger.info(
-                f"SLA {sla.name} status changed: "
-                f"{previous.status.value} -> {evaluation.status.value}"
-            )
+            logger.info(f"SLA {sla.name} status changed: " f"{previous.status.value} -> {evaluation.status.value}")
 
             # Send alert
             if self.alert_callback:
@@ -522,18 +519,17 @@ class SLAMonitor:
             if metric_name not in self._metrics_cache:
                 self._metrics_cache[metric_name] = []
 
-            self._metrics_cache[metric_name].append({
-                "value": value,
-                "labels": labels or {},
-                "timestamp": datetime.now(timezone.utc),
-            })
+            self._metrics_cache[metric_name].append(
+                {
+                    "value": value,
+                    "labels": labels or {},
+                    "timestamp": datetime.now(timezone.utc),
+                }
+            )
 
             # Cleanup old entries
             cutoff = datetime.now(timezone.utc) - self._cache_max_age
-            self._metrics_cache[metric_name] = [
-                m for m in self._metrics_cache[metric_name]
-                if m["timestamp"] > cutoff
-            ]
+            self._metrics_cache[metric_name] = [m for m in self._metrics_cache[metric_name] if m["timestamp"] > cutoff]
 
     async def get_statistics(self) -> Dict[str, Any]:
         """Get monitor statistics."""

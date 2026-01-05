@@ -52,6 +52,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ServerState:
     """Internal server state."""
+
     current_round: int = 0
     status: str = "idle"
     is_training: bool = False
@@ -241,10 +242,7 @@ class FederatedServer:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        checkpoint_path = os.path.join(
-            self.checkpoint_dir,
-            f"checkpoint_{self.config.job_id}_r{round_num}.pkl"
-        )
+        checkpoint_path = os.path.join(self.checkpoint_dir, f"checkpoint_{self.config.job_id}_r{round_num}.pkl")
 
         with open(checkpoint_path, "wb") as f:
             pickle.dump(checkpoint, f)
@@ -285,17 +283,11 @@ class FederatedServer:
         available = await self.get_available_clients()
 
         if len(available) < round_config.min_clients:
-            logger.warning(
-                f"Not enough clients available: "
-                f"{len(available)} < {round_config.min_clients}"
-            )
+            logger.warning(f"Not enough clients available: " f"{len(available)} < {round_config.min_clients}")
             return []
 
         # Calculate number of clients to select
-        num_to_select = max(
-            round_config.min_clients,
-            int(len(available) * round_config.client_fraction)
-        )
+        num_to_select = max(round_config.min_clients, int(len(available) * round_config.client_fraction))
         num_to_select = min(num_to_select, round_config.max_clients, len(available))
 
         # Selection based on strategy
@@ -319,10 +311,7 @@ class FederatedServer:
             # Select clients with most resources
             sorted_clients = sorted(
                 available,
-                key=lambda c: (
-                    c.available_resources.get("cpu", 0)
-                    if c.available_resources else 0
-                ),
+                key=lambda c: (c.available_resources.get("cpu", 0) if c.available_resources else 0),
                 reverse=True,
             )
             selected = [c.client_id for c in sorted_clients[:num_to_select]]
@@ -338,10 +327,7 @@ class FederatedServer:
 
         elif round_config.selection_strategy == SelectionStrategy.CONTRIBUTION_BASED:
             # Weighted selection by contribution and data size
-            weights = np.array([
-                c.dataset_size * c.contribution_score
-                for c in available
-            ])
+            weights = np.array([c.dataset_size * c.contribution_score for c in available])
             weights = weights / weights.sum() if weights.sum() > 0 else None
 
             indices = np.random.choice(
@@ -378,10 +364,7 @@ class FederatedServer:
 
         # In a real system, this would send the model to clients
         # Here we just return the model for each client
-        return {
-            client_id: self._state.global_model
-            for client_id in client_ids
-        }
+        return {client_id: self._state.global_model for client_id in client_ids}
 
     async def submit_update(
         self,
@@ -407,9 +390,7 @@ class FederatedServer:
                 client.total_rounds_participated += 1
                 client.status = ClientStatus.IDLE
 
-            logger.debug(
-                f"Received update from {update.client_id} for round {round_num}"
-            )
+            logger.debug(f"Received update from {update.client_id} for round {round_num}")
             return True
 
     async def aggregate_round(
@@ -429,13 +410,9 @@ class FederatedServer:
                 return None
 
             # Check minimum update ratio
-            min_updates = int(
-                len(self._state.registered_clients) * self.config.min_update_ratio
-            )
+            min_updates = int(len(self._state.registered_clients) * self.config.min_update_ratio)
             if len(updates) < min_updates:
-                logger.warning(
-                    f"Not enough updates: {len(updates)} < {min_updates}"
-                )
+                logger.warning(f"Not enough updates: {len(updates)} < {min_updates}")
                 return None
 
             start_time = time.time()
@@ -453,9 +430,9 @@ class FederatedServer:
 
             # Calculate aggregated metrics
             total_samples = sum(u.num_samples for u in updates)
-            avg_loss = sum(
-                u.training_loss * u.num_samples for u in updates
-            ) / total_samples if total_samples > 0 else 0.0
+            avg_loss = (
+                sum(u.training_loss * u.num_samples for u in updates) / total_samples if total_samples > 0 else 0.0
+            )
 
             # Update best model
             if avg_loss < self._state.best_loss:
@@ -571,14 +548,8 @@ class FederatedServer:
                 # Success
                 result.status = RoundStatus.COMPLETED
                 result.global_model = aggregated
-                result.participating_clients = [
-                    u.client_id
-                    for u in self._state.pending_updates.get(round_num, [])
-                ]
-                result.dropped_clients = [
-                    c for c in selected_clients
-                    if c not in result.participating_clients
-                ]
+                result.participating_clients = [u.client_id for u in self._state.pending_updates.get(round_num, [])]
+                result.dropped_clients = [c for c in selected_clients if c not in result.participating_clients]
                 result.aggregated_loss = self._metrics.global_loss
 
             except Exception as e:
@@ -601,10 +572,7 @@ class FederatedServer:
                     logger.error(f"Round end callback error: {e}")
 
             # Checkpointing
-            if (
-                round_num % self.config.checkpoint_every == 0
-                and result.status == RoundStatus.COMPLETED
-            ):
+            if round_num % self.config.checkpoint_every == 0 and result.status == RoundStatus.COMPLETED:
                 await self.save_checkpoint(round_num)
 
             return result
@@ -612,9 +580,7 @@ class FederatedServer:
     async def train(
         self,
         num_rounds: Optional[int] = None,
-        client_updates_provider: Optional[
-            Callable[[int, List[str], ModelWeights], List[ClientUpdate]]
-        ] = None,
+        client_updates_provider: Optional[Callable[[int, List[str], ModelWeights], List[ClientUpdate]]] = None,
     ) -> FederatedMetrics:
         """
         Run complete federated training.
@@ -694,9 +660,7 @@ class FederatedServer:
                     logger.error(f"Training complete callback error: {e}")
 
         logger.info(
-            f"Training completed: "
-            f"rounds={self._metrics.current_round}, "
-            f"best_loss={self._metrics.best_loss:.4f}"
+            f"Training completed: " f"rounds={self._metrics.current_round}, " f"best_loss={self._metrics.best_loss:.4f}"
         )
 
         return self._metrics
@@ -706,7 +670,7 @@ class FederatedServer:
         if len(self._metrics.loss_history) < self.config.early_stopping_rounds:
             return False
 
-        recent_losses = self._metrics.loss_history[-self.config.early_stopping_rounds:]
+        recent_losses = self._metrics.loss_history[-self.config.early_stopping_rounds :]
         improvement = recent_losses[0] - min(recent_losses)
 
         return improvement < self.config.early_stopping_threshold
@@ -739,10 +703,7 @@ class FederatedServer:
             "current_round": self._state.current_round,
             "total_rounds": self.config.total_rounds,
             "registered_clients": len(self._state.registered_clients),
-            "global_model_version": (
-                self._state.global_model.version
-                if self._state.global_model else None
-            ),
+            "global_model_version": (self._state.global_model.version if self._state.global_model else None),
             "best_loss": self._state.best_loss,
             "metrics": self._metrics.to_dict(),
         }

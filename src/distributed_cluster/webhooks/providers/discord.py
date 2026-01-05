@@ -36,10 +36,10 @@ class DiscordWebhook(WebhookProvider):
 
     # Severity colors
     COLORS = {
-        "info": 0x3498DB,      # Blue
-        "success": 0x2ECC71,   # Green
-        "warning": 0xF39C12,   # Orange
-        "error": 0xE74C3C,     # Red
+        "info": 0x3498DB,  # Blue
+        "success": 0x2ECC71,  # Green
+        "warning": 0xF39C12,  # Orange
+        "error": 0xE74C3C,  # Red
         "critical": 0x9B59B6,  # Purple
     }
 
@@ -132,9 +132,7 @@ class DiscordWebhook(WebhookProvider):
             EventType.SYSTEM_ERROR,
         ):
             return self.COLORS["error"]
-        elif event.event_type in (
-            EventType.ALERT_FIRED,
-        ):
+        elif event.event_type in (EventType.ALERT_FIRED,):
             return self.COLORS["critical"]
         elif event.event_type in (
             EventType.SYSTEM_WARNING,
@@ -215,11 +213,13 @@ class DiscordWebhook(WebhookProvider):
                 value = data[key]
                 if isinstance(value, float):
                     value = f"{value:.2f}"
-                fields.append({
-                    "name": label,
-                    "value": str(value),
-                    "inline": True,
-                })
+                fields.append(
+                    {
+                        "name": label,
+                        "value": str(value),
+                        "inline": True,
+                    }
+                )
 
         return fields[:25]  # Discord limit
 
@@ -227,6 +227,7 @@ class DiscordWebhook(WebhookProvider):
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def create_discord_provider(
     username: str = "Distributed Cluster Bot",

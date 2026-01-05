@@ -201,9 +201,9 @@ class TokenPayload:
             subject_type=data["sub_type"],
             role=Role(data["role"]),
             permissions={Permission(p) for p in data.get("perms", [])},
-            issued_at=datetime.fromtimestamp(data["iat"]),
-            expires_at=datetime.fromtimestamp(data["exp"]) if data.get("exp") else None,
-            not_before=datetime.fromtimestamp(data["nbf"]) if data.get("nbf") else None,
+            issued_at=datetime.fromtimestamp(data["iat"], tz=timezone.utc),
+            expires_at=datetime.fromtimestamp(data["exp"], tz=timezone.utc) if data.get("exp") else None,
+            not_before=datetime.fromtimestamp(data["nbf"], tz=timezone.utc) if data.get("nbf") else None,
             worker_id=data.get("worker_id"),
             user_id=data.get("user_id"),
             api_key_id=data.get("api_key_id"),
@@ -503,10 +503,7 @@ class AuthManager:
         Returns:
             قائمة معلومات الـ API keys
         """
-        return [
-            {"id": key_id, **info}
-            for key_id, info in self._api_keys.items()
-        ]
+        return [{"id": key_id, **info} for key_id, info in self._api_keys.items()]
 
     # ==================== Worker Enrollment ====================
 

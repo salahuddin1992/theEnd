@@ -199,12 +199,8 @@ def setup_windows_environment():
             sys.stdout.reconfigure(encoding="utf-8", errors="replace")
             sys.stderr.reconfigure(encoding="utf-8", errors="replace")
         else:
-            sys.stdout = io.TextIOWrapper(
-                sys.stdout.buffer, encoding="utf-8", errors="replace"
-            )
-            sys.stderr = io.TextIOWrapper(
-                sys.stderr.buffer, encoding="utf-8", errors="replace"
-            )
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -312,6 +308,7 @@ def add_package_paths():
 # ══════════════════════════════════════════════════════════════════
 # Run all setup functions when hook is loaded
 # ══════════════════════════════════════════════════════════════════
+
 
 def _run_hooks():
     """Run all runtime hooks in order"""

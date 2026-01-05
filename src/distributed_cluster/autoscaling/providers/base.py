@@ -34,21 +34,25 @@ logger = logging.getLogger(__name__)
 
 class ProviderError(Exception):
     """خطأ عام في المزود / General provider error"""
+
     pass
 
 
 class ProvisioningError(ProviderError):
     """خطأ في إنشاء العمال / Worker provisioning error"""
+
     pass
 
 
 class TerminationError(ProviderError):
     """خطأ في إنهاء العمال / Worker termination error"""
+
     pass
 
 
 class ConnectionError(ProviderError):
     """خطأ في الاتصال / Connection error"""
+
     pass
 
 
@@ -475,7 +479,5 @@ class CloudProvider(ABC):
 
             await asyncio.sleep(check_interval)
 
-        logger.warning(
-            f"Timeout waiting for instances to reach state {target_state.value}"
-        )
+        logger.warning(f"Timeout waiting for instances to reach state {target_state.value}")
         return False

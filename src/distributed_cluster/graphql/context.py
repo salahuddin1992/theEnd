@@ -23,12 +23,14 @@ logger = logging.getLogger(__name__)
 
 class AuthorizationError(Exception):
     """خطأ التصريح"""
+
     pass
 
 
 @dataclass
 class User:
     """معلومات المستخدم"""
+
     id: str
     username: str
     email: Optional[str] = None
@@ -41,6 +43,7 @@ class User:
 @dataclass
 class ServiceRegistry:
     """سجل الخدمات"""
+
     job_service: Any = None
     worker_service: Any = None
     tenant_service: Any = None
@@ -256,6 +259,7 @@ class ContextFactory:
         # For now, return mock data
         try:
             import jwt
+
             # Decode without verification for demo
             # In production, verify with proper secret
             payload = jwt.decode(token, options={"verify_signature": False})

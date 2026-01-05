@@ -213,10 +213,7 @@ class TrendAnalyzer:
 
         data = self._metrics.get(metric_name, [])
         if len(data) < self.min_data_points:
-            logger.warning(
-                f"Insufficient data for {metric_name}: "
-                f"{len(data)} < {self.min_data_points}"
-            )
+            logger.warning(f"Insufficient data for {metric_name}: " f"{len(data)} < {self.min_data_points}")
             return None
 
         # Filter by period
@@ -224,7 +221,7 @@ class TrendAnalyzer:
         filtered = [d for d in data if d.timestamp > cutoff]
 
         if len(filtered) < self.min_data_points:
-            filtered = data[-self.min_data_points:]
+            filtered = data[-self.min_data_points :]
 
         values = np.array([d.value for d in filtered])
         timestamps = [d.timestamp for d in filtered]
@@ -250,14 +247,10 @@ class TrendAnalyzer:
         seasonality = self._detect_seasonality(values)
 
         # Generate insights
-        insights = self._generate_insights(
-            metric_name, direction, strength, mean, std_dev, patterns, anomalies
-        )
+        insights = self._generate_insights(metric_name, direction, strength, mean, std_dev, patterns, anomalies)
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(
-            metric_name, direction, strength, mean, p95
-        )
+        recommendations = self._generate_recommendations(metric_name, direction, strength, mean, p95)
 
         report = TrendReport(
             report_id=str(uuid.uuid4()),
@@ -323,14 +316,9 @@ class TrendAnalyzer:
 
         for lag in range(-max_lag, max_lag + 1):
             if lag < 0:
-                corr = self._pearson_correlation(
-                    values_a[-lag:], values_b[:len(values_a) + lag]
-                )
+                corr = self._pearson_correlation(values_a[-lag:], values_b[: len(values_a) + lag])
             elif lag > 0:
-                corr = self._pearson_correlation(
-                    values_a[:-lag] if lag else values_a,
-                    values_b[lag:]
-                )
+                corr = self._pearson_correlation(values_a[:-lag] if lag else values_a, values_b[lag:])
             else:
                 corr = self._pearson_correlation(values_a, values_b)
 
@@ -340,7 +328,7 @@ class TrendAnalyzer:
 
         # Calculate p-value approximation
         n = len(values_a)
-        t_stat = best_correlation * math.sqrt((n - 2) / (1 - best_correlation ** 2 + 1e-10))
+        t_stat = best_correlation * math.sqrt((n - 2) / (1 - best_correlation**2 + 1e-10))
         p_value = 2 * (1 - self._t_distribution_cdf(abs(t_stat), n - 2))
 
         significance = "significant" if p_value < 0.05 else "not_significant"
@@ -485,7 +473,7 @@ class TrendAnalyzer:
                 patterns.append("24_hour_cycle")
 
         # Check for plateau
-        recent = values[-len(values) // 4:]
+        recent = values[-len(values) // 4 :]
         if np.std(recent) < std * 0.5:
             patterns.append("plateau")
 
@@ -538,24 +526,16 @@ class TrendAnalyzer:
 
         # Trend insight
         if direction == TrendDirection.INCREASING:
-            insights.append(
-                f"{metric_name} shows a {strength.value} increasing trend"
-            )
+            insights.append(f"{metric_name} shows a {strength.value} increasing trend")
         elif direction == TrendDirection.DECREASING:
-            insights.append(
-                f"{metric_name} shows a {strength.value} decreasing trend"
-            )
+            insights.append(f"{metric_name} shows a {strength.value} decreasing trend")
         elif direction == TrendDirection.VOLATILE:
-            insights.append(
-                f"{metric_name} shows high volatility"
-            )
+            insights.append(f"{metric_name} shows high volatility")
 
         # Variability insight
         cv = std_dev / mean if mean != 0 else 0
         if cv > 0.3:
-            insights.append(
-                f"High variability detected (CV: {cv:.2f})"
-            )
+            insights.append(f"High variability detected (CV: {cv:.2f})")
 
         # Pattern insights
         if "frequent_spikes" in patterns:
@@ -567,9 +547,7 @@ class TrendAnalyzer:
 
         # Anomaly insight
         if len(anomalies) > 0:
-            insights.append(
-                f"{len(anomalies)} anomalies detected in the period"
-            )
+            insights.append(f"{len(anomalies)} anomalies detected in the period")
 
         return insights
 
@@ -585,28 +563,18 @@ class TrendAnalyzer:
         recommendations = []
 
         if direction == TrendDirection.INCREASING and strength != TrendStrength.WEAK:
-            recommendations.append(
-                f"Consider scaling resources as {metric_name} is increasing"
-            )
+            recommendations.append(f"Consider scaling resources as {metric_name} is increasing")
             if p95 > 80:
-                recommendations.append(
-                    "95th percentile exceeds 80% - immediate attention recommended"
-                )
+                recommendations.append("95th percentile exceeds 80% - immediate attention recommended")
 
         if direction == TrendDirection.VOLATILE:
-            recommendations.append(
-                "Investigate sources of volatility and stabilize workload"
-            )
+            recommendations.append("Investigate sources of volatility and stabilize workload")
 
         if mean > 70:
-            recommendations.append(
-                f"Average {metric_name} is high ({mean:.1f}%) - consider optimization"
-            )
+            recommendations.append(f"Average {metric_name} is high ({mean:.1f}%) - consider optimization")
 
         if p95 > 90:
-            recommendations.append(
-                "Peak usage exceeds 90% - consider adding capacity"
-            )
+            recommendations.append("Peak usage exceeds 90% - consider adding capacity")
 
         return recommendations
 
@@ -621,7 +589,7 @@ class TrendAnalyzer:
         if var == 0:
             return 0.0
 
-        cov = np.sum((x[:n - lag] - mean) * (x[lag:] - mean)) / n
+        cov = np.sum((x[: n - lag] - mean) * (x[lag:] - mean)) / n
         return cov / var
 
     def _align_time_series(
@@ -630,6 +598,7 @@ class TrendAnalyzer:
         data_b: List[MetricDataPoint],
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Align two time series by timestamp."""
+
         # Create dictionaries keyed by rounded timestamp
         def round_time(dt: datetime) -> datetime:
             return dt.replace(second=0, microsecond=0)
@@ -658,9 +627,7 @@ class TrendAnalyzer:
         y_mean = np.mean(y)
 
         numerator = np.sum((x - x_mean) * (y - y_mean))
-        denominator = math.sqrt(
-            np.sum((x - x_mean) ** 2) * np.sum((y - y_mean) ** 2)
-        )
+        denominator = math.sqrt(np.sum((x - x_mean) ** 2) * np.sum((y - y_mean) ** 2))
 
         return numerator / denominator if denominator != 0 else 0.0
 
@@ -687,9 +654,7 @@ class TrendAnalyzer:
         return {
             **self._stats,
             "metrics_tracked": len(self._metrics),
-            "total_data_points": sum(
-                len(data) for data in self._metrics.values()
-            ),
+            "total_data_points": sum(len(data) for data in self._metrics.values()),
         }
 
     async def shutdown(self) -> None:

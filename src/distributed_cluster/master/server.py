@@ -106,6 +106,7 @@ class JobCompleteRequest(BaseModel):
 
 class AutoScalingConfigRequest(BaseModel):
     """إعدادات التوسع التلقائي / Auto-scaling configuration"""
+
     enabled: bool = True
     min_workers: int = 1
     max_workers: int = 100
@@ -131,6 +132,7 @@ class AutoScalingConfigRequest(BaseModel):
 
 class ScaleRequest(BaseModel):
     """طلب توسع يدوي / Manual scaling request"""
+
     target_count: Optional[int] = None
     scale_by: Optional[int] = None
 
@@ -471,7 +473,7 @@ class MasterServer:
                         "provider_type": config.provider_type,
                         "min_workers": config.min_workers,
                         "max_workers": config.max_workers,
-                    }
+                    },
                 }
             except Exception as e:
                 raise HTTPException(status_code=500, detail=str(e))
@@ -526,10 +528,7 @@ class MasterServer:
                 else:
                     event = await self._autoscaling_manager.scale_down_by(abs(req.scale_by))
             else:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Either target_count or scale_by must be specified"
-                )
+                raise HTTPException(status_code=400, detail="Either target_count or scale_by must be specified")
 
             return {"status": "scaling", "event": event.to_dict()}
 

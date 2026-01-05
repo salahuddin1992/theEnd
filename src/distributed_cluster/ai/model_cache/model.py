@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class ModelType(str, Enum):
     """نوع النموذج / Model type"""
+
     LLM = "llm"  # نماذج اللغة الكبيرة
     EMBEDDING = "embedding"  # نماذج التضمين
     VISION = "vision"  # نماذج الرؤية
@@ -36,6 +37,7 @@ class ModelType(str, Enum):
 
 class ModelState(str, Enum):
     """حالة النموذج / Model state"""
+
     UNLOADED = "unloaded"  # غير محمل
     LOADING = "loading"  # يتم التحميل
     LOADED = "loaded"  # محمل
@@ -45,6 +47,7 @@ class ModelState(str, Enum):
 
 class ModelBackend(str, Enum):
     """خلفية النموذج / Model backend"""
+
     HUGGINGFACE = "huggingface"  # HuggingFace Transformers
     OLLAMA = "ollama"  # Ollama
     VLLM = "vllm"  # vLLM
@@ -60,6 +63,7 @@ class ModelSpec:
     مواصفات النموذج
     Model specifications
     """
+
     # Identification
     model_id: str  # معرف فريد
     name: str  # الاسم المعروض
@@ -138,6 +142,7 @@ class ModelInfo:
     معلومات النموذج المحمل
     Loaded model information
     """
+
     # Specification
     spec: ModelSpec
 
@@ -211,9 +216,8 @@ class ModelInfo:
             self.average_latency_ms = latency_ms
         else:
             self.average_latency_ms = (
-                (self.average_latency_ms * (self.request_count - 1) + latency_ms)
-                / self.request_count
-            )
+                self.average_latency_ms * (self.request_count - 1) + latency_ms
+            ) / self.request_count
 
 
 @dataclass
@@ -222,6 +226,7 @@ class PreloadConfig:
     إعدادات التحميل المسبق
     Preload configuration
     """
+
     # Models to preload
     models: list[ModelSpec] = field(default_factory=list)
 

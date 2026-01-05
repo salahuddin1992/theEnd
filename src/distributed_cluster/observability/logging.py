@@ -520,37 +520,29 @@ class TimedRotatingFileHandler(RotatingFileHandler):
 
         if self.when == "H":
             # Next hour
-            self._next_rotation = now.replace(
-                minute=0, second=0, microsecond=0
-            ) + timedelta(hours=1)
+            self._next_rotation = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
         elif self.when == "D":
             # Next day at midnight
-            self._next_rotation = now.replace(
-                hour=0, minute=0, second=0, microsecond=0
-            ) + timedelta(days=1)
+            self._next_rotation = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
 
         elif self.when == "W":
             # Next Monday at midnight
             days_until_monday = (7 - now.weekday()) % 7
             if days_until_monday == 0:
                 days_until_monday = 7
-            self._next_rotation = now.replace(
-                hour=0, minute=0, second=0, microsecond=0
-            ) + timedelta(days=days_until_monday)
+            self._next_rotation = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
+                days=days_until_monday
+            )
 
         elif self.when == "M":
             # First day of next month
             if now.month == 12:
                 self._next_rotation = now.replace(
-                    year=now.year + 1, month=1, day=1,
-                    hour=0, minute=0, second=0, microsecond=0
+                    year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
                 )
             else:
-                self._next_rotation = now.replace(
-                    month=now.month + 1, day=1,
-                    hour=0, minute=0, second=0, microsecond=0
-                )
+                self._next_rotation = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0)
 
     def _should_rotate(self) -> bool:
         """هل يجب تدوير الملف؟"""
@@ -634,9 +626,7 @@ class LogCleaner:
         """حلقة التنظيف الدوري."""
         while self._running:
             try:
-                await asyncio.get_running_loop().run_in_executor(
-                    None, self._do_cleanup
-                )
+                await asyncio.get_running_loop().run_in_executor(None, self._do_cleanup)
             except Exception:
                 pass
 

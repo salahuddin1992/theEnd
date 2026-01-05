@@ -14,7 +14,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from heapq import heappush, heappop
+from heapq import heappop, heappush
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -22,15 +22,17 @@ logger = logging.getLogger(__name__)
 
 class Priority(int, Enum):
     """مستويات الأولوية."""
+
     CRITICAL = 200  # Must run immediately
-    HIGH = 150      # Important, run soon
-    NORMAL = 100    # Default priority
-    LOW = 50        # Background tasks
-    IDLE = 0        # Run when nothing else
+    HIGH = 150  # Important, run soon
+    NORMAL = 100  # Default priority
+    LOW = 50  # Background tasks
+    IDLE = 0  # Run when nothing else
 
 
 class RetryStrategy(str, Enum):
     """استراتيجيات إعادة المحاولة."""
+
     NONE = "none"
     FIXED = "fixed"
     EXPONENTIAL = "exponential"
@@ -40,12 +42,13 @@ class RetryStrategy(str, Enum):
 @dataclass
 class RetryConfig:
     """إعدادات إعادة المحاولة."""
+
     strategy: RetryStrategy = RetryStrategy.EXPONENTIAL
     max_retries: int = 3
     initial_delay: float = 1.0  # seconds
-    max_delay: float = 300.0    # 5 minutes
-    multiplier: float = 2.0     # for exponential
-    jitter: float = 0.1         # random variance
+    max_delay: float = 300.0  # 5 minutes
+    multiplier: float = 2.0  # for exponential
+    jitter: float = 0.1  # random variance
 
     def get_delay(self, attempt: int) -> float:
         """حساب التأخير لمحاولة."""
@@ -61,7 +64,7 @@ class RetryConfig:
             delay = self.initial_delay * (attempt + 1)
 
         elif self.strategy == RetryStrategy.EXPONENTIAL:
-            delay = self.initial_delay * (self.multiplier ** attempt)
+            delay = self.initial_delay * (self.multiplier**attempt)
 
         else:
             delay = self.initial_delay
@@ -79,6 +82,7 @@ class RetryConfig:
 @dataclass(order=True)
 class QueueItem:
     """عنصر في الطابور."""
+
     priority_score: float  # Lower = higher priority (for heapq)
     enqueue_time: float = field(compare=False)
     item_id: str = field(compare=False, default_factory=lambda: str(uuid.uuid4()))
@@ -213,10 +217,7 @@ class PriorityQueue:
             async with self._lock:
                 # Check retry queue first
                 now = datetime.now(timezone.utc)
-                ready_retries = [
-                    r for r in self._retry_queue
-                    if r.next_retry_at and r.next_retry_at <= now
-                ]
+                ready_retries = [r for r in self._retry_queue if r.next_retry_at and r.next_retry_at <= now]
 
                 for retry in ready_retries:
                     self._retry_queue.remove(retry)
@@ -228,10 +229,7 @@ class PriorityQueue:
 
                     # Check dependencies
                     if item.depends_on:
-                        pending_deps = [
-                            dep for dep in item.depends_on
-                            if dep not in self._completed
-                        ]
+                        pending_deps = [dep for dep in item.depends_on if dep not in self._completed]
                         if pending_deps:
                             # Re-add to back of queue
                             heappush(self._heap, item)
@@ -291,10 +289,7 @@ class PriorityQueue:
             self._retry_queue.append(item)
             self._retried += 1
 
-        logger.info(
-            f"Scheduled retry {item.attempts}/{config.max_retries} "
-            f"for {item.item_id} in {delay:.1f}s"
-        )
+        logger.info(f"Scheduled retry {item.attempts}/{config.max_retries} " f"for {item.item_id} in {delay:.1f}s")
 
         return True
 
@@ -481,12 +476,6 @@ class MultiQueueScheduler:
     def get_stats(self) -> Dict[str, Any]:
         """إحصائيات المجدول."""
         return {
-            "queues": {
-                name: queue.get_stats()
-                for name, queue in self._queues.items()
-            },
-            "total_size": sum(
-                len(q._heap) + len(q._retry_queue)
-                for q in self._queues.values()
-            ),
+            "queues": {name: queue.get_stats() for name, queue in self._queues.items()},
+            "total_size": sum(len(q._heap) + len(q._retry_queue) for q in self._queues.values()),
         }

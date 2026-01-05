@@ -40,28 +40,20 @@ from .splash import SplashProgressRing
 # BASE DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentDialog(QDialog):
     """
     Base Fluent Design dialog.
     نافذة الحوار الأساسية بتصميم Fluent
     """
 
-    def __init__(
-        self,
-        title: str = "",
-        parent: QWidget = None,
-        width: int = 480,
-        closable: bool = True
-    ):
+    def __init__(self, title: str = "", parent: QWidget = None, width: int = 480, closable: bool = True):
         super().__init__(parent)
 
         self._title_text = title
         self._closable = closable
 
-        self.setWindowFlags(
-            Qt.WindowType.Dialog |
-            Qt.WindowType.FramelessWindowHint
-        )
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setMinimumWidth(width)
         self.setModal(True)
@@ -80,13 +72,15 @@ class FluentDialog(QDialog):
         # Dialog container
         self._container = QFrame()
         self._container.setObjectName("dialogContainer")
-        self._container.setStyleSheet(f"""
+        self._container.setStyleSheet(
+            f"""
             #dialogContainer {{
                 background-color: {colors.bg_solid_base};
                 border-radius: 12px;
                 border: 1px solid {colors.stroke_surface};
             }}
-        """)
+        """
+        )
 
         container_layout = QVBoxLayout(self._container)
         container_layout.setContentsMargins(24, 20, 24, 24)
@@ -96,11 +90,13 @@ class FluentDialog(QDialog):
         header = QHBoxLayout()
 
         self._title_label = QLabel(self._title_text)
-        self._title_label.setStyleSheet(f"""
+        self._title_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 20px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(self._title_label)
 
         header.addStretch()
@@ -139,10 +135,7 @@ class FluentDialog(QDialog):
         self._content_layout.addWidget(widget)
 
     def add_button(
-        self,
-        text: str,
-        variant: ButtonVariant = ButtonVariant.STANDARD,
-        callback: Callable = None
+        self, text: str, variant: ButtonVariant = ButtonVariant.STANDARD, callback: Callable = None
     ) -> FluentButton:
         """Add button to dialog"""
         btn = FluentButton(text, "", variant)
@@ -168,9 +161,11 @@ class FluentDialog(QDialog):
 # CONNECTION DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ConnectionProfile:
     """Saved connection profile"""
+
     name: str
     host: str
     port: int
@@ -221,7 +216,8 @@ class ConnectionDialog(FluentDialog):
         self._profile_combo.setMinimumWidth(200)
         self._profile_combo.addItems(["New Connection", "Local Development", "Production Cluster"])
         self._profile_combo.currentTextChanged.connect(self._on_profile_changed)
-        self._profile_combo.setStyleSheet(f"""
+        self._profile_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -236,7 +232,8 @@ class ConnectionDialog(FluentDialog):
                 border: none;
                 padding-right: 8px;
             }}
-        """)
+        """
+        )
         profile_layout.addWidget(self._profile_combo, 1)
 
         save_profile_btn = FluentButton("Save", "", ButtonVariant.SUBTLE)
@@ -276,7 +273,8 @@ class ConnectionDialog(FluentDialog):
         self._port_input.setRange(1, 65535)
         self._port_input.setValue(8765)
         self._port_input.setFixedWidth(100)
-        self._port_input.setStyleSheet(f"""
+        self._port_input.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -284,7 +282,8 @@ class ConnectionDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         port_layout.addWidget(self._port_input)
         port_layout.addStretch()
         conn_layout.addLayout(port_layout)
@@ -452,7 +451,7 @@ class ConnectionDialog(FluentDialog):
             "username": self._username_input.text(),
             "password": self._password_input.text(),
             "remember": self._remember_check.isChecked(),
-            "auto_connect": self._auto_connect.isChecked()
+            "auto_connect": self._auto_connect.isChecked(),
         }
 
 
@@ -460,8 +459,10 @@ class ConnectionDialog(FluentDialog):
 # CONFIRMATION DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ConfirmationType(Enum):
     """Confirmation dialog types"""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -484,7 +485,7 @@ class ConfirmationDialog(FluentDialog):
         confirm_text: str = "Confirm",
         cancel_text: str = "Cancel",
         dialog_type: ConfirmationType = ConfirmationType.QUESTION,
-        parent=None
+        parent=None,
     ):
         super().__init__(title, parent, width=420)
 
@@ -515,21 +516,25 @@ class ConfirmationDialog(FluentDialog):
         icon_label = QLabel(icon_char)
         icon_label.setFixedSize(48, 48)
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon_label.setStyleSheet(f"""
+        icon_label.setStyleSheet(
+            f"""
             background-color: {icon_color}20;
             color: {icon_color};
             font-size: 24px;
             border-radius: 24px;
-        """)
+        """
+        )
         content.addWidget(icon_label)
 
         # Message
         msg_label = QLabel(self._message)
         msg_label.setWordWrap(True)
-        msg_label.setStyleSheet(f"""
+        msg_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 14px;
-        """)
+        """
+        )
         content.addWidget(msg_label, 1)
 
         self.add_content(self._wrap_layout(content))
@@ -559,6 +564,7 @@ class ConfirmationDialog(FluentDialog):
 # PROGRESS DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ProgressDialog(FluentDialog):
     """
     Progress dialog for long operations.
@@ -567,13 +573,7 @@ class ProgressDialog(FluentDialog):
 
     cancelled = Signal()
 
-    def __init__(
-        self,
-        title: str,
-        message: str = "",
-        cancellable: bool = True,
-        parent=None
-    ):
+    def __init__(self, title: str, message: str = "", cancellable: bool = True, parent=None):
         super().__init__(title, parent, width=400, closable=False)
 
         self._message = message
@@ -599,20 +599,24 @@ class ProgressDialog(FluentDialog):
         self._message_label = QLabel(self._message)
         self._message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._message_label.setWordWrap(True)
-        self._message_label.setStyleSheet(f"""
+        self._message_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 14px;
-        """)
+        """
+        )
         self.add_content(self._message_label)
 
         # Progress percentage
         self._percent_label = QLabel("")
         self._percent_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._percent_label.setStyleSheet(f"""
+        self._percent_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 24px;
             font-weight: 600;
-        """)
+        """
+        )
         self.add_content(self._percent_label)
 
         # Cancel button
@@ -646,6 +650,7 @@ class ProgressDialog(FluentDialog):
 # INPUT DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class InputDialog(FluentDialog):
     """
     Input dialog for getting user input.
@@ -654,14 +659,7 @@ class InputDialog(FluentDialog):
 
     value_submitted = Signal(str)
 
-    def __init__(
-        self,
-        title: str,
-        label: str,
-        placeholder: str = "",
-        default_value: str = "",
-        parent=None
-    ):
+    def __init__(self, title: str, label: str, placeholder: str = "", default_value: str = "", parent=None):
         super().__init__(title, parent, width=400)
 
         self._label = label
@@ -701,6 +699,7 @@ class InputDialog(FluentDialog):
 # ═══════════════════════════════════════════════════════════════════════════════
 # JOB SUBMISSION DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class JobSubmitDialog(FluentDialog):
     """
@@ -758,13 +757,9 @@ class JobSubmitDialog(FluentDialog):
         type_layout.addWidget(type_label)
 
         self._type_combo = QComboBox()
-        self._type_combo.addItems([
-            "Python Script",
-            "Container Image",
-            "Binary Executable",
-            "Shell Script"
-        ])
-        self._type_combo.setStyleSheet(f"""
+        self._type_combo.addItems(["Python Script", "Container Image", "Binary Executable", "Shell Script"])
+        self._type_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -772,7 +767,8 @@ class JobSubmitDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px 12px;
             }}
-        """)
+        """
+        )
         type_layout.addWidget(self._type_combo)
 
         # Priority
@@ -784,7 +780,8 @@ class JobSubmitDialog(FluentDialog):
         self._priority_combo = QComboBox()
         self._priority_combo.addItems(["Low", "Normal", "High", "Critical"])
         self._priority_combo.setCurrentIndex(1)
-        self._priority_combo.setStyleSheet(f"""
+        self._priority_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -792,7 +789,8 @@ class JobSubmitDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px 12px;
             }}
-        """)
+        """
+        )
         priority_layout.addWidget(self._priority_combo)
         priority_layout.addStretch()
         type_layout.addLayout(priority_layout)
@@ -814,7 +812,8 @@ class JobSubmitDialog(FluentDialog):
         self._cpu_spin = QSpinBox()
         self._cpu_spin.setRange(1, 128)
         self._cpu_spin.setValue(4)
-        self._cpu_spin.setStyleSheet(f"""
+        self._cpu_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -822,7 +821,8 @@ class JobSubmitDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         cpu_layout.addWidget(self._cpu_spin)
         cpu_layout.addStretch()
         resource_layout.addLayout(cpu_layout)
@@ -837,7 +837,8 @@ class JobSubmitDialog(FluentDialog):
         self._mem_spin = QSpinBox()
         self._mem_spin.setRange(1, 512)
         self._mem_spin.setValue(8)
-        self._mem_spin.setStyleSheet(f"""
+        self._mem_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -845,7 +846,8 @@ class JobSubmitDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         mem_layout.addWidget(self._mem_spin)
         mem_layout.addStretch()
         resource_layout.addLayout(mem_layout)
@@ -860,7 +862,8 @@ class JobSubmitDialog(FluentDialog):
         self._gpu_spin.setRange(0, 8)
         self._gpu_spin.setValue(0)
         self._gpu_spin.setEnabled(False)
-        self._gpu_spin.setStyleSheet(f"""
+        self._gpu_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -868,7 +871,8 @@ class JobSubmitDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         self._gpu_check.toggled.connect(self._gpu_spin.setEnabled)
         gpu_layout.addWidget(self._gpu_spin)
         gpu_layout.addStretch()
@@ -900,8 +904,8 @@ class JobSubmitDialog(FluentDialog):
             "resources": {
                 "cpu": self._cpu_spin.value(),
                 "memory_gb": self._mem_spin.value(),
-                "gpu": self._gpu_spin.value() if self._gpu_check.isChecked() else 0
-            }
+                "gpu": self._gpu_spin.value() if self._gpu_check.isChecked() else 0,
+            },
         }
         self.job_submitted.emit(job_config)
         self.accept()
@@ -910,6 +914,7 @@ class JobSubmitDialog(FluentDialog):
 # ═══════════════════════════════════════════════════════════════════════════════
 # POOL CREATION DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class PoolCreateDialog(FluentDialog):
     """
@@ -962,7 +967,8 @@ class PoolCreateDialog(FluentDialog):
         self._min_spin = QSpinBox()
         self._min_spin.setRange(0, 1000)
         self._min_spin.setValue(1)
-        self._min_spin.setStyleSheet(f"""
+        self._min_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -970,7 +976,8 @@ class PoolCreateDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         min_layout.addWidget(self._min_spin)
         min_layout.addStretch()
         scaling_layout.addLayout(min_layout)
@@ -985,7 +992,8 @@ class PoolCreateDialog(FluentDialog):
         self._max_spin = QSpinBox()
         self._max_spin.setRange(1, 10000)
         self._max_spin.setValue(10)
-        self._max_spin.setStyleSheet(f"""
+        self._max_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -993,7 +1001,8 @@ class PoolCreateDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         max_layout.addWidget(self._max_spin)
         max_layout.addStretch()
         scaling_layout.addLayout(max_layout)
@@ -1071,6 +1080,7 @@ class PoolCreateDialog(FluentDialog):
 # QUEUE CREATION DIALOG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class QueueCreateDialog(FluentDialog):
     """
     Queue creation dialog.
@@ -1122,7 +1132,8 @@ class QueueCreateDialog(FluentDialog):
         self._priority_combo = QComboBox()
         self._priority_combo.addItems(["Low", "Normal", "High", "Critical"])
         self._priority_combo.setCurrentIndex(1)
-        self._priority_combo.setStyleSheet(f"""
+        self._priority_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -1130,7 +1141,8 @@ class QueueCreateDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px 12px;
             }}
-        """)
+        """
+        )
         base_layout.addWidget(self._priority_combo)
         base_layout.addStretch()
         priority_layout.addLayout(base_layout)
@@ -1145,7 +1157,8 @@ class QueueCreateDialog(FluentDialog):
         self._weight_spin = QSpinBox()
         self._weight_spin.setRange(1, 100)
         self._weight_spin.setValue(10)
-        self._weight_spin.setStyleSheet(f"""
+        self._weight_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -1153,7 +1166,8 @@ class QueueCreateDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         weight_layout.addWidget(self._weight_spin)
         weight_layout.addStretch()
         priority_layout.addLayout(weight_layout)
@@ -1176,7 +1190,8 @@ class QueueCreateDialog(FluentDialog):
         self._max_jobs_spin.setRange(0, 100000)
         self._max_jobs_spin.setValue(1000)
         self._max_jobs_spin.setSpecialValueText("Unlimited")
-        self._max_jobs_spin.setStyleSheet(f"""
+        self._max_jobs_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -1184,7 +1199,8 @@ class QueueCreateDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         max_jobs_layout.addWidget(self._max_jobs_spin)
         max_jobs_layout.addStretch()
         limits_layout.addLayout(max_jobs_layout)
@@ -1200,7 +1216,8 @@ class QueueCreateDialog(FluentDialog):
         self._max_concurrent_spin.setRange(0, 10000)
         self._max_concurrent_spin.setValue(100)
         self._max_concurrent_spin.setSpecialValueText("Unlimited")
-        self._max_concurrent_spin.setStyleSheet(f"""
+        self._max_concurrent_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -1208,7 +1225,8 @@ class QueueCreateDialog(FluentDialog):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
         max_concurrent_layout.addWidget(self._max_concurrent_spin)
         max_concurrent_layout.addStretch()
         limits_layout.addLayout(max_concurrent_layout)

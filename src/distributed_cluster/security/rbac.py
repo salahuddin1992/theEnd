@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class AccessDecision(Enum):
     """Access decision results."""
+
     ALLOW = "allow"
     DENY = "deny"
     NOT_APPLICABLE = "not_applicable"
@@ -22,6 +23,7 @@ class AccessDecision(Enum):
 
 class Effect(Enum):
     """Policy effect."""
+
     ALLOW = "allow"
     DENY = "deny"
 
@@ -29,6 +31,7 @@ class Effect(Enum):
 @dataclass
 class Permission:
     """Represents a permission."""
+
     name: str
     resource: str
     actions: Set[str]
@@ -51,6 +54,7 @@ class Permission:
 @dataclass
 class Role:
     """Represents a role with permissions."""
+
     name: str
     permissions: List[Permission] = field(default_factory=list)
     parent_roles: List[str] = field(default_factory=list)
@@ -73,6 +77,7 @@ class Role:
 @dataclass
 class Resource:
     """Represents a protected resource."""
+
     type: str
     id: str
     owner: Optional[str] = None
@@ -86,6 +91,7 @@ class Resource:
 @dataclass
 class User:
     """Represents a user with roles."""
+
     id: str
     username: str
     roles: Set[str] = field(default_factory=set)
@@ -122,6 +128,7 @@ class User:
 @dataclass
 class Policy:
     """Access control policy."""
+
     name: str
     effect: Effect
     principals: List[str]  # user/role/group patterns
@@ -194,6 +201,7 @@ class Policy:
         """Check if IP is in any of the ranges."""
         try:
             import ipaddress
+
             ip_addr = ipaddress.ip_address(ip)
             for range_str in ranges:
                 if "/" in range_str:
@@ -228,11 +236,7 @@ class PolicyEngine:
             self._policies = [p for p in self._policies if p.name != policy_name]
 
     def evaluate(
-        self,
-        user: User,
-        resource: str,
-        action: str,
-        context: Optional[Dict[str, Any]] = None
+        self, user: User, resource: str, action: str, context: Optional[Dict[str, Any]] = None
     ) -> AccessDecision:
         """Evaluate access for a user on a resource."""
         context = context or {}
@@ -285,9 +289,7 @@ class RBACManager:
         admin_role = Role(
             name="admin",
             description="Administrator with full access",
-            permissions=[
-                Permission(name="admin_all", resource="*", actions={"*"})
-            ]
+            permissions=[Permission(name="admin_all", resource="*", actions={"*"})],
         )
         self.add_role(admin_role)
 
@@ -299,7 +301,7 @@ class RBACManager:
                 Permission(name="jobs_manage", resource="jobs/*", actions={"read", "create", "update", "cancel"}),
                 Permission(name="clusters_manage", resource="clusters/*", actions={"read", "scale"}),
                 Permission(name="workers_view", resource="workers/*", actions={"read"}),
-            ]
+            ],
         )
         self.add_role(operator_role)
 
@@ -307,9 +309,7 @@ class RBACManager:
         viewer_role = Role(
             name="viewer",
             description="Read-only access",
-            permissions=[
-                Permission(name="read_all", resource="*", actions={"read", "list"})
-            ]
+            permissions=[Permission(name="read_all", resource="*", actions={"read", "list"})],
         )
         self.add_role(viewer_role)
 
@@ -442,11 +442,7 @@ class RBACManager:
         return permissions
 
     def check_permission(
-        self,
-        user: User,
-        resource: str,
-        action: str,
-        context: Optional[Dict[str, Any]] = None
+        self, user: User, resource: str, action: str, context: Optional[Dict[str, Any]] = None
     ) -> bool:
         """Check if user has permission for resource and action."""
         if not user.is_active:
@@ -492,6 +488,7 @@ class RBACManager:
 
 def require_permission(resource: str, action: str):
     """Decorator for requiring permission on a resource."""
+
     def decorator(func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
             # Get user from context (implementation depends on framework)
@@ -511,4 +508,5 @@ def require_permission(resource: str, action: str):
             return func(*args, **kwargs)
 
         return wrapper
+
     return decorator

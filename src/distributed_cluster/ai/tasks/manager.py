@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class AITaskType(str, Enum):
     """أنواع مهام AI."""
+
     INFERENCE = "inference"
     TRAINING = "training"
     EMBEDDING = "embedding"
@@ -28,6 +29,7 @@ class AITaskType(str, Enum):
 
 class AITaskStatus(str, Enum):
     """حالة مهمة AI."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -38,6 +40,7 @@ class AITaskStatus(str, Enum):
 @dataclass
 class AITaskResult:
     """نتيجة مهمة AI."""
+
     success: bool
     output: Any = None
     error: Optional[str] = None
@@ -48,6 +51,7 @@ class AITaskResult:
 @dataclass
 class AITask:
     """مهمة AI موزعة."""
+
     task_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     type: AITaskType = AITaskType.INFERENCE
     status: AITaskStatus = AITaskStatus.PENDING
@@ -409,8 +413,5 @@ class AITaskManager:
             "running": len([t for t in tasks if t.status == AITaskStatus.RUNNING]),
             "completed": len([t for t in tasks if t.status == AITaskStatus.COMPLETED]),
             "failed": len([t for t in tasks if t.status == AITaskStatus.FAILED]),
-            "by_type": {
-                t.value: len([task for task in tasks if task.type == t])
-                for t in AITaskType
-            },
+            "by_type": {t.value: len([task for task in tasks if task.type == t]) for t in AITaskType},
         }

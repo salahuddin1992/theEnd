@@ -26,8 +26,10 @@ from ..fluent_design import FluentDesignSystem
 # DATA MODELS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class PoolStatus(Enum):
     """Pool status"""
+
     ACTIVE = "Active"
     SCALING = "Scaling"
     DRAINING = "Draining"
@@ -37,6 +39,7 @@ class PoolStatus(Enum):
 @dataclass
 class ResourcePool:
     """Resource pool definition"""
+
     id: str
     name: str
     description: str
@@ -60,6 +63,7 @@ class ResourcePool:
 # ═══════════════════════════════════════════════════════════════════════════════
 # RESOURCE GAUGE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class ResourceGauge(QWidget):
     """
@@ -127,34 +131,25 @@ class ResourceGauge(QWidget):
         painter.setPen(QColor(colors.text_primary))
         painter.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         painter.drawText(
-            QRectF(0, center_y - 15, self.width(), 30),
-            Qt.AlignmentFlag.AlignCenter,
-            f"{int(percentage)}%"
+            QRectF(0, center_y - 15, self.width(), 30), Qt.AlignmentFlag.AlignCenter, f"{int(percentage)}%"
         )
 
         # Draw label
         painter.setPen(QColor(colors.text_secondary))
         painter.setFont(QFont("Segoe UI", 10))
-        painter.drawText(
-            QRectF(0, 95, self.width(), 20),
-            Qt.AlignmentFlag.AlignCenter,
-            self._label
-        )
+        painter.drawText(QRectF(0, 95, self.width(), 20), Qt.AlignmentFlag.AlignCenter, self._label)
 
         # Draw value info
         painter.setPen(QColor(colors.text_tertiary))
         painter.setFont(QFont("Segoe UI", 9))
         value_text = f"{self._value:.0f}/{self._max_value:.0f} {self._unit}"
-        painter.drawText(
-            QRectF(0, 108, self.width(), 15),
-            Qt.AlignmentFlag.AlignCenter,
-            value_text
-        )
+        painter.drawText(QRectF(0, 108, self.width(), 15), Qt.AlignmentFlag.AlignCenter, value_text)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # POOL CARD
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class PoolCard(QFrame):
     """
@@ -176,7 +171,8 @@ class PoolCard(QFrame):
 
         self.setFixedHeight(220)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             PoolCard {{
                 background-color: {colors.bg_card};
                 border: 1px solid {colors.stroke_card};
@@ -186,7 +182,8 @@ class PoolCard(QFrame):
                 background-color: {colors.fill_subtle};
                 border-color: {colors.accent};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
@@ -196,11 +193,13 @@ class PoolCard(QFrame):
         header = QHBoxLayout()
 
         name_label = QLabel(self._pool.name)
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 18px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(name_label)
 
         header.addStretch()
@@ -215,14 +214,16 @@ class PoolCard(QFrame):
         color, text = status_colors.get(self._pool.status, (colors.text_secondary, "Unknown"))
 
         status_badge = QLabel(text)
-        status_badge.setStyleSheet(f"""
+        status_badge.setStyleSheet(
+            f"""
             background-color: {color}20;
             color: {color};
             padding: 4px 10px;
             border-radius: 10px;
             font-size: 11px;
             font-weight: 500;
-        """)
+        """
+        )
         header.addWidget(status_badge)
 
         layout.addLayout(header)
@@ -298,6 +299,7 @@ class PoolCard(QFrame):
 # POOL DETAILS PANEL
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class PoolDetailsPanel(QFrame):
     """
     Panel showing pool details and configuration.
@@ -316,12 +318,14 @@ class PoolDetailsPanel(QFrame):
         colors = FluentDesignSystem().colors
 
         self.setMinimumWidth(380)
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             PoolDetailsPanel {{
                 background-color: {colors.bg_solid_secondary};
                 border-left: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -330,11 +334,13 @@ class PoolDetailsPanel(QFrame):
         # Header
         header = QHBoxLayout()
         self._title = QLabel("Pool Configuration")
-        self._title.setStyleSheet(f"""
+        self._title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 18px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(self._title)
         header.addStretch()
 
@@ -386,7 +392,8 @@ class PoolDetailsPanel(QFrame):
         min_row.addWidget(min_label)
         self._min_spin = QSpinBox()
         self._min_spin.setRange(0, 100)
-        self._min_spin.setStyleSheet(f"""
+        self._min_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -394,7 +401,8 @@ class PoolDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 6px;
             }}
-        """)
+        """
+        )
         min_row.addWidget(self._min_spin)
         scaling_layout.addLayout(min_row)
 
@@ -404,7 +412,8 @@ class PoolDetailsPanel(QFrame):
         max_row.addWidget(max_label)
         self._max_spin = QSpinBox()
         self._max_spin.setRange(1, 1000)
-        self._max_spin.setStyleSheet(f"""
+        self._max_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -412,7 +421,8 @@ class PoolDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 6px;
             }}
-        """)
+        """
+        )
         max_row.addWidget(self._max_spin)
         scaling_layout.addLayout(max_row)
 
@@ -431,7 +441,8 @@ class PoolDetailsPanel(QFrame):
         priority_row.addWidget(priority_label)
         self._priority_spin = QSpinBox()
         self._priority_spin.setRange(1, 10)
-        self._priority_spin.setStyleSheet(f"""
+        self._priority_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -439,7 +450,8 @@ class PoolDetailsPanel(QFrame):
                 border-radius: 6px;
                 padding: 6px;
             }}
-        """)
+        """
+        )
         priority_row.addWidget(self._priority_spin)
         priority_layout.addLayout(priority_row)
 
@@ -495,7 +507,7 @@ class PoolDetailsPanel(QFrame):
             "auto_scale": self._auto_scale_check.isChecked(),
             "min_workers": self._min_spin.value(),
             "max_workers": self._max_spin.value(),
-            "priority": self._priority_spin.value()
+            "priority": self._priority_spin.value(),
         }
         self.pool_updated.emit(data)
 
@@ -503,6 +515,7 @@ class PoolDetailsPanel(QFrame):
 # ═══════════════════════════════════════════════════════════════════════════════
 # POOLS VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentPoolsView(QWidget):
     """
@@ -534,11 +547,13 @@ class FluentPoolsView(QWidget):
         header = QHBoxLayout()
 
         title = QLabel("Resource Pools")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
-        """)
+        """
+        )
         header.addWidget(title)
 
         header.addStretch()
@@ -594,14 +609,16 @@ class FluentPoolsView(QWidget):
         colors = FluentDesignSystem().colors
 
         frame = QFrame()
-        frame.setStyleSheet(f"""
+        frame.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card};
                 border: 1px solid {colors.stroke_card};
                 border-radius: 8px;
                 padding: 12px;
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(frame)
         layout.setContentsMargins(16, 12, 16, 12)
@@ -609,18 +626,22 @@ class FluentPoolsView(QWidget):
 
         value_label = QLabel(value)
         value_label.setObjectName("value")
-        value_label.setStyleSheet(f"""
+        value_label.setStyleSheet(
+            f"""
             color: {color};
             font-size: 24px;
             font-weight: 700;
-        """)
+        """
+        )
         layout.addWidget(value_label)
 
         text_label = QLabel(label)
-        text_label.setStyleSheet(f"""
+        text_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(text_label)
 
         return frame
@@ -646,7 +667,7 @@ class FluentPoolsView(QWidget):
                 priority=10,
                 auto_scale=True,
                 min_workers=4,
-                max_workers=16
+                max_workers=16,
             ),
             ResourcePool(
                 id="pool-002",
@@ -666,7 +687,7 @@ class FluentPoolsView(QWidget):
                 priority=5,
                 auto_scale=True,
                 min_workers=8,
-                max_workers=32
+                max_workers=32,
             ),
             ResourcePool(
                 id="pool-003",
@@ -686,7 +707,7 @@ class FluentPoolsView(QWidget):
                 priority=3,
                 auto_scale=False,
                 min_workers=2,
-                max_workers=8
+                max_workers=8,
             ),
             ResourcePool(
                 id="pool-004",
@@ -706,7 +727,7 @@ class FluentPoolsView(QWidget):
                 priority=7,
                 auto_scale=True,
                 min_workers=2,
-                max_workers=12
+                max_workers=12,
             ),
         ]
 

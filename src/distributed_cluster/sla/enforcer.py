@@ -313,10 +313,7 @@ class SLAEnforcer:
             action.success = True
             self._stats["successful_actions"] += 1
 
-            logger.info(
-                f"Executed enforcement action: {rule.action_type.value} "
-                f"for SLA {sla.name}"
-            )
+            logger.info(f"Executed enforcement action: {rule.action_type.value} " f"for SLA {sla.name}")
 
         except Exception as e:
             action.success = False
@@ -423,7 +420,6 @@ class SLAEnforcer:
         escalation_level = rule.parameters.get("level", 1)
         rule.parameters.get("contacts", [])
 
-
         # Would send escalation notifications
         self._stats["escalations"] += 1
         action.result = f"Escalated to level {escalation_level}"
@@ -467,9 +463,7 @@ class SLAEnforcer:
             boosted_priority=boost_amount,
             reason=reason,
             sla_id=sla_id or "manual",
-            expires_at=datetime.now(timezone.utc) + timedelta(
-                seconds=duration_seconds or self.boost_duration
-            ),
+            expires_at=datetime.now(timezone.utc) + timedelta(seconds=duration_seconds or self.boost_duration),
         )
 
         async with self._lock:
@@ -501,11 +495,7 @@ class SLAEnforcer:
         cleaned = 0
 
         async with self._lock:
-            expired = [
-                bid
-                for bid, boost in self._boosts.items()
-                if not boost.is_active and not boost.reverted
-            ]
+            expired = [bid for bid, boost in self._boosts.items() if not boost.is_active and not boost.reverted]
 
             for boost_id in expired:
                 boost = self._boosts[boost_id]

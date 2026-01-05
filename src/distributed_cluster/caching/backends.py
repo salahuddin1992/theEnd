@@ -56,11 +56,7 @@ class CacheBackend(ABC):
         """Get multiple keys. Default implementation."""
         return {key: self.get(key) for key in keys}
 
-    def set_many(
-        self,
-        mapping: Dict[str, bytes],
-        ttl: Optional[int] = None
-    ) -> Dict[str, bool]:
+    def set_many(self, mapping: Dict[str, bytes], ttl: Optional[int] = None) -> Dict[str, bool]:
         """Set multiple keys. Default implementation."""
         return {key: self.set(key, value, ttl) for key, value in mapping.items()}
 
@@ -83,6 +79,7 @@ class MemoryBackend(CacheBackend):
 
     def _start_cleanup_thread(self):
         """Start background cleanup thread."""
+
         def cleanup_loop():
             while self._running:
                 time.sleep(60)
@@ -95,10 +92,7 @@ class MemoryBackend(CacheBackend):
         """Remove expired entries."""
         now = time.time()
         with self._lock:
-            expired = [
-                key for key, (_, expires_at) in self._data.items()
-                if expires_at and expires_at < now
-            ]
+            expired = [key for key, (_, expires_at) in self._data.items() if expires_at and expires_at < now]
             for key in expired:
                 del self._data[key]
 
@@ -155,6 +149,7 @@ class MemoryBackend(CacheBackend):
 
     def keys(self, pattern: str = "*") -> List[str]:
         import fnmatch
+
         with self._lock:
             now = time.time()
             result = []
@@ -208,7 +203,7 @@ class RedisBackend(CacheBackend):
         connection_pool_size: int = 10,
         ssl: bool = False,
         ssl_cert_reqs: Optional[str] = None,
-        cluster_mode: bool = False
+        cluster_mode: bool = False,
     ):
         self.host = host
         self.port = port
@@ -228,6 +223,7 @@ class RedisBackend(CacheBackend):
 
             if self.cluster_mode:
                 from redis.cluster import RedisCluster
+
                 self._redis = RedisCluster(
                     host=self.host,
                     port=self.port,
@@ -316,11 +312,7 @@ class RedisBackend(CacheBackend):
             logger.error(f"Redis mget error: {e}")
             return {key: None for key in keys}
 
-    def set_many(
-        self,
-        mapping: Dict[str, bytes],
-        ttl: Optional[int] = None
-    ) -> Dict[str, bool]:
+    def set_many(self, mapping: Dict[str, bytes], ttl: Optional[int] = None) -> Dict[str, bool]:
         try:
             pipe = self._redis.pipeline()
             for key, value in mapping.items():
@@ -436,11 +428,7 @@ class MemcachedBackend(CacheBackend):
     """Memcached cache backend."""
 
     def __init__(
-        self,
-        servers: List[str] = None,
-        connect_timeout: float = 1.0,
-        timeout: float = 1.0,
-        max_pool_size: int = 10
+        self, servers: List[str] = None, connect_timeout: float = 1.0, timeout: float = 1.0, max_pool_size: int = 10
     ):
         self.servers = servers or ["localhost:11211"]
         self.connect_timeout = connect_timeout
@@ -466,9 +454,7 @@ class MemcachedBackend(CacheBackend):
             logger.info(f"Connected to Memcached: {self.servers}")
 
         except ImportError:
-            raise CacheConnectionError(
-                "pymemcache package not installed. Run: pip install pymemcache"
-            )
+            raise CacheConnectionError("pymemcache package not installed. Run: pip install pymemcache")
         except Exception as e:
             raise CacheConnectionError(f"Failed to connect to Memcached: {e}")
 
@@ -523,11 +509,7 @@ class MemcachedBackend(CacheBackend):
             logger.error(f"Memcached get_many error: {e}")
             return {key: None for key in keys}
 
-    def set_many(
-        self,
-        mapping: Dict[str, bytes],
-        ttl: Optional[int] = None
-    ) -> Dict[str, bool]:
+    def set_many(self, mapping: Dict[str, bytes], ttl: Optional[int] = None) -> Dict[str, bool]:
         try:
             expire = ttl if ttl and ttl > 0 else 0
             failed = self._client.set_many(mapping, expire=expire)

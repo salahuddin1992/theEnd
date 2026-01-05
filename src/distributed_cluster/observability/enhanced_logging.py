@@ -71,24 +71,12 @@ LEVEL_NAMES = {
 
 
 # Context variables للـ async context propagation
-_correlation_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    "correlation_id", default=None
-)
-_trace_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    "trace_id", default=None
-)
-_span_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    "span_id", default=None
-)
-_request_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    "request_id", default=None
-)
-_user_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    "user_id", default=None
-)
-_extra_context: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar(
-    "extra_context", default={}
-)
+_correlation_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("correlation_id", default=None)
+_trace_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("trace_id", default=None)
+_span_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("span_id", default=None)
+_request_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("request_id", default=None)
+_user_id: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("user_id", default=None)
+_extra_context: contextvars.ContextVar[Dict[str, Any]] = contextvars.ContextVar("extra_context", default={})
 
 
 def generate_correlation_id() -> str:
@@ -175,9 +163,7 @@ class CorrelationContext:
         auto_generate: bool = True,
         **extra,
     ):
-        self.correlation_id = correlation_id or (
-            generate_correlation_id() if auto_generate else None
-        )
+        self.correlation_id = correlation_id or (generate_correlation_id() if auto_generate else None)
         self.trace_id = trace_id
         self.span_id = span_id
         self.request_id = request_id
@@ -564,9 +550,7 @@ class LogAggregator:
         with self._lock:
             level_counts = {}
             for level in LogLevel:
-                level_counts[LEVEL_NAMES[level]] = sum(
-                    1 for r in self._logs if r.level == level
-                )
+                level_counts[LEVEL_NAMES[level]] = sum(1 for r in self._logs if r.level == level)
 
             return {
                 "total_logs": len(self._logs),
@@ -610,6 +594,7 @@ class EnhancedLogger:
 
         # Get hostname
         import socket
+
         try:
             self._host = socket.gethostname()
         except Exception:
@@ -639,6 +624,7 @@ class EnhancedLogger:
         if self._sample_rate >= 1.0:
             return True
         import random
+
         return random.random() < self._sample_rate
 
     def _create_record(
@@ -651,6 +637,7 @@ class EnhancedLogger:
         """إنشاء سجل."""
         # Get caller info
         import inspect
+
         frame = inspect.currentframe()
         source_file = None
         source_line = None

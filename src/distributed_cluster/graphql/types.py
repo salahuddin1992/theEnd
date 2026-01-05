@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 @strawberry.enum
 class JobStatus(Enum):
     """حالة المهمة"""
+
     PENDING = "pending"
     SCHEDULED = "scheduled"
     RUNNING = "running"
@@ -40,6 +41,7 @@ class JobStatus(Enum):
 @strawberry.enum
 class JobPriority(Enum):
     """أولوية المهمة"""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -49,6 +51,7 @@ class JobPriority(Enum):
 @strawberry.enum
 class WorkerStatus(Enum):
     """حالة العامل"""
+
     ONLINE = "online"
     OFFLINE = "offline"
     BUSY = "busy"
@@ -59,6 +62,7 @@ class WorkerStatus(Enum):
 @strawberry.enum
 class TenantStatus(Enum):
     """حالة المستأجر"""
+
     ACTIVE = "active"
     SUSPENDED = "suspended"
     QUOTA_EXCEEDED = "quota_exceeded"
@@ -68,6 +72,7 @@ class TenantStatus(Enum):
 @strawberry.enum
 class BackupStatus(Enum):
     """حالة النسخ الاحتياطي"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -77,6 +82,7 @@ class BackupStatus(Enum):
 @strawberry.enum
 class SortOrder(Enum):
     """ترتيب الفرز"""
+
     ASC = "asc"
     DESC = "desc"
 
@@ -107,6 +113,7 @@ class JSON:
 @strawberry.input
 class ResourceRequirementsInput:
     """متطلبات الموارد"""
+
     cpu: Optional[float] = 1.0
     memory: Optional[int] = 1024  # MB
     gpu: Optional[int] = 0
@@ -116,6 +123,7 @@ class ResourceRequirementsInput:
 @strawberry.input
 class JobInput:
     """إدخال مهمة جديدة"""
+
     command: str
     args: Optional[List[str]] = None
     image: Optional[str] = None
@@ -132,6 +140,7 @@ class JobInput:
 @strawberry.input
 class JobFilterInput:
     """فلتر المهام"""
+
     status: Optional[List[JobStatus]] = None
     priority: Optional[List[JobPriority]] = None
     worker_id: Optional[str] = None
@@ -145,6 +154,7 @@ class JobFilterInput:
 @strawberry.input
 class WorkerFilterInput:
     """فلتر العمال"""
+
     status: Optional[List[WorkerStatus]] = None
     tags: Optional[List[str]] = None
     has_gpu: Optional[bool] = None
@@ -155,6 +165,7 @@ class WorkerFilterInput:
 @strawberry.input
 class PaginationInput:
     """إعدادات الصفحات"""
+
     offset: Optional[int] = 0
     limit: Optional[int] = 20
     sort_by: Optional[str] = "created_at"
@@ -164,6 +175,7 @@ class PaginationInput:
 @strawberry.input
 class TenantInput:
     """إدخال مستأجر جديد"""
+
     name: str
     description: Optional[str] = None
     admin_email: Optional[str] = None
@@ -178,6 +190,7 @@ class TenantInput:
 @strawberry.input
 class BackupInput:
     """إدخال نسخ احتياطي"""
+
     name: Optional[str] = None
     backup_type: Optional[str] = "full"
     include_jobs: Optional[bool] = True
@@ -193,6 +206,7 @@ class BackupInput:
 @strawberry.type
 class ResourceRequirements:
     """متطلبات الموارد"""
+
     cpu: float
     memory: int  # MB
     gpu: int
@@ -202,6 +216,7 @@ class ResourceRequirements:
 @strawberry.type
 class ResourceUsage:
     """استخدام الموارد"""
+
     cpu_percent: float
     memory_used: int  # MB
     memory_total: int  # MB
@@ -213,6 +228,7 @@ class ResourceUsage:
 @strawberry.type
 class Job:
     """نوع المهمة"""
+
     id: str
     command: str
     args: Optional[List[str]]
@@ -257,6 +273,7 @@ class Job:
 @strawberry.type
 class Worker:
     """نوع العامل"""
+
     id: str
     name: str
     hostname: str
@@ -288,14 +305,13 @@ class Worker:
     ) -> List[Job]:
         """الحصول على مهام العامل"""
         context: GraphQLContext = info.context
-        return await context.services.job_service.get_worker_jobs(
-            self.id, status=status, limit=limit
-        )
+        return await context.services.job_service.get_worker_jobs(self.id, status=status, limit=limit)
 
 
 @strawberry.type
 class Tenant:
     """نوع المستأجر"""
+
     id: str
     name: str
     description: Optional[str]
@@ -343,9 +359,7 @@ class Tenant:
     ) -> "JobConnection":
         """الحصول على مهام المستأجر"""
         context: GraphQLContext = info.context
-        return await context.services.job_service.get_tenant_jobs(
-            self.id, filter=filter, pagination=pagination
-        )
+        return await context.services.job_service.get_tenant_jobs(self.id, filter=filter, pagination=pagination)
 
     @strawberry.field
     async def workers(self, info: strawberry.Info) -> List[Worker]:
@@ -357,6 +371,7 @@ class Tenant:
 @strawberry.type
 class Backup:
     """نوع النسخ الاحتياطي"""
+
     id: str
     name: str
     backup_type: str
@@ -379,6 +394,7 @@ class Backup:
 @strawberry.type
 class ClusterStats:
     """إحصائيات الكلاستر"""
+
     total_workers: int
     online_workers: int
     offline_workers: int
@@ -403,6 +419,7 @@ class ClusterStats:
 @strawberry.type
 class SystemInfo:
     """معلومات النظام"""
+
     version: str
     build_date: Optional[str]
     go_version: Optional[str]
@@ -418,6 +435,7 @@ class SystemInfo:
 @strawberry.type
 class HealthCheck:
     """فحص الصحة"""
+
     healthy: bool
     status: str
     checks: JSON
@@ -432,6 +450,7 @@ class HealthCheck:
 @strawberry.type
 class PageInfo:
     """معلومات الصفحة"""
+
     has_next_page: bool
     has_previous_page: bool
     start_cursor: Optional[str]
@@ -442,6 +461,7 @@ class PageInfo:
 @strawberry.type
 class JobEdge:
     """حافة المهمة"""
+
     node: Job
     cursor: str
 
@@ -449,6 +469,7 @@ class JobEdge:
 @strawberry.type
 class JobConnection:
     """اتصال المهام"""
+
     edges: List[JobEdge]
     page_info: PageInfo
     total_count: int
@@ -457,6 +478,7 @@ class JobConnection:
 @strawberry.type
 class WorkerEdge:
     """حافة العامل"""
+
     node: Worker
     cursor: str
 
@@ -464,6 +486,7 @@ class WorkerEdge:
 @strawberry.type
 class WorkerConnection:
     """اتصال العمال"""
+
     edges: List[WorkerEdge]
     page_info: PageInfo
     total_count: int
@@ -472,6 +495,7 @@ class WorkerConnection:
 @strawberry.type
 class TenantEdge:
     """حافة المستأجر"""
+
     node: Tenant
     cursor: str
 
@@ -479,6 +503,7 @@ class TenantEdge:
 @strawberry.type
 class TenantConnection:
     """اتصال المستأجرين"""
+
     edges: List[TenantEdge]
     page_info: PageInfo
     total_count: int
@@ -487,6 +512,7 @@ class TenantConnection:
 @strawberry.type
 class BackupEdge:
     """حافة النسخ الاحتياطي"""
+
     node: Backup
     cursor: str
 
@@ -494,6 +520,7 @@ class BackupEdge:
 @strawberry.type
 class BackupConnection:
     """اتصال النسخ الاحتياطية"""
+
     edges: List[BackupEdge]
     page_info: PageInfo
     total_count: int
@@ -507,6 +534,7 @@ class BackupConnection:
 @strawberry.type
 class MutationResponse:
     """استجابة الطفرة الأساسية"""
+
     success: bool
     message: str
     errors: Optional[List[str]]
@@ -515,30 +543,35 @@ class MutationResponse:
 @strawberry.type
 class JobMutationResponse(MutationResponse):
     """استجابة طفرة المهمة"""
+
     job: Optional[Job]
 
 
 @strawberry.type
 class WorkerMutationResponse(MutationResponse):
     """استجابة طفرة العامل"""
+
     worker: Optional[Worker]
 
 
 @strawberry.type
 class TenantMutationResponse(MutationResponse):
     """استجابة طفرة المستأجر"""
+
     tenant: Optional[Tenant]
 
 
 @strawberry.type
 class BackupMutationResponse(MutationResponse):
     """استجابة طفرة النسخ الاحتياطي"""
+
     backup: Optional[Backup]
 
 
 @strawberry.type
 class BatchJobMutationResponse(MutationResponse):
     """استجابة طفرة دفعة المهام"""
+
     jobs: List[Job]
     submitted_count: int
     failed_count: int
@@ -552,6 +585,7 @@ class BatchJobMutationResponse(MutationResponse):
 @strawberry.type
 class JobEvent:
     """حدث المهمة"""
+
     event_type: str  # created, updated, completed, failed, cancelled
     job: Job
     timestamp: datetime
@@ -561,6 +595,7 @@ class JobEvent:
 @strawberry.type
 class WorkerEvent:
     """حدث العامل"""
+
     event_type: str  # registered, online, offline, updated
     worker: Worker
     timestamp: datetime
@@ -570,6 +605,7 @@ class WorkerEvent:
 @strawberry.type
 class ClusterEvent:
     """حدث الكلاستر"""
+
     event_type: str
     message: str
     data: Optional[JSON]
@@ -580,6 +616,7 @@ class ClusterEvent:
 @strawberry.type
 class MetricsSnapshot:
     """لقطة المقاييس"""
+
     timestamp: datetime
     cluster_stats: ClusterStats
     top_workers: List[Worker]

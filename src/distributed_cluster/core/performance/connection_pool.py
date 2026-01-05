@@ -33,6 +33,7 @@ class ConnectionPoolConfig:
     إعدادات تجميع الاتصالات
     Connection pool configuration
     """
+
     # Pool size
     min_size: int = 1
     max_size: int = 10
@@ -61,6 +62,7 @@ class PooledConnection(Generic[T]):
     اتصال مُجمّع
     Pooled connection wrapper
     """
+
     connection: T
     created_at: float = field(default_factory=time.time)
     last_used_at: float = field(default_factory=time.time)
@@ -114,9 +116,7 @@ class ConnectionPool(Generic[T]):
         self.cleanup = cleanup
 
         # Pool state
-        self._pool: asyncio.Queue[PooledConnection[T]] = asyncio.Queue(
-            maxsize=self.config.max_size
-        )
+        self._pool: asyncio.Queue[PooledConnection[T]] = asyncio.Queue(maxsize=self.config.max_size)
         self._all_connections: set[PooledConnection[T]] = set()
         self._lock = asyncio.Lock()
         self._closed = False
@@ -147,9 +147,7 @@ class ConnectionPool(Generic[T]):
         # Start health check task
         self._health_check_task = asyncio.create_task(self._health_check_loop())
 
-        logger.info(
-            f"ConnectionPool started with {self._pool.qsize()} connections"
-        )
+        logger.info(f"ConnectionPool started with {self._pool.qsize()} connections")
 
     async def close(self) -> None:
         """إغلاق التجميع"""
@@ -325,9 +323,7 @@ class ConnectionPool(Generic[T]):
                 return await self.validator(pooled.connection)
             else:
                 loop = asyncio.get_event_loop()
-                return await loop.run_in_executor(
-                    None, self.validator, pooled.connection
-                )
+                return await loop.run_in_executor(None, self.validator, pooled.connection)
         except Exception:
             self._stats["validation_failures"] += 1
             return False
@@ -426,6 +422,7 @@ class ConnectionPool(Generic[T]):
 # =============================================================================
 # HTTP Connection Pool / تجميع اتصالات HTTP
 # =============================================================================
+
 
 class HTTPConnectionPool:
     """

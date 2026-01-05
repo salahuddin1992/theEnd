@@ -194,12 +194,8 @@ class AzureProvider(CloudProvider):
                 credential = DefaultAzureCredential()
 
             # إنشاء clients
-            self._compute_client = ComputeManagementClient(
-                credential, self.subscription_id
-            )
-            self._network_client = NetworkManagementClient(
-                credential, self.subscription_id
-            )
+            self._compute_client = ComputeManagementClient(credential, self.subscription_id)
+            self._network_client = NetworkManagementClient(credential, self.subscription_id)
 
             # اختبار الاتصال
             await self._run_in_executor(
@@ -228,9 +224,7 @@ class AzureProvider(CloudProvider):
     async def _run_in_executor(self, func, *args, **kwargs):
         """تشغيل دالة في thread pool"""
         loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            self._executor, lambda: func(*args, **kwargs)
-        )
+        return await loop.run_in_executor(self._executor, lambda: func(*args, **kwargs))
 
     async def _create_nic(self, nic_name: str) -> str:
         """إنشاء Network Interface"""
@@ -357,9 +351,7 @@ class AzureProvider(CloudProvider):
                     name=f"{vm_name}-osdisk",
                     caching="ReadWrite",
                     create_option=DiskCreateOptionTypes.FROM_IMAGE,
-                    managed_disk=ManagedDiskParameters(
-                        storage_account_type=StorageAccountTypes.PREMIUM_LRS
-                    ),
+                    managed_disk=ManagedDiskParameters(storage_account_type=StorageAccountTypes.PREMIUM_LRS),
                 )
 
                 storage_profile = StorageProfile(
@@ -391,16 +383,13 @@ class AzureProvider(CloudProvider):
 
                 if self.custom_data:
                     import base64
-                    os_profile_params["custom_data"] = base64.b64encode(
-                        self.custom_data.encode()
-                    ).decode()
+
+                    os_profile_params["custom_data"] = base64.b64encode(self.custom_data.encode()).decode()
 
                 os_profile = OSProfile(**os_profile_params)
 
                 network_profile = NetworkProfile(
-                    network_interfaces=[
-                        NetworkInterfaceReference(id=nic_id, primary=True)
-                    ]
+                    network_interfaces=[NetworkInterfaceReference(id=nic_id, primary=True)]
                 )
 
                 # إعداد VM params
@@ -418,9 +407,7 @@ class AzureProvider(CloudProvider):
                     vm_params["priority"] = VirtualMachinePriorityTypes.SPOT
                     vm_params["eviction_policy"] = VirtualMachineEvictionPolicyTypes.DEALLOCATE
                     if self.spot_max_price >= 0:
-                        vm_params["billing_profile"] = BillingProfile(
-                            max_price=self.spot_max_price
-                        )
+                        vm_params["billing_profile"] = BillingProfile(max_price=self.spot_max_price)
 
                 vm = VirtualMachine(**vm_params)
 
@@ -539,9 +526,7 @@ class AzureProvider(CloudProvider):
                     for status in vm_instance.statuses:
                         if status.code.startswith("PowerState/"):
                             power_state = status.code.replace("PowerState/", "")
-                            azure_state = AZURE_STATE_MAP.get(
-                                power_state.capitalize(), InstanceState.UNKNOWN
-                            )
+                            azure_state = AZURE_STATE_MAP.get(power_state.capitalize(), InstanceState.UNKNOWN)
                             break
 
                 if state and azure_state != state:
@@ -605,9 +590,7 @@ class AzureProvider(CloudProvider):
                 for status in vm_instance.statuses:
                     if status.code.startswith("PowerState/"):
                         power_state = status.code.replace("PowerState/", "")
-                        azure_state = AZURE_STATE_MAP.get(
-                            power_state.capitalize(), InstanceState.UNKNOWN
-                        )
+                        azure_state = AZURE_STATE_MAP.get(power_state.capitalize(), InstanceState.UNKNOWN)
                         break
 
             return InstanceInfo(
@@ -650,13 +633,15 @@ class AzureProvider(CloudProvider):
     def get_status(self) -> dict[str, Any]:
         """الحصول على حالة المزود"""
         status = super().get_status()
-        status.update({
-            "provider_type": "azure",
-            "subscription_id": self.subscription_id[:8] + "...",
-            "resource_group": self.resource_group,
-            "location": self.location,
-            "vm_size": self.vm_size,
-            "spot_vm": self.spot_vm,
-            "estimated_cost_per_hour": self.config.cost_per_hour,
-        })
+        status.update(
+            {
+                "provider_type": "azure",
+                "subscription_id": self.subscription_id[:8] + "...",
+                "resource_group": self.resource_group,
+                "location": self.location,
+                "vm_size": self.vm_size,
+                "spot_vm": self.spot_vm,
+                "estimated_cost_per_hour": self.config.cost_per_hour,
+            }
+        )
         return status

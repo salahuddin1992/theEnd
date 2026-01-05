@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 class ThreatLevel(str, Enum):
     """Threat severity levels."""
+
     CRITICAL = "critical"  # Immediate action required
     HIGH = "high"  # Urgent attention needed
     MEDIUM = "medium"  # Should be investigated
@@ -41,6 +42,7 @@ class ThreatLevel(str, Enum):
 
 class ThreatType(str, Enum):
     """Types of security threats."""
+
     BRUTE_FORCE = "brute_force"
     CREDENTIAL_STUFFING = "credential_stuffing"
     SESSION_HIJACK = "session_hijack"
@@ -57,6 +59,7 @@ class ThreatType(str, Enum):
 
 class SecurityEventType(str, Enum):
     """Security event types."""
+
     AUTH_SUCCESS = "auth.success"
     AUTH_FAILURE = "auth.failure"
     AUTH_LOCKOUT = "auth.lockout"
@@ -79,6 +82,7 @@ class SecurityEventType(str, Enum):
 @dataclass
 class SecurityEvent:
     """Security event record."""
+
     event_id: str
     event_type: SecurityEventType
     timestamp: datetime = field(default_factory=datetime.utcnow)
@@ -115,6 +119,7 @@ class SecurityEvent:
 @dataclass
 class SecurityAlert:
     """Security alert."""
+
     alert_id: str
     threat_type: ThreatType
     threat_level: ThreatLevel
@@ -158,6 +163,7 @@ class SecurityAlert:
 @dataclass
 class MonitoringConfig:
     """Security monitoring configuration."""
+
     # Brute force detection
     auth_failure_threshold: int = 5  # Failures before alert
     auth_failure_window_seconds: int = 300  # 5 minutes
@@ -236,7 +242,7 @@ class BruteForceDetector(ThreatDetector):
                     threat_level=ThreatLevel.HIGH,
                     title="Brute Force Attack Detected",
                     description=f"{recent_failures} failed login attempts from {actor_key} "
-                               f"in {self.config.auth_failure_window_seconds} seconds",
+                    f"in {self.config.auth_failure_window_seconds} seconds",
                     source_events=[event.event_id],
                     affected_actors=[actor_key],
                     recommendations=[
@@ -271,9 +277,7 @@ class AnomalyDetector(ThreatDetector):
 
     def __init__(self, config: MonitoringConfig):
         self.config = config
-        self._baselines: Dict[str, Dict[str, deque]] = defaultdict(
-            lambda: defaultdict(lambda: deque(maxlen=1000))
-        )
+        self._baselines: Dict[str, Dict[str, deque]] = defaultdict(lambda: defaultdict(lambda: deque(maxlen=1000)))
         self._lock = threading.RLock()
 
     def _get_hour_key(self) -> str:
@@ -383,8 +387,7 @@ class SessionHijackDetector(ThreatDetector):
                 threat_type=ThreatType.SESSION_HIJACK,
                 threat_level=ThreatLevel.CRITICAL,
                 title="Potential Session Hijacking",
-                description=f"Session {session_id[:8]} accessed from multiple IPs: "
-                           f"{profile['ip_history']}",
+                description=f"Session {session_id[:8]} accessed from multiple IPs: " f"{profile['ip_history']}",
                 source_events=[event.event_id],
                 affected_actors=[event.actor_id] if event.actor_id else [],
                 recommendations=[
@@ -400,10 +403,7 @@ class SessionHijackDetector(ThreatDetector):
     def reset(self, actor_id: str) -> None:
         with self._lock:
             # Remove sessions belonging to actor
-            to_remove = [
-                sid for sid, profile in self._session_profiles.items()
-                if profile.get("actor_id") == actor_id
-            ]
+            to_remove = [sid for sid, profile in self._session_profiles.items() if profile.get("actor_id") == actor_id]
             for sid in to_remove:
                 del self._session_profiles[sid]
 
@@ -523,10 +523,7 @@ class SecurityMonitor:
 
         # Remove old resolved alerts
         alert_cutoff = now - timedelta(days=self.config.alert_retention_days)
-        to_remove = [
-            aid for aid, alert in self._alerts.items()
-            if alert.resolved and alert.timestamp < alert_cutoff
-        ]
+        to_remove = [aid for aid, alert in self._alerts.items() if alert.resolved and alert.timestamp < alert_cutoff]
         for aid in to_remove:
             del self._alerts[aid]
 
@@ -540,6 +537,7 @@ class SecurityMonitor:
     ) -> None:
         """Record successful authentication."""
         import secrets
+
         event = SecurityEvent(
             event_id=f"auth_{secrets.token_hex(8)}",
             event_type=SecurityEventType.AUTH_SUCCESS,
@@ -557,6 +555,7 @@ class SecurityMonitor:
     ) -> List[SecurityAlert]:
         """Record failed authentication."""
         import secrets
+
         event = SecurityEvent(
             event_id=f"auth_{secrets.token_hex(8)}",
             event_type=SecurityEventType.AUTH_FAILURE,
@@ -577,6 +576,7 @@ class SecurityMonitor:
     ) -> None:
         """Record access denial."""
         import secrets
+
         event = SecurityEvent(
             event_id=f"access_{secrets.token_hex(8)}",
             event_type=SecurityEventType.ACCESS_DENIED,
@@ -598,6 +598,7 @@ class SecurityMonitor:
     ) -> List[SecurityAlert]:
         """Record session anomaly."""
         import secrets
+
         event = SecurityEvent(
             event_id=f"session_{secrets.token_hex(8)}",
             event_type=SecurityEventType.SESSION_ANOMALY,
@@ -679,10 +680,9 @@ class SecurityMonitor:
                 stats[event.event_type.value] += 1
 
             active_alerts = len([a for a in self._alerts.values() if not a.resolved])
-            critical_alerts = len([
-                a for a in self._alerts.values()
-                if not a.resolved and a.threat_level == ThreatLevel.CRITICAL
-            ])
+            critical_alerts = len(
+                [a for a in self._alerts.values() if not a.resolved and a.threat_level == ThreatLevel.CRITICAL]
+            )
 
             return {
                 "total_events": len(events),
@@ -715,9 +715,7 @@ class AlertNotifier:
     """
 
     def __init__(self):
-        self._handlers: Dict[ThreatLevel, List[Callable[[SecurityAlert], None]]] = {
-            level: [] for level in ThreatLevel
-        }
+        self._handlers: Dict[ThreatLevel, List[Callable[[SecurityAlert], None]]] = {level: [] for level in ThreatLevel}
 
     def register_handler(
         self,

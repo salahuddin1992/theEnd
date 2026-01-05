@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ABTestStatus(str, Enum):
     """A/B test lifecycle status."""
+
     DRAFT = "draft"
     RUNNING = "running"
     PAUSED = "paused"
@@ -30,6 +31,7 @@ class ABTestStatus(str, Enum):
 
 class AllocationMethod(str, Enum):
     """Traffic allocation methods."""
+
     RANDOM = "random"
     HASH = "hash"  # Consistent based on user ID
     STICKY = "sticky"  # Remember user's variant
@@ -38,6 +40,7 @@ class AllocationMethod(str, Enum):
 @dataclass
 class Variant:
     """A variant in an A/B test."""
+
     variant_id: str
     name: str
     model_version_id: str
@@ -90,6 +93,7 @@ class Variant:
 @dataclass
 class TrafficSplit:
     """Traffic split configuration."""
+
     variants: List[Variant]
     allocation_method: AllocationMethod = AllocationMethod.HASH
 
@@ -107,6 +111,7 @@ class TrafficSplit:
 @dataclass
 class ABTestConfig:
     """A/B test configuration."""
+
     name: str
     model_id: str
     variants: List[Variant]
@@ -151,6 +156,7 @@ class ABTestConfig:
 @dataclass
 class ABTestResult:
     """Results of an A/B test."""
+
     test_id: str
     status: str
     winner: Optional[str] = None
@@ -188,6 +194,7 @@ class ABTestResult:
 @dataclass
 class ABTest:
     """An A/B test instance."""
+
     test_id: str
     config: ABTestConfig
     status: ABTestStatus = ABTestStatus.DRAFT
@@ -333,10 +340,7 @@ class StatisticalAnalyzer:
         p2 = baseline_rate * (1 + minimum_detectable_effect)
         p_avg = (p1 + p2) / 2
 
-        n = (
-            2 * p_avg * (1 - p_avg) * ((z_alpha + z_beta) ** 2)
-            / ((p2 - p1) ** 2)
-        )
+        n = 2 * p_avg * (1 - p_avg) * ((z_alpha + z_beta) ** 2) / ((p2 - p1) ** 2)
 
         return ceil(n)
 
@@ -357,7 +361,7 @@ class StatisticalAnalyzer:
         p_b = conversions_b / samples_b
         p_pool = (conversions_a + conversions_b) / (samples_a + samples_b)
 
-        se = sqrt(p_pool * (1 - p_pool) * (1/samples_a + 1/samples_b))
+        se = sqrt(p_pool * (1 - p_pool) * (1 / samples_a + 1 / samples_b))
 
         if se == 0:
             return 0.0, 1.0
@@ -373,6 +377,7 @@ class StatisticalAnalyzer:
     def _norm_cdf(x: float) -> float:
         """Approximate normal CDF."""
         from math import erf, sqrt
+
         return (1 + erf(x / sqrt(2))) / 2
 
     @staticmethod
@@ -406,8 +411,7 @@ class StatisticalAnalyzer:
             best_variant = max(treatment_variants, key=lambda v: v.conversion_rate)
 
             z, p = StatisticalAnalyzer.calculate_z_test(
-                control.conversions, control.requests,
-                best_variant.conversions, best_variant.requests
+                control.conversions, control.requests, best_variant.conversions, best_variant.requests
             )
 
             p_value = p

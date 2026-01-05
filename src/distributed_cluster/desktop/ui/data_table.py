@@ -48,8 +48,10 @@ from .titlebar import FluentIcons
 # COLUMN DEFINITIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ColumnType(Enum):
     """Column data types"""
+
     TEXT = "text"
     NUMBER = "number"
     DATE = "date"
@@ -63,6 +65,7 @@ class ColumnType(Enum):
 @dataclass
 class Column:
     """Table column definition"""
+
     key: str
     label: str
     type: ColumnType = ColumnType.TEXT
@@ -79,6 +82,7 @@ class Column:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABLE MODEL
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentTableModel(QAbstractTableModel):
     """
@@ -169,10 +173,7 @@ class FluentTableModel(QAbstractTableModel):
         """Update a row's data"""
         if 0 <= row < len(self._data):
             self._data[row].update(data)
-            self.dataChanged.emit(
-                self.index(row, 0),
-                self.index(row, len(self._columns) - 1)
-            )
+            self.dataChanged.emit(self.index(row, 0), self.index(row, len(self._columns) - 1))
 
     def get_all_data(self) -> List[Dict[str, Any]]:
         """Get all data"""
@@ -182,6 +183,7 @@ class FluentTableModel(QAbstractTableModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 # CUSTOM DELEGATE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentTableDelegate(QStyledItemDelegate):
     """
@@ -225,9 +227,7 @@ class FluentTableDelegate(QStyledItemDelegate):
             text = index.data(Qt.DisplayRole)
             painter.setPen(QColor(colors.text_primary))
             painter.drawText(
-                rect.adjusted(12, 0, -12, 0),
-                index.data(Qt.TextAlignmentRole) | Qt.AlignVCenter,
-                str(text)
+                rect.adjusted(12, 0, -12, 0), index.data(Qt.TextAlignmentRole) | Qt.AlignVCenter, str(text)
             )
 
         painter.restore()
@@ -312,6 +312,7 @@ class FluentTableDelegate(QStyledItemDelegate):
         font = QFont("Segoe UI", 10)
         font.setWeight(QFont.DemiBold)
         from PySide6.QtGui import QFontMetrics
+
         fm = QFontMetrics(font)
         text_width = fm.horizontalAdvance(text)
 
@@ -336,6 +337,7 @@ class FluentTableDelegate(QStyledItemDelegate):
 # ═══════════════════════════════════════════════════════════════════════════════
 # FILTER PROXY MODEL
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentFilterProxyModel(QSortFilterProxyModel):
     """
@@ -389,6 +391,7 @@ class FluentFilterProxyModel(QSortFilterProxyModel):
 # ═══════════════════════════════════════════════════════════════════════════════
 # FLUENT DATA TABLE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class FluentDataTable(QWidget):
     """
@@ -452,7 +455,8 @@ class FluentDataTable(QWidget):
             header.resizeSection(i, col.width)
 
         # Styling
-        self._table.setStyleSheet(f"""
+        self._table.setStyleSheet(
+            f"""
             QTableView {{
                 background-color: transparent;
                 border: none;
@@ -483,7 +487,8 @@ class FluentDataTable(QWidget):
                 background-color: {colors.fill_subtle};
                 color: {colors.text_primary};
             }}
-        """)
+        """
+        )
 
         # Connect signals
         self._table.clicked.connect(self._on_row_clicked)
@@ -501,7 +506,8 @@ class FluentDataTable(QWidget):
         colors = FluentDesignSystem().colors
 
         toolbar = QFrame()
-        toolbar.setStyleSheet(f"""
+        toolbar.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_card_default};
                 border: 1px solid {colors.stroke_surface};
@@ -509,7 +515,8 @@ class FluentDataTable(QWidget):
                 padding: 8px;
                 margin-bottom: 8px;
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(toolbar)
         layout.setContentsMargins(12, 8, 12, 8)
@@ -520,7 +527,8 @@ class FluentDataTable(QWidget):
         self._search_input.setPlaceholderText("Search...")
         self._search_input.setMinimumWidth(250)
         self._search_input.textChanged.connect(self._on_search_changed)
-        self._search_input.setStyleSheet(f"""
+        self._search_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -535,7 +543,8 @@ class FluentDataTable(QWidget):
             QLineEdit::placeholder {{
                 color: {colors.text_tertiary};
             }}
-        """)
+        """
+        )
         layout.addWidget(self._search_input)
 
         layout.addStretch()
@@ -549,7 +558,8 @@ class FluentDataTable(QWidget):
         self._filter_combo.addItem("Failed", "failed")
         self._filter_combo.currentIndexChanged.connect(self._on_filter_changed)
         self._filter_combo.setMinimumWidth(140)
-        self._filter_combo.setStyleSheet(f"""
+        self._filter_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -572,7 +582,8 @@ class FluentDataTable(QWidget):
                 padding: 4px;
                 selection-background-color: {colors.fill_subtle};
             }}
-        """)
+        """
+        )
         layout.addWidget(self._filter_combo)
 
         # Refresh button
@@ -594,12 +605,14 @@ class FluentDataTable(QWidget):
         colors = FluentDesignSystem().colors
 
         footer = QFrame()
-        footer.setStyleSheet("""
+        footer.setStyleSheet(
+            """
             QFrame {
                 background-color: transparent;
                 padding: 8px 0;
             }
-        """)
+        """
+        )
 
         layout = QHBoxLayout(footer)
         layout.setContentsMargins(0, 8, 0, 0)
@@ -607,20 +620,24 @@ class FluentDataTable(QWidget):
 
         # Row count
         self._row_count_label = QLabel("0 items")
-        self._row_count_label.setStyleSheet(f"""
+        self._row_count_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(self._row_count_label)
 
         layout.addStretch()
 
         # Selection info
         self._selection_label = QLabel("")
-        self._selection_label.setStyleSheet(f"""
+        self._selection_label.setStyleSheet(
+            f"""
             color: {colors.text_secondary};
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(self._selection_label)
 
         return footer
@@ -630,7 +647,8 @@ class FluentDataTable(QWidget):
         self._context_menu = QMenu(self)
         colors = FluentDesignSystem().colors
 
-        self._context_menu.setStyleSheet(f"""
+        self._context_menu.setStyleSheet(
+            f"""
             QMenu {{
                 background-color: {colors.bg_solid_secondary};
                 border: 1px solid {colors.stroke_surface};
@@ -650,7 +668,8 @@ class FluentDataTable(QWidget):
                 background-color: {colors.stroke_divider};
                 margin: 4px 8px;
             }}
-        """)
+        """
+        )
 
         # Add actions
         view_action = self._context_menu.addAction(FluentIcons.INFO + " View Details")
@@ -779,7 +798,7 @@ class FluentDataTable(QWidget):
     def export_to_json(self, filepath: str):
         """Export data to JSON file"""
         data = self.get_all_data()
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, default=str)
 
     def refresh(self):

@@ -311,10 +311,7 @@ class LocalityAwareScheduler:
                 transfer_mb = locality_result.transfer_size_bytes / (1024 * 1024)
                 if transfer_mb > self.config.max_transfer_mb:
                     transfer_ok = False
-                if (
-                    locality_result.estimated_transfer_time_seconds
-                    > self.config.max_transfer_time_seconds
-                ):
+                if locality_result.estimated_transfer_time_seconds > self.config.max_transfer_time_seconds:
                     transfer_ok = False
 
             if not transfer_ok:
@@ -426,9 +423,7 @@ class LocalityAwareScheduler:
 
             if potential_workers:
                 # Set delay
-                delay_until = datetime.now(timezone.utc) + timedelta(
-                    seconds=self.config.max_delay_seconds
-                )
+                delay_until = datetime.now(timezone.utc) + timedelta(seconds=self.config.max_delay_seconds)
                 self._delayed_jobs[job.job_id] = delay_until
                 logger.info(
                     f"Delaying job {job.job_id} for better locality "
@@ -443,11 +438,7 @@ class LocalityAwareScheduler:
         # Get required blocks
         required_blocks = []
         if "required_blocks" in job.submission.labels:
-            required_blocks = [
-                b.strip()
-                for b in job.submission.labels["required_blocks"].split(",")
-                if b.strip()
-            ]
+            required_blocks = [b.strip() for b in job.submission.labels["required_blocks"].split(",") if b.strip()]
 
         if not required_blocks:
             return []
@@ -509,11 +500,7 @@ class LocalityAwareScheduler:
         # Get required blocks
         required_blocks = []
         if "required_blocks" in job.submission.labels:
-            required_blocks = [
-                b.strip()
-                for b in job.submission.labels["required_blocks"].split(",")
-                if b.strip()
-            ]
+            required_blocks = [b.strip() for b in job.submission.labels["required_blocks"].split(",") if b.strip()]
 
         return LocalitySchedulingDecision(
             job=job,
@@ -525,8 +512,7 @@ class LocalityAwareScheduler:
             locality_level=selected.locality_result.locality_level,
             required_blocks=required_blocks,
             local_blocks=selected.locality_result.local_blocks,
-            transfer_blocks=selected.locality_result.total_blocks_required
-            - selected.locality_result.local_blocks,
+            transfer_blocks=selected.locality_result.total_blocks_required - selected.locality_result.local_blocks,
             transfer_size_bytes=selected.transfer_size_bytes,
             estimated_transfer_time=selected.estimated_transfer_time,
             delay_applied=delay_applied,
@@ -560,9 +546,7 @@ class LocalityAwareScheduler:
             "locality_rate": self._stats["perfect_locality"] / total,
             "transfer_rate": self._stats["transfer_required"] / total,
             "delay_rate": self._stats["delayed_decisions"] / total,
-            "avg_transfer_bytes": (
-                self._stats["total_transfer_bytes"] / max(self._stats["transfer_required"], 1)
-            ),
+            "avg_transfer_bytes": (self._stats["total_transfer_bytes"] / max(self._stats["transfer_required"], 1)),
         }
 
 

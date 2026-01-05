@@ -36,10 +36,7 @@ class Subscriber:
             "subscription_type": self.subscription_type,
             "filters": self.filters,
             "created_at": self.created_at.isoformat(),
-            "last_message_at": (
-                self.last_message_at.isoformat()
-                if self.last_message_at else None
-            ),
+            "last_message_at": (self.last_message_at.isoformat() if self.last_message_at else None),
         }
 
 
@@ -164,9 +161,7 @@ class SubscriptionManager:
             self._stats["total_subscriptions"] += 1
             self._stats["active_subscriptions"] += 1
 
-            logger.debug(
-                f"New subscription: {subscriber_id} for {subscription_type}"
-            )
+            logger.debug(f"New subscription: {subscriber_id} for {subscription_type}")
 
             return subscriber_id
 
@@ -340,17 +335,16 @@ class SubscriptionManager:
 
             try:
                 # Non-blocking put
-                subscriber.queue.put_nowait({
-                    "type": subscription_type,
-                    "data": data,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                })
+                subscriber.queue.put_nowait(
+                    {
+                        "type": subscription_type,
+                        "data": data,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
                 delivered += 1
             except asyncio.QueueFull:
-                logger.warning(
-                    f"Queue full for subscriber {subscriber_id}, "
-                    "dropping message"
-                )
+                logger.warning(f"Queue full for subscriber {subscriber_id}, " "dropping message")
 
         self._stats["messages_published"] += 1
         return delivered
@@ -456,17 +450,11 @@ class SubscriptionManager:
 
     async def get_active_subscriptions(self) -> List[Dict[str, Any]]:
         """Get list of active subscriptions."""
-        return [
-            subscriber.to_dict()
-            for subscriber in self._subscribers.values()
-        ]
+        return [subscriber.to_dict() for subscriber in self._subscribers.values()]
 
     async def get_subscription_stats(self) -> Dict[str, Any]:
         """Get subscription statistics."""
-        type_counts = {
-            sub_type: len(subscribers)
-            for sub_type, subscribers in self._subscribers_by_type.items()
-        }
+        type_counts = {sub_type: len(subscribers) for sub_type, subscribers in self._subscribers_by_type.items()}
 
         return {
             **self._stats,
@@ -551,11 +539,14 @@ class WebSocketHandler:
         subscription_type = self._extract_subscription_type(query)
 
         if not subscription_type:
-            await self._send(connection_id, {
-                "type": "error",
-                "id": subscription_id,
-                "payload": {"message": "Invalid subscription query"},
-            })
+            await self._send(
+                connection_id,
+                {
+                    "type": "error",
+                    "id": subscription_id,
+                    "payload": {"message": "Invalid subscription query"},
+                },
+            )
             return
 
         # Create subscription
@@ -567,11 +558,13 @@ class WebSocketHandler:
         # Store subscription mapping
         conn = self._connections.get(connection_id)
         if conn:
-            conn["subscriptions"].append({
-                "id": subscription_id,
-                "subscriber_id": subscriber_id,
-                "type": subscription_type,
-            })
+            conn["subscriptions"].append(
+                {
+                    "id": subscription_id,
+                    "subscriber_id": subscriber_id,
+                    "type": subscription_type,
+                }
+            )
 
         # Start streaming
         asyncio.create_task(
@@ -600,10 +593,13 @@ class WebSocketHandler:
                 conn["subscriptions"].remove(sub)
                 break
 
-        await self._send(connection_id, {
-            "type": "complete",
-            "id": subscription_id,
-        })
+        await self._send(
+            connection_id,
+            {
+                "type": "complete",
+                "id": subscription_id,
+            },
+        )
 
     async def _stream_subscription(
         self,
@@ -623,17 +619,23 @@ class WebSocketHandler:
                     timeout=30.0,
                 )
 
-                await self._send(connection_id, {
-                    "type": "next",
-                    "id": subscription_id,
-                    "payload": {"data": message},
-                })
+                await self._send(
+                    connection_id,
+                    {
+                        "type": "next",
+                        "id": subscription_id,
+                        "payload": {"data": message},
+                    },
+                )
 
             except asyncio.TimeoutError:
                 # Send keepalive
-                await self._send(connection_id, {
-                    "type": "ping",
-                })
+                await self._send(
+                    connection_id,
+                    {
+                        "type": "ping",
+                    },
+                )
 
     async def _send(
         self,

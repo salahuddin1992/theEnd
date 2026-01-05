@@ -35,6 +35,7 @@ from ..titlebar import FluentIcons
 # SETTINGS SECTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SettingsSection(QWidget):
     """Base class for settings sections"""
 
@@ -50,11 +51,13 @@ class SettingsSection(QWidget):
 
         # Title
         title_label = QLabel(title)
-        title_label.setStyleSheet(f"""
+        title_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 24px;
             font-weight: 600;
-        """)
+        """
+        )
         layout.addWidget(title_label)
 
         # Content
@@ -72,11 +75,11 @@ class SettingsSection(QWidget):
 # SETTING ITEM
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SettingItem(FluentCard):
     """A single setting item with label, description and control"""
 
-    def __init__(self, title: str, description: str = "",
-                 control: QWidget = None, parent=None):
+    def __init__(self, title: str, description: str = "", control: QWidget = None, parent=None):
         super().__init__(parent=parent)
 
         colors = FluentDesignSystem().colors
@@ -90,19 +93,23 @@ class SettingItem(FluentCard):
         text_layout.setSpacing(4)
 
         title_label = QLabel(title)
-        title_label.setStyleSheet(f"""
+        title_label.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 14px;
             font-weight: 500;
-        """)
+        """
+        )
         text_layout.addWidget(title_label)
 
         if description:
             desc_label = QLabel(description)
-            desc_label.setStyleSheet(f"""
+            desc_label.setStyleSheet(
+                f"""
                 color: {colors.text_secondary};
                 font-size: 12px;
-            """)
+            """
+            )
             desc_label.setWordWrap(True)
             text_layout.addWidget(desc_label)
 
@@ -120,6 +127,7 @@ class SettingItem(FluentCard):
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONNECTION SETTINGS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class ConnectionSettings(SettingsSection):
     """Connection settings section"""
@@ -145,15 +153,13 @@ class ConnectionSettings(SettingsSection):
         auto_connect = SettingItem(
             "Auto-connect on startup",
             "Automatically connect to the last used server when the app starts",
-            FluentSwitch()
+            FluentSwitch(),
         )
         self.add_setting(auto_connect)
 
         # Reconnect
         reconnect = SettingItem(
-            "Auto-reconnect",
-            "Automatically try to reconnect when connection is lost",
-            FluentSwitch()
+            "Auto-reconnect", "Automatically try to reconnect when connection is lost", FluentSwitch()
         )
         self.add_setting(reconnect)
 
@@ -172,6 +178,7 @@ class ConnectionSettings(SettingsSection):
 # APPEARANCE SETTINGS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class AppearanceSettings(SettingsSection):
     """Appearance settings section"""
 
@@ -186,7 +193,8 @@ class AppearanceSettings(SettingsSection):
         theme_combo = QComboBox()
         theme_combo.addItems(["Dark", "Light", "System"])
         theme_combo.setMinimumWidth(150)
-        theme_combo.setStyleSheet(f"""
+        theme_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -194,14 +202,11 @@ class AppearanceSettings(SettingsSection):
                 border-radius: 6px;
                 padding: 8px 12px;
             }}
-        """)
+        """
+        )
         theme_combo.currentTextChanged.connect(self.theme_changed.emit)
 
-        theme_setting = SettingItem(
-            "App theme",
-            "Select which theme to use for the application",
-            theme_combo
-        )
+        theme_setting = SettingItem("App theme", "Select which theme to use for the application", theme_combo)
         self.add_setting(theme_setting)
 
         # Accent color
@@ -222,7 +227,8 @@ class AppearanceSettings(SettingsSection):
             color_btn = QFrame()
             color_btn.setFixedSize(36, 36)
             color_btn.setCursor(Qt.PointingHandCursor)
-            color_btn.setStyleSheet(f"""
+            color_btn.setStyleSheet(
+                f"""
                 QFrame {{
                     background-color: {color};
                     border-radius: 6px;
@@ -231,7 +237,8 @@ class AppearanceSettings(SettingsSection):
                 QFrame:hover {{
                     border-color: {colors.text_primary};
                 }}
-            """)
+            """
+            )
             color_btn.setToolTip(name)
             accent_layout.addWidget(color_btn)
 
@@ -242,19 +249,11 @@ class AppearanceSettings(SettingsSection):
         self.add_setting(accent_card)
 
         # Compact mode
-        compact = SettingItem(
-            "Compact mode",
-            "Use smaller spacing and controls",
-            FluentSwitch()
-        )
+        compact = SettingItem("Compact mode", "Use smaller spacing and controls", FluentSwitch())
         self.add_setting(compact)
 
         # Animations
-        animations = SettingItem(
-            "Enable animations",
-            "Show smooth animations and transitions",
-            FluentSwitch()
-        )
+        animations = SettingItem("Enable animations", "Show smooth animations and transitions", FluentSwitch())
         animations._content_layout.itemAt(0).widget().layout().itemAt(1).widget().setChecked(True)
         self.add_setting(animations)
 
@@ -263,6 +262,7 @@ class AppearanceSettings(SettingsSection):
 # NOTIFICATION SETTINGS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class NotificationSettings(SettingsSection):
     """Notification settings section"""
 
@@ -270,49 +270,30 @@ class NotificationSettings(SettingsSection):
         super().__init__("Notifications", parent)
 
         # Enable notifications
-        enable = SettingItem(
-            "Enable notifications",
-            "Show notifications for important events",
-            FluentSwitch()
-        )
+        enable = SettingItem("Enable notifications", "Show notifications for important events", FluentSwitch())
         self.add_setting(enable)
 
         # Sound
-        sound = SettingItem(
-            "Notification sounds",
-            "Play sounds for notifications",
-            FluentSwitch()
-        )
+        sound = SettingItem("Notification sounds", "Play sounds for notifications", FluentSwitch())
         self.add_setting(sound)
 
         # Job completed
-        job_complete = SettingItem(
-            "Job completed",
-            "Notify when a job finishes",
-            FluentSwitch()
-        )
+        job_complete = SettingItem("Job completed", "Notify when a job finishes", FluentSwitch())
         self.add_setting(job_complete)
 
         # Job failed
-        job_failed = SettingItem(
-            "Job failed",
-            "Notify when a job fails",
-            FluentSwitch()
-        )
+        job_failed = SettingItem("Job failed", "Notify when a job fails", FluentSwitch())
         self.add_setting(job_failed)
 
         # Worker status
-        worker_status = SettingItem(
-            "Worker status changes",
-            "Notify when workers go online/offline",
-            FluentSwitch()
-        )
+        worker_status = SettingItem("Worker status changes", "Notify when workers go online/offline", FluentSwitch())
         self.add_setting(worker_status)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DATA SETTINGS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class DataSettings(SettingsSection):
     """Data and refresh settings"""
@@ -325,11 +306,7 @@ class DataSettings(SettingsSection):
         # Auto-refresh
         refresh_switch = FluentSwitch()
         refresh_switch._widget = refresh_switch
-        auto_refresh = SettingItem(
-            "Auto-refresh",
-            "Automatically refresh data at regular intervals",
-            refresh_switch
-        )
+        auto_refresh = SettingItem("Auto-refresh", "Automatically refresh data at regular intervals", refresh_switch)
         self.add_setting(auto_refresh)
 
         # Refresh interval
@@ -338,7 +315,8 @@ class DataSettings(SettingsSection):
         interval_spin.setValue(5)
         interval_spin.setSuffix(" seconds")
         interval_spin.setMinimumWidth(120)
-        interval_spin.setStyleSheet(f"""
+        interval_spin.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {colors.fill_control};
                 color: {colors.text_primary};
@@ -346,13 +324,10 @@ class DataSettings(SettingsSection):
                 border-radius: 6px;
                 padding: 8px;
             }}
-        """)
-
-        interval = SettingItem(
-            "Refresh interval",
-            "How often to refresh data automatically",
-            interval_spin
+        """
         )
+
+        interval = SettingItem("Refresh interval", "How often to refresh data automatically", interval_spin)
         self.add_setting(interval)
 
         # History
@@ -363,17 +338,14 @@ class DataSettings(SettingsSection):
         history_spin.setMinimumWidth(120)
         history_spin.setStyleSheet(interval_spin.styleSheet())
 
-        history = SettingItem(
-            "Keep history for",
-            "How long to keep job history",
-            history_spin
-        )
+        history = SettingItem("Keep history for", "How long to keep job history", history_spin)
         self.add_setting(history)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ABOUT SECTION
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class AboutSection(SettingsSection):
     """About section"""
@@ -390,22 +362,26 @@ class AboutSection(SettingsSection):
         info_layout.setAlignment(Qt.AlignCenter)
 
         # Logo
-        logo = QLabel("\uE90F")  # Constellation icon
-        logo.setStyleSheet(f"""
+        logo = QLabel("\ue90f")  # Constellation icon
+        logo.setStyleSheet(
+            f"""
             font-family: 'Segoe Fluent Icons';
             font-size: 64px;
             color: {colors.accent};
-        """)
+        """
+        )
         logo.setAlignment(Qt.AlignCenter)
         info_layout.addWidget(logo)
 
         # Name
         name = QLabel("NebulaCompute Desktop")
-        name.setStyleSheet(f"""
+        name.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 24px;
             font-weight: 600;
-        """)
+        """
+        )
         name.setAlignment(Qt.AlignCenter)
         info_layout.addWidget(name)
 
@@ -455,6 +431,7 @@ class AboutSection(SettingsSection):
 # FLUENT SETTINGS VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class FluentSettingsView(QWidget):
     """
     Complete settings view with navigation.
@@ -466,9 +443,9 @@ class FluentSettingsView(QWidget):
 
     SECTIONS = [
         ("Connection", FluentIcons.CONNECT),
-        ("Appearance", "\uE790"),  # Paintbrush
-        ("Notifications", "\uE7E7"),  # Bell
-        ("Data", "\uE8A5"),  # Storage
+        ("Appearance", "\ue790"),  # Paintbrush
+        ("Notifications", "\ue7e7"),  # Bell
+        ("Data", "\ue8a5"),  # Storage
         ("About", FluentIcons.INFO),
     ]
 
@@ -488,12 +465,14 @@ class FluentSettingsView(QWidget):
         # Navigation list
         nav_frame = QFrame()
         nav_frame.setFixedWidth(250)
-        nav_frame.setStyleSheet(f"""
+        nav_frame.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {colors.bg_mica_alt};
                 border-right: 1px solid {colors.stroke_divider};
             }}
-        """)
+        """
+        )
 
         nav_layout = QVBoxLayout(nav_frame)
         nav_layout.setContentsMargins(12, 24, 12, 24)
@@ -501,18 +480,21 @@ class FluentSettingsView(QWidget):
 
         # Title
         title = QLabel("Settings")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             color: {colors.text_primary};
             font-size: 28px;
             font-weight: 600;
             padding: 0 8px 16px 8px;
-        """)
+        """
+        )
         nav_layout.addWidget(title)
 
         # Nav items
         self._nav_list = QListWidget()
         self._nav_list.setFrameShape(QFrame.NoFrame)
-        self._nav_list.setStyleSheet(f"""
+        self._nav_list.setStyleSheet(
+            f"""
             QListWidget {{
                 background-color: transparent;
                 border: none;
@@ -531,7 +513,8 @@ class FluentSettingsView(QWidget):
                 background-color: {colors.fill_subtle_secondary};
                 color: {colors.text_primary};
             }}
-        """)
+        """
+        )
 
         for section_name, icon in self.SECTIONS:
             item = QListWidgetItem(f"  {icon}   {section_name}")

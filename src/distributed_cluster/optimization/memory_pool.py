@@ -23,23 +23,26 @@ logger = logging.getLogger(__name__)
 
 class MemoryPressureLevel(Enum):
     """Levels of memory pressure."""
-    LOW = "low"           # < 50% usage
-    MODERATE = "moderate" # 50-70% usage
-    HIGH = "high"         # 70-85% usage
-    CRITICAL = "critical" # > 85% usage
+
+    LOW = "low"  # < 50% usage
+    MODERATE = "moderate"  # 50-70% usage
+    HIGH = "high"  # 70-85% usage
+    CRITICAL = "critical"  # > 85% usage
 
 
 class AllocationStrategy(Enum):
     """Memory allocation strategies."""
-    BEST_FIT = "best_fit"     # Find smallest fitting block
-    FIRST_FIT = "first_fit"   # Use first available block
-    SLAB = "slab"             # Slab allocation
-    POOL = "pool"             # Pool allocation
+
+    BEST_FIT = "best_fit"  # Find smallest fitting block
+    FIRST_FIT = "first_fit"  # Use first available block
+    SLAB = "slab"  # Slab allocation
+    POOL = "pool"  # Pool allocation
 
 
 @dataclass
 class MemoryBlock:
     """Represents a memory block in the pool."""
+
     block_id: int
     size: int
     data: Optional[bytes] = None
@@ -52,6 +55,7 @@ class MemoryBlock:
 @dataclass
 class SlabClass:
     """Represents a slab class for fixed-size allocations."""
+
     size: int
     blocks: List[MemoryBlock] = field(default_factory=list)
     free_blocks: List[int] = field(default_factory=list)  # Block IDs
@@ -62,6 +66,7 @@ class SlabClass:
 @dataclass
 class MemoryStats:
     """Memory usage statistics."""
+
     total_bytes: int = 0
     used_bytes: int = 0
     free_bytes: int = 0
@@ -75,6 +80,7 @@ class MemoryStats:
 @dataclass
 class PoolConfig:
     """Memory pool configuration."""
+
     max_memory_mb: int = 1024
     slab_sizes: List[int] = field(default_factory=lambda: [64, 256, 1024, 4096, 16384, 65536, 262144])
     initial_slabs_per_class: int = 10
@@ -190,11 +196,11 @@ class SlabAllocator:
             stats = {}
             for slab_size, slab in self.slabs.items():
                 stats[slab_size] = {
-                    'total_blocks': slab.total_count,
-                    'allocated_blocks': slab.allocated_count,
-                    'free_blocks': len(slab.free_blocks),
-                    'utilization': slab.allocated_count / slab.total_count if slab.total_count > 0 else 0,
-                    'memory_bytes': slab.total_count * slab_size,
+                    "total_blocks": slab.total_count,
+                    "allocated_blocks": slab.allocated_count,
+                    "free_blocks": len(slab.free_blocks),
+                    "utilization": slab.allocated_count / slab.total_count if slab.total_count > 0 else 0,
+                    "memory_bytes": slab.total_count * slab_size,
                 }
             return stats
 
@@ -202,11 +208,7 @@ class SlabAllocator:
 class MemoryPressureHandler:
     """Handles memory pressure events and triggers appropriate responses."""
 
-    def __init__(
-        self,
-        high_threshold: float = 0.85,
-        critical_threshold: float = 0.95
-    ):
+    def __init__(self, high_threshold: float = 0.85, critical_threshold: float = 0.95):
         self.high_threshold = high_threshold
         self.critical_threshold = critical_threshold
         self.callbacks: List[Callable[[MemoryPressureLevel], None]] = []
@@ -267,14 +269,13 @@ class MemoryPoolManager:
 
         # Slab allocator for efficient allocation
         self.slab_allocator = SlabAllocator(
-            slab_sizes=self.config.slab_sizes,
-            initial_slabs=self.config.initial_slabs_per_class
+            slab_sizes=self.config.slab_sizes, initial_slabs=self.config.initial_slabs_per_class
         )
 
         # Memory pressure handling
         self.pressure_handler = MemoryPressureHandler(
             high_threshold=self.config.high_pressure_threshold,
-            critical_threshold=self.config.critical_pressure_threshold
+            critical_threshold=self.config.critical_pressure_threshold,
         )
         self.pressure_handler.register_callback(self._on_pressure_change)
 
@@ -372,7 +373,7 @@ class MemoryPoolManager:
 
         # Find LRU entry
         lru_key = None
-        lru_time = float('inf')
+        lru_time = float("inf")
 
         for key, block in self.key_blocks.items():
             if block.last_used and block.last_used < lru_time:
@@ -433,9 +434,7 @@ class MemoryPoolManager:
             return
 
         self._running = True
-        self._monitor_task = asyncio.create_task(
-            self._monitor_loop(interval_seconds)
-        )
+        self._monitor_task = asyncio.create_task(self._monitor_loop(interval_seconds))
         logger.info("Memory pool monitoring started")
 
     async def stop_monitoring(self):
@@ -474,8 +473,8 @@ class MemoryPoolManager:
         used_memory = 0
 
         for size, slab_stats in stats.items():
-            total_memory += slab_stats['memory_bytes']
-            used_memory += slab_stats['allocated_blocks'] * size
+            total_memory += slab_stats["memory_bytes"]
+            used_memory += slab_stats["allocated_blocks"] * size
 
         if total_memory == 0:
             return 0.0
@@ -501,10 +500,7 @@ class MemoryPoolManager:
                 used_bytes=self.current_usage_bytes,
                 free_bytes=self.max_memory_bytes - self.current_usage_bytes,
                 allocated_blocks=len(self.key_blocks),
-                free_blocks=sum(
-                    len(s.free_blocks)
-                    for s in self.slab_allocator.slabs.values()
-                ),
+                free_blocks=sum(len(s.free_blocks) for s in self.slab_allocator.slabs.values()),
                 fragmentation_ratio=fragmentation,
                 pressure_level=pressure,
                 gc_collections=gc_stats,
@@ -516,22 +512,22 @@ class MemoryPoolManager:
         slab_stats = self.slab_allocator.get_stats()
 
         return {
-            'summary': {
-                'total_mb': stats.total_bytes / (1024 * 1024),
-                'used_mb': stats.used_bytes / (1024 * 1024),
-                'free_mb': stats.free_bytes / (1024 * 1024),
-                'utilization': stats.used_bytes / stats.total_bytes if stats.total_bytes > 0 else 0,
-                'fragmentation': stats.fragmentation_ratio,
-                'pressure_level': stats.pressure_level.value,
+            "summary": {
+                "total_mb": stats.total_bytes / (1024 * 1024),
+                "used_mb": stats.used_bytes / (1024 * 1024),
+                "free_mb": stats.free_bytes / (1024 * 1024),
+                "utilization": stats.used_bytes / stats.total_bytes if stats.total_bytes > 0 else 0,
+                "fragmentation": stats.fragmentation_ratio,
+                "pressure_level": stats.pressure_level.value,
             },
-            'allocations': {
-                'total_allocations': self.total_allocations,
-                'total_frees': self.total_frees,
-                'allocation_failures': self.allocation_failures,
-                'current_entries': len(self.key_blocks),
+            "allocations": {
+                "total_allocations": self.total_allocations,
+                "total_frees": self.total_frees,
+                "allocation_failures": self.allocation_failures,
+                "current_entries": len(self.key_blocks),
             },
-            'slab_classes': slab_stats,
-            'gc_stats': stats.gc_collections,
+            "slab_classes": slab_stats,
+            "gc_stats": stats.gc_collections,
         }
 
 
@@ -541,10 +537,7 @@ class ObjectPool(dict):
     """
 
     def __init__(
-        self,
-        factory: Callable[[], Any],
-        max_size: int = 100,
-        cleanup: Optional[Callable[[Any], None]] = None
+        self, factory: Callable[[], Any], max_size: int = 100, cleanup: Optional[Callable[[Any], None]] = None
     ):
         super().__init__()
         self.factory = factory
@@ -590,10 +583,10 @@ class ObjectPool(dict):
         """Get pool statistics."""
         with self._lock:
             return {
-                'pool_size': len(self.pool),
-                'max_size': self.max_size,
-                'gets': self.gets,
-                'creates': self.creates,
-                'returns': self.returns,
-                'reuse_rate': (self.gets - self.creates) / self.gets if self.gets > 0 else 0,
+                "pool_size": len(self.pool),
+                "max_size": self.max_size,
+                "gets": self.gets,
+                "creates": self.creates,
+                "returns": self.returns,
+                "reuse_rate": (self.gets - self.creates) / self.gets if self.gets > 0 else 0,
             }

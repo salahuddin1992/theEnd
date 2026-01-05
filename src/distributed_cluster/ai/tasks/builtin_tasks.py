@@ -841,8 +841,12 @@ Rewritten text:""",
                     description="Why you're rewriting",
                     default="improve_clarity",
                     options=[
-                        "improve_clarity", "simplify", "formalize",
-                        "make_casual", "remove_jargon", "seo_optimize"
+                        "improve_clarity",
+                        "simplify",
+                        "formalize",
+                        "make_casual",
+                        "remove_jargon",
+                        "seo_optimize",
                     ],
                 ),
                 TaskParameter(

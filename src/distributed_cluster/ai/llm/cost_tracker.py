@@ -459,9 +459,7 @@ class CostTracker:
             logger.warning(f"No pricing found for model: {model}")
             return 0.0
 
-        return pricing.calculate_cost(
-            input_tokens, output_tokens, cached_tokens, is_batch
-        )
+        return pricing.calculate_cost(input_tokens, output_tokens, cached_tokens, is_batch)
 
     async def record_usage(
         self,
@@ -476,9 +474,7 @@ class CostTracker:
     ) -> UsageRecord:
         """تسجيل استخدام جديد."""
         async with self._lock:
-            cost = self.calculate_cost(
-                model, input_tokens, output_tokens, cached_tokens, is_batch
-            )
+            cost = self.calculate_cost(model, input_tokens, output_tokens, cached_tokens, is_batch)
 
             pricing = self.get_pricing(model)
             currency = pricing.currency if pricing else CostCurrency.USD
@@ -568,8 +564,7 @@ class CostTracker:
         # Check provider limit
         if provider and provider in self.budget.provider_limits:
             provider_cost = sum(
-                r.cost for r in self._records
-                if r.provider == provider and r.timestamp >= now - timedelta(days=30)
+                r.cost for r in self._records if r.provider == provider and r.timestamp >= now - timedelta(days=30)
             )
             if provider_cost >= self.budget.provider_limits[provider]:
                 return True
@@ -642,10 +637,12 @@ class CostTracker:
             day_end = day_start + timedelta(days=1)
 
             summary = self.get_summary(start_date=day_start, end_date=day_end)
-            report.append({
-                "date": day_start.strftime("%Y-%m-%d"),
-                **summary.to_dict(),
-            })
+            report.append(
+                {
+                    "date": day_start.strftime("%Y-%m-%d"),
+                    **summary.to_dict(),
+                }
+            )
 
         return list(reversed(report))
 
@@ -659,14 +656,16 @@ class CostTracker:
             tokens = sum(r.input_tokens + r.output_tokens for r in provider_records)
             cost_per_1k = (cost / tokens * 1000) if tokens > 0 else 0
 
-            comparison.append({
-                "provider": provider,
-                "total_cost": round(cost, 6),
-                "total_tokens": tokens,
-                "cost_per_1k_tokens": round(cost_per_1k, 6),
-                "request_count": len(provider_records),
-                "percentage": round(cost / summary.total_cost * 100, 2) if summary.total_cost > 0 else 0,
-            })
+            comparison.append(
+                {
+                    "provider": provider,
+                    "total_cost": round(cost, 6),
+                    "total_tokens": tokens,
+                    "cost_per_1k_tokens": round(cost_per_1k, 6),
+                    "request_count": len(provider_records),
+                    "percentage": round(cost / summary.total_cost * 100, 2) if summary.total_cost > 0 else 0,
+                }
+            )
 
         return comparison
 
@@ -679,8 +678,14 @@ class CostTracker:
                 return ""
 
             headers = [
-                "timestamp", "provider", "model", "input_tokens",
-                "output_tokens", "cached_tokens", "cost", "currency"
+                "timestamp",
+                "provider",
+                "model",
+                "input_tokens",
+                "output_tokens",
+                "cached_tokens",
+                "cost",
+                "currency",
             ]
             lines = [",".join(headers)]
 

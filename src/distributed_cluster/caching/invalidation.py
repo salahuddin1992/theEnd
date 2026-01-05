@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class InvalidationType(Enum):
     """Types of cache invalidation."""
+
     KEY = "key"  # Single key invalidation
     PATTERN = "pattern"  # Pattern-based invalidation
     TAG = "tag"  # Tag-based invalidation
@@ -30,6 +31,7 @@ class InvalidationType(Enum):
 @dataclass
 class InvalidationEvent:
     """Represents a cache invalidation event."""
+
     event_id: str
     invalidation_type: InvalidationType
     key: Optional[str] = None
@@ -90,12 +92,7 @@ class InvalidationStrategy(ABC):
 class TTLInvalidation(InvalidationStrategy):
     """Time-to-live based cache invalidation."""
 
-    def __init__(
-        self,
-        cache: Cache,
-        default_ttl: int = 3600,
-        jitter_percent: float = 0.1
-    ):
+    def __init__(self, cache: Cache, default_ttl: int = 3600, jitter_percent: float = 0.1):
         super().__init__(cache)
         self.default_ttl = default_ttl
         self.jitter_percent = jitter_percent
@@ -103,6 +100,7 @@ class TTLInvalidation(InvalidationStrategy):
     def _get_ttl_with_jitter(self, ttl: int) -> int:
         """Add jitter to TTL to prevent thundering herd."""
         import random
+
         jitter = int(ttl * self.jitter_percent)
         return ttl + random.randint(-jitter, jitter)
 
@@ -129,7 +127,7 @@ class WriteThrough(InvalidationStrategy):
         cache: Cache,
         write_fn: Callable[[str, Any], bool],
         read_fn: Callable[[str], Any],
-        delete_fn: Optional[Callable[[str], bool]] = None
+        delete_fn: Optional[Callable[[str], bool]] = None,
     ):
         super().__init__(cache)
         self.write_fn = write_fn
@@ -179,7 +177,7 @@ class WriteBehind(InvalidationStrategy):
         delete_fn: Optional[Callable[[str], bool]] = None,
         batch_size: int = 100,
         flush_interval_ms: int = 1000,
-        max_retries: int = 3
+        max_retries: int = 3,
     ):
         super().__init__(cache)
         self.write_fn = write_fn
@@ -197,6 +195,7 @@ class WriteBehind(InvalidationStrategy):
 
     def _start_flush_threads(self):
         """Start background threads for flushing writes."""
+
         def flush_writes():
             while self._running:
                 batch = []
@@ -304,7 +303,7 @@ class CacheAside(InvalidationStrategy):
         load_fn: Callable[[str], Any],
         save_fn: Optional[Callable[[str, Any], bool]] = None,
         delete_fn: Optional[Callable[[str], bool]] = None,
-        default_ttl: int = 3600
+        default_ttl: int = 3600,
     ):
         super().__init__(cache)
         self.load_fn = load_fn
@@ -353,7 +352,7 @@ class RefreshAhead(InvalidationStrategy):
         cache: Cache,
         load_fn: Callable[[str], Any],
         default_ttl: int = 3600,
-        refresh_threshold: float = 0.75  # Refresh at 75% of TTL
+        refresh_threshold: float = 0.75,  # Refresh at 75% of TTL
     ):
         super().__init__(cache)
         self.load_fn = load_fn
@@ -428,13 +427,7 @@ class TagBasedInvalidation:
         self._tag_keys: Dict[str, Set[str]] = {}
         self._lock = threading.RLock()
 
-    def set(
-        self,
-        key: str,
-        value: Any,
-        tags: List[str],
-        ttl: Optional[int] = None
-    ) -> bool:
+    def set(self, key: str, value: Any, tags: List[str], ttl: Optional[int] = None) -> bool:
         """Set a value with associated tags."""
         result = self.cache.set(key, value, ttl)
 

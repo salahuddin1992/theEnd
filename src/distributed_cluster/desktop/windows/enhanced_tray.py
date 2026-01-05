@@ -45,6 +45,7 @@ from PySide6.QtWidgets import (
 
 class TrayStatus(str, Enum):
     """Tray status states"""
+
     DISCONNECTED = "disconnected"
     CONNECTING = "connecting"
     CONNECTED = "connected"
@@ -55,6 +56,7 @@ class TrayStatus(str, Enum):
 @dataclass
 class QuickAction:
     """Quick action definition"""
+
     id: str
     name: str
     icon: str = ""
@@ -68,6 +70,7 @@ class QuickAction:
 @dataclass
 class ClusterStatus:
     """Cluster status information"""
+
     connected: bool = False
     server_name: str = ""
     running_jobs: int = 0
@@ -183,7 +186,8 @@ class StatusWidget(QFrame):
 
         # Progress bar for active jobs
         self.job_progress = QProgressBar()
-        self.job_progress.setStyleSheet(f"""
+        self.job_progress.setStyleSheet(
+            f"""
             QProgressBar {{
                 border: none;
                 border-radius: 4px;
@@ -195,19 +199,22 @@ class StatusWidget(QFrame):
                 background-color: {FLUENT_COLORS['accent']};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
         self.job_progress.setTextVisible(False)
         self.job_progress.setMaximum(100)
         self.job_progress.setValue(0)
         self.job_progress.setVisible(False)
         layout.addWidget(self.job_progress)
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {FLUENT_COLORS['bg_medium']};
                 border-radius: 8px;
             }}
-        """)
+        """
+        )
 
     def _create_stat_label(self, title: str, value: str) -> QWidget:
         """Create a stat label widget"""
@@ -248,9 +255,7 @@ class StatusWidget(QFrame):
         self.pending_label.findChild(QLabel, "value").setText(str(status.pending_jobs))
         self.completed_label.findChild(QLabel, "value").setText(str(status.completed_jobs))
 
-        self.workers_label.findChild(QLabel, "value").setText(
-            f"{status.active_workers}/{status.total_workers}"
-        )
+        self.workers_label.findChild(QLabel, "value").setText(f"{status.active_workers}/{status.total_workers}")
         self.cpu_label.findChild(QLabel, "value").setText(f"{status.cpu_usage:.0f}%")
         self.memory_label.findChild(QLabel, "value").setText(f"{status.memory_usage:.0f}%")
 
@@ -292,7 +297,8 @@ class QuickActionsWidget(QFrame):
 
             btn = QPushButton(action.name)
             btn.setEnabled(action.enabled)
-            btn.setStyleSheet(f"""
+            btn.setStyleSheet(
+                f"""
                 QPushButton {{
                     background-color: transparent;
                     color: {FLUENT_COLORS['text_primary']};
@@ -311,7 +317,8 @@ class QuickActionsWidget(QFrame):
                 QPushButton:disabled {{
                     color: {FLUENT_COLORS['text_secondary']};
                 }}
-            """)
+            """
+            )
 
             if action.callback:
                 btn.clicked.connect(action.callback)
@@ -321,12 +328,14 @@ class QuickActionsWidget(QFrame):
             layout.addWidget(btn)
             self._buttons[action.id] = btn
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {FLUENT_COLORS['bg_medium']};
                 border-radius: 8px;
             }}
-        """)
+        """
+        )
 
     def update_action(self, action_id: str, enabled: bool = None, visible: bool = None):
         """Update action state"""
@@ -446,7 +455,8 @@ class EnhancedSystemTray(QObject):
 
     def _setup_menu(self):
         """Setup context menu"""
-        self._menu.setStyleSheet(f"""
+        self._menu.setStyleSheet(
+            f"""
             QMenu {{
                 background-color: {FLUENT_COLORS['bg_medium']};
                 border: 1px solid {FLUENT_COLORS['border']};
@@ -466,7 +476,8 @@ class EnhancedSystemTray(QObject):
                 background-color: {FLUENT_COLORS['border']};
                 margin: 4px 8px;
             }}
-        """)
+        """
+        )
 
         # Status widget
         self._status_widget = StatusWidget()

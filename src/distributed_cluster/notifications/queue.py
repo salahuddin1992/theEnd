@@ -38,15 +38,16 @@ logger = logging.getLogger(__name__)
 class QueueOverflowPolicy(str, Enum):
     """سياسة تجاوز سعة الطابور."""
 
-    DROP_OLDEST = "drop_oldest"      # إسقاط الأقدم
-    DROP_NEWEST = "drop_newest"      # إسقاط الأحدث
-    DROP_LOWEST = "drop_lowest"      # إسقاط الأقل أولوية
-    BLOCK = "block"                  # انتظار حتى توفر مساحة
-    RAISE = "raise"                  # رفع استثناء
+    DROP_OLDEST = "drop_oldest"  # إسقاط الأقدم
+    DROP_NEWEST = "drop_newest"  # إسقاط الأحدث
+    DROP_LOWEST = "drop_lowest"  # إسقاط الأقل أولوية
+    BLOCK = "block"  # انتظار حتى توفر مساحة
+    RAISE = "raise"  # رفع استثناء
 
 
 class QueueFullError(Exception):
     """خطأ امتلاء الطابور."""
+
     pass
 
 
@@ -133,7 +134,8 @@ class NotificationQueue:
 
         self.persistence_path.parent.mkdir(parents=True, exist_ok=True)
         self._db = sqlite3.connect(str(self.persistence_path))
-        self._db.execute("""
+        self._db.execute(
+            """
             CREATE TABLE IF NOT EXISTS notification_queue (
                 id TEXT PRIMARY KEY,
                 priority INTEGER,
@@ -141,11 +143,14 @@ class NotificationQueue:
                 data TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-        self._db.execute("""
+        """
+        )
+        self._db.execute(
+            """
             CREATE INDEX IF NOT EXISTS idx_queue_priority
             ON notification_queue(priority DESC, timestamp ASC)
-        """)
+        """
+        )
         self._db.commit()
 
         # Load persisted notifications
@@ -156,9 +161,7 @@ class NotificationQueue:
         if not self._db:
             return
 
-        cursor = self._db.execute(
-            "SELECT data FROM notification_queue ORDER BY priority DESC, timestamp ASC"
-        )
+        cursor = self._db.execute("SELECT data FROM notification_queue ORDER BY priority DESC, timestamp ASC")
         for (data,) in cursor.fetchall():
             try:
                 notif_dict = json.loads(data)
@@ -467,13 +470,10 @@ class MultiPriorityQueue:
         }
 
         self._queues: Dict[NotificationPriority, asyncio.Queue] = {
-            priority: asyncio.Queue(maxsize=max_size_per_priority)
-            for priority in NotificationPriority
+            priority: asyncio.Queue(maxsize=max_size_per_priority) for priority in NotificationPriority
         }
 
-        self._counters: Dict[NotificationPriority, int] = {
-            priority: 0 for priority in NotificationPriority
-        }
+        self._counters: Dict[NotificationPriority, int] = {priority: 0 for priority in NotificationPriority}
 
     async def put(self, notification: Notification) -> bool:
         """إضافة إشعار."""

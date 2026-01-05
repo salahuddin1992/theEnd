@@ -20,15 +20,17 @@ logger = logging.getLogger(__name__)
 
 class IsolationLevel(str, Enum):
     """مستوى العزل"""
-    SHARED = "shared"           # مشترك - نفس مساحة الأسماء
-    NAMESPACE = "namespace"     # معزول بمساحة أسماء
-    DEDICATED = "dedicated"     # معزول بعقد مخصصة
-    CLUSTER = "cluster"         # كلاستر منفصل
+
+    SHARED = "shared"  # مشترك - نفس مساحة الأسماء
+    NAMESPACE = "namespace"  # معزول بمساحة أسماء
+    DEDICATED = "dedicated"  # معزول بعقد مخصصة
+    CLUSTER = "cluster"  # كلاستر منفصل
 
 
 @dataclass
 class IsolationPolicy:
     """سياسة العزل"""
+
     level: IsolationLevel
     network_isolated: bool = False
     storage_isolated: bool = False
@@ -143,33 +145,27 @@ class TenantIsolator:
         }
 
         # Allow ingress from same namespace
-        network_policy["spec"]["ingress"].append({
-            "from": [{"podSelector": {}}]
-        })
+        network_policy["spec"]["ingress"].append({"from": [{"podSelector": {}}]})
 
         # Allow egress if permitted
         if policy.allow_egress:
-            network_policy["spec"]["egress"].append({
-                "to": [{"podSelector": {}}]  # Same namespace
-            })
+            network_policy["spec"]["egress"].append({"to": [{"podSelector": {}}]})  # Same namespace
             # Allow DNS
-            network_policy["spec"]["egress"].append({
-                "to": [{"namespaceSelector": {"matchLabels": {"name": "kube-system"}}}],
-                "ports": [{"protocol": "UDP", "port": 53}],
-            })
+            network_policy["spec"]["egress"].append(
+                {
+                    "to": [{"namespaceSelector": {"matchLabels": {"name": "kube-system"}}}],
+                    "ports": [{"protocol": "UDP", "port": 53}],
+                }
+            )
 
         # Add allowed namespaces
         for ns in policy.allowed_namespaces:
-            network_policy["spec"]["ingress"].append({
-                "from": [{"namespaceSelector": {"matchLabels": {"name": ns}}}]
-            })
+            network_policy["spec"]["ingress"].append({"from": [{"namespaceSelector": {"matchLabels": {"name": ns}}}]})
 
         # Add allowed IPs for egress
         if policy.allowed_ips:
             for ip in policy.allowed_ips:
-                network_policy["spec"]["egress"].append({
-                    "to": [{"ipBlock": {"cidr": ip}}]
-                })
+                network_policy["spec"]["egress"].append({"to": [{"ipBlock": {"cidr": ip}}]})
 
         return network_policy
 
@@ -204,9 +200,7 @@ class TenantIsolator:
         if policy.level == IsolationLevel.DEDICATED:
             resources = job_spec.get("resources", {})
             # Validate against dedicated node capacity
-            capacity_valid, capacity_error = self._validate_dedicated_node_capacity(
-                tenant_id, resources, policy
-            )
+            capacity_valid, capacity_error = self._validate_dedicated_node_capacity(tenant_id, resources, policy)
             if not capacity_valid:
                 errors.append(capacity_error)
 
@@ -245,7 +239,7 @@ class TenantIsolator:
         # Get allowed registries from policy metadata
         allowed_registries = (
             policy.metadata.get("allowed_registries", default_allowed)
-            if hasattr(policy, 'metadata')
+            if hasattr(policy, "metadata")
             else default_allowed
         )
 
@@ -308,7 +302,7 @@ class TenantIsolator:
         requested_gpu = resources.get("gpu", 0)
 
         # Get dedicated node capacity from policy metadata
-        node_capacity = getattr(policy, 'metadata', {}).get("node_capacity", {}) if hasattr(policy, 'metadata') else {}
+        node_capacity = getattr(policy, "metadata", {}).get("node_capacity", {}) if hasattr(policy, "metadata") else {}
 
         if not node_capacity:
             # If no capacity info, assume sufficient capacity
