@@ -15,13 +15,11 @@ Predefined AI tasks ready to use:
 
 from __future__ import annotations
 
-import json
 import logging
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -842,7 +840,10 @@ Rewritten text:""",
                     param_type=ParameterType.SELECT,
                     description="Why you're rewriting",
                     default="improve_clarity",
-                    options=["improve_clarity", "simplify", "formalize", "make_casual", "remove_jargon", "seo_optimize"],
+                    options=[
+                        "improve_clarity", "simplify", "formalize",
+                        "make_casual", "remove_jargon", "seo_optimize"
+                    ],
                 ),
                 TaskParameter(
                     name="style",

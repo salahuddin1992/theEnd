@@ -774,7 +774,10 @@ class SQLiteDatabase(Database):
 
     async def update_lease_state(self, lease_id: str, state: LeaseState) -> bool:
         """تحديث حالة lease."""
-        released_at = datetime.now(timezone.utc).isoformat() if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
+        released_at = (
+            datetime.now(timezone.utc).isoformat()
+            if state in (LeaseState.RELEASED, LeaseState.REVOKED) else None
+        )
 
         cursor = await self._connection.execute(
             """

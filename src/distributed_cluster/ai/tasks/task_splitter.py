@@ -14,7 +14,6 @@ Features:
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import logging
 import re
@@ -23,7 +22,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 from distributed_cluster.ai.tasks.builtin_tasks import AITask, TaskResult
 
@@ -763,7 +762,10 @@ class DistributedPromptExecutor:
         on_progress: Optional[Callable[[float, str], None]] = None,
     ) -> List[Any]:
         """تنفيذ القطع بالتوازي."""
-        semaphore = asyncio.Semaphore(len(self._workers) * self.max_concurrent if self._workers else self.max_concurrent)
+        max_concurrency = (
+            len(self._workers) * self.max_concurrent if self._workers else self.max_concurrent
+        )
+        semaphore = asyncio.Semaphore(max_concurrency)
 
         async def execute_chunk(chunk: TaskChunk) -> Any:
             async with semaphore:
@@ -866,7 +868,7 @@ class DistributedPromptExecutor:
                     response.raise_for_status()
                     return response.json()
 
-                except httpx.HTTPError as e:
+                except httpx.HTTPError:
                     if attempt == self.retry_count:
                         raise
                     await asyncio.sleep(2**attempt)

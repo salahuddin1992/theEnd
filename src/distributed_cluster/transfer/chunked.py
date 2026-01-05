@@ -7,7 +7,6 @@ Chunked file transfer with resume support.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import logging

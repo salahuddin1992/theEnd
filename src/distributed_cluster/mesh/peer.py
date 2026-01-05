@@ -191,5 +191,8 @@ class PeerConnection:
             "connected_at": self.connected_at.isoformat() if self.connected_at else None,
             "messages_sent": self.messages_sent,
             "messages_received": self.messages_received,
-            "uptime_seconds": (datetime.now(timezone.utc) - self.connected_at).total_seconds() if self.connected_at else 0,
+            "uptime_seconds": (
+                (datetime.now(timezone.utc) - self.connected_at).total_seconds()
+                if self.connected_at else 0
+            ),
         }
