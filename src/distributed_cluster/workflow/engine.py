@@ -11,7 +11,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -23,7 +23,7 @@ except ImportError:
     CRONITER_AVAILABLE = False
 
 from distributed_cluster.models.job import Job
-from distributed_cluster.models.resources import ResourceRequirements
+from distributed_cluster.models import ResourceRequirements
 from distributed_cluster.scheduler.dag import (
     DAG,
     DAGBuilder,
