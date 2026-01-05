@@ -5,6 +5,7 @@ NebulaCompute Desktop - View Pages
 All main application views/pages.
 """
 
+from .ai_tasks import AITasksView
 from .jobs import FluentJobsView
 from .logs import FluentLogsView
 from .metrics import FluentMetricsView
@@ -23,4 +24,5 @@ __all__ = [
     "FluentTemplatesView",
     "FluentPoolsView",
     "FluentQueuesView",
+    "AITasksView",
 ]

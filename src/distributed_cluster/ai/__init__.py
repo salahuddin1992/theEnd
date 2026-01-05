@@ -90,6 +90,19 @@ from distributed_cluster.ai.model_cache import (
     ModelInfo as CacheModelInfo,
 )
 from distributed_cluster.ai.models.registry import ModelRegistry
+from distributed_cluster.ai.tasks import (
+    AITask,
+    AITaskCategory,
+    AITaskRegistry,
+    BuiltinTasks,
+    ChunkingStrategy,
+    DistributedPromptExecutor,
+    TaskChunk,
+    TaskParameter,
+    TaskResult,
+    TaskSplitter,
+    get_builtin_tasks,
+)
 
 __all__ = [
     # Base Classes
@@ -154,4 +167,17 @@ __all__ = [
     "CacheModelInfo",
     "ModelLoader",
     "CacheStats",
+    # AI Tasks
+    "AITask",
+    "AITaskCategory",
+    "AITaskRegistry",
+    "BuiltinTasks",
+    "TaskParameter",
+    "TaskResult",
+    "get_builtin_tasks",
+    # Task Splitting
+    "TaskSplitter",
+    "TaskChunk",
+    "ChunkingStrategy",
+    "DistributedPromptExecutor",
 ]

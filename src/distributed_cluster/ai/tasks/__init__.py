@@ -20,6 +20,7 @@ from .builtin_tasks import (
     AITaskCategory,
     AITaskRegistry,
     BuiltinTasks,
+    ParameterType,
     TaskParameter,
     TaskResult,
     get_builtin_tasks,
@@ -27,10 +28,15 @@ from .builtin_tasks import (
 
 # Task splitting for distributed execution
 from .task_splitter import (
+    AggregationStrategy,
     ChunkingStrategy,
     DistributedPromptExecutor,
+    ResultAggregator,
+    SplitTask,
     TaskChunk,
     TaskSplitter,
+    TextChunker,
+    WorkerInfo,
 )
 
 __all__ = [
@@ -48,6 +54,7 @@ __all__ = [
     "AITaskCategory",
     "AITaskRegistry",
     "BuiltinTasks",
+    "ParameterType",
     "TaskParameter",
     "TaskResult",
     "get_builtin_tasks",
@@ -55,5 +62,10 @@ __all__ = [
     "TaskSplitter",
     "TaskChunk",
     "ChunkingStrategy",
+    "AggregationStrategy",
     "DistributedPromptExecutor",
+    "TextChunker",
+    "ResultAggregator",
+    "SplitTask",
+    "WorkerInfo",
 ]
