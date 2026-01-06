@@ -49,8 +49,8 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          # Use the new build.py script from project root
-          python build.py --mode optimized --version ${{ steps.version.outputs.version }}
+          # Use the new pyinstaller_build.py script from project root
+          python pyinstaller_build.py --mode optimized --version ${{ steps.version.outputs.version }}
 
       - name: Create NSIS Installer
         run: |
@@ -118,8 +118,8 @@ jobs:
 
       - name: Build executable
         run: |
-          # Use the new build.py script from project root
-          python build.py --mode optimized --version ${{ steps.version.outputs.version }}
+          # Use the new pyinstaller_build.py script from project root
+          python pyinstaller_build.py --mode optimized --version ${{ steps.version.outputs.version }}
 
       - name: Create AppImage
         run: |
@@ -173,8 +173,8 @@ jobs:
 
       - name: Build executable
         run: |
-          # Use the new build.py script from project root
-          python build.py --mode optimized --version ${{ steps.version.outputs.version }}
+          # Use the new pyinstaller_build.py script from project root
+          python pyinstaller_build.py --mode optimized --version ${{ steps.version.outputs.version }}
 
       - name: Create DMG
         run: |

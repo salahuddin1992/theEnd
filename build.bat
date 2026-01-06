@@ -49,29 +49,29 @@ goto :run_with_args
 :run
 if "%ACTION%"=="clean" (
     echo %YELLOW%Cleaning build artifacts...%RESET%
-    python build.py --clean
+    python pyinstaller_build.py --clean
     goto :end
 )
 
 if "%ACTION%"=="install" (
     echo %YELLOW%Installing dependencies...%RESET%
-    python build.py --install-deps
+    python pyinstaller_build.py --install-deps
     goto :end
 )
 
 if "%ACTION%"=="info" (
-    python build.py --info
+    python pyinstaller_build.py --info
     goto :end
 )
 
 :: Run build with mode
 echo %GREEN%Building with mode: %MODE%%RESET%
-python build.py --mode %MODE%
+python pyinstaller_build.py --mode %MODE%
 goto :end
 
 :run_with_args
 echo %GREEN%Running with custom arguments...%RESET%
-python build.py %EXTRA_ARGS%
+python pyinstaller_build.py %EXTRA_ARGS%
 goto :end
 
 :help
@@ -88,7 +88,7 @@ echo   install     Install build dependencies
 echo   info        Show build configuration info
 echo   help        Show this help message
 echo.
-echo Advanced options (pass directly to build.py):
+echo Advanced options (pass directly to pyinstaller_build.py):
 echo   --onedir    Create one-directory bundle
 echo   --console   Enable console window
 echo   --no-upx    Disable UPX compression
