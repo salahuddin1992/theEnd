@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NebulaCompute Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .glow-blue {
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+        }
+
+        .glow-purple {
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.15);
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            transition: width 0.5s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            transition: all 0.3s ease;
+        }
+
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="text-white p-4 md:p-6">
+    <!-- Background Effects -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-float"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-float" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-3xl shadow-lg shadow-blue-500/30 glow-blue">
+                    ☁️
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-cyan-200 bg-clip-text text-transparent">
+                        NebulaCompute
+                    </h1>
+                    <p class="text-slate-400 text-sm mt-1">Distributed Computing Dashboard • Real-time Monitoring</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-2 px-4 py-2.5 glass-card rounded-xl">
+                    <span class="text-xl">🕐</span>
+                    <span id="currentTime" class="text-sm text-slate-300 font-mono">--:--:--</span>
+                </div>
+                <button onclick="refreshData()" class="px-5 py-2.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 rounded-xl text-blue-400 transition-all flex items-center gap-2 hover:scale-105">
+                    <span id="refreshIcon">🔄</span>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-blue-500/20 text-blue-400 border border-blue-500/40">
+                📊 Overview
+            </button>
+            <button onclick="switchTab('workers')" id="tab-workers" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-slate-800/40 text-slate-400 border border-slate-700/40 hover:bg-slate-700/40">
+                🖥️ Workers
+            </button>
+            <button onclick="switchTab('jobs')" id="tab-jobs" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-slate-800/40 text-slate-400 border border-slate-700/40 hover:bg-slate-700/40">
+                📋 Jobs
+            </button>
+            <button onclick="switchTab('metrics')" id="tab-metrics" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap bg-slate-800/40 text-slate-400 border border-slate-700/40 hover:bg-slate-700/40">
+                📈 Metrics
+            </button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card glass-card rounded-2xl p-5 glow-blue cursor-pointer">
+                <div class="flex items-start justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl">🖥️</div>
+                    <span class="text-sm font-medium text-emerald-400 flex items-center gap-1">↑ 5%</span>
+                </div>
+                <div class="mt-4">
+                    <h3 id="activeWorkers" class="text-3xl font-bold text-white">4</h3>
+                    <p class="text-sm text-slate-400 mt-1">Active Workers</p>
+                    <p id="totalWorkers" class="text-xs text-slate-500 mt-1">5 total nodes</p>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card rounded-2xl p-5 cursor-pointer">
+                <div class="flex items-start justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-2xl">⚡</div>
+                </div>
+                <div class="mt-4">
+                    <h3 id="runningJobs" class="text-3xl font-bold text-white">3</h3>
+                    <p class="text-sm text-slate-400 mt-1">Running Jobs</p>
+                    <p id="pendingJobs" class="text-xs text-slate-500 mt-1">1 pending</p>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card rounded-2xl p-5 cursor-pointer">
+                <div class="flex items-start justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-2xl">✅</div>
+                    <span class="text-sm font-medium text-emerald-400 flex items-center gap-1">↑ 12%</span>
+                </div>
+                <div class="mt-4">
+                    <h3 id="completedJobs" class="text-3xl font-bold text-white">1</h3>
+                    <p class="text-sm text-slate-400 mt-1">Completed</p>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card rounded-2xl p-5 cursor-pointer">
+                <div class="flex items-start justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-2xl">❌</div>
+                    <span class="text-sm font-medium text-red-400 flex items-center gap-1">↓ 3%</span>
+                </div>
+                <div class="mt-4">
+                    <h3 id="failedJobs" class="text-3xl font-bold text-white">1</h3>
+                    <p class="text-sm text-slate-400 mt-1">Failed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="stat-card glass-card rounded-2xl p-5 glow-purple cursor-pointer">
+                <div class="flex items-start justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-2xl">🔲</div>
+                </div>
+                <div class="mt-4">
+                    <h3 id="cpuUsage" class="text-3xl font-bold text-white">64%</h3>
+                    <p class="text-sm text-slate-400 mt-1">CPU Usage</p>
+                    <p class="text-xs text-slate-500 mt-1">Cluster average</p>
+                    <div class="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div id="cpuBar" class="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-500" style="width: 64%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card rounded-2xl p-5 cursor-pointer">
+                <div class="flex items-start justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-2xl">💾</div>
+                </div>
+                <div class="mt-4">
+                    <h3 id="memoryUsage" class="text-3xl font-bold text-white">68%</h3>
+                    <p class="text-sm text-slate-400 mt-1">Memory Usage</p>
+                    <p class="text-xs text-slate-500 mt-1">Cluster average</p>
+                    <div class="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div id="memoryBar" class="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500" style="width: 68%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card glass-card rounded-2xl p-5 cursor-pointer">
+                <div class="flex items-start justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-2xl">🎮</div>
+                </div>
+                <div class="mt-4">
+                    <h3 id="gpuUnits" class="text-3xl font-bold text-white">15</h3>
+                    <p class="text-sm text-slate-400 mt-1">GPU Units</p>
+                    <p class="text-xs text-slate-500 mt-1">Active GPUs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Resource Usage Chart -->
+            <div class="lg:col-span-2 glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    📊 Resource Usage Over Time
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="resourceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Job Distribution -->
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    🎯 Job Distribution
+                </h3>
+                <div class="relative h-48">
+                    <canvas id="jobChart"></canvas>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-4">
+                    <div class="flex items-center gap-2 text-xs">
+                        <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                        <span class="text-slate-400">Running: <span id="runningCount">3</span></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                        <span class="text-slate-400">Completed: <span id="completedCount">1</span></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                        <span class="text-slate-400">Pending: <span id="pendingCount">1</span></span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span class="text-slate-400">Failed: <span id="failedCount">1</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workers & Jobs Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Workers -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">🖥️ Worker Nodes</h3>
+                    <span id="workerCount" class="text-xs text-slate-400 bg-slate-700/50 px-3 py-1 rounded-full">4/5 online</span>
+                </div>
+                <div id="workersContainer" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    <!-- Workers will be injected here -->
+                </div>
+            </div>
+
+            <!-- Jobs -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">📋 Recent Jobs</h3>
+                    <span id="jobCount" class="text-xs text-slate-400 bg-slate-700/50 px-3 py-1 rounded-full">6 jobs</span>
+                </div>
+                <div id="jobsContainer" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    <!-- Jobs will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-10 text-center text-slate-500 text-sm border-t border-slate-800 pt-6">
+            <p class="flex items-center justify-center gap-2">
+                <span class="text-xl">☁️</span>
+                <span class="font-semibold text-slate-400">NebulaCompute</span> v2.0.0 • Distributed Computing Platform
+            </p>
+            <p class="mt-2">© 2025 theEnd Project • Built with ❤️ by Dawood</p>
+        </footer>
+    </div>
+
+    <script>
+        // Data
+        let workers = [
+            { id: 'w-001', hostname: 'nebula-node-01', status: 'ready', cpu: 45, memory: 62, gpu: 2, jobs: 3 },
+            { id: 'w-002', hostname: 'nebula-node-02', status: 'busy', cpu: 87, memory: 78, gpu: 4, jobs: 8 },
+            { id: 'w-003', hostname: 'nebula-node-03', status: 'ready', cpu: 32, memory: 45, gpu: 1, jobs: 2 },
+            { id: 'w-004', hostname: 'nebula-gpu-01', status: 'busy', cpu: 91, memory: 85, gpu: 8, jobs: 12 },
+            { id: 'w-005', hostname: 'nebula-edge-01', status: 'offline', cpu: 0, memory: 0, gpu: 0, jobs: 0 },
+        ];
+
+        let jobs = [
+            { id: 'job-a1b2', name: 'AI Model Training - GPT Fine-tune', status: 'running', progress: 67, priority: 'high' },
+            { id: 'job-c3d4', name: 'Data Pipeline ETL Process', status: 'running', progress: 34, priority: 'medium' },
+            { id: 'job-e5f6', name: 'Image Processing Batch', status: 'completed', progress: 100, priority: 'low' },
+            { id: 'job-g7h8', name: 'Distributed Computing Task', status: 'pending', progress: 0, priority: 'high' },
+            { id: 'job-i9j0', name: 'ML Inference Pipeline', status: 'failed', progress: 45, priority: 'critical' },
+            { id: 'job-k1l2', name: 'Vector Embedding Generation', status: 'running', progress: 82, priority: 'medium' },
+        ];
+
+        let resourceChart, jobChart;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            renderWorkers();
+            renderJobs();
+            initCharts();
+
+            // Auto-update jobs progress
+            setInterval(updateJobsProgress, 2000);
+        });
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-500/20', 'text-blue-400', 'border-blue-500/40');
+                btn.classList.add('bg-slate-800/40', 'text-slate-400', 'border-slate-700/40');
+            });
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.classList.remove('bg-slate-800/40', 'text-slate-400', 'border-slate-700/40');
+            activeBtn.classList.add('bg-blue-500/20', 'text-blue-400', 'border-blue-500/40');
+        }
+
+        function refreshData() {
+            const icon = document.getElementById('refreshIcon');
+            icon.style.animation = 'spin 1s linear infinite';
+
+            // Simulate refresh
+            setTimeout(() => {
+                icon.style.animation = '';
+                updateStats();
+                updateCharts();
+            }, 1000);
+        }
+
+        function renderWorkers() {
+            const container = document.getElementById('workersContainer');
+            container.innerHTML = workers.map(worker => {
+                const statusColors = {
+                    ready: { dot: 'bg-emerald-500', badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' },
+                    busy: { dot: 'bg-amber-500', badge: 'bg-amber-500/20 text-amber-400 border-amber-500/40' },
+                    offline: { dot: 'bg-red-500', badge: 'bg-red-500/20 text-red-400 border-red-500/40' }
+                };
+                const style = statusColors[worker.status];
+
+                return `
+                    <div class="bg-slate-800/40 rounded-xl p-4 border border-slate-700/40 hover:border-slate-600/60 transition-all hover:bg-slate-800/60">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full ${style.dot} pulse-dot"></div>
+                                <span class="font-medium text-white text-sm">${worker.hostname}</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-md text-xs font-medium border ${style.badge}">${worker.status}</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 text-xs">
+                            <div class="text-center p-2 bg-slate-700/30 rounded-lg">
+                                <div class="text-slate-400">CPU</div>
+                                <div class="text-white font-bold mt-1">${worker.cpu}%</div>
+                            </div>
+                            <div class="text-center p-2 bg-slate-700/30 rounded-lg">
+                                <div class="text-slate-400">RAM</div>
+                                <div class="text-white font-bold mt-1">${worker.memory}%</div>
+                            </div>
+                            <div class="text-center p-2 bg-slate-700/30 rounded-lg">
+                                <div class="text-slate-400">GPU</div>
+                                <div class="text-white font-bold mt-1">${worker.gpu}</div>
+                            </div>
+                            <div class="text-center p-2 bg-slate-700/30 rounded-lg">
+                                <div class="text-slate-400">Jobs</div>
+                                <div class="text-white font-bold mt-1">${worker.jobs}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderJobs() {
+            const container = document.getElementById('jobsContainer');
+            container.innerHTML = jobs.map(job => {
+                const statusConfig = {
+                    running: { color: 'text-amber-400', bg: 'bg-amber-500/20', icon: '⚡', border: 'border-amber-500/40' },
+                    completed: { color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: '✓', border: 'border-emerald-500/40' },
+                    failed: { color: 'text-red-400', bg: 'bg-red-500/20', icon: '✕', border: 'border-red-500/40' },
+                    pending: { color: 'text-blue-400', bg: 'bg-blue-500/20', icon: '◷', border: 'border-blue-500/40' }
+                };
+                const priorityColors = {
+                    critical: 'text-red-400 bg-red-500/10 border border-red-500/30',
+                    high: 'text-amber-400 bg-amber-500/10 border border-amber-500/30',
+                    medium: 'text-blue-400 bg-blue-500/10 border border-blue-500/30',
+                    low: 'text-slate-400 bg-slate-500/10 border border-slate-500/30'
+                };
+                const config = statusConfig[job.status];
+
+                return `
+                    <div class="flex items-center justify-between p-4 bg-slate-800/40 rounded-xl border border-slate-700/40 hover:border-slate-600/60 transition-all hover:bg-slate-800/60">
+                        <div class="flex items-center gap-3">
+                            <span class="w-9 h-9 rounded-lg ${config.bg} ${config.color} flex items-center justify-center text-lg border ${config.border}">${config.icon}</span>
+                            <div>
+                                <h4 class="font-medium text-white text-sm">${job.name}</h4>
+                                <p class="text-xs text-slate-500">${job.id}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-medium px-2 py-1 rounded-md ${priorityColors[job.priority]}">${job.priority}</span>
+                            ${job.status === 'running' ? `
+                                <div class="w-20">
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-500">Progress</span>
+                                        <span class="text-white">${job.progress}%</span>
+                                    </div>
+                                    <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full progress-bar rounded-full" style="width: ${job.progress}%"></div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <span class="px-2 py-1 rounded-md text-xs font-medium ${config.bg} ${config.color} border ${config.border}">${job.status}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateJobsProgress() {
+            let updated = false;
+            jobs = jobs.map(job => {
+                if (job.status === 'running' && job.progress < 100) {
+                    const newProgress = Math.min(100, job.progress + Math.floor(Math.random() * 3));
+                    updated = true;
+                    return {
+                        ...job,
+                        progress: newProgress,
+                        status: newProgress >= 100 ? 'completed' : 'running'
+                    };
+                }
+                return job;
+            });
+
+            if (updated) {
+                renderJobs();
+                updateStats();
+                updateJobChart();
+            }
+        }
+
+        function updateStats() {
+            const activeWorkers = workers.filter(w => w.status !== 'offline').length;
+            const running = jobs.filter(j => j.status === 'running').length;
+            const pending = jobs.filter(j => j.status === 'pending').length;
+            const completed = jobs.filter(j => j.status === 'completed').length;
+            const failed = jobs.filter(j => j.status === 'failed').length;
+
+            const onlineWorkers = workers.filter(w => w.status !== 'offline');
+            const avgCpu = Math.round(onlineWorkers.reduce((a, w) => a + w.cpu, 0) / onlineWorkers.length);
+            const avgMemory = Math.round(onlineWorkers.reduce((a, w) => a + w.memory, 0) / onlineWorkers.length);
+            const totalGpu = workers.reduce((a, w) => a + w.gpu, 0);
+
+            document.getElementById('activeWorkers').textContent = activeWorkers;
+            document.getElementById('totalWorkers').textContent = `${workers.length} total nodes`;
+            document.getElementById('runningJobs').textContent = running;
+            document.getElementById('pendingJobs').textContent = `${pending} pending`;
+            document.getElementById('completedJobs').textContent = completed;
+            document.getElementById('failedJobs').textContent = failed;
+            document.getElementById('cpuUsage').textContent = `${avgCpu}%`;
+            document.getElementById('cpuBar').style.width = `${avgCpu}%`;
+            document.getElementById('memoryUsage').textContent = `${avgMemory}%`;
+            document.getElementById('memoryBar').style.width = `${avgMemory}%`;
+            document.getElementById('gpuUnits').textContent = totalGpu;
+            document.getElementById('workerCount').textContent = `${activeWorkers}/${workers.length} online`;
+            document.getElementById('jobCount').textContent = `${jobs.length} jobs`;
+
+            document.getElementById('runningCount').textContent = running;
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('failedCount').textContent = failed;
+        }
+
+        function initCharts() {
+            // Resource Chart
+            const resourceCtx = document.getElementById('resourceChart').getContext('2d');
+            const labels = [];
+            const cpuData = [];
+            const memoryData = [];
+
+            for (let i = 20; i >= 0; i--) {
+                labels.push(`${String(23 - i).padStart(2, '0')}:00`);
+                cpuData.push(Math.floor(30 + Math.random() * 50 + Math.sin(i / 3) * 15));
+                memoryData.push(Math.floor(40 + Math.random() * 35 + Math.cos(i / 4) * 10));
+            }
+
+            resourceChart = new Chart(resourceCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'CPU %',
+                            data: cpuData,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Memory %',
+                            data: memoryData,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(71, 85, 105, 0.3)' },
+                            ticks: { color: '#64748b' }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(71, 85, 105, 0.3)' },
+                            ticks: { color: '#64748b' }
+                        }
+                    }
+                }
+            });
+
+            // Job Distribution Chart
+            const jobCtx = document.getElementById('jobChart').getContext('2d');
+            jobChart = new Chart(jobCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Running', 'Completed', 'Pending', 'Failed'],
+                    datasets: [{
+                        data: [
+                            jobs.filter(j => j.status === 'running').length,
+                            jobs.filter(j => j.status === 'completed').length,
+                            jobs.filter(j => j.status === 'pending').length,
+                            jobs.filter(j => j.status === 'failed').length
+                        ],
+                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'],
+                        borderWidth: 0,
+                        spacing: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateJobChart() {
+            if (jobChart) {
+                jobChart.data.datasets[0].data = [
+                    jobs.filter(j => j.status === 'running').length,
+                    jobs.filter(j => j.status === 'completed').length,
+                    jobs.filter(j => j.status === 'pending').length,
+                    jobs.filter(j => j.status === 'failed').length
+                ];
+                jobChart.update();
+            }
+        }
+
+        function updateCharts() {
+            if (resourceChart) {
+                resourceChart.data.datasets[0].data = resourceChart.data.datasets[0].data.map(() =>
+                    Math.floor(30 + Math.random() * 50)
+                );
+                resourceChart.data.datasets[1].data = resourceChart.data.datasets[1].data.map(() =>
+                    Math.floor(40 + Math.random() * 35)
+                );
+                resourceChart.update();
+            }
+            updateJobChart();
+        }
+
+        // CSS Animation for refresh icon
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
