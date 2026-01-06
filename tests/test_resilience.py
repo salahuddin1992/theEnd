@@ -5,30 +5,24 @@ Tests for Resilience Module.
 Tests for load shedding and capacity planning features.
 """
 
-import asyncio
 from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock
 
-import numpy as np
 import pytest
 
 from distributed_cluster.resilience import (
-    CapacityPlanner,
     CapacityConfig,
     CapacityForecast,
-    CapacityRecommendation,
+    CapacityPlanner,
     GrowthModel,
+    LoadMetrics,
     LoadShedder,
     LoadSheddingPolicy,
-    LoadSheddingStrategy,
-    LoadMetrics,
     PriorityLevel,
     QueuedRequest,
     ResourceTrend,
     ResourceType,
     SheddingDecision,
 )
-
 
 # =============================================================================
 # Load Shedding Tests

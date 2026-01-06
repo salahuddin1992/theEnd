@@ -6,22 +6,19 @@ Tests for Advanced Analytics Module
 اختبارات وحدة التحليلات المتقدمة.
 """
 
-import asyncio
-import pytest
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, AsyncMock
+
+import pytest
 
 from distributed_cluster.analytics.advanced_analytics import (
+    AdvancedAnalyticsEngine,
     AnomalyDetector,
     AnomalyType,
-    AlertSeverity,
-    WorkloadClassifier,
-    WorkloadCategory,
     CostPredictor,
     PatternAnalyzer,
-    AdvancedAnalyticsEngine,
+    WorkloadCategory,
+    WorkloadClassifier,
 )
-
 
 # =============================================================================
 # Anomaly Detector Tests
@@ -317,11 +314,13 @@ class TestPatternAnalyzer:
     @pytest.mark.asyncio
     async def test_add_event(self, analyzer):
         """Test adding events."""
-        await analyzer.add_event({
-            "type": "job_completion",
-            "job_id": "test-123",
-            "duration": 300,
-        })
+        await analyzer.add_event(
+            {
+                "type": "job_completion",
+                "job_id": "test-123",
+                "duration": 300,
+            }
+        )
 
         # Event should be in buffer
         assert len(analyzer._sequence_buffer) == 1
@@ -343,18 +342,22 @@ class TestPatternAnalyzer:
 
         # Add cascading failures
         for i in range(5):
-            await analyzer.add_event({
-                "type": "failure",
-                "timestamp": base_time + timedelta(seconds=i * 10),
-                "error": "Connection failed",
-            })
+            await analyzer.add_event(
+                {
+                    "type": "failure",
+                    "timestamp": base_time + timedelta(seconds=i * 10),
+                    "error": "Connection failed",
+                }
+            )
 
         # Add some normal events
         for i in range(20):
-            await analyzer.add_event({
-                "type": "success",
-                "timestamp": base_time + timedelta(seconds=100 + i * 60),
-            })
+            await analyzer.add_event(
+                {
+                    "type": "success",
+                    "timestamp": base_time + timedelta(seconds=100 + i * 60),
+                }
+            )
 
         patterns = await analyzer.detect_patterns()
 

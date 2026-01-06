@@ -638,7 +638,7 @@ class TestNotificationScheduler:
     @pytest.mark.asyncio
     async def test_schedule_once(self):
         """اختبار جدولة مرة واحدة"""
-        from datetime import datetime, timedelta, timezone
+        from datetime import timezone
 
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
         from distributed_cluster.notifications.scheduler import NotificationScheduler
@@ -677,7 +677,6 @@ class TestNotificationScheduler:
     @pytest.mark.asyncio
     async def test_cancel_job(self):
         """اختبار إلغاء المهمة"""
-        from datetime import datetime, timedelta
 
         from distributed_cluster.notifications.channels import Notification as ChannelNotification
         from distributed_cluster.notifications.scheduler import JobStatus, NotificationScheduler
@@ -730,10 +729,12 @@ class TestTemplateEngine:
         )
 
         engine = TemplateEngine()
-        engine.register(StringTemplate(
-            name="custom",
-            template="Hello {{name}}, your score is {{score}}!",
-        ))
+        engine.register(
+            StringTemplate(
+                name="custom",
+                template="Hello {{name}}, your score is {{score}}!",
+            )
+        )
 
         result = engine.render("custom", name="User", score=100)
         assert result == "Hello User, your score is 100!"

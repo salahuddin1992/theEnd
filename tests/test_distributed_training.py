@@ -6,33 +6,28 @@ Tests for Distributed Training Module
 اختبارات وحدة التدريب الموزع.
 """
 
-import asyncio
-import os
 import tempfile
-import pytest
+
 import numpy as np
-from datetime import datetime
+import pytest
 
 from distributed_cluster.ml.distributed_training import (
-    TrainingConfig,
-    TrainingStrategy,
     AggregationMethod,
-    TrainingStatus,
-    WorkerState,
-    TrainingMetrics,
-    GradientUpdate,
-    SyncSGDAggregator,
-    RingAllReduceAggregator,
-    FederatedAvgAggregator,
-    ParameterServer,
-    DistributedTrainer,
-    TrainingJobManager,
     DataSharder,
+    DistributedTrainer,
+    FederatedAvgAggregator,
+    GradientUpdate,
     ModelPartitioner,
+    ParameterServer,
+    RingAllReduceAggregator,
+    SyncSGDAggregator,
+    TrainingConfig,
+    TrainingJobManager,
+    TrainingStatus,
+    TrainingStrategy,
     create_training_config,
     simulate_training_step,
 )
-
 
 # =============================================================================
 # Training Config Tests
@@ -90,13 +85,15 @@ class TestGradientAggregators:
                 "layer1": np.random.randn(*grad_shape),
                 "layer2": np.random.randn(*grad_shape),
             }
-            updates.append(GradientUpdate(
-                worker_id=f"worker-{i}",
-                step=0,
-                gradients=gradients,
-                loss=1.0 - i * 0.1,
-                samples_in_batch=32,
-            ))
+            updates.append(
+                GradientUpdate(
+                    worker_id=f"worker-{i}",
+                    step=0,
+                    gradients=gradients,
+                    loss=1.0 - i * 0.1,
+                    samples_in_batch=32,
+                )
+            )
         return updates
 
     @pytest.mark.asyncio
@@ -181,9 +178,11 @@ class TestParameterServer:
     @pytest.mark.asyncio
     async def test_submit_gradients_partial(self, server):
         """Test partial gradient submission."""
-        await server.initialize_parameters({
-            "layer": np.zeros((10, 10)),
-        })
+        await server.initialize_parameters(
+            {
+                "layer": np.zeros((10, 10)),
+            }
+        )
 
         update = GradientUpdate(
             worker_id="worker-0",
@@ -200,9 +199,11 @@ class TestParameterServer:
     @pytest.mark.asyncio
     async def test_submit_gradients_complete(self, server):
         """Test complete gradient submission."""
-        await server.initialize_parameters({
-            "layer": np.zeros((10, 10)),
-        })
+        await server.initialize_parameters(
+            {
+                "layer": np.zeros((10, 10)),
+            }
+        )
 
         # Submit from all workers
         for i in range(2):
@@ -532,9 +533,7 @@ class TestDistributedTrainingIntegration:
             # Run training steps
             for step in range(5):
                 for worker_id in ["worker-0", "worker-1"]:
-                    await simulate_training_step(
-                        trainer, worker_id, step, config.batch_size
-                    )
+                    await simulate_training_step(trainer, worker_id, step, config.batch_size)
 
             # Complete training
             result = await trainer.complete_training()

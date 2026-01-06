@@ -5,14 +5,9 @@ Comprehensive Security Tests - اختبارات الأمان الشاملة
 Tests for the comprehensive security and authentication system.
 """
 
-import asyncio
-import base64
-import hashlib
-import pytest
-import time
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
 
+import pytest
 
 # ====================== MFA Tests ======================
 
@@ -22,7 +17,7 @@ class TestTOTPGenerator:
 
     def test_generate_secret(self):
         """Test secret key generation."""
-        from distributed_cluster.security.mfa import TOTPGenerator, TOTPConfig
+        from distributed_cluster.security.mfa import TOTPConfig, TOTPGenerator
 
         config = TOTPConfig(secret_length=20)
         generator = TOTPGenerator(config)
@@ -34,7 +29,7 @@ class TestTOTPGenerator:
 
     def test_generate_totp(self):
         """Test TOTP code generation."""
-        from distributed_cluster.security.mfa import TOTPGenerator, TOTPConfig
+        from distributed_cluster.security.mfa import TOTPConfig, TOTPGenerator
 
         config = TOTPConfig(digits=6, period=30)
         generator = TOTPGenerator(config)
@@ -47,7 +42,7 @@ class TestTOTPGenerator:
 
     def test_verify_totp(self):
         """Test TOTP verification."""
-        from distributed_cluster.security.mfa import TOTPGenerator, TOTPConfig
+        from distributed_cluster.security.mfa import TOTPConfig, TOTPGenerator
 
         config = TOTPConfig(digits=6, period=30, drift_tolerance=1)
         generator = TOTPGenerator(config)
@@ -63,7 +58,7 @@ class TestTOTPGenerator:
 
     def test_verify_totp_with_drift(self):
         """Test TOTP verification with time drift."""
-        from distributed_cluster.security.mfa import TOTPGenerator, TOTPConfig
+        from distributed_cluster.security.mfa import TOTPConfig, TOTPGenerator
 
         config = TOTPConfig(digits=6, period=30, drift_tolerance=1)
         generator = TOTPGenerator(config)
@@ -91,7 +86,7 @@ class TestTOTPGenerator:
 
     def test_provisioning_uri(self):
         """Test provisioning URI generation."""
-        from distributed_cluster.security.mfa import TOTPGenerator, TOTPConfig
+        from distributed_cluster.security.mfa import TOTPConfig, TOTPGenerator
 
         config = TOTPConfig(issuer="NebulaTest")
         generator = TOTPGenerator(config)
@@ -241,7 +236,7 @@ class TestSessionManager:
 
     def test_session_expiration(self):
         """Test session expiration."""
-        from distributed_cluster.security.session import SessionManager, SessionConfig
+        from distributed_cluster.security.session import SessionConfig, SessionManager
 
         config = SessionConfig(session_lifetime_hours=0)  # Expire immediately
         manager = SessionManager(config=config)
@@ -288,7 +283,7 @@ class TestSessionManager:
 
     def test_concurrent_session_limit(self):
         """Test concurrent session limiting."""
-        from distributed_cluster.security.session import SessionManager, SessionConfig
+        from distributed_cluster.security.session import SessionConfig, SessionManager
 
         config = SessionConfig(max_concurrent_sessions=2)
         manager = SessionManager(config=config)
@@ -312,8 +307,12 @@ class TestPolicyEngine:
     def test_allow_policy(self):
         """Test allow policy evaluation."""
         from distributed_cluster.security.policy import (
-            PolicyEngine, SecurityPolicy, PolicyRule, PolicyCondition,
-            PolicyEffect, ConditionOperator
+            ConditionOperator,
+            PolicyCondition,
+            PolicyEffect,
+            PolicyEngine,
+            PolicyRule,
+            SecurityPolicy,
         )
 
         engine = PolicyEngine()
@@ -347,8 +346,13 @@ class TestPolicyEngine:
     def test_deny_policy(self):
         """Test deny policy evaluation."""
         from distributed_cluster.security.policy import (
-            PolicyEngine, SecurityPolicy, PolicyRule, PolicyCondition,
-            PolicyEffect, ConditionOperator, PolicyPriority
+            ConditionOperator,
+            PolicyCondition,
+            PolicyEffect,
+            PolicyEngine,
+            PolicyPriority,
+            PolicyRule,
+            SecurityPolicy,
         )
 
         engine = PolicyEngine()
@@ -382,9 +386,7 @@ class TestPolicyEngine:
 
     def test_ip_range_condition(self):
         """Test IP range condition."""
-        from distributed_cluster.security.policy import (
-            PolicyCondition, ConditionOperator
-        )
+        from distributed_cluster.security.policy import ConditionOperator, PolicyCondition
 
         condition = PolicyCondition(
             field="request.ip",
@@ -398,9 +400,7 @@ class TestPolicyEngine:
 
     def test_time_condition(self):
         """Test time-based condition."""
-        from distributed_cluster.security.policy import (
-            PolicyCondition, ConditionOperator
-        )
+        from distributed_cluster.security.policy import ConditionOperator, PolicyCondition
 
         # This test depends on current time
         now = datetime.now(timezone.utc)
@@ -425,9 +425,7 @@ class TestSecurityMonitor:
 
     def test_record_auth_failure(self):
         """Test recording authentication failures."""
-        from distributed_cluster.security.monitoring import (
-            SecurityMonitor, MonitoringConfig
-        )
+        from distributed_cluster.security.monitoring import MonitoringConfig, SecurityMonitor
 
         config = MonitoringConfig(auth_failure_threshold=3)
         monitor = SecurityMonitor(config=config)
@@ -443,9 +441,7 @@ class TestSecurityMonitor:
 
     def test_brute_force_detection(self):
         """Test brute force attack detection."""
-        from distributed_cluster.security.monitoring import (
-            SecurityMonitor, MonitoringConfig, ThreatType
-        )
+        from distributed_cluster.security.monitoring import MonitoringConfig, SecurityMonitor, ThreatType
 
         config = MonitoringConfig(
             auth_failure_threshold=3,
@@ -467,9 +463,7 @@ class TestSecurityMonitor:
 
     def test_lockout(self):
         """Test account lockout."""
-        from distributed_cluster.security.monitoring import (
-            SecurityMonitor, MonitoringConfig
-        )
+        from distributed_cluster.security.monitoring import MonitoringConfig, SecurityMonitor
 
         config = MonitoringConfig(
             auth_failure_threshold=3,
@@ -510,9 +504,7 @@ class TestPasswordValidator:
 
     def test_strong_password(self):
         """Test strong password validation."""
-        from distributed_cluster.security.account import (
-            PasswordValidator, PasswordPolicy, PasswordStrength
-        )
+        from distributed_cluster.security.account import PasswordPolicy, PasswordStrength, PasswordValidator
 
         policy = PasswordPolicy(min_length=8)
         validator = PasswordValidator(policy)
@@ -524,9 +516,7 @@ class TestPasswordValidator:
 
     def test_weak_password_rejected(self):
         """Test weak password rejection."""
-        from distributed_cluster.security.account import (
-            PasswordValidator, PasswordPolicy, PasswordStrength
-        )
+        from distributed_cluster.security.account import PasswordPolicy, PasswordStrength, PasswordValidator
 
         policy = PasswordPolicy(min_length=12, min_strength=PasswordStrength.STRONG)
         validator = PasswordValidator(policy)
@@ -538,9 +528,7 @@ class TestPasswordValidator:
 
     def test_password_with_username(self):
         """Test password containing username rejection."""
-        from distributed_cluster.security.account import (
-            PasswordValidator, PasswordPolicy
-        )
+        from distributed_cluster.security.account import PasswordPolicy, PasswordValidator
 
         policy = PasswordPolicy(forbid_username=True)
         validator = PasswordValidator(policy)
@@ -552,9 +540,7 @@ class TestPasswordValidator:
 
     def test_common_password_rejected(self):
         """Test common password rejection."""
-        from distributed_cluster.security.account import (
-            PasswordValidator, PasswordPolicy
-        )
+        from distributed_cluster.security.account import PasswordPolicy, PasswordValidator
 
         policy = PasswordPolicy(forbid_common_words=True)
         validator = PasswordValidator(policy)
@@ -569,9 +555,7 @@ class TestAccountSecurityManager:
 
     def test_create_account(self):
         """Test account creation."""
-        from distributed_cluster.security.account import (
-            AccountSecurityManager, PasswordPolicy
-        )
+        from distributed_cluster.security.account import AccountSecurityManager, PasswordPolicy
 
         policy = PasswordPolicy(min_length=8)
         manager = AccountSecurityManager(policy=policy)
@@ -586,9 +570,7 @@ class TestAccountSecurityManager:
 
     def test_verify_password(self):
         """Test password verification."""
-        from distributed_cluster.security.account import (
-            AccountSecurityManager, PasswordPolicy
-        )
+        from distributed_cluster.security.account import AccountSecurityManager, PasswordPolicy
 
         policy = PasswordPolicy(min_length=8)
         manager = AccountSecurityManager(policy=policy)
@@ -615,9 +597,7 @@ class TestAccountSecurityManager:
 
     def test_account_lockout(self):
         """Test account lockout after failed attempts."""
-        from distributed_cluster.security.account import (
-            AccountSecurityManager, AccountStatus
-        )
+        from distributed_cluster.security.account import AccountSecurityManager
 
         manager = AccountSecurityManager()
         manager.max_failed_attempts = 3
@@ -662,9 +642,7 @@ class TestAccountSecurityManager:
 
     def test_password_history(self):
         """Test password history enforcement."""
-        from distributed_cluster.security.account import (
-            AccountSecurityManager, PasswordPolicy
-        )
+        from distributed_cluster.security.account import AccountSecurityManager, PasswordPolicy
 
         policy = PasswordPolicy(history_size=3, min_password_age_hours=0)
         manager = AccountSecurityManager(policy=policy)
@@ -707,9 +685,7 @@ class TestCertificateAuthority:
         """Test server certificate issuance."""
         pytest.importorskip("cryptography")
 
-        from distributed_cluster.security.mtls import (
-            CertificateAuthority, CertificateType
-        )
+        from distributed_cluster.security.mtls import CertificateAuthority, CertificateType
 
         ca = CertificateAuthority(organization="TestOrg")
 
@@ -728,9 +704,7 @@ class TestCertificateAuthority:
         """Test certificate verification."""
         pytest.importorskip("cryptography")
 
-        from distributed_cluster.security.mtls import (
-            CertificateAuthority, CertificateType
-        )
+        from distributed_cluster.security.mtls import CertificateAuthority, CertificateType
 
         ca = CertificateAuthority(organization="TestOrg")
 
@@ -749,9 +723,7 @@ class TestCertificateAuthority:
         """Test certificate revocation."""
         pytest.importorskip("cryptography")
 
-        from distributed_cluster.security.mtls import (
-            CertificateAuthority, CertificateType
-        )
+        from distributed_cluster.security.mtls import CertificateAuthority, CertificateType
 
         ca = CertificateAuthority(organization="TestOrg")
 
@@ -921,7 +893,7 @@ class TestPasswordHasher:
 
     def test_needs_rehash(self):
         """Test rehash detection."""
-        from distributed_cluster.security.account import PasswordHasher, PasswordHash
+        from distributed_cluster.security.account import PasswordHash, PasswordHasher
 
         hasher = PasswordHasher(iterations=310000)
 
