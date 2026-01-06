@@ -389,6 +389,11 @@ def create_app(dashboard: Optional[WebDashboard] = None) -> FastAPI:
 
         return templates.TemplateResponse(request, "metrics.html", metrics_data)
 
+    # Health endpoint
+    @app.get("/health")
+    async def health_check():
+        return {"status": "healthy", "service": "distributed_cluster_web"}
+
     # API endpoints
     @app.get("/api/stats")
     async def api_stats():

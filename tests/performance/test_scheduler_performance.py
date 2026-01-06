@@ -15,6 +15,16 @@ from distributed_cluster.models.resources import ResourceSpec
 from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
 from distributed_cluster.scheduler import Scheduler, SchedulingPolicy
 
+# Check if pytest-benchmark is available
+try:
+    import pytest_benchmark  # noqa: F401
+
+    HAS_BENCHMARK = True
+except ImportError:
+    HAS_BENCHMARK = False
+
+benchmark_skip = pytest.mark.skipif(not HAS_BENCHMARK, reason="pytest-benchmark not installed")
+
 
 class TestSchedulerPerformance:
     """Performance benchmarks for scheduler operations."""
@@ -75,6 +85,7 @@ class TestSchedulerPerformance:
             )
         return jobs
 
+    @benchmark_skip
     def test_scheduler_creation_time(self, benchmark):
         """Benchmark scheduler creation."""
 
@@ -84,6 +95,7 @@ class TestSchedulerPerformance:
         result = benchmark(create_scheduler)
         assert result is not None
 
+    @benchmark_skip
     def test_worker_registration_throughput(self, large_worker_pool: list[WorkerInfo], benchmark):
         """Benchmark worker registration throughput."""
         scheduler = Scheduler(policy=SchedulingPolicy.BEST_FIT)
@@ -96,6 +108,7 @@ class TestSchedulerPerformance:
         count = benchmark(register_all_workers)
         assert count == len(large_worker_pool)
 
+    @benchmark_skip
     def test_job_scheduling_latency(
         self,
         large_worker_pool: list[WorkerInfo],
@@ -158,7 +171,7 @@ class TestDatabasePerformance:
     """Performance benchmarks for database operations."""
 
     @pytest.mark.asyncio
-    async def test_job_insert_throughput(self, database, benchmark):
+    async def test_job_insert_throughput(self, database):
         """Benchmark job insertion throughput."""
         from distributed_cluster.models.job import Job, JobStatus, JobSubmission
 
@@ -178,7 +191,7 @@ class TestDatabasePerformance:
                 jobs_created += 1
             return jobs_created
 
-        # Can't use benchmark directly with async, measure manually
+        # Measure manually since benchmark doesn't support async
         start = time.perf_counter()
         count = await insert_jobs()
         elapsed = time.perf_counter() - start
