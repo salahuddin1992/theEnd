@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
 
 from .api.client import APIClient, ClusterStats
 from .resources.styles import COLORS, MAIN_STYLESHEET
+from .views.cluster_overview import ClusterOverviewView
 from .views.dashboard import DashboardView
 from .views.jobs import JobsView
 from .views.logs import LogsView
@@ -143,6 +144,11 @@ class MainWindow(QMainWindow):
         self.dashboard_view = DashboardView()
         self.content_stack.addWidget(self.dashboard_view)
 
+        # Cluster Overview
+        self.cluster_overview_view = ClusterOverviewView()
+        self.cluster_overview_view.refresh_requested.connect(self._refresh_cluster_overview)
+        self.content_stack.addWidget(self.cluster_overview_view)
+
         # Jobs
         self.jobs_view = JobsView()
         self.jobs_view.refresh_requested.connect(self._refresh_jobs)
@@ -198,17 +204,18 @@ class MainWindow(QMainWindow):
         # Map page names to stack indices
         self._page_indices = {
             "dashboard": 0,
-            "jobs": 1,
-            "workers": 2,
-            "templates": 3,
-            "pools": 4,
-            "queues": 5,
-            "settings": 6,
-            "logs": 7,
-            "metrics": 8,
-            "scripts": 9,
-            "plugins": 10,
-            "terminal": 11,
+            "cluster_overview": 1,
+            "jobs": 2,
+            "workers": 3,
+            "templates": 4,
+            "pools": 5,
+            "queues": 6,
+            "settings": 7,
+            "logs": 8,
+            "metrics": 9,
+            "scripts": 10,
+            "plugins": 11,
+            "terminal": 12,
         }
 
     def _setup_menu(self):
@@ -629,6 +636,46 @@ class MainWindow(QMainWindow):
             self.queues_view.set_queues(queues)
         except Exception as e:
             self._on_error(f"Failed to refresh queues: {e}")
+
+    def _refresh_cluster_overview(self):
+        """Refresh cluster overview data"""
+        if self.api_client and self._connected:
+            asyncio.ensure_future(self._async_refresh_cluster_overview())
+
+    async def _async_refresh_cluster_overview(self):
+        """Async refresh cluster overview"""
+        try:
+            # Gather cluster data from multiple endpoints
+            stats = await self.api_client.get_stats()
+            workers = await self.api_client.get_workers()
+            health = await self.api_client.get_health()
+
+            # Build cluster data for the view
+            cluster_data = {
+                "master": {
+                    "name": "Master",
+                    "status": "active" if health.get("status") == "healthy" else "degraded",
+                },
+                "workers": workers,
+                "resources": {
+                    "cpu": stats.get("cpu_usage", 0) if hasattr(stats, "get") else getattr(stats, "cpu_usage", 0),
+                    "memory": stats.get("memory_usage", 0) if hasattr(stats, "get") else getattr(stats, "memory_usage", 0),
+                    "disk": stats.get("disk_usage", 0) if hasattr(stats, "get") else getattr(stats, "disk_usage", 0),
+                    "network": stats.get("network_usage", 0) if hasattr(stats, "get") else getattr(stats, "network_usage", 0),
+                },
+                "stats": {
+                    "active_workers": stats.get("active_workers", 0) if hasattr(stats, "get") else getattr(stats, "active_workers", 0),
+                    "running_jobs": stats.get("running_jobs", 0) if hasattr(stats, "get") else getattr(stats, "running_jobs", 0),
+                    "queued_jobs": stats.get("pending_jobs", 0) if hasattr(stats, "get") else getattr(stats, "pending_jobs", 0),
+                    "uptime": stats.get("uptime", "0h") if hasattr(stats, "get") else getattr(stats, "uptime", "0h"),
+                },
+                "health": health,
+                "events": [],  # Could be populated from a separate API endpoint
+            }
+
+            self.cluster_overview_view.set_cluster_data(cluster_data)
+        except Exception as e:
+            self._on_error(f"Failed to refresh cluster overview: {e}")
 
     def _refresh_logs(self):
         """Refresh logs"""

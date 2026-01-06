@@ -8,6 +8,7 @@ Author: NebulaCompute Team
 License: MIT
 """
 
+from distributed_cluster.desktop.views.cluster_overview import ClusterOverviewView
 from distributed_cluster.desktop.views.dashboard import DashboardView
 from distributed_cluster.desktop.views.jobs import JobDetailPanel, JobsView, SubmitJobDialog
 from distributed_cluster.desktop.views.logs import LogsView
@@ -22,6 +23,8 @@ from distributed_cluster.desktop.views.templates import CreateTemplateDialog, Te
 from distributed_cluster.desktop.views.workers import WorkerDetailPanel, WorkersView
 
 __all__ = [
+    # Cluster Overview
+    "ClusterOverviewView",
     # Dashboard
     "DashboardView",
     # Jobs
