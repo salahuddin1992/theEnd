@@ -715,11 +715,50 @@ class FluentTemplatesView(QWidget):
 
     def _filter_templates(self):
         """Filter templates based on search and category"""
-        self._search.text().lower()
-        self._category_filter.currentText()
+        search_text = self._search.text().lower()
+        category_filter = self._category_filter.currentText()
 
-        # Would filter the grid based on criteria
-        pass
+        # Filter templates based on search text and category
+        filtered = []
+        for template in self._templates:
+            # Check search text match
+            if search_text:
+                if search_text not in template.name.lower() and search_text not in template.description.lower():
+                    continue
+
+            # Check category match
+            if category_filter != "All":
+                if template.category.value != category_filter:
+                    continue
+
+            filtered.append(template)
+
+        # Refresh grid with filtered templates
+        self._refresh_grid_with_templates(filtered)
+
+    def _refresh_grid_with_templates(self, templates: List[JobTemplate]):
+        """Refresh grid with specified templates"""
+        # Clear existing cards
+        while self._grid_layout.count():
+            item = self._grid_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        # Add filtered cards
+        max_cols = 3
+        row, col = 0, 0
+
+        for template in templates:
+            card = TemplateCard(template)
+            card.clicked.connect(self._on_template_clicked)
+            card.use_clicked.connect(self._use_template)
+            card.edit_clicked.connect(self._edit_template)
+            self._grid_layout.addWidget(card, row, col)
+
+            col += 1
+            if col >= max_cols:
+                col = 0
+                row += 1
 
     def _on_template_clicked(self, template_id: str):
         """Handle template card click"""
@@ -729,8 +768,43 @@ class FluentTemplatesView(QWidget):
 
     def _use_template(self, template_id: str):
         """Use template to create job"""
-        # Would open job submission dialog with template values
-        pass
+        from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QMessageBox
+
+        template = next((t for t in self._templates if t.id == template_id), None)
+        if not template:
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Create Job from Template: {template.name}")
+        dialog.setMinimumWidth(450)
+
+        layout = QVBoxLayout(dialog)
+        form = QFormLayout()
+
+        job_name = QLineEdit()
+        job_name.setText(f"{template.name}-job")
+        job_name.setPlaceholderText("Job name")
+
+        form.addRow("Job Name:", job_name)
+        form.addRow("Template:", QLabel(template.name))
+        form.addRow("CPU Cores:", QLabel(str(template.cpu_cores)))
+        form.addRow("Memory (GB):", QLabel(str(template.memory_gb)))
+        form.addRow("GPU:", QLabel(str(template.gpu_count)))
+
+        layout.addLayout(form)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+
+        if dialog.exec() == QDialog.Accepted:
+            # Update usage count
+            template.usage_count += 1
+            self._refresh_grid()
+            QMessageBox.information(
+                self, "Job Created", f"Job '{job_name.text()}' has been created from template '{template.name}'."
+            )
 
     def _edit_template(self, template_id: str):
         """Edit template"""
@@ -740,12 +814,85 @@ class FluentTemplatesView(QWidget):
 
     def _create_template(self):
         """Create new template"""
-        # Would open template creation wizard
-        pass
+        from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Create New Template")
+        dialog.setMinimumWidth(450)
+
+        layout = QVBoxLayout(dialog)
+        form = QFormLayout()
+
+        name_input = QLineEdit()
+        name_input.setPlaceholderText("Template name")
+        desc_input = QTextEdit()
+        desc_input.setMaximumHeight(80)
+        desc_input.setPlaceholderText("Template description")
+        category_input = QComboBox()
+        for cat in TemplateCategory:
+            category_input.addItem(cat.value)
+        cpu_input = QSpinBox()
+        cpu_input.setRange(1, 256)
+        cpu_input.setValue(4)
+        memory_input = QSpinBox()
+        memory_input.setRange(1, 2048)
+        memory_input.setValue(8)
+        gpu_input = QSpinBox()
+        gpu_input.setRange(0, 16)
+        script_input = QTextEdit()
+        script_input.setPlaceholderText("#!/bin/bash\n# Your script here")
+        script_input.setMinimumHeight(100)
+
+        form.addRow("Name:", name_input)
+        form.addRow("Description:", desc_input)
+        form.addRow("Category:", category_input)
+        form.addRow("CPU Cores:", cpu_input)
+        form.addRow("Memory (GB):", memory_input)
+        form.addRow("GPU Count:", gpu_input)
+        form.addRow("Script:", script_input)
+
+        layout.addLayout(form)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+
+        if dialog.exec() == QDialog.Accepted:
+            template_data = {
+                "name": name_input.text(),
+                "description": desc_input.toPlainText(),
+                "category": category_input.currentText(),
+                "cpu_cores": cpu_input.value(),
+                "memory_gb": memory_input.value(),
+                "gpu_count": gpu_input.value(),
+                "script": script_input.toPlainText(),
+            }
+            self._on_template_updated(template_data)
 
     def _on_template_updated(self, data: dict):
         """Handle template update"""
-        pass
+        # Map category string to enum
+        category_map = {cat.value: cat for cat in TemplateCategory}
+        category = category_map.get(data.get("category", "Custom"), TemplateCategory.CUSTOM)
+
+        new_template = JobTemplate(
+            id=f"template-{len(self._templates) + 1:03d}",
+            name=data.get("name", "New Template"),
+            description=data.get("description", ""),
+            category=category,
+            cpu_cores=data.get("cpu_cores", 4),
+            memory_gb=data.get("memory_gb", 8),
+            gpu_count=data.get("gpu_count", 0),
+            timeout_hours=data.get("timeout_hours", 24),
+            script=data.get("script", ""),
+            tags=data.get("tags", []),
+            usage_count=0,
+            is_favorite=False,
+        )
+        self._templates.append(new_template)
+        self._refresh_grid()
+        self._update_stats()
 
     def _on_template_deleted(self, template_id: str):
         """Handle template deletion"""

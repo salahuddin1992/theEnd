@@ -837,8 +837,24 @@ class ClusterOverviewView(QWidget):
 
     def _on_node_clicked(self, node_data: dict):
         """Handle node click"""
-        # Could show node details dialog
-        pass
+        # Show node details in a dialog
+        node_id = node_data.get("id", "Unknown")
+        node_type = node_data.get("type", "Unknown")
+        status = node_data.get("status", "Unknown")
+        cpu = node_data.get("cpu", 0)
+        memory = node_data.get("memory", 0)
+        jobs = node_data.get("jobs", 0)
+
+        QMessageBox.information(
+            self,
+            f"Node: {node_id}",
+            f"Type: {node_type}\n"
+            f"Status: {status}\n"
+            f"CPU Usage: {cpu}%\n"
+            f"Memory: {memory} MB\n"
+            f"Active Jobs: {jobs}\n\n"
+            f"Click on Workers view for more details."
+        )
 
     def set_api_client(self, client: APIClient):
         """Set the API client"""

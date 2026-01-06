@@ -805,8 +805,20 @@ class PoolsView(QWidget):
 
     def _on_pool_clicked(self, pool_data: dict):
         """Handle pool card click"""
-        # Could open a detail panel or dialog
-        pass
+        # Show pool details in detail panel
+        if hasattr(self, 'detail_panel') and self.detail_panel:
+            self.detail_panel.show_pool(pool_data)
+        else:
+            # Show details in a message box as fallback
+            pool_name = pool_data.get("name", "Unknown")
+            workers = pool_data.get("workers", 0)
+            status = pool_data.get("status", "unknown")
+            QMessageBox.information(
+                self,
+                f"Pool: {pool_name}",
+                f"Workers: {workers}\nStatus: {status}\n\n"
+                f"Use the Edit action to modify this pool."
+            )
 
     def _on_pool_action(self, action: str, pool_data: dict):
         """Handle pool action from card menu"""
