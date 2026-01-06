@@ -11,25 +11,28 @@ Features:
 """
 
 import math
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Dict, List, Optional
 
-from PySide6.QtCore import Signal, Qt, QTimer, QPointF, QRectF, Property, QPropertyAnimation
+from PySide6.QtCore import QPointF, QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import (
-    QColor, QPainter, QPen, QBrush, QFont, QLinearGradient,
-    QRadialGradient, QPainterPath, QFontMetrics
+    QBrush,
+    QColor,
+    QFont,
+    QPainter,
+    QPen,
+    QRadialGradient,
 )
 from PySide6.QtWidgets import (
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
-    QFrame,
-    QGridLayout,
-    QScrollArea,
-    QGraphicsDropShadowEffect,
-    QSizePolicy,
 )
 
 from ..api.client import APIClient
@@ -39,13 +42,14 @@ from ..resources.styles import COLORS
 class CircularGauge(QWidget):
     """Circular gauge widget for resource visualization"""
 
-    def __init__(self, title: str, value: float = 0, max_value: float = 100,
-                 color: str = None, unit: str = "%", parent=None):
+    def __init__(
+        self, title: str, value: float = 0, max_value: float = 100, color: str = None, unit: str = "%", parent=None
+    ):
         super().__init__(parent)
         self._title = title
         self._value = value
         self._max_value = max_value
-        self._color = color or COLORS.get('primary', '#3b82f6')
+        self._color = color or COLORS.get("primary", "#3b82f6")
         self._unit = unit
         self._animated_value = 0
 
@@ -78,13 +82,12 @@ class CircularGauge(QWidget):
         center_y = (height - 30) / 2
 
         # Draw background arc
-        pen = QPen(QColor(COLORS.get('bg_medium', '#1e293b')))
+        pen = QPen(QColor(COLORS.get("bg_medium", "#1e293b")))
         pen.setWidth(10)
         pen.setCapStyle(Qt.RoundCap)
         painter.setPen(pen)
 
-        rect = QRectF(center_x - size/2 + 10, center_y - size/2 + 10,
-                      size - 20, size - 20)
+        rect = QRectF(center_x - size / 2 + 10, center_y - size / 2 + 10, size - 20, size - 20)
         painter.drawArc(rect, 225 * 16, -270 * 16)
 
         # Draw value arc
@@ -93,9 +96,9 @@ class CircularGauge(QWidget):
 
         # Gradient based on value
         if percent > 0.8:
-            color = QColor(COLORS.get('danger', '#ef4444'))
+            color = QColor(COLORS.get("danger", "#ef4444"))
         elif percent > 0.6:
-            color = QColor(COLORS.get('warning', '#f59e0b'))
+            color = QColor(COLORS.get("warning", "#f59e0b"))
 
         pen = QPen(color)
         pen.setWidth(10)
@@ -106,18 +109,18 @@ class CircularGauge(QWidget):
         painter.drawArc(rect, 225 * 16, span_angle)
 
         # Draw center value
-        painter.setPen(QColor(COLORS.get('text_primary', '#f1f5f9')))
+        painter.setPen(QColor(COLORS.get("text_primary", "#f1f5f9")))
         font = QFont()
         font.setPixelSize(24)
         font.setBold(True)
         painter.setFont(font)
 
         value_text = f"{self._animated_value:.0f}{self._unit}"
-        text_rect = QRectF(center_x - size/2, center_y - 15, size, 30)
+        text_rect = QRectF(center_x - size / 2, center_y - 15, size, 30)
         painter.drawText(text_rect, Qt.AlignCenter, value_text)
 
         # Draw title below gauge
-        painter.setPen(QColor(COLORS.get('text_secondary', '#94a3b8')))
+        painter.setPen(QColor(COLORS.get("text_secondary", "#94a3b8")))
         font.setPixelSize(12)
         font.setBold(False)
         painter.setFont(font)
@@ -159,17 +162,17 @@ class NodeWidget(QWidget):
         # Determine status color
         status = self.node_data.get("status", "unknown")
         status_colors = {
-            "active": COLORS.get('success', '#10b981'),
-            "idle": COLORS.get('info', '#3b82f6'),
-            "busy": COLORS.get('warning', '#f59e0b'),
-            "offline": COLORS.get('danger', '#ef4444'),
-            "draining": COLORS.get('warning', '#f59e0b'),
+            "active": COLORS.get("success", "#10b981"),
+            "idle": COLORS.get("info", "#3b82f6"),
+            "busy": COLORS.get("warning", "#f59e0b"),
+            "offline": COLORS.get("danger", "#ef4444"),
+            "draining": COLORS.get("warning", "#f59e0b"),
         }
-        node_color = QColor(status_colors.get(status, COLORS.get('text_secondary', '#94a3b8')))
+        node_color = QColor(status_colors.get(status, COLORS.get("text_secondary", "#94a3b8")))
 
         # Draw glow effect when hovered
         if self._hovered:
-            glow = QRadialGradient(center, center, size/2)
+            glow = QRadialGradient(center, center, size / 2)
             glow.setColorAt(0, QColor(node_color.red(), node_color.green(), node_color.blue(), 100))
             glow.setColorAt(1, QColor(0, 0, 0, 0))
             painter.setBrush(QBrush(glow))
@@ -180,17 +183,16 @@ class NodeWidget(QWidget):
         pen = QPen(node_color)
         pen.setWidth(3 if self.is_master else 2)
         painter.setPen(pen)
-        painter.setBrush(QBrush(QColor(COLORS.get('bg_dark', '#0f172a'))))
+        painter.setBrush(QBrush(QColor(COLORS.get("bg_dark", "#0f172a"))))
 
         margin = 5
-        painter.drawEllipse(QRectF(margin, margin, size - margin*2, size - margin*2))
+        painter.drawEllipse(QRectF(margin, margin, size - margin * 2, size - margin * 2))
 
         # Draw inner circle
         inner_margin = 12 if self.is_master else 10
         painter.setBrush(QBrush(node_color))
         painter.setPen(Qt.NoPen)
-        painter.drawEllipse(QRectF(inner_margin, inner_margin,
-                                   size - inner_margin*2, size - inner_margin*2))
+        painter.drawEllipse(QRectF(inner_margin, inner_margin, size - inner_margin * 2, size - inner_margin * 2))
 
         # Draw icon/label
         painter.setPen(QColor("white"))
@@ -270,27 +272,25 @@ class ClusterVisualization(QWidget):
 
         if not self._master_data or not self._workers_data:
             # Draw empty state
-            painter.setPen(QColor(COLORS.get('text_secondary', '#94a3b8')))
+            painter.setPen(QColor(COLORS.get("text_secondary", "#94a3b8")))
             font = QFont()
             font.setPixelSize(14)
             painter.setFont(font)
-            painter.drawText(self.rect(), Qt.AlignCenter,
-                           "No cluster data available\nConnect to a master server")
+            painter.drawText(self.rect(), Qt.AlignCenter, "No cluster data available\nConnect to a master server")
             return
 
         center_x = self.width() / 2
         center_y = self.height() / 2
 
         # Draw connection lines from master to workers
-        pen = QPen(QColor(COLORS.get('border', '#334155')))
+        pen = QPen(QColor(COLORS.get("border", "#334155")))
         pen.setWidth(2)
         pen.setStyle(Qt.DashLine)
         painter.setPen(pen)
 
         for i, widget in enumerate(self._node_widgets[1:]):  # Skip master
             worker_center = widget.geometry().center()
-            painter.drawLine(QPointF(center_x, center_y),
-                           QPointF(worker_center.x(), worker_center.y()))
+            painter.drawLine(QPointF(center_x, center_y), QPointF(worker_center.x(), worker_center.y()))
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -315,14 +315,16 @@ class HealthCard(QFrame):
         self.setGraphicsEffect(shadow)
 
     def _setup_ui(self):
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#health_card {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
                 border-radius: 16px;
                 padding: 20px;
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(16)
@@ -331,23 +333,27 @@ class HealthCard(QFrame):
         header_layout = QHBoxLayout()
 
         title = QLabel("Cluster Health")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 16px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(title)
         header_layout.addStretch()
 
         self.health_badge = QLabel("HEALTHY")
-        self.health_badge.setStyleSheet(f"""
+        self.health_badge.setStyleSheet(
+            f"""
             background-color: {COLORS.get('success', '#10b981')}20;
             color: {COLORS.get('success', '#10b981')};
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
-        """)
+        """
+        )
         header_layout.addWidget(self.health_badge)
 
         layout.addLayout(header_layout)
@@ -377,37 +383,43 @@ class HealthCard(QFrame):
     def _create_indicator(self, label: str, value: str, is_healthy: bool) -> QWidget:
         """Create a health indicator widget"""
         container = QFrame()
-        container.setStyleSheet(f"""
+        container.setStyleSheet(
+            f"""
             QFrame {{
                 background-color: {COLORS.get('bg_dark', '#0f172a')};
                 border-radius: 8px;
                 padding: 8px;
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(container)
         layout.setContentsMargins(12, 8, 12, 8)
 
-        status_color = COLORS.get('success', '#10b981') if is_healthy else COLORS.get('danger', '#ef4444')
+        status_color = COLORS.get("success", "#10b981") if is_healthy else COLORS.get("danger", "#ef4444")
 
         status_dot = QLabel("●")
         status_dot.setStyleSheet(f"color: {status_color}; font-size: 10px;")
         layout.addWidget(status_dot)
 
         label_widget = QLabel(label)
-        label_widget.setStyleSheet(f"""
+        label_widget.setStyleSheet(
+            f"""
             color: {COLORS.get('text_secondary', '#94a3b8')};
             font-size: 12px;
-        """)
+        """
+        )
         layout.addWidget(label_widget)
         layout.addStretch()
 
         value_widget = QLabel(value)
-        value_widget.setStyleSheet(f"""
+        value_widget.setStyleSheet(
+            f"""
             color: {COLORS.get('text_primary', '#f1f5f9')};
             font-size: 12px;
             font-weight: 500;
-        """)
+        """
+        )
         layout.addWidget(value_widget)
 
         container.value_widget = value_widget
@@ -421,34 +433,40 @@ class HealthCard(QFrame):
         # Update badge
         if overall_health == "healthy":
             self.health_badge.setText("HEALTHY")
-            self.health_badge.setStyleSheet(f"""
+            self.health_badge.setStyleSheet(
+                f"""
                 background-color: {COLORS.get('success', '#10b981')}20;
                 color: {COLORS.get('success', '#10b981')};
                 padding: 4px 12px;
                 border-radius: 12px;
                 font-size: 11px;
                 font-weight: 600;
-            """)
+            """
+            )
         elif overall_health == "degraded":
             self.health_badge.setText("DEGRADED")
-            self.health_badge.setStyleSheet(f"""
+            self.health_badge.setStyleSheet(
+                f"""
                 background-color: {COLORS.get('warning', '#f59e0b')}20;
                 color: {COLORS.get('warning', '#f59e0b')};
                 padding: 4px 12px;
                 border-radius: 12px;
                 font-size: 11px;
                 font-weight: 600;
-            """)
+            """
+            )
         else:
             self.health_badge.setText("UNHEALTHY")
-            self.health_badge.setStyleSheet(f"""
+            self.health_badge.setStyleSheet(
+                f"""
                 background-color: {COLORS.get('danger', '#ef4444')}20;
                 color: {COLORS.get('danger', '#ef4444')};
                 padding: 4px 12px;
                 border-radius: 12px;
                 font-size: 11px;
                 font-weight: 600;
-            """)
+            """
+            )
 
         # Update individual indicators
         components = health_data.get("components", {})
@@ -458,7 +476,7 @@ class HealthCard(QFrame):
             is_healthy = component.get("status") == "healthy"
             value = component.get("value", "N/A")
 
-            status_color = COLORS.get('success', '#10b981') if is_healthy else COLORS.get('danger', '#ef4444')
+            status_color = COLORS.get("success", "#10b981") if is_healthy else COLORS.get("danger", "#ef4444")
             indicator.status_dot.setStyleSheet(f"color: {status_color}; font-size: 10px;")
             indicator.value_widget.setText(str(value))
 
@@ -473,14 +491,16 @@ class EventCard(QFrame):
         self._setup_ui()
 
     def _setup_ui(self):
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#event_card {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
                 border-radius: 16px;
                 padding: 16px;
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
@@ -489,11 +509,13 @@ class EventCard(QFrame):
         header_layout = QHBoxLayout()
 
         title = QLabel("Recent Events")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 16px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(title)
         header_layout.addStretch()
 
@@ -506,11 +528,13 @@ class EventCard(QFrame):
 
         # Placeholder
         self.placeholder = QLabel("No recent events")
-        self.placeholder.setStyleSheet(f"""
+        self.placeholder.setStyleSheet(
+            f"""
             color: {COLORS.get('text_secondary', '#94a3b8')};
             font-size: 13px;
             padding: 20px;
-        """)
+        """
+        )
         self.placeholder.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.placeholder)
 
@@ -546,12 +570,12 @@ class EventCard(QFrame):
         # Event type icon
         event_type = event.get("type", "info")
         type_icons = {
-            "info": ("ℹ️", COLORS.get('info', '#3b82f6')),
-            "success": ("✅", COLORS.get('success', '#10b981')),
-            "warning": ("⚠️", COLORS.get('warning', '#f59e0b')),
-            "error": ("❌", COLORS.get('danger', '#ef4444')),
+            "info": ("ℹ️", COLORS.get("info", "#3b82f6")),
+            "success": ("✅", COLORS.get("success", "#10b981")),
+            "warning": ("⚠️", COLORS.get("warning", "#f59e0b")),
+            "error": ("❌", COLORS.get("danger", "#ef4444")),
         }
-        icon, color = type_icons.get(event_type, ("●", COLORS.get('text_secondary', '#94a3b8')))
+        icon, color = type_icons.get(event_type, ("●", COLORS.get("text_secondary", "#94a3b8")))
 
         icon_label = QLabel(icon)
         icon_label.setStyleSheet("font-size: 14px;")
@@ -560,10 +584,12 @@ class EventCard(QFrame):
         # Event message
         message = event.get("message", "Unknown event")
         message_label = QLabel(message)
-        message_label.setStyleSheet(f"""
+        message_label.setStyleSheet(
+            f"""
             color: {COLORS.get('text_primary', '#f1f5f9')};
             font-size: 12px;
-        """)
+        """
+        )
         message_label.setWordWrap(True)
         layout.addWidget(message_label, 1)
 
@@ -571,10 +597,12 @@ class EventCard(QFrame):
         timestamp = event.get("timestamp", "")
         if timestamp:
             time_label = QLabel(timestamp)
-            time_label.setStyleSheet(f"""
+            time_label.setStyleSheet(
+                f"""
                 color: {COLORS.get('text_secondary', '#94a3b8')};
                 font-size: 11px;
-            """)
+            """
+            )
             layout.addWidget(time_label)
 
         return container
@@ -586,11 +614,12 @@ class QuickStatCard(QFrame):
     def __init__(self, title: str, value: str, icon: str, color: str = None, parent=None):
         super().__init__(parent)
         self.setObjectName("quick_stat")
-        self._color = color or COLORS.get('primary', '#3b82f6')
+        self._color = color or COLORS.get("primary", "#3b82f6")
         self._setup_ui(title, value, icon)
 
     def _setup_ui(self, title: str, value: str, icon: str):
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#quick_stat {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -600,14 +629,15 @@ class QuickStatCard(QFrame):
             QFrame#quick_stat:hover {{
                 border-color: {self._color};
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(self)
         layout.setSpacing(12)
 
         # Icon
         icon_label = QLabel(icon)
-        icon_label.setStyleSheet(f"font-size: 28px;")
+        icon_label.setStyleSheet("font-size: 28px;")
         layout.addWidget(icon_label)
 
         # Text
@@ -615,18 +645,22 @@ class QuickStatCard(QFrame):
         text_layout.setSpacing(2)
 
         self.value_label = QLabel(value)
-        self.value_label.setStyleSheet(f"""
+        self.value_label.setStyleSheet(
+            f"""
             font-size: 20px;
             font-weight: 700;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         text_layout.addWidget(self.value_label)
 
         title_label = QLabel(title)
-        title_label.setStyleSheet(f"""
+        title_label.setStyleSheet(
+            f"""
             font-size: 12px;
             color: {COLORS.get('text_secondary', '#94a3b8')};
-        """)
+        """
+        )
         text_layout.addWidget(title_label)
 
         layout.addLayout(text_layout)
@@ -668,23 +702,27 @@ class ClusterOverviewView(QWidget):
         # Cluster visualization
         viz_container = QFrame()
         viz_container.setObjectName("viz_container")
-        viz_container.setStyleSheet(f"""
+        viz_container.setStyleSheet(
+            f"""
             QFrame#viz_container {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
                 border-radius: 16px;
             }}
-        """)
+        """
+        )
 
         viz_layout = QVBoxLayout(viz_container)
         viz_layout.setContentsMargins(16, 16, 16, 16)
 
         viz_title = QLabel("Cluster Topology")
-        viz_title.setStyleSheet(f"""
+        viz_title.setStyleSheet(
+            f"""
             font-size: 16px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         viz_layout.addWidget(viz_title)
 
         self.cluster_viz = ClusterVisualization()
@@ -697,16 +735,16 @@ class ClusterOverviewView(QWidget):
         gauges_layout = QHBoxLayout()
         gauges_layout.setSpacing(16)
 
-        self.cpu_gauge = CircularGauge("CPU Usage", 0, 100, COLORS.get('primary', '#3b82f6'))
+        self.cpu_gauge = CircularGauge("CPU Usage", 0, 100, COLORS.get("primary", "#3b82f6"))
         gauges_layout.addWidget(self.cpu_gauge)
 
-        self.memory_gauge = CircularGauge("Memory", 0, 100, COLORS.get('success', '#10b981'))
+        self.memory_gauge = CircularGauge("Memory", 0, 100, COLORS.get("success", "#10b981"))
         gauges_layout.addWidget(self.memory_gauge)
 
-        self.disk_gauge = CircularGauge("Disk", 0, 100, COLORS.get('warning', '#f59e0b'))
+        self.disk_gauge = CircularGauge("Disk", 0, 100, COLORS.get("warning", "#f59e0b"))
         gauges_layout.addWidget(self.disk_gauge)
 
-        self.network_gauge = CircularGauge("Network", 0, 100, COLORS.get('info', '#3b82f6'), "Mbps")
+        self.network_gauge = CircularGauge("Network", 0, 100, COLORS.get("info", "#3b82f6"), "Mbps")
         gauges_layout.addWidget(self.network_gauge)
 
         left_column.addLayout(gauges_layout)
@@ -721,16 +759,16 @@ class ClusterOverviewView(QWidget):
         stats_layout = QGridLayout()
         stats_layout.setSpacing(12)
 
-        self.workers_stat = QuickStatCard("Active Workers", "0", "👥", COLORS.get('primary', '#3b82f6'))
+        self.workers_stat = QuickStatCard("Active Workers", "0", "👥", COLORS.get("primary", "#3b82f6"))
         stats_layout.addWidget(self.workers_stat, 0, 0)
 
-        self.jobs_stat = QuickStatCard("Running Jobs", "0", "⚡", COLORS.get('success', '#10b981'))
+        self.jobs_stat = QuickStatCard("Running Jobs", "0", "⚡", COLORS.get("success", "#10b981"))
         stats_layout.addWidget(self.jobs_stat, 0, 1)
 
-        self.queued_stat = QuickStatCard("Queued Jobs", "0", "⏳", COLORS.get('warning', '#f59e0b'))
+        self.queued_stat = QuickStatCard("Queued Jobs", "0", "⏳", COLORS.get("warning", "#f59e0b"))
         stats_layout.addWidget(self.queued_stat, 1, 0)
 
-        self.uptime_stat = QuickStatCard("Uptime", "0h", "⏱️", COLORS.get('info', '#3b82f6'))
+        self.uptime_stat = QuickStatCard("Uptime", "0h", "⏱️", COLORS.get("info", "#3b82f6"))
         stats_layout.addWidget(self.uptime_stat, 1, 1)
 
         right_column.addLayout(stats_layout)
@@ -752,11 +790,13 @@ class ClusterOverviewView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Cluster Overview")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         subtitle = QLabel("Real-time cluster status and monitoring")
@@ -767,15 +807,18 @@ class ClusterOverviewView(QWidget):
 
         # Last updated
         self.last_updated_label = QLabel("Last updated: --")
-        self.last_updated_label.setStyleSheet(f"""
+        self.last_updated_label.setStyleSheet(
+            f"""
             color: {COLORS.get('text_secondary', '#94a3b8')};
             font-size: 12px;
-        """)
+        """
+        )
         header_layout.addWidget(self.last_updated_label)
 
         # Refresh button
         refresh_btn = QPushButton("🔄 Refresh")
-        refresh_btn.setStyleSheet(f"""
+        refresh_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -786,7 +829,8 @@ class ClusterOverviewView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
         refresh_btn.clicked.connect(self._on_refresh)
         header_layout.addWidget(refresh_btn)
 
@@ -853,7 +897,7 @@ class ClusterOverviewView(QWidget):
             f"CPU Usage: {cpu}%\n"
             f"Memory: {memory} MB\n"
             f"Active Jobs: {jobs}\n\n"
-            f"Click on Workers view for more details."
+            f"Click on Workers view for more details.",
         )
 
     def set_api_client(self, client: APIClient):

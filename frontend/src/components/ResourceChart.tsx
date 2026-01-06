@@ -66,7 +66,7 @@ export default function ResourceChart({
               borderRadius: '8px',
               color: '#F3F4F6',
             }}
-            formatter={(value: number) => [`${value.toFixed(1)}${unit}`, title]}
+            formatter={(value: number | undefined) => [`${(value ?? 0).toFixed(1)}${unit}`, title]}
           />
           <Area
             type="monotone"

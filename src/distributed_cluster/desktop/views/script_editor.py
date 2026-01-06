@@ -1166,11 +1166,7 @@ log("Check complete!")
             log(f"Submitting job: {name}")
             if self.api_client:
                 try:
-                    job_spec = {
-                        "name": name,
-                        "command": command,
-                        **kwargs
-                    }
+                    job_spec = {"name": name, "command": command, **kwargs}
                     job_id = run_async(self.api_client.submit_job(job_spec))
                     if job_id:
                         log(f"Job submitted successfully: {job_id}")

@@ -659,14 +659,24 @@ class MainWindow(QMainWindow):
                 "workers": workers,
                 "resources": {
                     "cpu": stats.get("cpu_usage", 0) if hasattr(stats, "get") else getattr(stats, "cpu_usage", 0),
-                    "memory": stats.get("memory_usage", 0) if hasattr(stats, "get") else getattr(stats, "memory_usage", 0),
+                    "memory": (
+                        stats.get("memory_usage", 0) if hasattr(stats, "get") else getattr(stats, "memory_usage", 0)
+                    ),
                     "disk": stats.get("disk_usage", 0) if hasattr(stats, "get") else getattr(stats, "disk_usage", 0),
-                    "network": stats.get("network_usage", 0) if hasattr(stats, "get") else getattr(stats, "network_usage", 0),
+                    "network": (
+                        stats.get("network_usage", 0) if hasattr(stats, "get") else getattr(stats, "network_usage", 0)
+                    ),
                 },
                 "stats": {
-                    "active_workers": stats.get("active_workers", 0) if hasattr(stats, "get") else getattr(stats, "active_workers", 0),
-                    "running_jobs": stats.get("running_jobs", 0) if hasattr(stats, "get") else getattr(stats, "running_jobs", 0),
-                    "queued_jobs": stats.get("pending_jobs", 0) if hasattr(stats, "get") else getattr(stats, "pending_jobs", 0),
+                    "active_workers": (
+                        stats.get("active_workers", 0) if hasattr(stats, "get") else getattr(stats, "active_workers", 0)
+                    ),
+                    "running_jobs": (
+                        stats.get("running_jobs", 0) if hasattr(stats, "get") else getattr(stats, "running_jobs", 0)
+                    ),
+                    "queued_jobs": (
+                        stats.get("pending_jobs", 0) if hasattr(stats, "get") else getattr(stats, "pending_jobs", 0)
+                    ),
                     "uptime": stats.get("uptime", "0h") if hasattr(stats, "get") else getattr(stats, "uptime", "0h"),
                 },
                 "health": health,
