@@ -90,7 +90,7 @@ jobs:
           NODE_ENV: production
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-dist
           path: src/distributed_cluster/web/frontend_dist/
@@ -165,7 +165,7 @@ jobs:
           CI: true
 
       - name: Upload E2E Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: e2e-test-results

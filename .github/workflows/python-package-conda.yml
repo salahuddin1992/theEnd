@@ -227,7 +227,7 @@ jobs:
         continue-on-error: false
 
       - name: 📤 Upload Test Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
@@ -275,7 +275,7 @@ jobs:
         continue-on-error: true
 
       - name: 📤 Upload Security Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: security-reports
@@ -328,7 +328,7 @@ jobs:
           echo "⚠ Package validation completed with warnings"
 
       - name: 📤 Upload Python Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: python-package
           path: ${{ env.PYTHON_PACKAGE_DIST }}/
@@ -455,7 +455,7 @@ jobs:
         shell: bash
 
       - name: 📤 Upload Desktop Build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact_name }}
           path: |
@@ -545,7 +545,7 @@ jobs:
           fi
 
       - name: 📤 Upload Documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: hashFiles('docs/_build/html/**') != ''
         with:
           name: documentation
