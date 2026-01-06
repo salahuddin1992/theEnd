@@ -10,12 +10,12 @@
 #   make clean          - Clean build artifacts
 #
 # New unified build script:
-#   python build.py                 - Default release build
-#   python build.py --mode debug    - Debug build
-#   python build.py --installer nsis - With installer
+#   python pyinstaller_build.py                 - Default release build
+#   python pyinstaller_build.py --mode debug    - Debug build
+#   python pyinstaller_build.py --installer nsis - With installer
 
 PYTHON := python3
-BUILDER := build.py
+BUILDER := pyinstaller_build.py
 SMART_BUILDER := src/distributed_cluster/desktop/smart_builder.py
 VERSION := $(shell git describe --tags --always 2>/dev/null || echo "1.0.0")
 

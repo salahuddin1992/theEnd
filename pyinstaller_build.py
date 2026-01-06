@@ -26,20 +26,20 @@ Features / المميزات:
 ────────────────────────────────────────────────────────────────────────────────
 
 Usage / الاستخدام:
-    python build.py                          # Default release build
-    python build.py --mode debug             # Debug build with console
-    python build.py --mode release           # Optimized release build
-    python build.py --mode minimal           # Minimal build (smaller size)
-    python build.py --mode full              # Full build with all features
-    python build.py --mode fast              # Quick build, minimal optimization
-    python build.py --installer nsis         # Build with NSIS installer
-    python build.py --installer appimage     # Build with AppImage (Linux)
-    python build.py --onedir                 # Create directory bundle
-    python build.py --console                # Enable console window
-    python build.py --clean                  # Clean build artifacts
-    python build.py --install-deps           # Install build dependencies
-    python build.py --info                   # Show build configuration
-    python build.py --all-platforms          # Build for all platforms (CI)
+    python pyinstaller_build.py                          # Default release build
+    python pyinstaller_build.py --mode debug             # Debug build with console
+    python pyinstaller_build.py --mode release           # Optimized release build
+    python pyinstaller_build.py --mode minimal           # Minimal build (smaller size)
+    python pyinstaller_build.py --mode full              # Full build with all features
+    python pyinstaller_build.py --mode fast              # Quick build, minimal optimization
+    python pyinstaller_build.py --installer nsis         # Build with NSIS installer
+    python pyinstaller_build.py --installer appimage     # Build with AppImage (Linux)
+    python pyinstaller_build.py --onedir                 # Create directory bundle
+    python pyinstaller_build.py --console                # Enable console window
+    python pyinstaller_build.py --clean                  # Clean build artifacts
+    python pyinstaller_build.py --install-deps           # Install build dependencies
+    python pyinstaller_build.py --info                   # Show build configuration
+    python pyinstaller_build.py --all-platforms          # Build for all platforms (CI)
 
 Requirements / المتطلبات:
     pip install pyinstaller PySide6 qasync httpx websockets pillow
@@ -1802,20 +1802,20 @@ def create_parser() -> argparse.ArgumentParser:
         epilog="""
 Examples / أمثلة:
 ════════════════════════════════════════════════════════════════════════════════
-  python build.py                          # Default release build
-  python build.py --mode debug             # Debug build with console
-  python build.py --mode release           # Optimized release build
-  python build.py --mode minimal           # Minimal build (smaller size)
-  python build.py --mode full              # Full build with all features
-  python build.py --mode fast              # Quick build, skip optimizations
-  python build.py --installer nsis         # Build with NSIS installer (Windows)
-  python build.py --installer appimage     # Build with AppImage (Linux)
-  python build.py --installer deb          # Build with DEB package (Debian)
-  python build.py --onedir                 # Create directory bundle
-  python build.py --console                # Enable console window
-  python build.py --clean                  # Clean build artifacts only
-  python build.py --install-deps           # Install build dependencies
-  python build.py --info                   # Show build configuration
+  python pyinstaller_build.py                          # Default release build
+  python pyinstaller_build.py --mode debug             # Debug build with console
+  python pyinstaller_build.py --mode release           # Optimized release build
+  python pyinstaller_build.py --mode minimal           # Minimal build (smaller size)
+  python pyinstaller_build.py --mode full              # Full build with all features
+  python pyinstaller_build.py --mode fast              # Quick build, skip optimizations
+  python pyinstaller_build.py --installer nsis         # Build with NSIS installer (Windows)
+  python pyinstaller_build.py --installer appimage     # Build with AppImage (Linux)
+  python pyinstaller_build.py --installer deb          # Build with DEB package (Debian)
+  python pyinstaller_build.py --onedir                 # Create directory bundle
+  python pyinstaller_build.py --console                # Enable console window
+  python pyinstaller_build.py --clean                  # Clean build artifacts only
+  python pyinstaller_build.py --install-deps           # Install build dependencies
+  python pyinstaller_build.py --info                   # Show build configuration
 ════════════════════════════════════════════════════════════════════════════════
 
 Build Modes / أوضاع البناء:

@@ -1764,15 +1764,15 @@ class BuildOrchestrator:
 def create_parser() -> argparse.ArgumentParser:
     """Create argument parser."""
     parser = argparse.ArgumentParser(
-        prog="build.py",
+        prog="pyinstaller_build.py",
         description="NebulaCompute Ultra-Advanced Build System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python build.py                           # Default release build
-  python build.py --mode debug --console    # Debug build with console
-  python build.py --installer appimage      # Create AppImage
-  python build.py --clean                   # Clean build artifacts
+  python pyinstaller_build.py                           # Default release build
+  python pyinstaller_build.py --mode debug --console    # Debug build with console
+  python pyinstaller_build.py --installer appimage      # Create AppImage
+  python pyinstaller_build.py --clean                   # Clean build artifacts
   
 For more information, see: https://github.com/nebula-compute/docs
         """
