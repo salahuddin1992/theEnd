@@ -1086,44 +1086,123 @@ log("Check complete!")
 
     def _create_sandbox_context(self) -> dict:
         """Create the sandbox execution context with safe APIs"""
+        import asyncio
+
+        # Cache for async results
+        _cache = {"stats": None, "jobs": None, "workers": None}
+
+        # Helper to run async function synchronously
+        def run_async(coro):
+            try:
+                loop = asyncio.get_running_loop()
+                future = asyncio.run_coroutine_threadsafe(coro, loop)
+                return future.result(timeout=5.0)
+            except Exception:
+                try:
+                    return asyncio.run(coro)
+                except Exception:
+                    return None
 
         # Log function that writes to output
         def log(message):
             print(str(message))
 
-        # Mock cluster stats
+        # Cluster stats with API integration
         def get_stats():
             if self.api_client:
-                # Would fetch real stats
-                pass
+                try:
+                    stats = run_async(self.api_client.get_stats())
+                    if stats:
+                        return {
+                            "workers": stats.total_workers,
+                            "active_workers": stats.active_workers,
+                            "jobs": stats.total_jobs,
+                            "running": stats.running_jobs,
+                            "pending": stats.pending_jobs,
+                            "completed": stats.completed_jobs,
+                            "failed": stats.failed_jobs,
+                            "cpu": stats.used_cpu,
+                            "memory": stats.used_memory,
+                        }
+                except Exception as e:
+                    log(f"[Warning] Could not fetch stats: {e}")
+            # Fallback mock data
             return {"workers": 5, "jobs": 12, "cpu": 45.2, "memory": 62.8, "pending": 3, "running": 5, "completed": 4}
 
-        # Mock job list
-        def list_jobs():
+        # Job list with API integration
+        def list_jobs(status: str = None, limit: int = 100):
             if self.api_client:
-                # Would fetch real jobs
-                pass
+                try:
+                    jobs = run_async(self.api_client.get_jobs(status=status, limit=limit))
+                    if jobs:
+                        return jobs
+                except Exception as e:
+                    log(f"[Warning] Could not fetch jobs: {e}")
+            # Fallback mock data
             return [
                 {"id": "1", "name": "data_processing", "status": "running"},
                 {"id": "2", "name": "ml_training", "status": "pending"},
                 {"id": "3", "name": "batch_export", "status": "completed"},
             ]
 
-        # Mock worker list
+        # Worker list with API integration
         def list_workers():
             if self.api_client:
-                # Would fetch real workers
-                pass
+                try:
+                    workers = run_async(self.api_client.get_workers())
+                    if workers:
+                        return workers
+                except Exception as e:
+                    log(f"[Warning] Could not fetch workers: {e}")
+            # Fallback mock data
             return [
                 {"id": "w1", "name": "worker-1", "status": "online", "cpu": 35},
                 {"id": "w2", "name": "worker-2", "status": "online", "cpu": 78},
                 {"id": "w3", "name": "worker-3", "status": "offline", "cpu": 0},
             ]
 
-        # Submit job (mock)
-        def submit_job(name: str, command: str):
-            log(f"Job submitted: {name} -> {command}")
-            return {"id": "new-job-id", "status": "pending"}
+        # Submit job with API integration
+        def submit_job(name: str, command: str, **kwargs):
+            log(f"Submitting job: {name}")
+            if self.api_client:
+                try:
+                    job_spec = {
+                        "name": name,
+                        "command": command,
+                        **kwargs
+                    }
+                    job_id = run_async(self.api_client.submit_job(job_spec))
+                    if job_id:
+                        log(f"Job submitted successfully: {job_id}")
+                        return {"id": job_id, "status": "pending"}
+                except Exception as e:
+                    log(f"[Error] Failed to submit job: {e}")
+            # Fallback
+            log(f"Job submitted (mock): {name} -> {command}")
+            return {"id": "mock-job-id", "status": "pending"}
+
+        # Get job details
+        def get_job(job_id: str):
+            if self.api_client:
+                try:
+                    job = run_async(self.api_client.get_job(job_id))
+                    if job:
+                        return job
+                except Exception as e:
+                    log(f"[Warning] Could not fetch job {job_id}: {e}")
+            return None
+
+        # Cancel job
+        def cancel_job(job_id: str):
+            if self.api_client:
+                try:
+                    success = run_async(self.api_client.cancel_job(job_id))
+                    if success:
+                        log(f"Job {job_id} cancelled")
+                        return True
+                except Exception as e:
+                    log(f"[Error] Failed to cancel job: {e}")
+            return False
 
         return {
             "log": log,
@@ -1131,6 +1210,8 @@ log("Check complete!")
             "list_jobs": list_jobs,
             "list_workers": list_workers,
             "submit_job": submit_job,
+            "get_job": get_job,
+            "cancel_job": cancel_job,
             "cluster": {"name": "NebulaCompute", "version": "0.1.0"},
             "datetime": datetime,
         }
