@@ -656,8 +656,40 @@ class FluentJobsView(QWidget):
         if action == "refresh":
             self.refresh_requested.emit()
         elif action == "export":
-            # Would show file dialog
-            pass
+            # Show file dialog for export
+            from PySide6.QtWidgets import QFileDialog
+            import json
+            import csv
+
+            file_path, selected_filter = QFileDialog.getSaveFileName(
+                self,
+                "Export Jobs",
+                "jobs_export",
+                "JSON Files (*.json);;CSV Files (*.csv);;All Files (*)"
+            )
+
+            if file_path:
+                jobs_data = self._table.get_all_data()
+                try:
+                    if file_path.endswith('.csv') or 'CSV' in selected_filter:
+                        if not file_path.endswith('.csv'):
+                            file_path += '.csv'
+                        with open(file_path, 'w', newline='') as f:
+                            if jobs_data:
+                                writer = csv.DictWriter(f, fieldnames=jobs_data[0].keys())
+                                writer.writeheader()
+                                writer.writerows(jobs_data)
+                    else:
+                        if not file_path.endswith('.json'):
+                            file_path += '.json'
+                        with open(file_path, 'w') as f:
+                            json.dump(jobs_data, f, indent=2, default=str)
+
+                    from PySide6.QtWidgets import QMessageBox
+                    QMessageBox.information(self, "Export Complete", f"Jobs exported to {file_path}")
+                except Exception as e:
+                    from PySide6.QtWidgets import QMessageBox
+                    QMessageBox.warning(self, "Export Error", f"Failed to export: {e}")
         else:
             self.job_action.emit(action, data)
 

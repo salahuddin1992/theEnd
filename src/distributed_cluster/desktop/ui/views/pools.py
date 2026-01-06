@@ -785,11 +785,74 @@ class FluentPoolsView(QWidget):
 
     def _create_pool(self):
         """Create new pool"""
-        pass
+        from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QTextEdit
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Create New Pool")
+        dialog.setMinimumWidth(400)
+
+        layout = QVBoxLayout(dialog)
+        form = QFormLayout()
+
+        name_input = QLineEdit()
+        desc_input = QTextEdit()
+        desc_input.setMaximumHeight(80)
+        min_workers = QSpinBox()
+        min_workers.setRange(0, 100)
+        max_workers = QSpinBox()
+        max_workers.setRange(1, 1000)
+        max_workers.setValue(10)
+        auto_scale = QCheckBox("Enable auto-scaling")
+
+        form.addRow("Pool Name:", name_input)
+        form.addRow("Description:", desc_input)
+        form.addRow("Min Workers:", min_workers)
+        form.addRow("Max Workers:", max_workers)
+        form.addRow("", auto_scale)
+
+        layout.addLayout(form)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+
+        if dialog.exec() == QDialog.Accepted:
+            pool_data = {
+                "name": name_input.text(),
+                "description": desc_input.toPlainText(),
+                "min_workers": min_workers.value(),
+                "max_workers": max_workers.value(),
+                "auto_scale": auto_scale.isChecked(),
+            }
+            self._on_pool_updated(pool_data)
 
     def _on_pool_updated(self, data: dict):
         """Handle pool update"""
-        pass
+        # Create new ResourcePool from data and add to list
+        new_pool = ResourcePool(
+            id=f"pool-{len(self._pools) + 1:03d}",
+            name=data.get("name", "New Pool"),
+            description=data.get("description", ""),
+            status=PoolStatus.ACTIVE,
+            total_cpu=0,
+            used_cpu=0,
+            total_memory_gb=0,
+            used_memory_gb=0,
+            total_gpu=0,
+            used_gpu=0,
+            worker_count=0,
+            active_workers=0,
+            queued_jobs=0,
+            running_jobs=0,
+            priority=1,
+            auto_scale=data.get("auto_scale", False),
+            min_workers=data.get("min_workers", 0),
+            max_workers=data.get("max_workers", 10),
+        )
+        self._pools.append(new_pool)
+        self._refresh_grid()
+        self._update_stats()
 
 
 __all__ = ["FluentPoolsView", "PoolCard", "ResourcePool", "PoolStatus", "ResourceGauge"]

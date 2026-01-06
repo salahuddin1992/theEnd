@@ -440,12 +440,34 @@ class WorkersView(QWidget):
         )
         if reply == QMessageBox.Yes:
             # Drain via API client
-            pass
+            if self.api_client:
+                import asyncio
+
+                async def do_drain():
+                    success = await self.api_client.drain_worker(worker_id)
+                    if success:
+                        QMessageBox.information(self, "Success", f"Worker {worker_id} has been drained.")
+                        self.refresh_requested.emit()
+                    else:
+                        QMessageBox.warning(self, "Error", f"Failed to drain worker {worker_id}.")
+
+                asyncio.create_task(do_drain())
 
     def _on_undrain_worker(self, worker_id: str):
         """Handle undrain worker request"""
         # Undrain via API client
-        pass
+        if self.api_client:
+            import asyncio
+
+            async def do_undrain():
+                success = await self.api_client.undrain_worker(worker_id)
+                if success:
+                    QMessageBox.information(self, "Success", f"Worker {worker_id} has been undraining.")
+                    self.refresh_requested.emit()
+                else:
+                    QMessageBox.warning(self, "Error", f"Failed to undrain worker {worker_id}.")
+
+            asyncio.create_task(do_undrain())
 
     def set_api_client(self, client: APIClient):
         """Set the API client"""

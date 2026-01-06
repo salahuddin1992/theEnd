@@ -395,12 +395,41 @@ class ConnectionDialog(FluentDialog):
 
     def _save_profile(self):
         """Save current settings as profile"""
-        # Would show save dialog
-        pass
+        from pathlib import Path
+        import json
+
+        from PySide6.QtWidgets import QInputDialog, QMessageBox
+
+        # Get profile name from user
+        name, ok = QInputDialog.getText(self, "Save Profile", "Profile name:")
+        if not ok or not name.strip():
+            return
+
+        profile_data = {
+            "name": name.strip(),
+            "host": self._host_input.text(),
+            "port": self._port_input.value(),
+            "ssl": self._ssl_check.isChecked(),
+        }
+
+        # Save to profiles directory
+        profiles_dir = Path.home() / ".nebula_desktop" / "profiles"
+        profiles_dir.mkdir(parents=True, exist_ok=True)
+
+        profile_path = profiles_dir / f"{name.strip().lower().replace(' ', '_')}.json"
+        try:
+            with open(profile_path, "w") as f:
+                json.dump(profile_data, f, indent=2)
+            QMessageBox.information(self, "Success", f"Profile '{name}' saved successfully.")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to save profile: {e}")
 
     def _load_default_profile(self):
         """Load default connection profile"""
-        pass
+        self._host_input.setText("localhost")
+        self._port_input.setValue(8765)
+        self._ssl_check.setChecked(False)
+        self._profile_combo.setCurrentText("Local Development")
 
     def _test_connection(self):
         """Test connection with current settings"""

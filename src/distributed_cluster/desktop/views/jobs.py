@@ -436,12 +436,34 @@ class JobsView(QWidget):
         )
         if reply == QMessageBox.Yes:
             # Cancel via API client
-            pass
+            if self.api_client:
+                import asyncio
+
+                async def do_cancel():
+                    success = await self.api_client.cancel_job(job_id)
+                    if success:
+                        QMessageBox.information(self, "Success", f"Job {job_id} has been cancelled.")
+                        self.refresh_requested.emit()
+                    else:
+                        QMessageBox.warning(self, "Error", f"Failed to cancel job {job_id}.")
+
+                asyncio.create_task(do_cancel())
 
     def _on_retry_job(self, job_id: str):
         """Handle retry job request"""
         # Retry via API client
-        pass
+        if self.api_client:
+            import asyncio
+
+            async def do_retry():
+                success = await self.api_client.retry_job(job_id)
+                if success:
+                    QMessageBox.information(self, "Success", f"Job {job_id} has been resubmitted.")
+                    self.refresh_requested.emit()
+                else:
+                    QMessageBox.warning(self, "Error", f"Failed to retry job {job_id}.")
+
+            asyncio.create_task(do_retry())
 
     def get_status_filter(self) -> Optional[str]:
         """Get current status filter"""

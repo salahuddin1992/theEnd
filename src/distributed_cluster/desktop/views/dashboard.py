@@ -214,8 +214,19 @@ class DashboardView(QScrollArea):
     def _request_refresh(self):
         """Request data refresh (to be called from async context)"""
         if self.api_client:
-            # This will be handled by the main window's event loop
-            pass
+            import asyncio
+
+            async def do_refresh():
+                stats = await self.api_client.get_stats()
+                self.update_stats(stats)
+
+            # Try to run in existing event loop or create task
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(do_refresh())
+            except RuntimeError:
+                # No running loop - parent should handle refresh
+                pass
 
     def update_stats(self, stats: ClusterStats):
         """Update dashboard with new statistics"""
