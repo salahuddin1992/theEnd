@@ -5,14 +5,12 @@ Scheduler Performance Tests
 Benchmark tests for the scheduler component.
 """
 
-import asyncio
 import time
 from datetime import datetime, timezone
-from typing import Generator
 
 import pytest
 
-from distributed_cluster.models.job import JobPriority, JobSubmission
+from distributed_cluster.models.job import Job, JobPriority, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
 from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
 from distributed_cluster.scheduler import Scheduler, SchedulingPolicy
@@ -79,6 +77,7 @@ class TestSchedulerPerformance:
 
     def test_scheduler_creation_time(self, benchmark):
         """Benchmark scheduler creation."""
+
         def create_scheduler():
             return Scheduler(policy=SchedulingPolicy.BEST_FIT)
 
@@ -91,7 +90,7 @@ class TestSchedulerPerformance:
 
         def register_all_workers():
             for worker in large_worker_pool:
-                scheduler.register_worker(worker)
+                scheduler.add_worker(worker)
             return len(scheduler.workers)
 
         count = benchmark(register_all_workers)
@@ -106,14 +105,14 @@ class TestSchedulerPerformance:
         """Benchmark job scheduling latency."""
         scheduler = Scheduler(policy=SchedulingPolicy.BEST_FIT)
         for worker in large_worker_pool:
-            scheduler.register_worker(worker)
+            scheduler.add_worker(worker)
 
         def schedule_jobs():
             scheduled = 0
-            for job in many_jobs[:50]:  # Schedule subset
-                result = scheduler.schedule_job(job)
-                if result is not None:
-                    scheduled += 1
+            for i, submission in enumerate(many_jobs[:50]):  # Schedule subset
+                job = Job(job_id=f"latency-test-{i}", submission=submission)
+                scheduler.submit_job(job)
+                scheduled += 1
             return scheduled
 
         result = benchmark(schedule_jobs)
@@ -128,7 +127,7 @@ class TestSchedulerPerformance:
         ]
 
         results = {}
-        job = JobSubmission(
+        submission = JobSubmission(
             command="python test.py",
             resources=ResourceSpec(cpu_cores=2, memory_mb=2048),
             priority=JobPriority.NORMAL,
@@ -137,11 +136,12 @@ class TestSchedulerPerformance:
         for policy in policies:
             scheduler = Scheduler(policy=policy)
             for worker in large_worker_pool:
-                scheduler.register_worker(worker)
+                scheduler.add_worker(worker)
 
             start = time.perf_counter()
-            for _ in range(100):
-                scheduler.schedule_job(job)
+            for i in range(100):
+                job = Job(job_id=f"test-job-{policy.value}-{i}", submission=submission)
+                scheduler.submit_job(job)
             elapsed = time.perf_counter() - start
             results[policy.value] = elapsed
 
@@ -160,17 +160,19 @@ class TestDatabasePerformance:
     @pytest.mark.asyncio
     async def test_job_insert_throughput(self, database, benchmark):
         """Benchmark job insertion throughput."""
-        from distributed_cluster.models.job import Job, JobStatus
+        from distributed_cluster.models.job import Job, JobStatus, JobSubmission
 
         async def insert_jobs():
             jobs_created = 0
             for i in range(100):
                 job = Job(
                     job_id=f"perf-job-{i}",
-                    command=f"echo test_{i}",
+                    submission=JobSubmission(
+                        command=f"echo test_{i}",
+                        resources=ResourceSpec(cpu_cores=1, memory_mb=512),
+                        priority=JobPriority.NORMAL,
+                    ),
                     status=JobStatus.PENDING,
-                    resources=ResourceSpec(cpu_cores=1, memory_mb=512),
-                    priority=JobPriority.NORMAL,
                 )
                 await database.save_job(job)
                 jobs_created += 1
@@ -188,16 +190,18 @@ class TestDatabasePerformance:
     @pytest.mark.asyncio
     async def test_job_query_performance(self, database):
         """Benchmark job query performance."""
-        from distributed_cluster.models.job import Job, JobStatus
+        from distributed_cluster.models.job import Job, JobStatus, JobSubmission
 
         # Insert test data
         for i in range(50):
             job = Job(
                 job_id=f"query-job-{i}",
-                command=f"echo test_{i}",
+                submission=JobSubmission(
+                    command=f"echo test_{i}",
+                    resources=ResourceSpec(cpu_cores=1, memory_mb=512),
+                    priority=JobPriority.NORMAL,
+                ),
                 status=JobStatus.PENDING if i % 2 == 0 else JobStatus.COMPLETED,
-                resources=ResourceSpec(cpu_cores=1, memory_mb=512),
-                priority=JobPriority.NORMAL,
             )
             await database.save_job(job)
 
@@ -218,14 +222,12 @@ class TestAPIPerformance:
     async def test_health_check_latency(self):
         """Benchmark health check endpoint latency."""
         from httpx import ASGITransport, AsyncClient
+
         from distributed_cluster.web.api import create_app
 
         app = create_app()
 
-        async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             # Warmup
             await client.get("/health")
 

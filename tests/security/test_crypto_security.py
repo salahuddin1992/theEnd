@@ -5,15 +5,13 @@ Cryptographic Security Tests
 Tests for cryptographic implementations and key management.
 """
 
-import pytest
-
 
 class TestPasswordSecurity:
     """Password handling security tests."""
 
     def test_password_hashing_strength(self):
         """Test that passwords are hashed with sufficient strength."""
-        from distributed_cluster.security.auth import AuthManager, AuthConfig
+        from distributed_cluster.security.auth import AuthConfig, AuthManager
 
         config = AuthConfig(
             secret_key="test-secret-key-for-testing",
@@ -31,7 +29,7 @@ class TestPasswordSecurity:
 
     def test_password_not_stored_plaintext(self):
         """Verify passwords are never stored in plaintext."""
-        from distributed_cluster.security.auth import AuthManager, AuthConfig
+        from distributed_cluster.security.auth import AuthConfig, AuthManager, Role, TokenPayload
 
         config = AuthConfig(
             secret_key="test-secret-key-for-testing",
@@ -42,7 +40,12 @@ class TestPasswordSecurity:
         password = "my_secret_password"
 
         # Create user/token and verify password isn't in the result
-        token_data = auth.create_token("test_user", roles=["user"])
+        payload = TokenPayload(
+            subject="test_user",
+            subject_type="user",
+            role=Role.USER,
+        )
+        token_data = auth.generate_token(payload)
 
         assert password not in token_data
         assert password not in str(auth.__dict__)
@@ -54,7 +57,8 @@ class TestTokenSecurity:
     def test_token_signature_verification(self):
         """Test that token signature is verified."""
         import jwt
-        from distributed_cluster.security.auth import AuthManager, AuthConfig
+
+        from distributed_cluster.security.auth import AuthConfig, AuthManager
 
         config = AuthConfig(
             secret_key="correct_secret_key_12345",
@@ -63,11 +67,7 @@ class TestTokenSecurity:
         auth = AuthManager(config)
 
         # Create a token with wrong secret
-        fake_token = jwt.encode(
-            {"sub": "hacker", "roles": ["admin"]},
-            "wrong_secret_key",
-            algorithm="HS256"
-        )
+        fake_token = jwt.encode({"sub": "hacker", "roles": ["admin"]}, "wrong_secret_key", algorithm="HS256")
 
         # Verification should fail
         result = auth.verify_token(fake_token)
@@ -75,9 +75,11 @@ class TestTokenSecurity:
 
     def test_token_expiry_enforced(self):
         """Test that token expiry is enforced."""
+        from datetime import datetime, timedelta, timezone
+
         import jwt
-        from datetime import datetime, timezone, timedelta
-        from distributed_cluster.security.auth import AuthManager, AuthConfig
+
+        from distributed_cluster.security.auth import AuthConfig, AuthManager
 
         config = AuthConfig(
             secret_key="test_secret_key_12345",
@@ -92,19 +94,15 @@ class TestTokenSecurity:
             "roles": ["user"],
         }
 
-        expired_token = jwt.encode(
-            expired_payload,
-            config.secret_key,
-            algorithm="HS256"
-        )
+        expired_token = jwt.encode(expired_payload, config.secret_key, algorithm="HS256")
 
         # Should reject expired token
         result = auth.verify_token(expired_token)
         assert result is None or result.get("valid") is False
 
     def test_token_algorithm_specified(self):
-        """Test that token algorithm is explicitly specified."""
-        from distributed_cluster.security.auth import AuthManager, AuthConfig
+        """Test that token uses HMAC-SHA256 signature."""
+        from distributed_cluster.security.auth import AuthConfig, AuthManager, Role, TokenPayload
 
         config = AuthConfig(
             secret_key="test_secret_key_12345",
@@ -113,15 +111,21 @@ class TestTokenSecurity:
         auth = AuthManager(config)
 
         # Create token
-        token = auth.create_token("test_user")
+        payload = TokenPayload(
+            subject="test_user",
+            subject_type="user",
+            role=Role.USER,
+        )
+        token = auth.generate_token(payload)
 
-        # Decode without verification to check header
-        import jwt
-        header = jwt.get_unverified_header(token)
+        # Token format: base64_payload.hmac_signature
+        parts = token.split(".")
+        assert len(parts) == 2  # payload.signature format
 
-        # Should use secure algorithm
-        assert header["alg"] in ["HS256", "HS384", "HS512", "RS256", "RS384", "RS512"]
-        assert header["alg"] != "none"  # Never allow 'none' algorithm
+        # Signature should be hex (HMAC-SHA256 produces 64 hex chars)
+        signature = parts[1]
+        assert len(signature) == 64  # SHA256 produces 32 bytes = 64 hex chars
+        assert all(c in "0123456789abcdef" for c in signature)
 
 
 class TestKeyManagement:
@@ -143,9 +147,10 @@ class TestKeyManagement:
 
     def test_keys_not_in_logs(self):
         """Test that secret keys are not logged."""
-        from distributed_cluster.security.auth import AuthManager, AuthConfig
         import io
         import logging
+
+        from distributed_cluster.security.auth import AuthConfig, AuthManager, Role, TokenPayload
 
         # Capture log output
         log_capture = io.StringIO()
@@ -166,7 +171,12 @@ class TestKeyManagement:
             auth = AuthManager(config)
 
             # Trigger some operations that might log
-            auth.create_token("test_user")
+            payload = TokenPayload(
+                subject="test_user",
+                subject_type="user",
+                role=Role.USER,
+            )
+            auth.generate_token(payload)
 
             # Check logs don't contain secret
             log_output = log_capture.getvalue()
@@ -224,9 +234,9 @@ class TestTLSSecurity:
         # Should use secure protocols
         assert context.minimum_version >= ssl.TLSVersion.TLSv1_2
 
-        # Should not allow insecure protocols
-        assert not (context.options & ssl.OP_NO_SSLv2)  # SSLv2 disabled by default
-        assert not (context.options & ssl.OP_NO_SSLv3)  # SSLv3 disabled by default
+        # SSLv3 should be disabled (OP_NO_SSLv3 flag should be set)
+        # Note: SSLv2 is no longer supported in modern Python/OpenSSL
+        assert context.options & ssl.OP_NO_SSLv3  # SSLv3 disabled by default
 
     def test_certificate_verification(self):
         """Test that certificate verification is enabled by default."""

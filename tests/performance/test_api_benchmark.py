@@ -8,12 +8,10 @@ Comprehensive API performance benchmarks.
 import asyncio
 import statistics
 import time
-from concurrent.futures import ThreadPoolExecutor
-from typing import List
 
 import pytest
 
-from distributed_cluster.models.job import JobPriority, JobSubmission
+from distributed_cluster.models.job import Job, JobPriority, JobSubmission
 from distributed_cluster.models.resources import ResourceSpec
 
 
@@ -24,15 +22,14 @@ class TestAPIBenchmarks:
     async def test_concurrent_requests(self):
         """Test API under concurrent load."""
         from httpx import ASGITransport, AsyncClient
+
         from distributed_cluster.web.api import create_app
 
         app = create_app()
         concurrent_requests = 50
 
-        async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+
             async def make_request():
                 start = time.perf_counter()
                 response = await client.get("/health")
@@ -62,15 +59,13 @@ class TestAPIBenchmarks:
     async def test_sustained_load(self):
         """Test API under sustained load for 5 seconds."""
         from httpx import ASGITransport, AsyncClient
+
         from distributed_cluster.web.api import create_app
 
         app = create_app()
         duration_seconds = 2  # Run for 2 seconds
 
-        async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             latencies = []
             errors = 0
             start_time = time.perf_counter()
@@ -102,14 +97,12 @@ class TestAPIBenchmarks:
     async def test_job_submission_performance(self):
         """Benchmark job submission endpoint."""
         from httpx import ASGITransport, AsyncClient
+
         from distributed_cluster.web.api import create_app
 
         app = create_app()
 
-        async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             job_data = {
                 "command": "python -c 'print(1)'",
                 "resources": {"cpu_cores": 1, "memory_mb": 512},
@@ -133,14 +126,12 @@ class TestAPIBenchmarks:
     async def test_metrics_endpoint_performance(self):
         """Benchmark metrics collection endpoint."""
         from httpx import ASGITransport, AsyncClient
+
         from distributed_cluster.web.api import create_app
 
         app = create_app()
 
-        async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             latencies = []
 
             for _ in range(50):
@@ -163,8 +154,9 @@ class TestMemoryPerformance:
         """Test scheduler memory usage with many workers."""
         import sys
         from datetime import datetime, timezone
-        from distributed_cluster.scheduler import Scheduler, SchedulingPolicy
+
         from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
+        from distributed_cluster.scheduler import Scheduler, SchedulingPolicy
 
         scheduler = Scheduler(policy=SchedulingPolicy.BEST_FIT)
         initial_size = sys.getsizeof(scheduler)
@@ -186,29 +178,31 @@ class TestMemoryPerformance:
                 registered_at=now,
                 last_heartbeat=now,
             )
-            scheduler.register_worker(worker)
+            scheduler.add_worker(worker)
 
         # Memory should grow proportionally
         assert len(scheduler.workers) == 1000
-        print(f"\nScheduler with 1000 workers registered")
+        print("\nScheduler with 1000 workers registered")
 
     def test_job_queue_memory(self):
         """Test job queue memory efficiency."""
-        from distributed_cluster.models.job import Job, JobStatus
+        from distributed_cluster.models.job import Job, JobStatus, JobSubmission
 
         jobs = []
         for i in range(10000):
             job = Job(
                 job_id=f"job-{i}",
-                command="echo test",
+                submission=JobSubmission(
+                    command="echo test",
+                    resources=ResourceSpec(cpu_cores=1, memory_mb=512),
+                    priority=JobPriority.NORMAL,
+                ),
                 status=JobStatus.PENDING,
-                resources=ResourceSpec(cpu_cores=1, memory_mb=512),
-                priority=JobPriority.NORMAL,
             )
             jobs.append(job)
 
         assert len(jobs) == 10000
-        print(f"\nCreated 10000 Job objects successfully")
+        print("\nCreated 10000 Job objects successfully")
 
 
 class TestCPUPerformance:
@@ -216,9 +210,10 @@ class TestCPUPerformance:
 
     def test_resource_matching_cpu(self):
         """Benchmark CPU usage for resource matching."""
-        from distributed_cluster.scheduler import Scheduler, SchedulingPolicy
-        from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
         from datetime import datetime, timezone
+
+        from distributed_cluster.models.worker import WorkerInfo, WorkerStatus
+        from distributed_cluster.scheduler import Scheduler, SchedulingPolicy
 
         scheduler = Scheduler(policy=SchedulingPolicy.BEST_FIT)
         now = datetime.now(timezone.utc)
@@ -248,18 +243,19 @@ class TestCPUPerformance:
                 registered_at=now,
                 last_heartbeat=now,
             )
-            scheduler.register_worker(worker)
+            scheduler.add_worker(worker)
 
         # Benchmark many scheduling decisions
-        job = JobSubmission(
+        submission = JobSubmission(
             command="python test.py",
             resources=ResourceSpec(cpu_cores=4, memory_mb=4096),
             priority=JobPriority.NORMAL,
         )
 
         start = time.perf_counter()
-        for _ in range(1000):
-            scheduler.schedule_job(job)
+        for i in range(1000):
+            job = Job(job_id=f"bench-job-{i}", submission=submission)
+            scheduler.submit_job(job)
         elapsed = time.perf_counter() - start
 
         print(f"\n1000 scheduling decisions in {elapsed:.3f}s")

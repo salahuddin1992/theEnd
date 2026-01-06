@@ -72,3 +72,4 @@ src/distributed_cluster/web/frontend_dist/
 # OS
 .DS_Store
 Thumbs.db
+.hypothesis/

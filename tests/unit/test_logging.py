@@ -102,7 +102,7 @@ class TestStructuredLogger:
             # Set level to WARNING
             logger = StructuredLogger("test", level=LogLevel.WARNING, output=f)
             logger.debug("Debug message")  # Should be filtered
-            logger.info("Info message")    # Should be filtered
+            logger.info("Info message")  # Should be filtered
             logger.warning("Warning message")  # Should appear
             logger.error("Error message")  # Should appear
 

@@ -106,9 +106,7 @@ class TestWorkerAgentRegistration:
         agent.detector = MagicMock()
         agent.detector.get_hostname.return_value = "test-host"
         agent.detector.get_ip_address.return_value = "192.168.1.100"
-        agent.detector.get_total_resources.return_value = ResourceSpec(
-            cpu_cores=4, memory_mb=8192
-        )
+        agent.detector.get_total_resources.return_value = ResourceSpec(cpu_cores=4, memory_mb=8192)
         agent.detector.get_capabilities.return_value = ["docker", "gpu"]
 
         # Mock HTTP client with successful response
@@ -140,9 +138,7 @@ class TestWorkerAgentRegistration:
         agent.detector = MagicMock()
         agent.detector.get_hostname.return_value = "test-host"
         agent.detector.get_ip_address.return_value = "192.168.1.100"
-        agent.detector.get_total_resources.return_value = ResourceSpec(
-            cpu_cores=4, memory_mb=8192
-        )
+        agent.detector.get_total_resources.return_value = ResourceSpec(cpu_cores=4, memory_mb=8192)
         agent.detector.get_capabilities.return_value = []
 
         # Mock HTTP client that raises exception
@@ -165,9 +161,7 @@ class TestWorkerAgentRegistration:
         agent.detector = MagicMock()
         agent.detector.get_hostname.return_value = "test-host"
         agent.detector.get_ip_address.return_value = "192.168.1.100"
-        agent.detector.get_total_resources.return_value = ResourceSpec(
-            cpu_cores=4, memory_mb=8192
-        )
+        agent.detector.get_total_resources.return_value = ResourceSpec(cpu_cores=4, memory_mb=8192)
         agent.detector.get_capabilities.return_value = []
 
         # Mock HTTP client that raises exception
@@ -192,9 +186,7 @@ class TestWorkerAgentHeartbeat:
 
         # Mock detector
         agent.detector = MagicMock()
-        agent.detector.get_available_resources.return_value = ResourceSpec(
-            cpu_cores=2, memory_mb=4096
-        )
+        agent.detector.get_available_resources.return_value = ResourceSpec(cpu_cores=2, memory_mb=4096)
 
         # Mock HTTP client
         mock_response = MagicMock()

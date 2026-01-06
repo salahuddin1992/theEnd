@@ -124,8 +124,7 @@ class TestAuthManager:
 
         # Create API key with permissions
         api_key2, token2 = auth_manager.create_api_key(
-            "test-key-2",
-            permissions={Permission.JOB_SUBMIT, Permission.JOB_READ}
+            "test-key-2", permissions={Permission.JOB_SUBMIT, Permission.JOB_READ}
         )
         assert api_key2 is not None
         assert token2 is not None

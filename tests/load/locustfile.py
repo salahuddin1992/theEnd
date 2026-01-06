@@ -12,11 +12,9 @@ Or headless:
            --users=100 --spawn-rate=10 --run-time=60s --headless
 """
 
-import json
 import random
-import string
-from locust import HttpUser, task, between, events
-from locust.runners import MasterRunner, WorkerRunner
+
+from locust import HttpUser, between, events, task
 
 
 class ClusterAPIUser(HttpUser):
@@ -68,11 +66,7 @@ class ClusterAPIUser(HttpUser):
             "tags": ["load-test"],
         }
 
-        with self.client.post(
-            "/api/v1/jobs",
-            json=job_data,
-            catch_response=True
-        ) as response:
+        with self.client.post("/api/v1/jobs", json=job_data, catch_response=True) as response:
             if response.status_code in [200, 201, 202]:
                 try:
                     data = response.json()
