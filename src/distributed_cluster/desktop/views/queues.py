@@ -11,36 +11,31 @@ Features:
 - Auto sort by priority
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
-from PySide6.QtCore import Signal, Qt, QTimer, QPropertyAnimation, QEasingCurve, QSize
-from PySide6.QtGui import QColor, QPainter, QPen, QBrush, QFont
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
+    QComboBox,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMessageBox,
+    QProgressBar,
     QPushButton,
+    QScrollArea,
+    QSplitter,
+    QToolButton,
     QVBoxLayout,
     QWidget,
-    QFrame,
-    QGridLayout,
-    QScrollArea,
-    QStackedWidget,
-    QSplitter,
-    QComboBox,
-    QGraphicsDropShadowEffect,
-    QProgressBar,
-    QSizePolicy,
-    QToolButton,
-    QLineEdit,
-    QTextEdit,
 )
 
 from ..api.client import APIClient
 from ..resources.styles import COLORS
 from ..ui.dialogs import QueueCreateDialog
-from ..widgets.data_table import DataTable
-
 
 # Priority level configurations
 PRIORITY_CONFIG = {
@@ -93,7 +88,8 @@ class PriorityBadge(QLabel):
         config = PRIORITY_CONFIG.get(priority.lower(), PRIORITY_CONFIG["default"])
 
         self.setText(f"{config['icon']} {config['label']}")
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QLabel {{
                 background-color: {config['bg']};
                 color: {config['color']};
@@ -102,7 +98,8 @@ class PriorityBadge(QLabel):
                 font-size: 11px;
                 font-weight: 600;
             }}
-        """)
+        """
+        )
 
 
 class QueueCard(QFrame):
@@ -134,9 +131,12 @@ class QueueCard(QFrame):
         is_enabled = queue.get("enabled", True)
         is_paused = queue.get("paused", False)
 
-        status_color = COLORS.get('success', '#10b981') if is_enabled and not is_paused else COLORS.get('danger', '#ef4444')
+        status_color = (
+            COLORS.get("success", "#10b981") if is_enabled and not is_paused else COLORS.get("danger", "#ef4444")
+        )
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#queue_card {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -148,7 +148,8 @@ class QueueCard(QFrame):
                 border-color: {priority_config['color']};
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
@@ -157,11 +158,13 @@ class QueueCard(QFrame):
         header_layout = QHBoxLayout()
 
         name_label = QLabel(queue.get("name", "Unknown Queue"))
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             font-size: 16px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(name_label)
         header_layout.addStretch()
 
@@ -172,20 +175,23 @@ class QueueCard(QFrame):
         # Status indicator
         status_text = "PAUSED" if is_paused else ("ACTIVE" if is_enabled else "DISABLED")
         status_label = QLabel(status_text)
-        status_label.setStyleSheet(f"""
+        status_label.setStyleSheet(
+            f"""
             background-color: {status_color}20;
             color: {status_color};
             padding: 4px 10px;
             border-radius: 10px;
             font-size: 11px;
             font-weight: 600;
-        """)
+        """
+        )
         header_layout.addWidget(status_label)
 
         # Actions button
         actions_btn = QToolButton()
         actions_btn.setText("⋮")
-        actions_btn.setStyleSheet(f"""
+        actions_btn.setStyleSheet(
+            f"""
             QToolButton {{
                 background: transparent;
                 border: none;
@@ -197,7 +203,8 @@ class QueueCard(QFrame):
                 background-color: {COLORS.get('bg_light', '#273548')};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
         actions_btn.clicked.connect(self._show_actions_menu)
         header_layout.addWidget(actions_btn)
 
@@ -244,13 +251,14 @@ class QueueCard(QFrame):
 
         # Color based on load
         if load_percent > 80:
-            progress_color = COLORS.get('danger', '#ef4444')
+            progress_color = COLORS.get("danger", "#ef4444")
         elif load_percent > 50:
-            progress_color = COLORS.get('warning', '#f59e0b')
+            progress_color = COLORS.get("warning", "#f59e0b")
         else:
-            progress_color = COLORS.get('success', '#10b981')
+            progress_color = COLORS.get("success", "#10b981")
 
-        progress.setStyleSheet(f"""
+        progress.setStyleSheet(
+            f"""
             QProgressBar {{
                 background-color: {COLORS.get('bg_dark', '#0f172a')};
                 border-radius: 3px;
@@ -259,7 +267,8 @@ class QueueCard(QFrame):
                 background-color: {progress_color};
                 border-radius: 3px;
             }}
-        """)
+        """
+        )
         load_layout.addWidget(progress, 1)
 
         layout.addLayout(load_layout)
@@ -279,18 +288,22 @@ class QueueCard(QFrame):
         text_layout.setSpacing(0)
 
         label_widget = QLabel(label)
-        label_widget.setStyleSheet(f"""
+        label_widget.setStyleSheet(
+            f"""
             font-size: 11px;
             color: {COLORS.get('text_secondary', '#94a3b8')};
-        """)
+        """
+        )
         text_layout.addWidget(label_widget)
 
         value_widget = QLabel(value)
-        value_widget.setStyleSheet(f"""
+        value_widget.setStyleSheet(
+            f"""
             font-size: 14px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         text_layout.addWidget(value_widget)
 
         layout.addLayout(text_layout)
@@ -301,7 +314,8 @@ class QueueCard(QFrame):
         from PySide6.QtWidgets import QMenu
 
         menu = QMenu(self)
-        menu.setStyleSheet(f"""
+        menu.setStyleSheet(
+            f"""
             QMenu {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -316,7 +330,8 @@ class QueueCard(QFrame):
             QMenu::item:selected {{
                 background-color: {COLORS.get('primary', '#3b82f6')};
             }}
-        """)
+        """
+        )
 
         is_paused = self.queue_data.get("paused", False)
 
@@ -358,12 +373,14 @@ class QueueDetailsPanel(QFrame):
         self.setMaximumWidth(400)
 
     def _setup_ui(self):
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#details_panel {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border-left: 1px solid {COLORS.get('border', '#334155')};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -373,17 +390,20 @@ class QueueDetailsPanel(QFrame):
         header_layout = QHBoxLayout()
 
         self.title_label = QLabel("Queue Details")
-        self.title_label.setStyleSheet(f"""
+        self.title_label.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(self.title_label)
         header_layout.addStretch()
 
         close_btn = QPushButton("✕")
         close_btn.setFixedSize(28, 28)
-        close_btn.setStyleSheet(f"""
+        close_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background: transparent;
                 border: none;
@@ -395,7 +415,8 @@ class QueueDetailsPanel(QFrame):
                 background-color: {COLORS.get('bg_light', '#273548')};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
         close_btn.clicked.connect(self.close_requested.emit)
         header_layout.addWidget(close_btn)
 
@@ -418,7 +439,8 @@ class QueueDetailsPanel(QFrame):
         actions_layout = QHBoxLayout()
 
         self.pause_btn = QPushButton("⏸️ Pause")
-        self.pause_btn.setStyleSheet(f"""
+        self.pause_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('warning', '#f59e0b')};
                 border: none;
@@ -430,12 +452,14 @@ class QueueDetailsPanel(QFrame):
             QPushButton:hover {{
                 background-color: {COLORS.get('warning', '#f59e0b')}dd;
             }}
-        """)
+        """
+        )
         self.pause_btn.clicked.connect(self._on_pause_resume)
         actions_layout.addWidget(self.pause_btn)
 
         edit_btn = QPushButton("✏️ Edit")
-        edit_btn.setStyleSheet(f"""
+        edit_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('primary', '#3b82f6')};
                 border: none;
@@ -447,7 +471,8 @@ class QueueDetailsPanel(QFrame):
             QPushButton:hover {{
                 background-color: {COLORS.get('info', '#60a5fa')};
             }}
-        """)
+        """
+        )
         edit_btn.clicked.connect(lambda: self.action_triggered.emit("edit", self._queue_data))
         actions_layout.addWidget(edit_btn)
 
@@ -478,15 +503,15 @@ class QueueDetailsPanel(QFrame):
         if is_paused:
             self.pause_btn.setText("▶️ Resume")
             status = "Paused"
-            status_color = COLORS.get('warning', '#f59e0b')
+            status_color = COLORS.get("warning", "#f59e0b")
         elif is_enabled:
             self.pause_btn.setText("⏸️ Pause")
             status = "Active"
-            status_color = COLORS.get('success', '#10b981')
+            status_color = COLORS.get("success", "#10b981")
         else:
             self.pause_btn.setText("▶️ Enable")
             status = "Disabled"
-            status_color = COLORS.get('danger', '#ef4444')
+            status_color = COLORS.get("danger", "#ef4444")
 
         self._add_detail_row("Status", status, status_color)
 
@@ -502,22 +527,26 @@ class QueueDetailsPanel(QFrame):
         description = queue_data.get("description", "")
         if description:
             desc_label = QLabel("Description")
-            desc_label.setStyleSheet(f"""
+            desc_label.setStyleSheet(
+                f"""
                 font-size: 12px;
                 color: {COLORS.get('text_secondary', '#94a3b8')};
                 margin-top: 8px;
-            """)
+            """
+            )
             self.content_layout.addWidget(desc_label)
 
             desc_text = QLabel(description)
             desc_text.setWordWrap(True)
-            desc_text.setStyleSheet(f"""
+            desc_text.setStyleSheet(
+                f"""
                 color: {COLORS.get('text_primary', '#f1f5f9')};
                 font-size: 13px;
                 padding: 8px;
                 background-color: {COLORS.get('bg_dark', '#0f172a')};
                 border-radius: 6px;
-            """)
+            """
+            )
             self.content_layout.addWidget(desc_text)
 
         self.content_layout.addStretch()
@@ -529,20 +558,24 @@ class QueueDetailsPanel(QFrame):
         row_layout.setContentsMargins(0, 0, 0, 0)
 
         label_widget = QLabel(label)
-        label_widget.setStyleSheet(f"""
+        label_widget.setStyleSheet(
+            f"""
             color: {COLORS.get('text_secondary', '#94a3b8')};
             font-size: 13px;
-        """)
+        """
+        )
         row_layout.addWidget(label_widget)
         row_layout.addStretch()
 
-        value_color = color or COLORS.get('text_primary', '#f1f5f9')
+        value_color = color or COLORS.get("text_primary", "#f1f5f9")
         value_widget = QLabel(value)
-        value_widget.setStyleSheet(f"""
+        value_widget.setStyleSheet(
+            f"""
             color: {value_color};
             font-size: 13px;
             font-weight: 500;
-        """)
+        """
+        )
         row_layout.addWidget(value_widget)
 
         self.content_layout.addWidget(row)
@@ -613,11 +646,13 @@ class QueuesView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Priority Queues")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         subtitle = QLabel("Manage job scheduling priorities")
@@ -628,30 +663,35 @@ class QueuesView(QWidget):
 
         # Stats badges
         self.total_queues_badge = QLabel("0 queues")
-        self.total_queues_badge.setStyleSheet(f"""
+        self.total_queues_badge.setStyleSheet(
+            f"""
             background-color: {COLORS.get('bg_medium', '#1e293b')};
             color: {COLORS.get('text_secondary', '#94a3b8')};
             padding: 6px 12px;
             border-radius: 12px;
             font-size: 12px;
-        """)
+        """
+        )
         header_layout.addWidget(self.total_queues_badge)
 
         self.total_pending_badge = QLabel("0 pending")
-        self.total_pending_badge.setStyleSheet(f"""
+        self.total_pending_badge.setStyleSheet(
+            f"""
             background-color: {COLORS.get('warning', '#f59e0b')}20;
             color: {COLORS.get('warning', '#f59e0b')};
             padding: 6px 12px;
             border-radius: 12px;
             font-size: 12px;
-        """)
+        """
+        )
         header_layout.addWidget(self.total_pending_badge)
 
         header_layout.addSpacing(16)
 
         # Refresh button
         refresh_btn = QPushButton("🔄 Refresh")
-        refresh_btn.setStyleSheet(f"""
+        refresh_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -662,13 +702,15 @@ class QueuesView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
         refresh_btn.clicked.connect(self._on_refresh)
         header_layout.addWidget(refresh_btn)
 
         # Create button
         create_btn = QPushButton("+ Create Queue")
-        create_btn.setStyleSheet(f"""
+        create_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('primary', '#3b82f6')};
                 border: none;
@@ -680,7 +722,8 @@ class QueuesView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('info', '#60a5fa')};
             }}
-        """)
+        """
+        )
         create_btn.clicked.connect(self._on_create_queue)
         header_layout.addWidget(create_btn)
 
@@ -694,7 +737,8 @@ class QueuesView(QWidget):
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("🔍 Search queues...")
         self.search_input.setFixedWidth(250)
-        self.search_input.setStyleSheet(f"""
+        self.search_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -705,7 +749,8 @@ class QueuesView(QWidget):
             QLineEdit:focus {{
                 border-color: {COLORS.get('primary', '#3b82f6')};
             }}
-        """)
+        """
+        )
         self.search_input.textChanged.connect(self._apply_filters)
         filter_layout.addWidget(self.search_input)
 
@@ -716,7 +761,8 @@ class QueuesView(QWidget):
 
         self.priority_filter = QComboBox()
         self.priority_filter.addItems(["All", "Critical", "High", "Medium", "Low"])
-        self.priority_filter.setStyleSheet(f"""
+        self.priority_filter.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -728,7 +774,8 @@ class QueuesView(QWidget):
             QComboBox::drop-down {{
                 border: none;
             }}
-        """)
+        """
+        )
         self.priority_filter.currentTextChanged.connect(self._apply_filters)
         filter_layout.addWidget(self.priority_filter)
 
@@ -739,7 +786,8 @@ class QueuesView(QWidget):
 
         self.status_filter = QComboBox()
         self.status_filter.addItems(["All", "Active", "Paused", "Disabled"])
-        self.status_filter.setStyleSheet(f"""
+        self.status_filter.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -751,7 +799,8 @@ class QueuesView(QWidget):
             QComboBox::drop-down {{
                 border: none;
             }}
-        """)
+        """
+        )
         self.status_filter.currentTextChanged.connect(self._apply_filters)
         filter_layout.addWidget(self.status_filter)
 
@@ -759,7 +808,8 @@ class QueuesView(QWidget):
         self.sort_by_priority = QPushButton("📊 Sort by Priority")
         self.sort_by_priority.setCheckable(True)
         self.sort_by_priority.setChecked(True)
-        self.sort_by_priority.setStyleSheet(f"""
+        self.sort_by_priority.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -774,7 +824,8 @@ class QueuesView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
         self.sort_by_priority.clicked.connect(self._apply_filters)
         filter_layout.addWidget(self.sort_by_priority)
 
@@ -786,9 +837,11 @@ class QueuesView(QWidget):
         """Setup queues grid view"""
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("""
+        scroll_area.setStyleSheet(
+            """
             QScrollArea { border: none; background-color: transparent; }
-        """)
+        """
+        )
 
         self.queues_container = QWidget()
         self.queues_layout = QGridLayout(self.queues_container)
@@ -839,10 +892,11 @@ class QueuesView(QWidget):
 
         # Sort by priority if enabled
         if sort_by_priority:
-            filtered.sort(key=lambda q: PRIORITY_CONFIG.get(
-                q.get("priority", "default").lower(),
-                PRIORITY_CONFIG["default"]
-            )["order"])
+            filtered.sort(
+                key=lambda q: PRIORITY_CONFIG.get(q.get("priority", "default").lower(), PRIORITY_CONFIG["default"])[
+                    "order"
+                ]
+            )
 
         self._update_queues_grid(filtered)
 
@@ -914,9 +968,9 @@ class QueuesView(QWidget):
         """Open edit dialog for queue"""
         dialog = QueueCreateDialog(self)
         # Pre-fill with existing data
-        if hasattr(dialog, 'name_input'):
+        if hasattr(dialog, "name_input"):
             dialog.name_input.setText(queue_data.get("name", ""))
-        if hasattr(dialog, 'priority_combo'):
+        if hasattr(dialog, "priority_combo"):
             priority = queue_data.get("priority", "medium")
             index = dialog.priority_combo.findText(priority.capitalize())
             if index >= 0:
@@ -956,7 +1010,7 @@ class QueuesView(QWidget):
             "Delete Queue",
             f"Are you sure you want to delete queue '{queue_name}'?\n\nThis action cannot be undone.",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
 
         if reply == QMessageBox.Yes:

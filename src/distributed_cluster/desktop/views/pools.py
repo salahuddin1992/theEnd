@@ -11,33 +11,29 @@ Features:
 - General statistics at top
 """
 
-from typing import Optional, List, Dict, Any
-from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from PySide6.QtCore import Signal, Qt, QTimer, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QIcon, QColor, QPainter, QPen, QBrush, QFont
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
+    QDialog,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
+    QMenu,
     QMessageBox,
+    QProgressBar,
     QPushButton,
-    QVBoxLayout,
-    QWidget,
-    QFrame,
-    QGridLayout,
     QScrollArea,
-    QStackedWidget,
-    QDialog,
     QSlider,
     QSpinBox,
-    QMenu,
-    QGraphicsDropShadowEffect,
-    QProgressBar,
-    QButtonGroup,
-    QSizePolicy,
+    QStackedWidget,
     QToolButton,
-    QLineEdit,
-    QComboBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from ..api.client import APIClient
@@ -52,11 +48,12 @@ class StatCard(QFrame):
     def __init__(self, title: str, value: str, icon: str = "", color: str = None, parent=None):
         super().__init__(parent)
         self.setObjectName("stat_card")
-        self._color = color or COLORS.get('primary', '#3b82f6')
+        self._color = color or COLORS.get("primary", "#3b82f6")
         self._setup_ui(title, value, icon)
 
     def _setup_ui(self, title: str, value: str, icon: str):
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#stat_card {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -67,7 +64,8 @@ class StatCard(QFrame):
                 border-color: {self._color};
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(8)
@@ -81,22 +79,26 @@ class StatCard(QFrame):
             title_layout.addWidget(icon_label)
 
         title_label = QLabel(title)
-        title_label.setStyleSheet(f"""
+        title_label.setStyleSheet(
+            f"""
             font-size: 13px;
             color: {COLORS.get('text_secondary', '#94a3b8')};
             font-weight: 500;
-        """)
+        """
+        )
         title_layout.addWidget(title_label)
         title_layout.addStretch()
         layout.addLayout(title_layout)
 
         # Value
         self.value_label = QLabel(value)
-        self.value_label.setStyleSheet(f"""
+        self.value_label.setStyleSheet(
+            f"""
             font-size: 28px;
             font-weight: 700;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         layout.addWidget(self.value_label)
 
     def set_value(self, value: str):
@@ -135,14 +137,15 @@ class PoolCard(QFrame):
 
         # Determine color based on status
         status_colors = {
-            "active": COLORS.get('success', '#10b981'),
-            "empty": COLORS.get('warning', '#f59e0b'),
-            "scaling": COLORS.get('info', '#3b82f6'),
-            "error": COLORS.get('danger', '#ef4444'),
+            "active": COLORS.get("success", "#10b981"),
+            "empty": COLORS.get("warning", "#f59e0b"),
+            "scaling": COLORS.get("info", "#3b82f6"),
+            "error": COLORS.get("danger", "#ef4444"),
         }
-        status_color = status_colors.get(status, COLORS.get('text_secondary', '#94a3b8'))
+        status_color = status_colors.get(status, COLORS.get("text_secondary", "#94a3b8"))
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#pool_card {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -153,7 +156,8 @@ class PoolCard(QFrame):
                 border-color: {COLORS.get('primary', '#3b82f6')};
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(16)
@@ -162,30 +166,35 @@ class PoolCard(QFrame):
         header_layout = QHBoxLayout()
 
         name_label = QLabel(pool.get("name", "Unknown Pool"))
-        name_label.setStyleSheet(f"""
+        name_label.setStyleSheet(
+            f"""
             font-size: 18px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(name_label)
         header_layout.addStretch()
 
         # Status badge
         status_badge = QLabel(status.upper())
-        status_badge.setStyleSheet(f"""
+        status_badge.setStyleSheet(
+            f"""
             background-color: {status_color}20;
             color: {status_color};
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
-        """)
+        """
+        )
         header_layout.addWidget(status_badge)
 
         # Actions button
         actions_btn = QToolButton()
         actions_btn.setText("⋮")
-        actions_btn.setStyleSheet(f"""
+        actions_btn.setStyleSheet(
+            f"""
             QToolButton {{
                 background: transparent;
                 border: none;
@@ -197,7 +206,8 @@ class PoolCard(QFrame):
                 background-color: {COLORS.get('bg_light', '#273548')};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
         actions_btn.clicked.connect(self._show_actions_menu)
         header_layout.addWidget(actions_btn)
 
@@ -206,10 +216,12 @@ class PoolCard(QFrame):
         # Description
         description = pool.get("description", "No description")
         desc_label = QLabel(description)
-        desc_label.setStyleSheet(f"""
+        desc_label.setStyleSheet(
+            f"""
             color: {COLORS.get('text_secondary', '#94a3b8')};
             font-size: 13px;
-        """)
+        """
+        )
         desc_label.setWordWrap(True)
         layout.addWidget(desc_label)
 
@@ -239,7 +251,8 @@ class PoolCard(QFrame):
         progress.setValue(int(utilization))
         progress.setTextVisible(False)
         progress.setFixedHeight(6)
-        progress.setStyleSheet(f"""
+        progress.setStyleSheet(
+            f"""
             QProgressBar {{
                 background-color: {COLORS.get('bg_dark', '#0f172a')};
                 border-radius: 3px;
@@ -248,7 +261,8 @@ class PoolCard(QFrame):
                 background-color: {status_color};
                 border-radius: 3px;
             }}
-        """)
+        """
+        )
         layout.addWidget(progress)
 
     def _add_stat(self, layout: QGridLayout, row: int, col: int, icon: str, label: str, value: str):
@@ -266,18 +280,22 @@ class PoolCard(QFrame):
         text_layout.setSpacing(2)
 
         label_widget = QLabel(label)
-        label_widget.setStyleSheet(f"""
+        label_widget.setStyleSheet(
+            f"""
             font-size: 11px;
             color: {COLORS.get('text_secondary', '#94a3b8')};
-        """)
+        """
+        )
         text_layout.addWidget(label_widget)
 
         value_widget = QLabel(value)
-        value_widget.setStyleSheet(f"""
+        value_widget.setStyleSheet(
+            f"""
             font-size: 14px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         text_layout.addWidget(value_widget)
 
         container_layout.addLayout(text_layout)
@@ -288,7 +306,8 @@ class PoolCard(QFrame):
     def _show_actions_menu(self):
         """Show actions dropdown menu"""
         menu = QMenu(self)
-        menu.setStyleSheet(f"""
+        menu.setStyleSheet(
+            f"""
             QMenu {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -303,7 +322,8 @@ class PoolCard(QFrame):
             QMenu::item:selected {{
                 background-color: {COLORS.get('primary', '#3b82f6')};
             }}
-        """)
+        """
+        )
 
         edit_action = menu.addAction("✏️  Edit Pool")
         edit_action.triggered.connect(lambda: self.action_triggered.emit("edit", self.pool_data))
@@ -337,11 +357,13 @@ class ScalePoolDialog(QDialog):
         self._setup_ui()
 
     def _setup_ui(self):
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QDialog {{
                 background-color: {COLORS.get('bg_dark', '#0f172a')};
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(24)
@@ -349,11 +371,13 @@ class ScalePoolDialog(QDialog):
 
         # Title
         title = QLabel(f"Scale: {self.pool_data.get('name', 'Unknown')}")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 20px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         layout.addWidget(title)
 
         # Current info
@@ -371,12 +395,14 @@ class ScalePoolDialog(QDialog):
 
         # Target count display
         self.target_label = QLabel(f"Target Workers: {current_workers}")
-        self.target_label.setStyleSheet(f"""
+        self.target_label.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 700;
             color: {COLORS.get('primary', '#3b82f6')};
             text-align: center;
-        """)
+        """
+        )
         self.target_label.setAlignment(Qt.AlignCenter)
         slider_layout.addWidget(self.target_label)
 
@@ -384,7 +410,8 @@ class ScalePoolDialog(QDialog):
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(min_workers, max_workers)
         self.slider.setValue(current_workers)
-        self.slider.setStyleSheet(f"""
+        self.slider.setStyleSheet(
+            f"""
             QSlider::groove:horizontal {{
                 border: none;
                 height: 8px;
@@ -406,7 +433,8 @@ class ScalePoolDialog(QDialog):
                 background: {COLORS.get('primary', '#3b82f6')};
                 border-radius: 4px;
             }}
-        """)
+        """
+        )
         self.slider.valueChanged.connect(self._on_slider_changed)
         slider_layout.addWidget(self.slider)
 
@@ -432,7 +460,8 @@ class ScalePoolDialog(QDialog):
         self.spinbox = QSpinBox()
         self.spinbox.setRange(min_workers, max_workers)
         self.spinbox.setValue(current_workers)
-        self.spinbox.setStyleSheet(f"""
+        self.spinbox.setStyleSheet(
+            f"""
             QSpinBox {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -441,7 +470,8 @@ class ScalePoolDialog(QDialog):
                 color: {COLORS.get('text_primary', '#f1f5f9')};
                 font-size: 14px;
             }}
-        """)
+        """
+        )
         self.spinbox.valueChanged.connect(self._on_spinbox_changed)
         spinbox_layout.addWidget(self.spinbox)
         spinbox_layout.addStretch()
@@ -454,7 +484,8 @@ class ScalePoolDialog(QDialog):
         buttons_layout.addStretch()
 
         cancel_btn = QPushButton("Cancel")
-        cancel_btn.setStyleSheet(f"""
+        cancel_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -466,12 +497,14 @@ class ScalePoolDialog(QDialog):
             QPushButton:hover {{
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
         cancel_btn.clicked.connect(self.reject)
         buttons_layout.addWidget(cancel_btn)
 
         confirm_btn = QPushButton("Scale Pool")
-        confirm_btn.setStyleSheet(f"""
+        confirm_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('primary', '#3b82f6')};
                 border: none;
@@ -483,7 +516,8 @@ class ScalePoolDialog(QDialog):
             QPushButton:hover {{
                 background-color: {COLORS.get('info', '#60a5fa')};
             }}
-        """)
+        """
+        )
         confirm_btn.clicked.connect(self._on_confirm)
         buttons_layout.addWidget(confirm_btn)
 
@@ -552,16 +586,16 @@ class PoolsView(QWidget):
         stats_layout = QHBoxLayout()
         stats_layout.setSpacing(16)
 
-        self.total_pools_card = StatCard("Total Pools", "0", "📦", COLORS.get('primary', '#3b82f6'))
+        self.total_pools_card = StatCard("Total Pools", "0", "📦", COLORS.get("primary", "#3b82f6"))
         stats_layout.addWidget(self.total_pools_card)
 
-        self.active_pools_card = StatCard("Active Pools", "0", "✅", COLORS.get('success', '#10b981'))
+        self.active_pools_card = StatCard("Active Pools", "0", "✅", COLORS.get("success", "#10b981"))
         stats_layout.addWidget(self.active_pools_card)
 
-        self.total_workers_card = StatCard("Total Workers", "0", "👥", COLORS.get('info', '#3b82f6'))
+        self.total_workers_card = StatCard("Total Workers", "0", "👥", COLORS.get("info", "#3b82f6"))
         stats_layout.addWidget(self.total_workers_card)
 
-        self.avg_utilization_card = StatCard("Avg Utilization", "0%", "📈", COLORS.get('warning', '#f59e0b'))
+        self.avg_utilization_card = StatCard("Avg Utilization", "0%", "📈", COLORS.get("warning", "#f59e0b"))
         stats_layout.addWidget(self.avg_utilization_card)
 
         parent_layout.addLayout(stats_layout)
@@ -571,11 +605,13 @@ class PoolsView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("Worker Pools")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         subtitle = QLabel("Manage logical groups of workers")
@@ -588,7 +624,8 @@ class PoolsView(QWidget):
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("🔍 Search pools...")
         self.search_input.setFixedWidth(200)
-        self.search_input.setStyleSheet(f"""
+        self.search_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -599,7 +636,8 @@ class PoolsView(QWidget):
             QLineEdit:focus {{
                 border-color: {COLORS.get('primary', '#3b82f6')};
             }}
-        """)
+        """
+        )
         self.search_input.textChanged.connect(self._on_search_changed)
         header_layout.addWidget(self.search_input)
 
@@ -644,7 +682,8 @@ class PoolsView(QWidget):
 
         # Refresh button
         refresh_btn = QPushButton("🔄 Refresh")
-        refresh_btn.setStyleSheet(f"""
+        refresh_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -655,13 +694,15 @@ class PoolsView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
         refresh_btn.clicked.connect(self._on_refresh)
         header_layout.addWidget(refresh_btn)
 
         # Create button
         create_btn = QPushButton("+ Create Pool")
-        create_btn.setStyleSheet(f"""
+        create_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('primary', '#3b82f6')};
                 border: none;
@@ -673,7 +714,8 @@ class PoolsView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('info', '#60a5fa')};
             }}
-        """)
+        """
+        )
         create_btn.clicked.connect(self._on_create_pool)
         header_layout.addWidget(create_btn)
 
@@ -683,12 +725,14 @@ class PoolsView(QWidget):
         """Setup cards view with scroll area"""
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet(f"""
-            QScrollArea {{
+        scroll_area.setStyleSheet(
+            """
+            QScrollArea {
                 border: none;
                 background-color: transparent;
-            }}
-        """)
+            }
+        """
+        )
 
         self.cards_container = QWidget()
         self.cards_layout = QGridLayout(self.cards_container)
@@ -734,9 +778,9 @@ class PoolsView(QWidget):
     def _on_search_changed(self, text: str):
         """Handle search input changes"""
         filtered_pools = [
-            pool for pool in self._pools_data
-            if text.lower() in pool.get("name", "").lower()
-            or text.lower() in pool.get("description", "").lower()
+            pool
+            for pool in self._pools_data
+            if text.lower() in pool.get("name", "").lower() or text.lower() in pool.get("description", "").lower()
         ]
         self._update_cards_view(filtered_pools)
 
@@ -792,11 +836,13 @@ class PoolsView(QWidget):
         # Update table view
         display_data = []
         for pool in pools:
-            display_data.append({
-                **pool,
-                "worker_count": len(pool.get("workers", [])),
-                "status": "active" if pool.get("workers") else "empty",
-            })
+            display_data.append(
+                {
+                    **pool,
+                    "worker_count": len(pool.get("workers", [])),
+                    "status": "active" if pool.get("workers") else "empty",
+                }
+            )
         self.pools_table.set_data(display_data)
 
     def _on_refresh(self):
@@ -806,7 +852,7 @@ class PoolsView(QWidget):
     def _on_pool_clicked(self, pool_data: dict):
         """Handle pool card click"""
         # Show pool details in detail panel
-        if hasattr(self, 'detail_panel') and self.detail_panel:
+        if hasattr(self, "detail_panel") and self.detail_panel:
             self.detail_panel.show_pool(pool_data)
         else:
             # Show details in a message box as fallback
@@ -816,8 +862,7 @@ class PoolsView(QWidget):
             QMessageBox.information(
                 self,
                 f"Pool: {pool_name}",
-                f"Workers: {workers}\nStatus: {status}\n\n"
-                f"Use the Edit action to modify this pool."
+                f"Workers: {workers}\nStatus: {status}\n\n" f"Use the Edit action to modify this pool.",
             )
 
     def _on_pool_action(self, action: str, pool_data: dict):
@@ -866,7 +911,7 @@ class PoolsView(QWidget):
             "Delete Pool",
             f"Are you sure you want to delete pool '{pool_name}'?\n\nThis action cannot be undone.",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
 
         if reply == QMessageBox.Yes:

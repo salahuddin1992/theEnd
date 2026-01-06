@@ -13,57 +13,50 @@ Features:
 """
 
 import json
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Dict, List, Optional
 
-from PySide6.QtCore import Signal, Qt, QTimer, QRegularExpression
-from PySide6.QtGui import (
-    QColor, QTextCharFormat, QFont, QSyntaxHighlighter,
-    QTextDocument, QKeySequence, QShortcut
-)
+from PySide6.QtCore import QRegularExpression, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QKeySequence, QShortcut, QSyntaxHighlighter, QTextCharFormat, QTextDocument
 from PySide6.QtWidgets import (
+    QComboBox,
+    QFileDialog,
+    QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPlainTextEdit,
     QPushButton,
-    QVBoxLayout,
-    QWidget,
-    QFrame,
-    QGridLayout,
     QScrollArea,
     QStackedWidget,
-    QComboBox,
-    QLineEdit,
-    QPlainTextEdit,
-    QFileDialog,
-    QGraphicsDropShadowEffect,
-    QSizePolicy,
     QToolButton,
-    QMessageBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from ..api.client import APIClient
 from ..resources.styles import COLORS
 
-
 # Log level configurations
 LOG_LEVELS = {
     "debug": {
-        "color": COLORS.get('text_muted', '#64748b'),
+        "color": COLORS.get("text_muted", "#64748b"),
         "icon": "🔍",
         "bg": "#64748b15",
     },
     "info": {
-        "color": COLORS.get('info', '#3b82f6'),
+        "color": COLORS.get("info", "#3b82f6"),
         "icon": "ℹ️",
         "bg": "#3b82f615",
     },
     "warning": {
-        "color": COLORS.get('warning', '#f59e0b'),
+        "color": COLORS.get("warning", "#f59e0b"),
         "icon": "⚠️",
         "bg": "#f59e0b15",
     },
     "error": {
-        "color": COLORS.get('danger', '#ef4444'),
+        "color": COLORS.get("danger", "#ef4444"),
         "icon": "❌",
         "bg": "#ef444415",
     },
@@ -87,53 +80,44 @@ class LogSyntaxHighlighter(QSyntaxHighlighter):
         """Setup highlighting rules"""
         # Timestamp pattern [YYYY-MM-DD HH:MM:SS]
         timestamp_format = QTextCharFormat()
-        timestamp_format.setForeground(QColor(COLORS.get('text_secondary', '#94a3b8')))
-        self._rules.append((
-            QRegularExpression(r'\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?\]'),
-            timestamp_format
-        ))
+        timestamp_format.setForeground(QColor(COLORS.get("text_secondary", "#94a3b8")))
+        self._rules.append((QRegularExpression(r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?\]"), timestamp_format))
 
         # Log levels
         for level, config in LOG_LEVELS.items():
             level_format = QTextCharFormat()
-            level_format.setForeground(QColor(config['color']))
+            level_format.setForeground(QColor(config["color"]))
             level_format.setFontWeight(QFont.Bold)
-            self._rules.append((
-                QRegularExpression(rf'\[{level.upper()}\]', QRegularExpression.CaseInsensitiveOption),
-                level_format
-            ))
+            self._rules.append(
+                (QRegularExpression(rf"\[{level.upper()}\]", QRegularExpression.CaseInsensitiveOption), level_format)
+            )
 
         # Source pattern [Source]
         source_format = QTextCharFormat()
-        source_format.setForeground(QColor(COLORS.get('primary', '#3b82f6')))
-        self._rules.append((
-            QRegularExpression(r'\[(Master|Worker|Scheduler|API|System)\]', QRegularExpression.CaseInsensitiveOption),
-            source_format
-        ))
+        source_format.setForeground(QColor(COLORS.get("primary", "#3b82f6")))
+        self._rules.append(
+            (
+                QRegularExpression(
+                    r"\[(Master|Worker|Scheduler|API|System)\]", QRegularExpression.CaseInsensitiveOption
+                ),
+                source_format,
+            )
+        )
 
         # Strings in quotes
         string_format = QTextCharFormat()
-        string_format.setForeground(QColor(COLORS.get('success', '#10b981')))
-        self._rules.append((
-            QRegularExpression(r'"[^"]*"'),
-            string_format
-        ))
+        string_format.setForeground(QColor(COLORS.get("success", "#10b981")))
+        self._rules.append((QRegularExpression(r'"[^"]*"'), string_format))
 
         # Numbers
         number_format = QTextCharFormat()
-        number_format.setForeground(QColor(COLORS.get('warning', '#f59e0b')))
-        self._rules.append((
-            QRegularExpression(r'\b\d+(\.\d+)?\b'),
-            number_format
-        ))
+        number_format.setForeground(QColor(COLORS.get("warning", "#f59e0b")))
+        self._rules.append((QRegularExpression(r"\b\d+(\.\d+)?\b"), number_format))
 
         # IP addresses
         ip_format = QTextCharFormat()
-        ip_format.setForeground(QColor(COLORS.get('info', '#3b82f6')))
-        self._rules.append((
-            QRegularExpression(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?\b'),
-            ip_format
-        ))
+        ip_format.setForeground(QColor(COLORS.get("info", "#3b82f6")))
+        self._rules.append((QRegularExpression(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?\b"), ip_format))
 
     def highlightBlock(self, text: str):
         for pattern, fmt in self._rules:
@@ -156,7 +140,8 @@ class LogCard(QFrame):
         level = self.log_entry.get("level", "info").lower()
         config = LOG_LEVELS.get(level, LOG_LEVELS["info"])
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#log_card {{
                 background-color: {config['bg']};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -165,7 +150,8 @@ class LogCard(QFrame):
                 padding: 12px;
                 margin: 4px 0;
             }}
-        """)
+        """
+        )
 
         layout = QVBoxLayout(self)
         layout.setSpacing(8)
@@ -176,20 +162,24 @@ class LogCard(QFrame):
 
         # Level badge
         level_badge = QLabel(f"{config['icon']} {level.upper()}")
-        level_badge.setStyleSheet(f"""
+        level_badge.setStyleSheet(
+            f"""
             color: {config['color']};
             font-weight: 600;
             font-size: 11px;
-        """)
+        """
+        )
         header_layout.addWidget(level_badge)
 
         # Source
         source = self.log_entry.get("source", "Unknown")
         source_label = QLabel(f"[{source}]")
-        source_label.setStyleSheet(f"""
+        source_label.setStyleSheet(
+            f"""
             color: {COLORS.get('primary', '#3b82f6')};
             font-size: 11px;
-        """)
+        """
+        )
         header_layout.addWidget(source_label)
 
         header_layout.addStretch()
@@ -197,10 +187,12 @@ class LogCard(QFrame):
         # Timestamp
         timestamp = self.log_entry.get("timestamp", "")
         time_label = QLabel(timestamp)
-        time_label.setStyleSheet(f"""
+        time_label.setStyleSheet(
+            f"""
             color: {COLORS.get('text_secondary', '#94a3b8')};
             font-size: 11px;
-        """)
+        """
+        )
         header_layout.addWidget(time_label)
 
         layout.addLayout(header_layout)
@@ -209,11 +201,13 @@ class LogCard(QFrame):
         message = self.log_entry.get("message", "")
         message_label = QLabel(message)
         message_label.setWordWrap(True)
-        message_label.setStyleSheet(f"""
+        message_label.setStyleSheet(
+            f"""
             color: {COLORS.get('text_primary', '#f1f5f9')};
             font-size: 13px;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        """)
+        """
+        )
         layout.addWidget(message_label)
 
 
@@ -230,40 +224,46 @@ class LevelStatCard(QFrame):
     def _setup_ui(self):
         config = LOG_LEVELS.get(self.level.lower(), LOG_LEVELS["info"])
 
-        self.setStyleSheet(f"""
+        self.setStyleSheet(
+            f"""
             QFrame#level_stat {{
                 background-color: {config['bg']};
                 border: 1px solid {COLORS.get('border', '#334155')};
                 border-radius: 8px;
                 padding: 8px 12px;
             }}
-        """)
+        """
+        )
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(8, 4, 8, 4)
         layout.setSpacing(8)
 
         # Icon
-        icon_label = QLabel(config['icon'])
+        icon_label = QLabel(config["icon"])
         icon_label.setStyleSheet("font-size: 16px;")
         layout.addWidget(icon_label)
 
         # Level name
         level_label = QLabel(self.level.upper())
-        level_label.setStyleSheet(f"""
+        level_label.setStyleSheet(
+            f"""
             color: {config['color']};
             font-weight: 600;
             font-size: 11px;
-        """)
+        """
+        )
         layout.addWidget(level_label)
 
         # Count
         self.count_label = QLabel(str(self._count))
-        self.count_label.setStyleSheet(f"""
+        self.count_label.setStyleSheet(
+            f"""
             color: {COLORS.get('text_primary', '#f1f5f9')};
             font-weight: 700;
             font-size: 14px;
-        """)
+        """
+        )
         layout.addWidget(self.count_label)
 
     def set_count(self, count: int):
@@ -339,11 +339,13 @@ class LogsView(QWidget):
         header_layout = QHBoxLayout()
 
         title = QLabel("System Logs")
-        title.setStyleSheet(f"""
+        title.setStyleSheet(
+            f"""
             font-size: 24px;
             font-weight: 600;
             color: {COLORS.get('text_primary', '#f1f5f9')};
-        """)
+        """
+        )
         header_layout.addWidget(title)
 
         header_layout.addStretch()
@@ -392,7 +394,8 @@ class LogsView(QWidget):
         # Stream toggle
         self.stream_btn = QPushButton("⏸️ Pause")
         self.stream_btn.setToolTip("Pause/Resume streaming (Space)")
-        self.stream_btn.setStyleSheet(f"""
+        self.stream_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('warning', '#f59e0b')};
                 border: none;
@@ -404,7 +407,8 @@ class LogsView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('warning', '#f59e0b')}dd;
             }}
-        """)
+        """
+        )
         self.stream_btn.clicked.connect(self._toggle_streaming)
         header_layout.addWidget(self.stream_btn)
 
@@ -412,7 +416,8 @@ class LogsView(QWidget):
         export_btn = QToolButton()
         export_btn.setText("📥 Export")
         export_btn.setPopupMode(QToolButton.InstantPopup)
-        export_btn.setStyleSheet(f"""
+        export_btn.setStyleSheet(
+            f"""
             QToolButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -426,11 +431,14 @@ class LogsView(QWidget):
             QToolButton::menu-indicator {{
                 image: none;
             }}
-        """)
+        """
+        )
 
         from PySide6.QtWidgets import QMenu
+
         export_menu = QMenu(export_btn)
-        export_menu.setStyleSheet(f"""
+        export_menu.setStyleSheet(
+            f"""
             QMenu {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -445,7 +453,8 @@ class LogsView(QWidget):
             QMenu::item:selected {{
                 background-color: {COLORS.get('primary', '#3b82f6')};
             }}
-        """)
+        """
+        )
 
         export_txt_action = export_menu.addAction("📄 Export as TXT")
         export_txt_action.triggered.connect(lambda: self._export_logs("txt"))
@@ -459,7 +468,8 @@ class LogsView(QWidget):
         # Clear button
         clear_btn = QPushButton("🗑️ Clear")
         clear_btn.setToolTip("Clear logs (Ctrl+L)")
-        clear_btn.setStyleSheet(f"""
+        clear_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('danger', '#ef4444')};
                 border: none;
@@ -471,14 +481,16 @@ class LogsView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('danger', '#ef4444')}dd;
             }}
-        """)
+        """
+        )
         clear_btn.clicked.connect(self._on_clear)
         header_layout.addWidget(clear_btn)
 
         # Refresh button
         refresh_btn = QPushButton("🔄 Refresh")
         refresh_btn.setToolTip("Refresh logs (F5)")
-        refresh_btn.setStyleSheet(f"""
+        refresh_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -489,7 +501,8 @@ class LogsView(QWidget):
             QPushButton:hover {{
                 background-color: {COLORS.get('bg_light', '#273548')};
             }}
-        """)
+        """
+        )
         refresh_btn.clicked.connect(self._on_refresh)
         header_layout.addWidget(refresh_btn)
 
@@ -502,7 +515,8 @@ class LogsView(QWidget):
         # Search box
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("🔍 Search logs... (Ctrl+F)")
-        self.search_input.setStyleSheet(f"""
+        self.search_input.setStyleSheet(
+            f"""
             QLineEdit {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -514,7 +528,8 @@ class LogsView(QWidget):
             QLineEdit:focus {{
                 border-color: {COLORS.get('primary', '#3b82f6')};
             }}
-        """)
+        """
+        )
         self.search_input.textChanged.connect(self._apply_filters)
         filter_layout.addWidget(self.search_input)
 
@@ -525,7 +540,8 @@ class LogsView(QWidget):
 
         self.level_combo = QComboBox()
         self.level_combo.addItems(["All", "Debug", "Info", "Warning", "Error", "Critical"])
-        self.level_combo.setStyleSheet(f"""
+        self.level_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -537,7 +553,8 @@ class LogsView(QWidget):
             QComboBox::drop-down {{
                 border: none;
             }}
-        """)
+        """
+        )
         self.level_combo.currentTextChanged.connect(self._apply_filters)
         filter_layout.addWidget(self.level_combo)
 
@@ -548,7 +565,8 @@ class LogsView(QWidget):
 
         self.source_combo = QComboBox()
         self.source_combo.addItems(["All", "Master", "Worker", "Scheduler", "API", "System"])
-        self.source_combo.setStyleSheet(f"""
+        self.source_combo.setStyleSheet(
+            f"""
             QComboBox {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -560,7 +578,8 @@ class LogsView(QWidget):
             QComboBox::drop-down {{
                 border: none;
             }}
-        """)
+        """
+        )
         self.source_combo.currentTextChanged.connect(self._apply_filters)
         filter_layout.addWidget(self.source_combo)
 
@@ -572,7 +591,8 @@ class LogsView(QWidget):
         """Setup text view with syntax highlighting"""
         self.logs_text = QPlainTextEdit()
         self.logs_text.setReadOnly(True)
-        self.logs_text.setStyleSheet(f"""
+        self.logs_text.setStyleSheet(
+            f"""
             QPlainTextEdit {{
                 font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 12px;
@@ -582,7 +602,8 @@ class LogsView(QWidget):
                 border-radius: 8px;
                 padding: 16px;
             }}
-        """)
+        """
+        )
         self.logs_text.setPlaceholderText(
             "No logs to display.\n\n"
             "Connect to a master server to view system logs.\n\n"
@@ -604,9 +625,11 @@ class LogsView(QWidget):
         """Setup cards view"""
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("""
+        scroll_area.setStyleSheet(
+            """
             QScrollArea { border: none; background-color: transparent; }
-        """)
+        """
+        )
 
         self.cards_container = QWidget()
         self.cards_layout = QVBoxLayout(self.cards_container)
@@ -628,10 +651,12 @@ class LogsView(QWidget):
 
         # Streaming indicator
         self.streaming_indicator = QLabel("● Streaming")
-        self.streaming_indicator.setStyleSheet(f"""
+        self.streaming_indicator.setStyleSheet(
+            f"""
             color: {COLORS.get('success', '#10b981')};
             font-size: 12px;
-        """)
+        """
+        )
         status_layout.addWidget(self.streaming_indicator)
 
         status_layout.addSpacing(16)
@@ -640,7 +665,8 @@ class LogsView(QWidget):
         self.auto_scroll_btn = QPushButton("Auto-scroll: ON")
         self.auto_scroll_btn.setCheckable(True)
         self.auto_scroll_btn.setChecked(True)
-        self.auto_scroll_btn.setStyleSheet(f"""
+        self.auto_scroll_btn.setStyleSheet(
+            f"""
             QPushButton {{
                 background-color: {COLORS.get('bg_medium', '#1e293b')};
                 border: 1px solid {COLORS.get('border', '#334155')};
@@ -653,7 +679,8 @@ class LogsView(QWidget):
                 background-color: {COLORS.get('primary', '#3b82f6')};
                 border-color: {COLORS.get('primary', '#3b82f6')};
             }}
-        """)
+        """
+        )
         self.auto_scroll_btn.clicked.connect(self._toggle_auto_scroll)
         status_layout.addWidget(self.auto_scroll_btn)
 
@@ -709,7 +736,8 @@ class LogsView(QWidget):
 
         if self._is_streaming:
             self.stream_btn.setText("⏸️ Pause")
-            self.stream_btn.setStyleSheet(f"""
+            self.stream_btn.setStyleSheet(
+                f"""
                 QPushButton {{
                     background-color: {COLORS.get('warning', '#f59e0b')};
                     border: none;
@@ -721,13 +749,15 @@ class LogsView(QWidget):
                 QPushButton:hover {{
                     background-color: {COLORS.get('warning', '#f59e0b')}dd;
                 }}
-            """)
+            """
+            )
             self.streaming_indicator.setText("● Streaming")
             self.streaming_indicator.setStyleSheet(f"color: {COLORS.get('success', '#10b981')}; font-size: 12px;")
             self.stream_timer.start(self.STREAM_INTERVAL)
         else:
             self.stream_btn.setText("▶️ Resume")
-            self.stream_btn.setStyleSheet(f"""
+            self.stream_btn.setStyleSheet(
+                f"""
                 QPushButton {{
                     background-color: {COLORS.get('success', '#10b981')};
                     border: none;
@@ -739,7 +769,8 @@ class LogsView(QWidget):
                 QPushButton:hover {{
                     background-color: {COLORS.get('success', '#10b981')}dd;
                 }}
-            """)
+            """
+            )
             self.streaming_indicator.setText("● Paused")
             self.streaming_indicator.setStyleSheet(f"color: {COLORS.get('warning', '#f59e0b')}; font-size: 12px;")
             self.stream_timer.stop()
@@ -868,15 +899,13 @@ class LogsView(QWidget):
             default_name = f"logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             file_filter = "JSON Files (*.json)"
 
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, "Export Logs", default_name, file_filter
-        )
+        file_path, _ = QFileDialog.getSaveFileName(self, "Export Logs", default_name, file_filter)
 
         if not file_path:
             return
 
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 if format_type == "txt":
                     for log in self._logs_data:
                         line = f"[{log.get('timestamp', '')}] [{log.get('source', '')}] [{log.get('level', '').upper()}] {log.get('message', '')}\n"

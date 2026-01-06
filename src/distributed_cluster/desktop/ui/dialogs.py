@@ -395,8 +395,8 @@ class ConnectionDialog(FluentDialog):
 
     def _save_profile(self):
         """Save current settings as profile"""
-        from pathlib import Path
         import json
+        from pathlib import Path
 
         from PySide6.QtWidgets import QInputDialog, QMessageBox
 
