@@ -38,7 +38,7 @@ jobs:
     if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'unit' || github.event.inputs.test_type == '' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -90,7 +90,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -124,7 +124,7 @@ jobs:
     if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'performance' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -155,7 +155,7 @@ jobs:
     if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'security' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -187,7 +187,7 @@ jobs:
     if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'fuzz' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -220,7 +220,7 @@ jobs:
     if: ${{ github.event.inputs.test_type == 'all' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
