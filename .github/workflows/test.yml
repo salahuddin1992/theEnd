@@ -65,7 +65,7 @@ jobs:
             --cov-report=xml:coverage-unit.xml
 
       - name: Upload results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: unit-test-results
@@ -112,7 +112,7 @@ jobs:
             --junitxml=junit-integration.xml
 
       - name: Upload results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: integration-test-results
@@ -144,7 +144,7 @@ jobs:
             --benchmark-json=benchmark-results.json
 
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-results
           path: benchmark-results.json
@@ -175,7 +175,7 @@ jobs:
             --junitxml=junit-security.xml
 
       - name: Upload results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: security-test-results
@@ -208,7 +208,7 @@ jobs:
             --junitxml=junit-fuzz.xml
 
       - name: Upload results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: fuzz-test-results
@@ -239,7 +239,7 @@ jobs:
             --junitxml=junit-load.xml
 
       - name: Upload results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: load-test-results

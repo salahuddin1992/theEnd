@@ -127,7 +127,7 @@ jobs:
           }
 
       - name: Upload Signed Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.artifact_name }}-signed
           path: ./to-sign/
@@ -238,7 +238,7 @@ jobs:
           fi
 
       - name: Upload Signed Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.artifact_name }}-signed
           path: ./to-sign/
@@ -325,7 +325,7 @@ jobs:
             --clearsign SHA256SUMS.txt
 
       - name: Upload Signed Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.artifact_name }}-signed
           path: ./to-sign/

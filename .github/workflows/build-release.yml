@@ -67,7 +67,7 @@ jobs:
           # signtool sign /f cert.pfx /p $env:CODE_SIGN_PASS /t http://timestamp.digicert.com dist/${{ env.APP_NAME }}.exe
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: windows-build
           path: |
@@ -132,7 +132,7 @@ jobs:
           python smart_builder.py build --installer deb --version ${{ steps.version.outputs.version }}
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: linux-build
           path: |
@@ -200,7 +200,7 @@ jobs:
           # codesign --force --deep --sign "Developer ID Application" "dist/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg"
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: macos-build
           path: |
@@ -313,7 +313,7 @@ jobs:
           python smart_builder.py build --compiler nuitka --optimize extreme
 
       - name: Upload Nuitka artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nuitka-${{ runner.os }}
           path: dist/

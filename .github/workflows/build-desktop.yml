@@ -538,7 +538,7 @@ jobs:
           echo "📋 Changelog generated with ${#CHANGELOG} characters"
 
       - name: 📤 Upload Build Info
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build-info
           path: build-info.json
@@ -650,7 +650,7 @@ jobs:
           cat ${{ env.REPORTS_DIR }}/security/summary.md
 
       - name: 📤 Upload Security Reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: security-reports
           path: ${{ env.REPORTS_DIR }}/security/
@@ -767,7 +767,7 @@ jobs:
           EOF
 
       - name: 📤 Upload Quality Reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: quality-reports
           path: ${{ env.REPORTS_DIR }}/quality/
@@ -826,7 +826,7 @@ jobs:
             || true
 
       - name: 📤 Upload Test Results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.test-type }}-py${{ matrix.python-version }}
           path: ${{ env.REPORTS_DIR }}/tests/
@@ -1182,7 +1182,7 @@ jobs:
 
       # ─── Upload Artifacts ───
       - name: 📤 Upload Build Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APP_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
@@ -1192,7 +1192,7 @@ jobs:
 
       - name: 📤 Upload Installers
         if: env.CREATE_INSTALLERS == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APP_NAME }}-installers-${{ matrix.platform }}-${{ matrix.arch }}
           path: ${{ env.INSTALLERS_DIR }}/
@@ -1200,7 +1200,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: 📤 Upload Build Reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build-reports-${{ matrix.platform }}-${{ matrix.arch }}
           path: ${{ env.REPORTS_DIR }}/build/
@@ -1271,7 +1271,7 @@ jobs:
           cat SHA256SUMS.txt
 
       - name: 📤 Upload Aggregated Release
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.APP_NAME }}-release-${{ needs.initialize.outputs.version }}
           path: release/
