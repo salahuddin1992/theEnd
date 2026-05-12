@@ -246,7 +246,7 @@ jobs:
           echo "- **macOS**: \`${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg\`" >> CHANGELOG.md
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ env.APP_NAME }} v${{ steps.version.outputs.version }}
           body_path: CHANGELOG.md
